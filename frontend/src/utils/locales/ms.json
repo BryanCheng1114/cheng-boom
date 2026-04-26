@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "home": "Laman Utama",
+    "shop": "Kedai",
+    "shopAll": "Semua Kategori",
+    "aboutUs": "Tentang Kami",
+    "contact": "Hubungi Kami"
+  },
+  "shopCategories": {
+    "soundcloud": "Bunyi Bising",
+    "fountain": "Air Pancut",
+    "handheld": "Pegang Tangan",
+    "spinning": "Berpusing",
+    "poppop": "Pop Pop",
+    "dragonpili": "Naga Pili",
+    "fireworks": "Bunga Api",
+    "firecrackers": "Mercun",
+    "skyline": "Pemandangan Langit",
+    "all": "Semua Kategori"
+  },
+  "aboutLinks": {
+    "origin": "Asal Usul Kami",
+    "history": "Sejarah Syarikat"
+  },
+  "home": {
+    "newArrivals": "Ketibaan Baru untuk 2026",
+    "heroTitle1": "Terangkan",
+    "heroTitle2": "Langit Malam",
+    "heroDesc": "Alami keajaiban bunga api premium kami. Selamat, menakjubkan dan dihantar terus melalui pesanan WhatsApp.",
+    "shopCollection": "Beli-belah Koleksi",
+    "ourHistory": "Sejarah Kami",
+    "featuredTitle": "Bunga Api Pilihan",
+    "featuredDesc": "Pilihan yang menjamin penamat yang menjatuhkan rahang untuk perayaan anda.",
+    "viewAll": "Lihat semua produk"
+  },
+  "shop": {
+    "categoriesTitle": "Kategori Kedai",
+    "categoriesDesc": "Cari paparan yang sesuai untuk perayaan anda",
+    "allProductsTitle": "Semua Produk",
+    "allProductsDesc": "Semak imbas seluruh koleksi kami",
+    "showing": "Menunjukkan",
+    "products": "produk",
+    "notFound": "Tiada produk ditemui dalam kategori ini.",
+    "returnToShop": "Kembali ke Kedai"
+  },
+  "productDetail": {
+    "back": "Kembali ke Kedai",
+    "addToCart": "Tambah ke Troli",
+    "safeTitle": "Selamat & Disahkan:",
+    "safeDesc": "Semua barangan memenuhi piawaian keselamatan tertinggi.",
+    "fastTitle": "Kutipan Pantas:",
+    "fastDesc": "Pesan melalui WhatsApp dan ambil di kedai."
+  },
+  "contact": {
+    "title": "Hubungi Kami",
+    "desc": "Ada soalan tentang produk kami atau perlukan bantuan merancang paparan anda? Kami di sini untuk membantu.",
+    "whatsappTitle": "WhatsApp Kami",
+    "whatsappDesc": "Cara terpantas untuk menghubungi kami. Klik di sini untuk berbual serta-merta!",
+    "emailTitle": "Sokongan E-mel",
+    "emailDesc": "Hantarkan e-mel kepada kami dan kami akan menghubungi anda dalam masa 24 jam.",
+    "store": "Kedai Kami",
+    "storeAddress1": "123 Sparkle Avenue",
+    "storeAddress2": "Fireworks District",
+    "storeAddress3": "Kuala Lumpur, Malaysia",
+    "phone": "Telefon Kedai"
+  },
+  "cart": {
+    "emptyTitle": "Troli Anda Kosong",
+    "emptyDesc": "Nampaknya anda belum menambah sebarang bunga api lagi!",
+    "startShopping": "Mula Membeli-belah",
+    "title": "Troli Anda",
+    "items": "barang",
+    "clear": "Kosongkan Troli",
+    "summary": "Ringkasan Pesanan",
+    "subtotal": "Jumlah Kecil",
+    "tax": "Anggaran Cukai",
+    "taxDesc": "Dikira melalui WhatsApp",
+    "total": "Jumlah Anggaran",
+    "send": "Hantar Pesanan melalui WhatsApp",
+    "disclaimer": "Anda akan dialihkan ke WhatsApp untuk memuktamadkan pesanan anda terus dengan kami. Tiada bayaran diambil secara dalam talian."
+  },
+  "about": {
+    "title": "Sejarah Kami",
+    "subtitle": "Menerangi sambutan sejak tahun 1995",
+    "p1": "Cheng-BOOM bermula sebagai sebuah kedai kecil milik keluarga yang mempunyai minat untuk membawa kegembiraan kepada kehidupan orang ramai melalui paparan cahaya yang menakjubkan.",
+    "p2": "Selama beberapa dekad, kami telah berkembang menjadi pembekal utama bunga api pengguna berkualiti tinggi di rantau ini. Kami mengembara ke seluruh dunia untuk mendapatkan hanya piroteknik yang paling selamat, terang dan menakjubkan yang ada.",
+    "p3": "Misi kami mudah: untuk menjadikan setiap perayaan tidak dapat dilupakan. Sama ada perkahwinan belakang rumah, cuti kebangsaan atau majlis Malam Tahun Baru, kami percaya bahawa langit adalah kanvas muktamad.",
+    "premiumTitle": "Kualiti Premium",
+    "premiumDesc": "Kami menguji setiap barisan produk untuk memastikan kesan visual maksimum.",
+    "safetyTitle": "Keselamatan Diutamakan",
+    "safetyDesc": "Semua bunga api kami memenuhi piawaian keselamatan negara yang ketat.",
+    "expertTitle": "Nasihat Pakar",
+    "expertDesc": "Kakitangan kami boleh membantu anda mereka bentuk persembahan yang sempurna mengikut bajet anda."
+  },
+  "footer": {
+    "tagline": "Destinasi utama Malaysia untuk bunga api berkualiti. Terangi perayaan anda dengan koleksi piroteknik premium kami yang menakjubkan.",
+    "whatsappBtn": "WhatsApp Kami Sekarang",
+    "quickLinks": "Pautan Pantas",
+    "shopByCategory": "Beli Mengikut Kategori",
+    "ourHistory": "Sejarah Kami",
+    "categories": "Kategori",
+    "contactUs": "Hubungi Kami",
+    "whatsapp": "WhatsApp",
+    "address": "Daerah Bunga Api, Kuala Lumpur, Malaysia",
+    "copyright": "Cheng-BOOM Fireworks. Hak cipta terpelihara.",
+    "orderNote": "Pesanan dilaksanakan melalui WhatsApp · Tiada bayaran dalam talian diperlukan"
+  },
+  "products": {
+    "pw-1": { "name": "Thunder Crackers 100x", "desc": "Rentetan mercun mini yang sangat kuat." },
+    "pw-2": { "name": "Pancutan Letusan Gunung Berapi", "desc": "Paparan pancutan tanah selama 2 minit dengan percikan biru dan emas yang menakjubkan disertai finale bersiul." },
+    "pw-3": { "name": "Pemetik Sihir Sparkler", "desc": "Sparkler 20 inci tahan lama yang memancarkan hujan emas yang menakjubkan. Selamat dan sempurna untuk majlis." },
+    "pw-4": { "name": "Bunga Mekar Tanah", "desc": "Berputar laju di atas tanah menukar warna dari hijau, merah dan kuning." },
+    "pw-5": { "name": "Super Snappers (Pop Pop)", "desc": "Pembuat bunyi klasik! Lempar ke lantai untuk bunyi letupan yang kuat." },
+    "pw-6": { "name": "Mercun Naga Pili", "desc": "Bebola kecil yang mengeluarkan bunyi letupan kuat dan percikan terang apabila dinyalakan." },
+    "pw-7": { "name": "Kek Grand Finale 500g", "desc": "Persembahan muktamad. 36 das mahkota brocade gergasi dengan kemasan letupan pantas." },
+    "pw-8": { "name": "Mercun Tanglung Merah", "desc": "Mercun merah tradisional yang direntang bersama untuk perayaan meriah." },
+    "pw-9": { "name": "Roket Langit Neon", "desc": "6 pek roket berkuasa yang melayang ke udara dengan ekor neon sebelum meletup menjadi bunga peon berwarna-warni." }
+  }
+}

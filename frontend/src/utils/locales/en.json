@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "home": "Home Page",
+    "shop": "Shop",
+    "shopAll": "Shop All",
+    "aboutUs": "About Us",
+    "contact": "Contact Us"
+  },
+  "shopCategories": {
+    "soundcloud": "Soundcloud",
+    "fountain": "Fountain",
+    "handheld": "Handheld",
+    "spinning": "Spinning",
+    "poppop": "Pop Pop",
+    "dragonpili": "Dragon Pili",
+    "fireworks": "Fireworks",
+    "firecrackers": "Firecrackers",
+    "skyline": "Skyline",
+    "all": "All Categories"
+  },
+  "aboutLinks": {
+    "origin": "Our Origin",
+    "history": "Company History"
+  },
+  "home": {
+    "newArrivals": "New Arrivals for 2026",
+    "heroTitle1": "Light Up The",
+    "heroTitle2": "Night Sky",
+    "heroDesc": "Experience the magic of our premium, hand-selected fireworks. Safe, spectacular, and delivered directly via WhatsApp order.",
+    "shopCollection": "Shop Collection",
+    "ourHistory": "Our History",
+    "featuredTitle": "Featured Pyrotechnics",
+    "featuredDesc": "Hand-picked selections that guarantee a jaw-dropping finale for your celebration.",
+    "viewAll": "View all products"
+  },
+  "shop": {
+    "categoriesTitle": "Shop Categories",
+    "categoriesDesc": "Find the perfect display for your celebration",
+    "allProductsTitle": "All Products",
+    "allProductsDesc": "Browse our entire collection",
+    "showing": "Showing",
+    "products": "products",
+    "notFound": "No products found in this category.",
+    "returnToShop": "Return to Shop"
+  },
+  "productDetail": {
+    "back": "Back to Shop",
+    "addToCart": "Add to Cart",
+    "safeTitle": "Safe & Certified:",
+    "safeDesc": "All items meet highest safety standards.",
+    "fastTitle": "Fast Collection:",
+    "fastDesc": "Order via WhatsApp and pick up in-store."
+  },
+  "contact": {
+    "title": "Get in Touch",
+    "desc": "Have a question about our products or need help planning your display? We're here to help.",
+    "whatsappTitle": "WhatsApp Us",
+    "whatsappDesc": "The fastest way to reach us. Click here to chat instantly!",
+    "emailTitle": "Email Support",
+    "emailDesc": "Send us an email and we'll get back to you within 24 hours.",
+    "store": "Our Store",
+    "storeAddress1": "123 Sparkle Avenue",
+    "storeAddress2": "Fireworks District",
+    "storeAddress3": "Kuala Lumpur, Malaysia",
+    "phone": "Store Phone"
+  },
+  "cart": {
+    "emptyTitle": "Your Cart is Empty",
+    "emptyDesc": "Looks like you haven't added any fireworks yet!",
+    "startShopping": "Start Shopping",
+    "title": "Your Cart",
+    "items": "items",
+    "clear": "Clear Cart",
+    "summary": "Order Summary",
+    "subtotal": "Subtotal",
+    "tax": "Estimated Tax",
+    "taxDesc": "Calculated via WhatsApp",
+    "total": "Total Estimate",
+    "send": "Send Order via WhatsApp",
+    "disclaimer": "You will be redirected to WhatsApp to finalize your order directly with us. No payment is taken online."
+  },
+  "about": {
+    "title": "Our History",
+    "subtitle": "Lighting up celebrations since 1995",
+    "p1": "Cheng-BOOM started as a small family-owned shop with a passion for bringing joy to people's lives through spectacular light displays.",
+    "p2": "Over the decades, we have grown into the premier supplier of high-quality consumer fireworks in the region. We travel the globe to source only the safest, most vibrant, and awe-inspiring pyrotechnics available.",
+    "p3": "Our mission is simple: to make every celebration unforgettable. Whether it's a backyard wedding, a national holiday, or a New Year's Eve bash, we believe that the sky is the ultimate canvas.",
+    "premiumTitle": "Premium Quality",
+    "premiumDesc": "We test every product line to ensure maximum visual impact.",
+    "safetyTitle": "Safety First",
+    "safetyDesc": "All our fireworks meet strict national safety standards.",
+    "expertTitle": "Expert Advice",
+    "expertDesc": "Our staff can help you design the perfect show for your budget."
+  },
+  "footer": {
+    "tagline": "Malaysia's premier destination for quality fireworks. Light up your celebrations with our spectacular collection of premium pyrotechnics.",
+    "whatsappBtn": "WhatsApp Us Now",
+    "quickLinks": "Quick Links",
+    "shopByCategory": "Shop by Category",
+    "ourHistory": "Our History",
+    "categories": "Categories",
+    "contactUs": "Contact Us",
+    "whatsapp": "WhatsApp",
+    "address": "Fireworks District, Kuala Lumpur, Malaysia",
+    "copyright": "Cheng-BOOM Fireworks. All rights reserved.",
+    "orderNote": "Orders fulfilled via WhatsApp · No online payment required"
+  },
+  "products": {
+    "pw-1": { "name": "Thunder Crackers 100x", "desc": "Extremely loud crackling strings of mini firecrackers." },
+    "pw-2": { "name": "Volcano Eruption Fountain", "desc": "A 2-minute dazzling ground display of shimmering blue and gold sparks accompanied by a whistling finale." },
+    "pw-3": { "name": "Magic Wand Sparklers", "desc": "Long-lasting 20-inch sparklers emitting a stunning gold shower. Safe and perfect for parties or weddings." },
+    "pw-4": { "name": "Ground Bloom Flower", "desc": "Spins rapidly on the ground changing colors from green, red, and yellow." },
+    "pw-5": { "name": "Super Snappers (Pop Pop)", "desc": "Classic noise makers! Throw them on the ground for a loud snap." },
+    "pw-6": { "name": "Dragon Pearl Crackle", "desc": "Small pearls that emit loud cracking sounds and bright sparks when ignited." },
+    "pw-7": { "name": "Grand Finale Cake 500g", "desc": "The ultimate showstopper. 36 shots of gigantic brocade crowns with a rapid-fire crackling finish." },
+    "pw-8": { "name": "Red Lantern Firecrackers", "desc": "Traditional red firecrackers strung together for festive celebrations." },
+    "pw-9": { "name": "Neon Sky Rockets", "desc": "A 6-pack of powerful rockets that streak into the air with a neon tail before bursting into colorful peonies." }
+  }
+}

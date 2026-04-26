@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "home": "首页",
+    "shop": "商店",
+    "shopAll": "全部商品",
+    "aboutUs": "关于我们",
+    "contact": "联系我们"
+  },
+  "shopCategories": {
+    "soundcloud": "响声类",
+    "fountain": "喷泉类",
+    "handheld": "手持类",
+    "spinning": "旋转类",
+    "poppop": "沙炮类",
+    "dragonpili": "炸珠类",
+    "fireworks": "烟花类",
+    "firecrackers": "鞭炮类",
+    "skyline": "飞天类",
+    "all": "所有类别"
+  },
+  "aboutLinks": {
+    "origin": "我们的起源",
+    "history": "公司历史"
+  },
+  "home": {
+    "newArrivals": "2026年新品",
+    "heroTitle1": "点亮",
+    "heroTitle2": "夜空",
+    "heroDesc": "体验我们精选优质烟花带来的魔力。安全、壮观，并通过WhatsApp下单直接送达。",
+    "shopCollection": "选购系列",
+    "ourHistory": "我们的历史",
+    "featuredTitle": "特色烟花",
+    "featuredDesc": "精心挑选的烟花，保证为您的庆祝活动带来令人惊叹的压轴表演。",
+    "viewAll": "查看所有产品"
+  },
+  "shop": {
+    "categoriesTitle": "商店类别",
+    "categoriesDesc": "为您的庆祝活动寻找完美的烟花",
+    "allProductsTitle": "所有产品",
+    "allProductsDesc": "浏览我们的全部系列",
+    "showing": "显示",
+    "products": "个产品",
+    "notFound": "该类别下未找到产品。",
+    "returnToShop": "返回商店"
+  },
+  "productDetail": {
+    "back": "返回商店",
+    "addToCart": "加入购物车",
+    "safeTitle": "安全认证:",
+    "safeDesc": "所有物品均符合最高安全标准。",
+    "fastTitle": "快速提货:",
+    "fastDesc": "通过WhatsApp订购，并在店内自取。"
+  },
+  "contact": {
+    "title": "联系我们",
+    "desc": "对我们的产品有疑问或需要帮助策划烟花表演？我们随时为您提供帮助。",
+    "whatsappTitle": "WhatsApp 联系我们",
+    "whatsappDesc": "最快联系我们的方式。点击这里立即聊天！",
+    "emailTitle": "电子邮件支持",
+    "emailDesc": "向我们发送电子邮件，我们将在24小时内回复您。",
+    "store": "我们的商店",
+    "storeAddress1": "123 Sparkle Avenue",
+    "storeAddress2": "Fireworks District",
+    "storeAddress3": "Kuala Lumpur, Malaysia",
+    "phone": "商店电话"
+  },
+  "cart": {
+    "emptyTitle": "您的购物车是空的",
+    "emptyDesc": "看起来您还没有添加任何烟花！",
+    "startShopping": "开始购物",
+    "title": "您的购物车",
+    "items": "件商品",
+    "clear": "清空购物车",
+    "summary": "订单摘要",
+    "subtotal": "小计",
+    "tax": "预估税费",
+    "taxDesc": "通过WhatsApp计算",
+    "total": "总计",
+    "send": "通过 WhatsApp 发送订单",
+    "disclaimer": "您将被重定向到WhatsApp，直接与我们确认订单。不在线收取任何费用。"
+  },
+  "about": {
+    "title": "我们的历史",
+    "subtitle": "自1995年以来点亮您的庆祝活动",
+    "p1": "Cheng-BOOM 最初是一家家庭经营的小商店，致力于通过壮观的灯光秀为人们的生活带来欢乐。",
+    "p2": "几十年来，我们已经发展成为该地区优质消费类烟花的主要供应商。我们走遍全球，只采购最安全、最充满活力和最令人惊叹的烟花。",
+    "p3": "我们的任务很简单：让每一个庆祝活动都令人难忘。无论是后院婚礼、国庆日还是除夕派对，我们都相信天空是终极的画布。",
+    "premiumTitle": "卓越品质",
+    "premiumDesc": "我们测试每一条产品线，以确保最大的视觉冲击力。",
+    "safetyTitle": "安全第一",
+    "safetyDesc": "我们所有的烟花都符合严格的国家安全标准。",
+    "expertTitle": "专家建议",
+    "expertDesc": "我们的工作人员可以帮助您设计适合您预算的完美表演。"
+  },
+  "footer": {
+    "tagline": "马来西亚优质烟花的首选目的地。用我们精彩的优质烟火产品点亮您的庆典。",
+    "whatsappBtn": "立即WhatsApp联系",
+    "quickLinks": "快速链接",
+    "shopByCategory": "按类别购物",
+    "ourHistory": "我们的历史",
+    "categories": "商品类别",
+    "contactUs": "联系我们",
+    "whatsapp": "WhatsApp",
+    "address": "烟花区，吉隆坡，马来西亚",
+    "copyright": "Cheng-BOOM 烟花。版权所有。",
+    "orderNote": "通过 WhatsApp 完成订单 · 无需在线付款"
+  },
+  "products": {
+    "pw-1": { "name": "雷霆炮竹 100x", "desc": "极响的迷你炮竹串。" },
+    "pw-2": { "name": "火山喷泉", "desc": "长达2分钟的地面喷泉表演，闪耀蓝金色火花，伴随哨声结尾。" },
+    "pw-3": { "name": "魔法棒烟花棒", "desc": "20英寸长燃烟花棒，散发金色火花雨。安全，适合派对或婚礼。" },
+    "pw-4": { "name": "地面旋转花", "desc": "在地面快速旋转，变换绿、红、黄色彩。" },
+    "pw-5": { "name": "超级沙炮（Pop Pop）", "desc": "经典响声玩具！扔到地上就会发出响亮的爆破声。" },
+    "pw-6": { "name": "龙珠噼啪炮", "desc": "点燃后发出响亮噼啪声和明亮火花的小珠子。" },
+    "pw-7": { "name": "大结局蛋糕炮 500g", "desc": "终极压轴演出。36发巨型织锦皇冠配连续噼啪结尾。" },
+    "pw-8": { "name": "红灯笼鞭炮", "desc": "传统红色鞭炮，用于节日庆典。" },
+    "pw-9": { "name": "霓虹天空火箭", "desc": "6支强力火箭，拖着霓虹尾迹飞上天空后绽放彩色牡丹花。" }
+  }
+}
