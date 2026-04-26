@@ -5,6 +5,7 @@ import { getProducts, categoriesData } from '../../utils/mockData';
 import { ProductCard } from '../../components/ui/ProductCard';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Search, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'name-asc';
 
@@ -86,39 +87,44 @@ export default function Shop() {
 
       {/* ── Page Header ───────────────────────────────────────────────────── */}
       <div className="bg-background border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-0">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-widest uppercase mb-4 border border-primary/20">
-              🎆 {t.shop.categoriesTitle}
-            </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+          <div className="text-center mb-16">
+            {/* Removed Badge */}
             <h1 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">
               {activeCategoryLabel}
             </h1>
-            <p className="mt-3 text-lg text-muted-foreground">{t.shop.categoriesDesc}</p>
+            <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">{t.shop.categoriesDesc}</p>
           </div>
 
           {/* ── Category Tab Bar ─────────────────────────────────────────── */}
           <div className="relative">
-            <div className="flex gap-1 overflow-x-auto pb-0 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+            <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
               {/* "All" tab */}
               <button
                 onClick={() => handleCategoryClick('all')}
                 className={[
-                  'relative shrink-0 flex items-center gap-2 px-5 py-3 text-sm font-bold rounded-t-xl transition-all duration-200 whitespace-nowrap border-b-2',
+                  'relative shrink-0 flex items-center gap-2 px-6 py-2.5 text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full',
                   activeCategory === 'all'
-                    ? 'text-primary border-primary bg-primary/5 dark:bg-primary/10'
-                    : 'text-zinc-500 dark:text-zinc-400 border-transparent hover:text-foreground hover:bg-zinc-100 dark:hover:bg-white/5',
+                    ? 'text-zinc-900'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-foreground hover:bg-zinc-100 dark:hover:bg-white/5',
                 ].join(' ')}
               >
-                ✨ {t.shopCategories.all}
+                <span className="relative z-10">{t.shopCategories.all}</span>
                 <span className={[
-                  'inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full text-[10px] font-black transition-colors',
+                  'relative z-10 inline-flex items-center justify-center min-w-[24px] h-5 px-2 rounded-full text-[10px] font-black transition-colors shadow-sm',
                   activeCategory === 'all'
-                    ? 'bg-primary text-zinc-900'
-                    : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300',
+                    ? 'bg-white/90 text-zinc-900 border border-zinc-900/5'
+                    : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400',
                 ].join(' ')}>
                   {allProducts.length}
                 </span>
+                {activeCategory === 'all' && (
+                  <motion.div
+                    layoutId="activeTabBackground"
+                    className="absolute inset-0 bg-primary rounded-full shadow-[0_4px_15px_rgba(245,158,11,0.4)]"
+                    transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
               </button>
 
               {/* Category tabs */}
@@ -131,27 +137,32 @@ export default function Shop() {
                     key={cat.key}
                     onClick={() => handleCategoryClick(cat.key)}
                     className={[
-                      'relative shrink-0 flex items-center gap-2 px-5 py-3 text-sm font-bold rounded-t-xl transition-all duration-200 whitespace-nowrap border-b-2',
+                      'relative shrink-0 flex items-center gap-2 px-6 py-2.5 text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full',
                       isActive
-                        ? 'text-primary border-primary bg-primary/5 dark:bg-primary/10'
-                        : 'text-zinc-500 dark:text-zinc-400 border-transparent hover:text-foreground hover:bg-zinc-100 dark:hover:bg-white/5',
+                        ? 'text-zinc-900'
+                        : 'text-zinc-500 dark:text-zinc-400 hover:text-foreground hover:bg-zinc-100 dark:hover:bg-white/5',
                     ].join(' ')}
                   >
-                    {label}
+                    <span className="relative z-10">{label}</span>
                     <span className={[
-                      'inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full text-[10px] font-black transition-colors',
+                      'relative z-10 inline-flex items-center justify-center min-w-[24px] h-5 px-2 rounded-full text-[10px] font-black transition-colors shadow-sm',
                       isActive
-                        ? 'bg-primary text-zinc-900'
-                        : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300',
+                        ? 'bg-white/90 text-zinc-900 border border-zinc-900/5'
+                        : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400',
                     ].join(' ')}>
                       {count}
                     </span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTabBackground"
+                        className="absolute inset-0 bg-primary rounded-full shadow-[0_4px_15px_rgba(245,158,11,0.4)]"
+                        transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
                   </button>
                 );
               })}
             </div>
-            {/* tab underline rule */}
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-border" />
           </div>
         </div>
       </div>
@@ -250,9 +261,29 @@ export default function Shop() {
           </div>
         ) : (
           /* Flat grid */
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 w-full">
-            {filteredProducts.map(product => <ProductCard key={product.id} {...product} />)}
-          </div>
+          <motion.div 
+            layout
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 w-full"
+          >
+            <AnimatePresence mode="popLayout">
+              {filteredProducts.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  layout
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                  transition={{ 
+                    duration: 0.4, 
+                    delay: index * 0.03,
+                    ease: "easeOut"
+                  }}
+                >
+                  <ProductCard {...product} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
       </div>
     </>

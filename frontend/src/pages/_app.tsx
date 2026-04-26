@@ -2,6 +2,7 @@ import type { AppProps } from 'next/app';
 import { ThemeProvider } from 'next-themes';
 import '../assets/globals.css';
 import { CartProvider } from '../components/cart/CartProvider';
+import { FlyToCartProvider } from '../components/ui/FlyToCartProvider';
 import { Layout } from '../components/layout/Layout';
 import Head from 'next/head';
 
@@ -12,9 +13,11 @@ export default function App({ Component, pageProps }: AppProps) {
         <link rel="icon" href="/logo.png" />
       </Head>
       <CartProvider>
-        <Layout>
-          <Component {...pageProps} />
-        </Layout>
+        <FlyToCartProvider>
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
+        </FlyToCartProvider>
       </CartProvider>
     </ThemeProvider>
   );

@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { useCart } from '../cart/CartProvider';
 import { ShoppingCart, Plus, Minus, AlertTriangle, Package } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useFlyToCart } from './FlyToCartProvider';
+import { useRef } from 'react';
 
 export interface ProductCardProps {
   id: string;
@@ -16,7 +18,9 @@ export interface ProductCardProps {
 
 export function ProductCard({ id, name, price, originalPrice, image, category, stock = 0 }: ProductCardProps) {
   const { items, addItem, updateQuantity } = useCart();
+  const { flyToCart } = useFlyToCart();
   const { t } = useTranslation();
+  const imageRef = useRef<HTMLDivElement>(null);
 
   const cartItem = items.find((item) => item.id === id);
   const quantity = cartItem?.quantity || 0;
@@ -31,6 +35,9 @@ export function ProductCard({ id, name, price, originalPrice, image, category, s
     e.preventDefault();
     if (quantity < stock) {
       addItem({ id, name: translatedName, price, originalPrice, image });
+      if (imageRef.current) {
+        flyToCart(image, imageRef.current);
+      }
     }
   };
 
@@ -51,36 +58,42 @@ export function ProductCard({ id, name, price, originalPrice, image, category, s
       <div className={`h-full flex flex-col bg-card border border-border rounded-2xl overflow-hidden transition-all duration-300 shadow-sm hover:shadow-[0_8px_30px_rgba(245,158,11,0.15)] hover:-translate-y-1 ${isOutOfStock ? 'opacity-75' : 'hover:border-primary/50'}`}>
         
         {/* Image Container */}
-        <div className="relative h-64 w-full overflow-hidden bg-muted shrink-0">
+        <div ref={imageRef} className="relative h-64 w-full overflow-hidden bg-muted shrink-0">
           <div
             className={`absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out ${!isOutOfStock && 'group-hover:scale-110'}`}
             style={{ backgroundImage: `url(${image})` }}
           />
           
-          {/* Overlay badges */}
-          <div className="absolute top-3 left-3 flex flex-col gap-2">
-            <div className="bg-background/90 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-bold text-foreground uppercase tracking-widest shadow-sm border border-border/50 w-fit">
+          {/* Top Left: Category */}
+          <div className="absolute top-3 left-3">
+            <div className="bg-background/90 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-bold text-foreground uppercase tracking-widest shadow-sm border border-border/50">
               {translatedCategory}
             </div>
-            
-            {isOutOfStock ? (
-              <div className="bg-red-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter shadow-lg flex items-center gap-1 animate-pulse">
-                <AlertTriangle size={10} /> Out of Stock
-              </div>
-            ) : hasDiscount ? (
-              <div className="bg-primary text-zinc-900 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter shadow-lg flex items-center gap-1">
+          </div>
+          
+          {/* Top Right: Discount */}
+          {hasDiscount && !isOutOfStock && (
+            <div className="absolute top-3 right-3">
+              <div className="bg-primary text-zinc-900 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-tight shadow-[0_0_15px_rgba(245,158,11,0.5)] flex items-center gap-1 animate-bounce-subtle">
                 🔥 SAVE {discountPercent}%
               </div>
-            ) : null}
-          </div>
-
-          {/* Stock count badge */}
-          {!isOutOfStock && (
-            <div className="absolute bottom-3 right-3 bg-zinc-900/60 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-medium text-white/90 flex items-center gap-1.5 border border-white/10">
-              <Package size={10} />
-              {stock} units left
             </div>
           )}
+
+          {/* Bottom Right: Stock Status / Out of Stock */}
+          <div className="absolute bottom-3 right-3 flex flex-col items-end gap-2">
+            {isOutOfStock ? (
+              <div className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-tighter shadow-lg flex items-center gap-1.5 border border-red-500/50">
+                <AlertTriangle size={12} className="animate-pulse" />
+                OUT OF STOCK
+              </div>
+            ) : (
+              <div className="bg-zinc-900/70 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-[10px] font-bold text-white flex items-center gap-2 border border-white/10 shadow-lg">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                {stock} IN STOCK
+              </div>
+            )}
+          </div>
         </div>
         
         <div className="p-5 flex flex-col flex-1 justify-between gap-4">

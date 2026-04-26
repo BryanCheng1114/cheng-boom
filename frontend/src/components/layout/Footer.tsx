@@ -37,10 +37,20 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
 
           {/* ---- Column 1: Brand ---- */}
-          <div className="space-y-5">
-            <Link href="/" className="flex items-center gap-3 group">
+          <div className="space-y-6 flex flex-col">
+            <Link href="/" className="flex flex-col items-start gap-4 group">
+              <div className="relative w-48 h-24 sm:w-64 sm:h-32 transition-transform duration-500 group-hover:scale-105">
+                <Image
+                  src="/transparent-Background.png"
+                  alt="Cheng-BOOM Logo"
+                  fill
+                  sizes="(max-width: 768px) 192px, 256px"
+                  className="object-contain object-left drop-shadow-[0_0_20px_rgba(255,165,0,0.3)] filter transition-all duration-500 group-hover:drop-shadow-[0_0_30px_rgba(255,165,0,0.5)]"
+                  priority
+                />
+              </div>
               <span 
-                className="font-black text-3xl italic tracking-wider bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent group-hover:scale-110 group-hover:-rotate-2 transition-transform duration-300 origin-left inline-block pr-2"
+                className="font-black text-3xl italic tracking-wider bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300 origin-left inline-block pr-2"
                 style={{ fontFamily: "'Impact', 'Arial Black', sans-serif" }}
               >
                 Cheng-BOOM
@@ -49,15 +59,6 @@ export function Footer() {
             <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed max-w-xs">
               {t.footer.tagline}
             </p>
-            <button
-              onClick={handleWhatsApp}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all
-                bg-green-100 hover:bg-green-200 text-green-700 border border-green-200
-                dark:bg-green-500/10 dark:hover:bg-green-500/20 dark:text-green-400 dark:border-green-500/20 dark:hover:border-green-500/40"
-            >
-              <MessageCircle size={16} />
-              {t.footer.whatsappBtn}
-            </button>
           </div>
 
           {/* ---- Column 2: Quick Links ---- */}
