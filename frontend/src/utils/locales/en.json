@@ -34,14 +34,22 @@
     "viewAll": "View all products"
   },
   "shop": {
-    "categoriesTitle": "Shop Categories",
     "categoriesDesc": "Find the perfect display for your celebration",
+    "categoriesInfo": "From grand sky displays to festive ground cracklers, explore our curated selection of premium fireworks tailored for every moment of joy.",
     "allProductsTitle": "All Products",
     "allProductsDesc": "Browse our entire collection",
     "showing": "Showing",
     "products": "products",
     "notFound": "No products found in this category.",
-    "returnToShop": "Return to Shop"
+    "returnToShop": "Return to Shop",
+    "searchPlaceholder": "Search products...",
+    "sortBy": "Sort",
+    "sortDefault": "Default Order",
+    "sortPriceAsc": "Price: Low → High",
+    "sortPriceDesc": "Price: High → Low",
+    "sortNameAsc": "Name: A → Z",
+    "for": "for",
+    "noProductsTryAgain": "Try a different keyword or browse all categories."
   },
   "productDetail": {
     "back": "Back to Shop",
@@ -80,17 +88,193 @@
     "disclaimer": "You will be redirected to WhatsApp to finalize your order directly with us. No payment is taken online."
   },
   "about": {
-    "title": "Our History",
-    "subtitle": "Lighting up celebrations since 1995",
-    "p1": "Cheng-BOOM started as a small family-owned shop with a passion for bringing joy to people's lives through spectacular light displays.",
-    "p2": "Over the decades, we have grown into the premier supplier of high-quality consumer fireworks in the region. We travel the globe to source only the safest, most vibrant, and awe-inspiring pyrotechnics available.",
-    "p3": "Our mission is simple: to make every celebration unforgettable. Whether it's a backyard wedding, a national holiday, or a New Year's Eve bash, we believe that the sky is the ultimate canvas.",
-    "premiumTitle": "Premium Quality",
-    "premiumDesc": "We test every product line to ensure maximum visual impact.",
-    "safetyTitle": "Safety First",
-    "safetyDesc": "All our fireworks meet strict national safety standards.",
-    "expertTitle": "Expert Advice",
-    "expertDesc": "Our staff can help you design the perfect show for your budget."
+    "exploreStory": "Explore Our Story",
+    "heroTitle1": "PRESERVING TRADITION.",
+    "heroTitle2": "IGNITING INNOVATION.",
+    "heroDesc": "For over four decades, Cheng-BOOM has been the invisible hand behind the world's most breathtaking celebrations, bridging the gap between ancient craftsmanship and future technology.",
+    "heritageTitle": "The Heritage (1982)",
+    "heritageSub": "Where It All Began",
+    "heritageDesc": "Our early days were defined by hand-rolled paper tubes and meticulously mixed black powder formulas passed down through generations. The 1980s saw us perfecting the foundational chemistry that remains the standard for safe, vibrant combustion today.",
+    "futureTitle": "The Future (Today)",
+    "futureSub": "The Modern Standard",
+    "futureDesc": "Today, we utilize satellite-synchronized ignition systems and eco-friendly, bismuth-based compositions. Our modern Roman candles are a testament to what happens when master craftsmanship meets aerospace-grade precision engineering.",
+    "missionQuote": "We don't just sell fireworks; we build the bridges between the earth and the heavens, one spark at a time.",
+    "feature1Title": "Certified Safe",
+    "feature1Desc": "Meeting all international pyrotechnic safety standards with 100% compliance.",
+    "feature2Title": "Pure Color",
+    "feature2Desc": "Using high-purity minerals to ensure deep, saturated reds and electric blues.",
+    "feature3Title": "Pro Support",
+    "feature3Desc": "Our experts are available 24/7 to help you design the perfect display."
+  },
+  "origin": {
+    "title": "Our Origin",
+    "desc": "At Cheng-BOOM, we don't just sell fireworks. We manufacture the moments that linger in your memories long after the last spark fades from the sky.",
+    "heritageLabel": "Heritage",
+    "heritageTitle": "Master Cheng in the Original Workshop.",
+    "journeyTitle": "A Journey Through Time",
+    "p1": "The story of Cheng-BOOM began in a small, kerosene-lit workshop nestled in the quiet village of Liuyang. Our founder, Master Cheng, was a third-generation chemist who possessed an unusual obsession: he believed that every firework carried a specific emotion.",
+    "p2": "\"A spark isn't just light,\" he would often say. \"It's the heartbeat of a celebration.\" In 1982, with nothing but a handful of raw materials and a visionary's spirit, he perfected the 'Imperial Gold Dragon'—a fountain so brilliant it caught the attention of regional authorities, eventually leading to the formation of what is now the most prestigious pyrotechnic brand in the region.",
+    "p3": "Decades later, we maintain that same artisanal spirit. While our manufacturing processes have evolved into a state-of-the-art global operation, the core philosophy remains unchanged: each unit is tested with the same rigor and passion as that first golden fountain four decades ago.",
+    "stat1Label": "Years Experience",
+    "stat2Label": "Celebrations Lit",
+    "value1Title": "Unmatched Brilliance",
+    "value1Desc": "We use proprietary chemical blends to ensure our colors are more vibrant and our effects last longer than standard market alternatives.",
+    "value2Title": "Safety First",
+    "value2Desc": "Every batch undergoes triple-redundancy safety testing. If it isn't safe enough for our own children to watch, it isn't safe enough for you.",
+    "value3Title": "Global Standards",
+    "value3Desc": "Operating with certifications across three continents, we meet and exceed international pyrotechnic quality and environmental regulations."
+  },
+  "history": {
+    "title": "Four Decades",
+    "titleItalic": "of Illumination.",
+    "desc": "From a humble hillside workshop to the world's most prestigious pyrotechnic stage. This is the timeline of how we conquered the night.",
+    "milestones": [
+      {
+        "year": "1982",
+        "title": "The Genesis of Light",
+        "desc": "In the heart of Liuyang, Master Cheng successfully synthesized the first stable \"Golden Rain\" formula, achieving a brilliance that set the foundation for the entire industry. This small family workshop would eventually redefine pyrotechnic art."
+      },
+      {
+        "year": "1995",
+        "title": "International Debut",
+        "desc": "Cheng-BOOM made its first appearance on the global stage at the Montreal Pyrotechnics Festival. Our display, \"The Dragon’s Breath,\" won the Gold Jupiter award, signaling the arrival of a new powerhouse in the industry."
+      },
+      {
+        "year": "2005",
+        "title": "Electronic Innovation",
+        "desc": "We pioneered the first proprietary electronic firing system, allow for microsecond precision in multi-layer displays. This technology transitioned us from simple fireworks to complex synchronized aerial symphonies."
+      },
+      {
+        "year": "2015",
+        "title": "Sustainable Skies Initiative",
+        "desc": "Leading the industry toward environmental responsibility, we launched the first full line of sulfur-free, low-smoke fireworks. This marked our commitment to preserving the air while still coloring the heavens."
+      },
+      {
+        "year": "2024",
+        "title": "Global Leadership",
+        "desc": "With distribution centers in 45 countries and a legacy spanning four decades, Cheng-BOOM remains the gold standard for celebrations worldwide, continuing Master Cheng’s mission to light up the human spirit."
+      }
+    ],
+    "quote": "The night is our canvas, and every explosion is a stroke of history. We continue to build because there are still heavens left to paint.",
+    "leadership": "Cheng-BOOM Leadership"
+  },
+  "contact": {
+    "heroTitle": "Let's Light Up",
+    "heroTitleItalic": "Your Night.",
+    "heroDesc": "Have questions about a display? Need bulk pricing? Or just want to talk pyrotechnics? Our master technicians are standing by.",
+    "getInTouch": "Get in Touch",
+    "getInTouchDesc": "We pride ourselves on providing the highest level of service in the industry. Whether you're planning a wedding or a city-wide celebration, we're here to help.",
+    "whatsappLabel": "WhatsApp Us",
+    "emailLabel": "Send an Email",
+    "studioLabel": "Our Studio",
+    "studioAddress": "Liuyang Industrial Park, Plot 88\nPyrotechnics Avenue, 43200",
+    "followUs": "Follow Our Displays",
+    "sendMessage": "Send a Message",
+    "formName": "Full Name",
+    "formNamePlaceholder": "John Doe",
+    "formEmail": "Email Address",
+    "formEmailPlaceholder": "john@example.com",
+    "formSubject": "Subject",
+    "formSubjectPlaceholder": "Planning a wedding display...",
+    "formMessage": "Message",
+    "formMessagePlaceholder": "Tell us about your event...",
+    "formSubmit": "SEND MESSAGE",
+    "formSuccess": "Message sent successfully! Our team will contact you shortly."
+  },
+  "cart": {
+    "title": "Cart",
+    "selection": "Selection",
+    "items": "items",
+    "continueShopping": "Continue Shopping",
+    "clear": "Clear Cart",
+    "summary": "Order Summary",
+    "subtotal": "Subtotal",
+    "savings": "Special Discounts",
+    "shipping": "Shipping",
+    "calculatedNext": "Calculated Next",
+    "totalPayable": "Total Payable",
+    "orderBtn": "ORDER VIA WHATSAPP",
+    "verified": "Verified pyrotechnic fulfillment",
+    "emptyTitle": "Your selection is empty.",
+    "emptyDesc": "Looks like you haven't added any magic to your cart yet.",
+    "startShopping": "Explore Collection",
+    "checkout": {
+      "title": "Finalize Your",
+      "titleAccent": "Order",
+      "desc": "Please provide your details so we can process your request faster.",
+      "formName": "Full Name",
+      "formNamePlaceholder": "Your Name",
+      "formPhone": "Phone Number",
+      "formPhonePlaceholder": "012-345 6789",
+      "paymentTitle": "Preferred Payment",
+      "deliveryTitle": "Order Mode",
+      "address": "Delivery Address",
+      "addressPlaceholder": "Your full address for delivery...",
+      "notes": "Notes (Optional)",
+      "notesPlaceholder": "e.g. Wedding event, bulk packing...",
+      "confirmBtn": "CONFIRM & SEND TO WHATSAPP",
+      "total": "Total"
+    }
+  },
+  "productDetail": {
+    "loading": "Loading...",
+    "notFound": "Product Not Found",
+    "backToCollection": "Back to Collection",
+    "sale": "SALE",
+    "save": "SAVE",
+    "selectQuantity": "Select Quantity",
+    "addToCart": "ADD TO CART",
+    "inStockSuffix": "units in stock — Ready to ship",
+    "description": "Description",
+    "productDetails": "Product Details",
+    "code": "Code",
+    "name": "Name",
+    "type": "Type",
+    "quantity": "Quantity",
+    "perPack": "PCS / PER PACK",
+    "productDescription": "Product Description",
+    "qualityNote": "High quality materials / Professional grade",
+    "videoDemo": "Video Demonstration",
+    "protectedHint": "Viewing only — Protected Image"
+  },
+  "floating": {
+    "music": {
+      "scratching": "Scratching...",
+      "playing": "Playing",
+      "paused": "Paused"
+    },
+    "whatsapp": {
+      "chatWithUs": "Chat with us!",
+      "online": "Online",
+      "greeting": "👋 Hello! I'd like to ask about:",
+      "q1": "🎆 Available fireworks",
+      "q2": "💰 Current prices",
+      "q3": "📦 Delivery / Pickup options",
+      "q4": "🎉 Event package deals",
+      "chatBtn": "Chat on WhatsApp"
+    }
+  },
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Access your premium fireworks account.",
+    "labelAccount": "Email or Phone Number",
+    "placeholderAccount": "your@email.com or 012-345 6789",
+    "labelPassword": "Password",
+    "placeholderPassword": "••••••••",
+    "forgotPassword": "Forgot your password?",
+    "signIn": "Sign In",
+    "noAccount": "Don't have an account?",
+    "signUp": "Contact us to register",
+    "backToHome": "Back to Home"
+  },
+  "admin": {
+    "loginTitle": "Admin Portal",
+    "loginSubtitle": "Authorized personnel only. Please sign in to access management tools.",
+    "usernameLabel": "Username / Admin ID",
+    "usernamePlaceholder": "Enter your admin credentials",
+    "passwordLabel": "Secret Key / Password",
+    "signIn": "Access Dashboard",
+    "securityNotice": "This is a restricted area. All activities are monitored."
   },
   "footer": {
     "tagline": "Malaysia's premier destination for quality fireworks. Light up your celebrations with our spectacular collection of premium pyrotechnics.",
@@ -115,5 +299,10 @@
     "pw-7": { "name": "Grand Finale Cake 500g", "desc": "The ultimate showstopper. 36 shots of gigantic brocade crowns with a rapid-fire crackling finish." },
     "pw-8": { "name": "Red Lantern Firecrackers", "desc": "Traditional red firecrackers strung together for festive celebrations." },
     "pw-9": { "name": "Neon Sky Rockets", "desc": "A 6-pack of powerful rockets that streak into the air with a neon tail before bursting into colorful peonies." }
+  },
+  "productCard": {
+    "outOfStock": "Out of Stock",
+    "inStock": "In Stock",
+    "save": "Save"
   }
 }

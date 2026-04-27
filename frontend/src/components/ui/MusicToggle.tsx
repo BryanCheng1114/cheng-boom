@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { VolumeX, Disc } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export function MusicToggle() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -11,6 +12,7 @@ export function MusicToggle() {
   const lastXRef = useRef<number>(0);
   const startXRef = useRef<number>(0);
   const spinIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     audioRef.current = new Audio('/sound/song.mp3');
@@ -119,7 +121,7 @@ export function MusicToggle() {
     <div className="fixed bottom-6 right-24 sm:right-26 z-50 flex flex-col items-end gap-2 select-none group">
       {/* Play/Pause Label */}
       <div className="bg-primary text-zinc-900 text-[10px] font-black px-4 py-1.5 rounded-full opacity-0 group-hover:opacity-100 group-hover:-translate-y-1 transition-all duration-300 whitespace-nowrap pointer-events-none uppercase tracking-widest border border-primary/20 shadow-xl flex items-center h-7">
-        {isScratching && hasMoved ? "Scratching..." : isPlaying ? "Playing" : "Paused"}
+        {isScratching && hasMoved ? t.floating.music.scratching : isPlaying ? t.floating.music.playing : t.floating.music.paused}
       </div>
 
       <button
@@ -129,7 +131,6 @@ export function MusicToggle() {
           "relative w-16 h-16 rounded-full transition-shadow duration-300 flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing",
           isPlaying ? "shadow-[0_0_30px_rgba(245,158,11,0.3)]" : "shadow-2xl shadow-black/50"
         )}
-        title="Drag to scratch, Click to toggle"
       >
           {/* Vinyl Disc SVG */}
           <div 

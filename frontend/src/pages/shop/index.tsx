@@ -67,10 +67,10 @@ export default function Shop() {
   };
 
   const sortLabels: Record<SortOption, string> = {
-    'default':    'Default Order',
-    'price-asc':  'Price: Low → High',
-    'price-desc': 'Price: High → Low',
-    'name-asc':   'Name: A → Z',
+    'default':    t.shop.sortDefault,
+    'price-asc':  t.shop.sortPriceAsc,
+    'price-desc': t.shop.sortPriceDesc,
+    'name-asc':   t.shop.sortNameAsc,
   };
 
   // @ts-ignore
@@ -81,7 +81,7 @@ export default function Shop() {
   return (
     <>
       <Head>
-        <title>{t.nav.shop} - Cheng-BOOM</title>
+        <title>{`${t.nav.shop} - Cheng-BOOM`}</title>
         <meta name="description" content="Browse our entire fireworks collection." />
       </Head>
 
@@ -179,7 +179,7 @@ export default function Shop() {
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search products…"
+              placeholder={t.shop.searchPlaceholder}
               className="w-full pl-10 pr-10 py-2.5 rounded-xl text-sm bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
             />
             {searchQuery && (
@@ -201,7 +201,7 @@ export default function Shop() {
             >
               <SlidersHorizontal size={15} />
               <span className="hidden sm:inline">{sortLabels[sortBy]}</span>
-              <span className="sm:hidden">Sort</span>
+              <span className="sm:hidden">{t.shop.sortBy}</span>
               <ChevronDown size={13} className={`transition-transform duration-200 ${sortOpen ? 'rotate-180' : ''}`} />
             </button>
 
@@ -242,7 +242,7 @@ export default function Shop() {
           <span className="font-bold text-foreground">{filteredProducts.length}</span>&nbsp;
           {t.shop.products}
           {searchQuery && (
-            <span> for "<span className="font-semibold text-primary">{searchQuery}</span>"</span>
+            <span> {t.shop.for} "<span className="font-semibold text-primary">{searchQuery}</span>"</span>
           )}
         </p>
 
@@ -251,7 +251,7 @@ export default function Shop() {
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="text-6xl mb-6">🔍</div>
             <h2 className="text-2xl font-extrabold text-foreground mb-2">{t.shop.notFound}</h2>
-            <p className="text-muted-foreground mb-6">Try a different keyword or browse all categories.</p>
+            <p className="text-muted-foreground mb-6">{t.shop.noProductsTryAgain}</p>
             <button
               onClick={() => { setSearchQuery(''); setActiveCategory('all'); }}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-zinc-900 font-bold text-sm hover:brightness-110 transition-all shadow-[0_0_15px_rgba(245,158,11,0.3)]"
@@ -263,7 +263,7 @@ export default function Shop() {
           /* Flat grid */
           <motion.div 
             layout
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 w-full"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-10 w-full"
           >
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((product, index) => (

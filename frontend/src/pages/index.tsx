@@ -170,12 +170,12 @@ export default function Home() {
 
         <div className="relative z-10 max-w-7xl mx-auto w-full">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-black/50 backdrop-blur-md text-primary text-sm font-bold tracking-widest uppercase mb-6 border border-primary/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
-              🎆 {t.shop.categoriesTitle}
-            </div>
             <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight drop-shadow-lg">
               {t.shop.categoriesDesc}
             </h2>
+            <p className="mt-4 text-zinc-400 max-w-2xl mx-auto text-lg leading-relaxed font-medium">
+              {t.shop.categoriesInfo}
+            </p>
           </div>
 
           <div className="flex flex-wrap justify-center max-w-5xl mx-auto gap-8 md:gap-14">

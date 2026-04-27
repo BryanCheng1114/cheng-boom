@@ -56,11 +56,11 @@ export default function Cart() {
   return (
     <>
       <Head>
-        <title>{t.cart.title} - Cheng-BOOM</title>
+        <title>{`${t.cart.title} - Cheng-BOOM`}</title>
       </Head>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
         <h1 className="text-4xl font-black text-foreground mb-12 tracking-tight">
-          Your <span className="text-primary italic">Selection</span> ({totalItems} {t.cart.items})
+          {t.cart.selection} <span className="text-primary italic">{t.cart.selection}</span> ({totalItems} {t.cart.items})
         </h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
@@ -74,7 +74,9 @@ export default function Cart() {
                 </div>
 
                 <div className="flex-1 text-center sm:text-left">
-                  <h3 className="text-xl font-bold text-foreground mb-1">{item.name}</h3>
+                  <h3 className="text-xl font-bold text-foreground mb-1">
+                    {t.products?.[item.id]?.name || item.name}
+                  </h3>
                   <div className="flex items-center justify-center sm:justify-start gap-3">
                     <p className="text-primary font-black text-lg">RM {item.price.toFixed(2)}</p>
                     {item.originalPrice && item.originalPrice > item.price && (
@@ -116,7 +118,7 @@ export default function Cart() {
             
             <div className="flex justify-between items-center pt-6 px-4">
                <Link href="/shop" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">
-                 ← Continue Shopping
+                 ← {t.cart.continueShopping}
                </Link>
               <button 
                 onClick={clearCart}
@@ -141,18 +143,18 @@ export default function Cart() {
                 </div>
                 {totalSavings > 0 && (
                   <div className="flex justify-between text-green-400 font-bold">
-                    <span>⚡ Special Discounts</span>
+                    <span>⚡ {t.cart.savings}</span>
                     <span>- RM {totalSavings.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-zinc-400 font-medium">
-                  <span>Shipping</span>
-                  <span className="text-[10px] uppercase tracking-widest bg-white/10 px-2 py-1 rounded-md">Calculated Next</span>
+                  <span>{t.cart.shipping}</span>
+                  <span className="text-[10px] uppercase tracking-widest bg-white/10 px-2 py-1 rounded-md">{t.cart.calculatedNext}</span>
                 </div>
                 
                 <div className="pt-6 border-t border-white/10 flex justify-between items-center">
                   <div>
-                    <span className="text-sm font-bold text-zinc-500 uppercase tracking-widest block mb-1">Total Payable</span>
+                    <span className="text-sm font-bold text-zinc-500 uppercase tracking-widest block mb-1">{t.cart.totalPayable}</span>
                     <span className="text-4xl font-black text-primary">RM {totalPrice.toFixed(2)}</span>
                   </div>
                 </div>
@@ -160,16 +162,16 @@ export default function Cart() {
 
               <button
                 onClick={() => setIsCheckoutOpen(true)}
-                className="w-full py-5 bg-primary text-zinc-900 rounded-[20px] font-black text-xl hover:brightness-110 transition-all shadow-xl hover:shadow-primary/20 flex justify-center items-center gap-3 active:scale-[0.98]"
+                className="w-full py-5 px-4 bg-primary text-zinc-900 rounded-[20px] font-black text-lg hover:brightness-110 transition-all shadow-xl hover:shadow-primary/20 flex justify-center items-center gap-2 active:scale-[0.98]"
               >
-                <MessageCircle size={24} strokeWidth={3} />
-                ORDER VIA WHATSAPP
+                <MessageCircle size={22} strokeWidth={3} className="shrink-0" />
+                <span className="leading-tight">{t.cart.orderBtn}</span>
               </button>
               
               <div className="mt-8 space-y-3">
                  <div className="flex items-center gap-3 text-xs text-zinc-500 font-medium bg-white/5 p-3 rounded-xl border border-white/5">
                    <Shield size={14} className="text-primary" />
-                   Verified pyrotechnic fulfillment
+                   {t.cart.verified}
                  </div>
               </div>
             </div>
@@ -197,8 +199,8 @@ export default function Cart() {
               <form onSubmit={handleCheckoutSubmit} className="max-h-[90vh] overflow-y-auto">
                 <div className="p-8 sm:p-12">
                   <div className="mb-10">
-                    <h2 className="text-3xl font-black text-foreground mb-2">Finalize Your <span className="text-primary">Order</span></h2>
-                    <p className="text-muted-foreground font-medium">Please provide your details so we can process your request faster.</p>
+                    <h2 className="text-3xl font-black text-foreground mb-2">{t.cart.checkout.title} <span className="text-primary">{t.cart.checkout.titleAccent}</span></h2>
+                    <p className="text-muted-foreground font-medium">{t.cart.checkout.desc}</p>
                   </div>
 
                   <div className="space-y-8">
@@ -206,26 +208,26 @@ export default function Cart() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">
-                          <User size={12} className="text-primary" /> Full Name
+                          <User size={12} className="text-primary" /> {t.cart.checkout.formName}
                         </label>
                         <input 
                           type="text" 
                           required
                           className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold"
-                          placeholder="Your Name"
+                          placeholder={t.cart.checkout.formNamePlaceholder}
                           value={orderDetails.customerName}
                           onChange={(e) => setOrderDetails({ ...orderDetails, customerName: e.target.value })}
                         />
                       </div>
                       <div className="space-y-2">
                         <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">
-                          <Phone size={12} className="text-primary" /> Phone Number
+                          <Phone size={12} className="text-primary" /> {t.cart.checkout.formPhone}
                         </label>
                         <input 
                           type="tel" 
                           required
                           className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold"
-                          placeholder="012-345 6789"
+                          placeholder={t.cart.checkout.formPhonePlaceholder}
                           value={orderDetails.customerPhone}
                           onChange={(e) => setOrderDetails({ ...orderDetails, customerPhone: e.target.value })}
                         />
@@ -235,7 +237,7 @@ export default function Cart() {
                     {/* Payment Method */}
                     <div className="space-y-3">
                       <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">
-                        <CreditCard size={12} className="text-primary" /> Preferred Payment
+                        <CreditCard size={12} className="text-primary" /> {t.cart.checkout.paymentTitle}
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {['TNG e-Wallet', 'Bank Transfer', 'DuitNow QR'].map((method) => (
@@ -260,7 +262,7 @@ export default function Cart() {
                     {/* Delivery Mode */}
                     <div className="space-y-3">
                       <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">
-                        <MapPin size={12} className="text-primary" /> Order Mode
+                        <MapPin size={12} className="text-primary" /> {t.cart.checkout.deliveryTitle}
                       </label>
                       <div className="grid grid-cols-2 gap-3">
                         {['Self-Collect', 'Delivery'].map((mode) => (
@@ -284,11 +286,11 @@ export default function Cart() {
                     {/* Address (If Delivery) */}
                     {orderDetails.deliveryMode === 'Delivery' && (
                       <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Delivery Address</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">{t.cart.checkout.address}</label>
                         <textarea 
                           required
                           className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold resize-none"
-                          placeholder="Your full address for delivery..."
+                          placeholder={t.cart.checkout.addressPlaceholder}
                           rows={3}
                           value={orderDetails.address}
                           onChange={(e) => setOrderDetails({ ...orderDetails, address: e.target.value })}
@@ -298,11 +300,11 @@ export default function Cart() {
 
                     {/* Special Notes */}
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Notes (Optional)</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">{t.cart.checkout.notes}</label>
                       <input 
                         type="text" 
                         className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold"
-                        placeholder="e.g. Wedding event, bulk packing..."
+                        placeholder={t.cart.checkout.notesPlaceholder}
                         value={orderDetails.notes}
                         onChange={(e) => setOrderDetails({ ...orderDetails, notes: e.target.value })}
                       />
@@ -312,13 +314,13 @@ export default function Cart() {
                   <div className="mt-12 flex flex-col gap-4">
                      <button 
                         type="submit"
-                        className="w-full py-5 bg-primary text-zinc-900 rounded-[20px] font-black text-xl hover:brightness-110 transition-all shadow-xl hover:shadow-primary/20 flex justify-center items-center gap-3 active:scale-[0.98]"
+                        className="w-full py-5 px-4 bg-primary text-zinc-900 rounded-[20px] font-black text-lg hover:brightness-110 transition-all shadow-xl hover:shadow-primary/20 flex justify-center items-center gap-2 active:scale-[0.98]"
                      >
-                        <MessageCircle size={24} strokeWidth={3} />
-                        CONFIRM & SEND TO WHATSAPP
+                        <MessageCircle size={22} strokeWidth={3} className="shrink-0" />
+                        <span className="leading-tight">{t.cart.checkout.confirmBtn}</span>
                      </button>
                      <p className="text-[10px] text-center text-zinc-500 font-bold uppercase tracking-widest">
-                       Total: RM {totalPrice.toFixed(2)}
+                       {t.cart.checkout.total}: RM {totalPrice.toFixed(2)}
                      </p>
                   </div>
                 </div>

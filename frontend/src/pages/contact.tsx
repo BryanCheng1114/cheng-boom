@@ -1,7 +1,8 @@
 import Head from 'next/head';
-import { Mail, MessageCircle, MapPin, Phone, Send, Globe } from 'lucide-react';
+import { Mail, MessageCircle, MapPin, Phone, Send, Globe, Sparkles } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 
 export default function Contact() {
   const { t } = useTranslation();
@@ -10,135 +11,158 @@ export default function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Logic for form submission
-    alert('Message sent successfully! Our team will contact you shortly.');
+    alert(t.contact.formSuccess);
     setFormState({ name: '', email: '', subject: '', message: '' });
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 }
   };
 
   return (
     <>
       <Head>
-        <title>Contact Us - Cheng-BOOM</title>
+        <title>{`${t.nav.contactUs} - Cheng-BOOM`}</title>
       </Head>
       
-      <div className="relative overflow-hidden">
+      <div className="bg-background min-h-screen">
         
         {/* ---- HERO SECTION ---- */}
-        <section className="bg-zinc-950 py-24 md:py-32 relative">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.15),transparent_50%)]" />
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-black tracking-widest uppercase mb-6 border border-primary/20">
-              <Globe size={14} /> Reach Our Experts
-            </div>
-            <h1 className="text-5xl md:text-8xl font-black text-white tracking-tight mb-8">
-              Let's Light Up <br />
-              <span className="text-primary italic">Your Night.</span>
-            </h1>
-            <p className="text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-              Have questions about a display? Need bulk pricing? Or just want to talk pyrotechnics? Our master technicians are standing by.
-            </p>
-          </div>
+        <section className="relative pt-32 pb-20 overflow-hidden bg-zinc-950">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.2),transparent_60%)]" />
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1 }}
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center"
+          >
+            <motion.h1 
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-6xl md:text-9xl font-black text-white tracking-tighter mb-8 leading-[0.8]"
+            >
+              {t.contact.heroTitle} <br />
+              <span className="text-primary italic">{t.contact.heroTitleItalic}</span>
+            </motion.h1>
+            <motion.p 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed"
+            >
+              {t.contact.heroDesc}
+            </motion.p>
+          </motion.div>
         </section>
 
-        {/* ---- CONTACT GRID ---- */}
-        <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
+        {/* ---- CONTENT SECTION ---- */}
+        <section className="py-24 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 lg:grid-cols-12 gap-12"
+          >
             
-            {/* LEFT: Contact Info */}
+            {/* LEFT: INFO */}
             <div className="lg:col-span-5 space-y-12">
-              <div className="space-y-6">
-                <h2 className="text-3xl font-black tracking-tight text-foreground">Get in Touch</h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  We pride ourselves on providing the highest level of service in the industry. Whether you're planning a wedding or a city-wide celebration, we're here to help.
+              <motion.div variants={itemVariants} className="space-y-6">
+                <h2 className="text-4xl font-black tracking-tight text-foreground">{t.contact.getInTouch}</h2>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  {t.contact.getInTouchDesc}
                 </p>
-              </div>
+              </motion.div>
 
               <div className="space-y-6">
                 {/* WhatsApp */}
-                <a 
+                <motion.a 
+                  variants={itemVariants}
                   href={`https://wa.me/601112269835`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-6 p-6 rounded-3xl bg-zinc-50 dark:bg-white/5 border border-border hover:border-[#25D366] transition-all group hover:scale-[1.02]"
+                  className="flex items-center gap-5 p-6 rounded-3xl bg-zinc-50 dark:bg-white/5 border border-border hover:border-[#25D366] transition-all group relative overflow-hidden"
                 >
-                  <div className="w-14 h-14 bg-[#25D366]/10 rounded-2xl flex items-center justify-center text-[#25D366]">
-                    <MessageCircle size={28} />
+                  <div className="absolute inset-0 bg-[#25D366]/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="w-14 h-14 bg-[#25D366]/10 rounded-xl flex items-center justify-center text-[#25D366] group-hover:scale-110 transition-transform">
+                    <MessageCircle size={28} strokeWidth={2.5} />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">WhatsApp Us</p>
-                    <p className="text-lg font-bold group-hover:text-[#25D366] transition-colors">{WHATSAPP_NUMBER}</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{t.contact.whatsappLabel}</p>
+                    <p className="text-lg font-bold text-foreground group-hover:text-[#25D366] transition-colors tracking-tight">{WHATSAPP_NUMBER}</p>
                   </div>
-                </a>
+                </motion.a>
 
                 {/* Email */}
-                <a 
+                <motion.a 
+                  variants={itemVariants}
                   href="mailto:hello@cheng-boom.test"
-                  className="flex items-center gap-6 p-6 rounded-3xl bg-zinc-50 dark:bg-white/5 border border-border hover:border-primary transition-all group hover:scale-[1.02]"
+                  className="flex items-center gap-5 p-6 rounded-3xl bg-zinc-50 dark:bg-white/5 border border-border hover:border-primary transition-all group relative overflow-hidden"
                 >
-                  <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
-                    <Mail size={28} />
+                  <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                    <Mail size={28} strokeWidth={2.5} />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">Send an Email</p>
-                    <p className="text-lg font-bold group-hover:text-primary transition-colors">hello@cheng-boom.test</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{t.contact.emailLabel}</p>
+                    <p className="text-lg font-bold text-foreground group-hover:text-primary transition-colors tracking-tight">hello@cheng-boom.test</p>
                   </div>
-                </a>
+                </motion.a>
 
-                {/* Address */}
-                <div className="flex items-center gap-6 p-6 rounded-3xl bg-zinc-50 dark:bg-white/5 border border-border transition-all">
-                  <div className="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500">
-                    <MapPin size={28} />
+                {/* Studio */}
+                <motion.div variants={itemVariants} className="flex items-center gap-5 p-6 rounded-3xl bg-zinc-50 dark:bg-white/5 border border-border">
+                  <div className="w-14 h-14 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500">
+                    <MapPin size={28} strokeWidth={2.5} />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">Our Studio</p>
-                    <p className="text-sm font-bold text-foreground">Liuyang Industrial Park, Plot 88<br/>Pyrotechnics Avenue, 43200</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{t.contact.studioLabel}</p>
+                    <p className="text-sm font-bold text-foreground leading-snug whitespace-pre-line">{t.contact.studioAddress}</p>
                   </div>
-                </div>
-              </div>
-
-              <div className="pt-8">
-                <p className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 mb-6">Follow Our Displays</p>
-                <div className="flex gap-4">
-                  <a href="#" className="w-12 h-12 rounded-full border border-border flex items-center justify-center hover:bg-primary hover:border-primary hover:text-zinc-900 transition-all">
-                    <Globe size={20} />
-                  </a>
-                  <a href="#" className="w-12 h-12 rounded-full border border-border flex items-center justify-center hover:bg-primary hover:border-primary hover:text-zinc-900 transition-all">
-                    <MessageCircle size={20} />
-                  </a>
-                  <a href="#" className="w-12 h-12 rounded-full border border-border flex items-center justify-center hover:bg-primary hover:border-primary hover:text-zinc-900 transition-all">
-                    <Mail size={20} />
-                  </a>
-                </div>
+                </motion.div>
               </div>
             </div>
 
-            {/* RIGHT: Contact Form */}
-            <div className="lg:col-span-7">
-              <div className="p-8 md:p-12 rounded-[40px] bg-zinc-50 dark:bg-white/5 border border-border shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+            {/* RIGHT: FORM */}
+            <motion.div 
+              variants={itemVariants}
+              className="lg:col-span-7"
+            >
+              <div className="p-8 md:p-10 rounded-[40px] bg-zinc-50 dark:bg-white/5 border border-border shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-colors" />
                 
-                <h3 className="text-3xl font-black text-foreground mb-8">Send a Message</h3>
+                <h3 className="text-2xl font-black text-foreground mb-8 tracking-tight">{t.contact.sendMessage}</h3>
                 
                 <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Full Name</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t.contact.formName}</label>
                       <input 
                         type="text" 
                         required
-                        className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium"
-                        placeholder="John Doe"
+                        className="w-full px-6 py-4 rounded-xl bg-white dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground"
+                        placeholder={t.contact.formNamePlaceholder}
                         value={formState.name}
                         onChange={(e) => setFormState({ ...formState, name: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Email Address</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t.contact.formEmail}</label>
                       <input 
                         type="email" 
                         required
-                        className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium"
-                        placeholder="john@example.com"
+                        className="w-full px-6 py-4 rounded-xl bg-white dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground"
+                        placeholder={t.contact.formEmailPlaceholder}
                         value={formState.email}
                         onChange={(e) => setFormState({ ...formState, email: e.target.value })}
                       />
@@ -146,43 +170,44 @@ export default function Contact() {
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Subject</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t.contact.formSubject}</label>
                     <input 
                       type="text" 
                       required
-                      className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium"
-                      placeholder="Planning a wedding display..."
+                      className="w-full px-6 py-4 rounded-xl bg-white dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground"
+                      placeholder={t.contact.formSubjectPlaceholder}
                       value={formState.subject}
                       onChange={(e) => setFormState({ ...formState, subject: e.target.value })}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Message</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t.contact.formMessage}</label>
                     <textarea 
                       required
                       rows={5}
-                      className="w-full px-6 py-4 rounded-3xl bg-white dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium resize-none"
-                      placeholder="Tell us about your event..."
+                      className="w-full px-6 py-4 rounded-[20px] bg-white dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground resize-none"
+                      placeholder={t.contact.formMessagePlaceholder}
                       value={formState.message}
                       onChange={(e) => setFormState({ ...formState, message: e.target.value })}
                     />
                   </div>
 
-                  <button 
+                  <motion.button 
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
                     type="submit"
-                    className="w-full py-5 bg-primary text-zinc-900 rounded-2xl font-black text-xl hover:brightness-110 transition-all shadow-xl flex items-center justify-center gap-3 active:scale-[0.98]"
+                    className="w-full py-5 bg-primary text-zinc-900 rounded-xl font-black text-lg hover:brightness-110 transition-all shadow-2xl flex items-center justify-center gap-3 group"
                   >
-                    <Send size={24} strokeWidth={3} />
-                    SEND MESSAGE
-                  </button>
+                    <Send size={24} strokeWidth={3} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                    {t.contact.formSubmit}
+                  </motion.button>
                 </form>
               </div>
-            </div>
+            </motion.div>
 
-          </div>
+          </motion.div>
         </section>
-
       </div>
     </>
   );

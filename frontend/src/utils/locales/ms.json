@@ -34,14 +34,22 @@
     "viewAll": "Lihat semua produk"
   },
   "shop": {
-    "categoriesTitle": "Kategori Kedai",
     "categoriesDesc": "Cari paparan yang sesuai untuk perayaan anda",
+    "categoriesInfo": "Daripada paparan langit yang hebat hingga mercun darat yang meriah, terokai pilihan bunga api premium kami yang disusun khas untuk setiap detik kegembiraan.",
     "allProductsTitle": "Semua Produk",
     "allProductsDesc": "Semak imbas seluruh koleksi kami",
     "showing": "Menunjukkan",
     "products": "produk",
     "notFound": "Tiada produk ditemui dalam kategori ini.",
-    "returnToShop": "Kembali ke Kedai"
+    "returnToShop": "Kembali ke Kedai",
+    "searchPlaceholder": "Cari produk...",
+    "sortBy": "Susun",
+    "sortDefault": "Pesanan Lalai",
+    "sortPriceAsc": "Harga: Rendah → Tinggi",
+    "sortPriceDesc": "Harga: Tinggi → Rendah",
+    "sortNameAsc": "Nama: A → Z",
+    "for": "untuk",
+    "noProductsTryAgain": "Cuba kata kunci lain atau semak imbas semua kategori."
   },
   "productDetail": {
     "back": "Kembali ke Kedai",
@@ -80,17 +88,193 @@
     "disclaimer": "Anda akan dialihkan ke WhatsApp untuk memuktamadkan pesanan anda terus dengan kami. Tiada bayaran diambil secara dalam talian."
   },
   "about": {
-    "title": "Sejarah Kami",
-    "subtitle": "Menerangi sambutan sejak tahun 1995",
-    "p1": "Cheng-BOOM bermula sebagai sebuah kedai kecil milik keluarga yang mempunyai minat untuk membawa kegembiraan kepada kehidupan orang ramai melalui paparan cahaya yang menakjubkan.",
-    "p2": "Selama beberapa dekad, kami telah berkembang menjadi pembekal utama bunga api pengguna berkualiti tinggi di rantau ini. Kami mengembara ke seluruh dunia untuk mendapatkan hanya piroteknik yang paling selamat, terang dan menakjubkan yang ada.",
-    "p3": "Misi kami mudah: untuk menjadikan setiap perayaan tidak dapat dilupakan. Sama ada perkahwinan belakang rumah, cuti kebangsaan atau majlis Malam Tahun Baru, kami percaya bahawa langit adalah kanvas muktamad.",
-    "premiumTitle": "Kualiti Premium",
-    "premiumDesc": "Kami menguji setiap barisan produk untuk memastikan kesan visual maksimum.",
-    "safetyTitle": "Keselamatan Diutamakan",
-    "safetyDesc": "Semua bunga api kami memenuhi piawaian keselamatan negara yang ketat.",
-    "expertTitle": "Nasihat Pakar",
-    "expertDesc": "Kakitangan kami boleh membantu anda mereka bentuk persembahan yang sempurna mengikut bajet anda."
+    "exploreStory": "Terokai Kisah Kami",
+    "heroTitle1": "MENGEKALKAN TRADISI.",
+    "heroTitle2": "MENYEMARAKKAN INOVASI.",
+    "heroDesc": "Selama lebih empat dekad, Cheng-BOOM telah menjadi tangan yang tidak kelihatan di sebalik perayaan yang paling menakjubkan di dunia, merapatkan jurang antara ketukangan purba dan teknologi masa depan.",
+    "heritageTitle": "Warisan (1982)",
+    "heritageSub": "Di Mana Segalanya Bermula",
+    "heritageDesc": "Zaman awal kami ditakrifkan oleh tiub kertas digulung tangan dan formula serbuk hitam yang dicampur dengan teliti yang diwarisi turun-temurun. Tahun 1980-an menyaksikan kami menyempurnakan kimia asas yang kekal sebagai piawaian untuk pembakaran yang selamat dan bertenaga hari ini.",
+    "futureTitle": "Masa Depan (Hari Ini)",
+    "futureSub": "Piawaian Moden",
+    "futureDesc": "Hari ini, kami menggunakan sistem pencucuhan yang diselaraskan satelit dan komposisi berasaskan bismut yang mesra alam. Lilin Rom moden kami adalah bukti apa yang berlaku apabila ketukangan pakar bertemu dengan kejuruteraan ketepatan gred aeroangkasa.",
+    "missionQuote": "Kami bukan sekadar menjual bunga api; kami membina jambatan antara bumi dan langit, satu percikan pada satu masa.",
+    "feature1Title": "Disahkan Selamat",
+    "feature1Desc": "Memenuhi semua piawaian keselamatan piroteknik antarabangsa dengan pematuhan 100%.",
+    "feature2Title": "Warna Tulen",
+    "feature2Desc": "Menggunakan mineral ketulenan tinggi untuk memastikan warna merah yang pekat dan biru elektrik.",
+    "feature3Title": "Sokongan Pakar",
+    "feature3Desc": "Pakar kami tersedia 24/7 untuk membantu anda reka bentuk paparan yang sempurna."
+  },
+  "origin": {
+    "title": "Asal Usul Kami",
+    "desc": "Di Cheng-BOOM, kami bukan sekadar menjual bunga api. Kami mengeluarkan detik-detik yang kekal dalam ingatan anda lama selepas percikan terakhir pudar dari langit.",
+    "heritageLabel": "Warisan",
+    "heritageTitle": "Master Cheng di Bengkel Asal.",
+    "journeyTitle": "Perjalanan Melalui Masa",
+    "p1": "Kisah Cheng-BOOM bermula di sebuah bengkel kecil yang diterangi lampu minyak tanah yang terletak di perkampungan sunyi Liuyang. Pengasas kami, Master Cheng, adalah ahli kimia generasi ketiga yang mempunyai obsesi luar biasa: dia percaya bahawa setiap bunga api membawa emosi tertentu.",
+    "p2": "\"Percikan bukan sekadar cahaya,\" dia sering berkata. \"Ia adalah degupan jantung sesuatu perayaan.\" Pada tahun 1982, dengan hanya segelintir bahan mentah dan semangat berwawasan, dia menyempurnakan 'Naga Emas Diraja'—pancutan air yang begitu cemerlang sehingga menarik perhatian pihak berkuasa serantau, akhirnya membawa kepada pembentukan apa yang kini menjadi jenama piroteknik paling berprestij di rantau ini.",
+    "p3": "Beberapa dekad kemudian, kami mengekalkan semangat artisanal yang sama. Walaupun proses pembuatan kami telah berkembang menjadi operasi global yang canggih, falsafah teras tetap tidak berubah: setiap unit diuji dengan ketat dan semangat yang sama seperti pancutan emas pertama empat dekad yang lalu.",
+    "stat1Label": "Tahun Pengalaman",
+    "stat2Label": "Sambutan Diterangi",
+    "value1Title": "Kecemerlangan Tanpa Tanding",
+    "value1Desc": "Kami menggunakan campuran kimia proprietari untuk memastikan warna kami lebih bertenaga dan kesan kami bertahan lebih lama daripada alternatif pasaran standard.",
+    "value2Title": "Keselamatan Diutamakan",
+    "value2Desc": "Setiap kumpulan menjalani ujian keselamatan tiga kali ganda. Jika ia tidak cukup selamat untuk ditonton oleh anak-anak kami sendiri, ia tidak cukup selamat untuk anda.",
+    "value3Title": "Piawaian Global",
+    "value3Desc": "Beroperasi dengan pensijilan merentasi tiga benua, kami memenuhi dan melampaui peraturan kualiti dan persekitaran piroteknik antarabangsa."
+  },
+  "history": {
+    "title": "Empat Dekad",
+    "titleItalic": "Pencahayaan.",
+    "desc": "Daripada bengkel lereng bukit yang sederhana kepada pentas piroteknik yang paling berprestij di dunia. Ini adalah garis masa bagaimana kami menakluki malam.",
+    "milestones": [
+      {
+        "year": "1982",
+        "title": "Permulaan Cahaya",
+        "desc": "Di tengah-tengah Liuyang, Master Cheng berjaya mensintesis formula \"Hujan Emas\" stabil yang pertama, mencapai kecemerlangan yang menjadi asas kepada seluruh industri. Bengkel keluarga kecil ini akhirnya akan mentakrifkan semula seni piroteknik."
+      },
+      {
+        "year": "1995",
+        "title": "Kemunculan Antarabangsa",
+        "desc": "Cheng-BOOM membuat kemunculan pertama di pentas global di Festival Piroteknik Montreal. Paparan kami, \"Nafas Naga,\" memenangi anugerah Gold Jupiter, menandakan ketibaan kuasa besar baharu dalam industri."
+      },
+      {
+        "year": "2005",
+        "title": "Inovasi Elektronik",
+        "desc": "Kami mempelopori sistem pembakaran elektronik proprietari yang pertama, membolehkan ketepatan mikrosaat dalam paparan berbilang lapisan. Teknologi ini mengubah kami daripada bunga api ringkas kepada simfoni udara segerak yang kompleks."
+      },
+      {
+        "year": "2015",
+        "title": "Inisiatif Langit Lestari",
+        "desc": "Menerajui industri ke arah tanggungjawab alam sekitar, kami melancarkan barisan penuh pertama bunga api tanpa sulfur dan rendah asap. Ini menandakan komitmen kami untuk memelihara udara sambil terus mewarnai langit."
+      },
+      {
+        "year": "2024",
+        "title": "Kepimpinan Global",
+        "desc": "Dengan pusat pengedaran di 45 negara dan warisan merangkumi empat dekad, Cheng-BOOM kekal sebagai standard emas untuk perayaan di seluruh dunia, meneruskan misi Master Cheng untuk menerangi semangat manusia."
+      }
+    ],
+    "quote": "Malam adalah kanvas kami, dan setiap letupan adalah coretan sejarah. Kami terus membina kerana masih ada langit yang perlu dilukis.",
+    "leadership": "Kepimpinan Cheng-BOOM"
+  },
+  "contact": {
+    "heroTitle": "Mari Terangi",
+    "heroTitleItalic": "Malam Anda.",
+    "heroDesc": "Ada soalan tentang paparan? Perlu harga pukal? Atau hanya ingin berbincang tentang piroteknik? Juruteknik pakar kami sedia membantu.",
+    "getInTouch": "Hubungi Kami",
+    "getInTouchDesc": "Kami berbangga dalam menyediakan tahap perkhidmatan tertinggi dalam industri. Sama ada anda merancang perkahwinan atau perayaan seluruh bandar, kami sedia membantu.",
+    "whatsappLabel": "WhatsApp Kami",
+    "emailLabel": "Hantar Emel",
+    "studioLabel": "Studio Kami",
+    "studioAddress": "Taman Perindustrian Liuyang, Plot 88\nLebuh Raya Piroteknik, 43200",
+    "followUs": "Ikuti Paparan Kami",
+    "sendMessage": "Hantar Mesej",
+    "formName": "Nama Penuh",
+    "formNamePlaceholder": "Ahmad Ali",
+    "formEmail": "Alamat Emel",
+    "formEmailPlaceholder": "ahmad@example.com",
+    "formSubject": "Subjek",
+    "formSubjectPlaceholder": "Merancang paparan perkahwinan...",
+    "formMessage": "Mesej",
+    "formMessagePlaceholder": "Beritahu kami tentang acara anda...",
+    "formSubmit": "HANTAR MESEJ",
+    "formSuccess": "Mesej berjaya dihantar! Pasukan kami akan menghubungi anda sebentar lagi."
+  },
+  "cart": {
+    "title": "Bakul",
+    "selection": "Pilihan",
+    "items": "item",
+    "continueShopping": "Teruskan Membeli-belah",
+    "clear": "Kosongkan Bakul",
+    "summary": "Ringkasan Pesanan",
+    "subtotal": "Subjumlah",
+    "savings": "Diskaun Khas",
+    "shipping": "Penghantaran",
+    "calculatedNext": "Dikira Seterusnya",
+    "totalPayable": "Jumlah Perlu Dibayar",
+    "orderBtn": "PESAN MELALUI WHATSAPP",
+    "verified": "Pemenuhan piroteknik disahkan",
+    "emptyTitle": "Pilihan anda kosong.",
+    "emptyDesc": "Nampaknya anda belum menambah sebarang keajaiban pada bakul anda lagi.",
+    "startShopping": "Teroka Koleksi",
+    "checkout": {
+      "title": "Muktamadkan",
+      "titleAccent": "Pesanan",
+      "desc": "Sila berikan butiran anda supaya kami dapat memproses permintaan anda dengan lebih cepat.",
+      "formName": "Nama Penuh",
+      "formNamePlaceholder": "Nama Anda",
+      "formPhone": "Nombor Telefon",
+      "formPhonePlaceholder": "012-345 6789",
+      "paymentTitle": "Pembayaran Pilihan",
+      "deliveryTitle": "Mod Pesanan",
+      "address": "Alamat Penghantaran",
+      "addressPlaceholder": "Alamat penuh anda untuk penghantaran...",
+      "notes": "Nota (Pilihan)",
+      "notesPlaceholder": "cth. Majlis perkahwinan, pembungkusan pukal...",
+      "confirmBtn": "SAHKAN & HANTAR KE WHATSAPP",
+      "total": "Jumlah"
+    }
+  },
+  "productDetail": {
+    "loading": "Memuatkan...",
+    "notFound": "Produk Tidak Ditemui",
+    "backToCollection": "Kembali ke Koleksi",
+    "sale": "JUALAN",
+    "save": "JIMAT",
+    "selectQuantity": "Pilih Kuantiti",
+    "addToCart": "TAMBAH KE BAKUL",
+    "inStockSuffix": "unit dalam stok — Sedia untuk dihantar",
+    "description": "Penerangan",
+    "productDetails": "Butiran Produk",
+    "code": "Kod",
+    "name": "Nama",
+    "type": "Jenis",
+    "quantity": "Kuantiti",
+    "perPack": "PCS / SETIAP PEK",
+    "productDescription": "Penerangan Produk",
+    "qualityNote": "Bahan berkualiti tinggi / Gred profesional",
+    "videoDemo": "Demonstrasi Video",
+    "protectedHint": "Paparan sahaja — Imej Dilindungi"
+  },
+  "floating": {
+    "music": {
+      "scratching": "Calar...",
+      "playing": "Sedang dimainkan",
+      "paused": "Dijeda"
+    },
+    "whatsapp": {
+      "chatWithUs": "Sembang dengan kami!",
+      "online": "Dalam talian",
+      "greeting": "👋 Hello! Saya ingin bertanya tentang:",
+      "q1": "🎆 Bunga api yang tersedia",
+      "q2": "💰 Harga semasa",
+      "q3": "📦 Pilihan penghantaran / pengambilan",
+      "q4": "🎉 Tawaran pakej acara",
+      "chatBtn": "Sembang di WhatsApp"
+    }
+  },
+  "login": {
+    "title": "Selamat Kembali",
+    "subtitle": "Akses akaun bunga api premium anda.",
+    "labelAccount": "E-mel atau Nombor Telefon",
+    "placeholderAccount": "anda@email.com atau 012-345 6789",
+    "labelPassword": "Kata Laluan",
+    "placeholderPassword": "••••••••",
+    "forgotPassword": "Lupa kata laluan anda?",
+    "signIn": "Log Masuk",
+    "noAccount": "Tidak mempunyai akaun?",
+    "signUp": "Hubungi kami untuk mendaftar",
+    "backToHome": "Kembali ke Laman Utama"
+  },
+  "admin": {
+    "loginTitle": "Portal Pentadbir",
+    "loginSubtitle": "Kakitangan yang diberikuasa sahaja. Sila log masuk untuk mengakses alatan pengurusan.",
+    "usernameLabel": "Nama Pengguna / ID Pentadbir",
+    "usernamePlaceholder": "Masukkan kelayakan pentadbir anda",
+    "passwordLabel": "Kunci Rahsia / Kata Laluan",
+    "signIn": "Akses Papan Pemuka",
+    "securityNotice": "Ini adalah kawasan larangan. Semua aktiviti dipantau."
   },
   "footer": {
     "tagline": "Destinasi utama Malaysia untuk bunga api berkualiti. Terangi perayaan anda dengan koleksi piroteknik premium kami yang menakjubkan.",
@@ -115,5 +299,10 @@
     "pw-7": { "name": "Kek Grand Finale 500g", "desc": "Persembahan muktamad. 36 das mahkota brocade gergasi dengan kemasan letupan pantas." },
     "pw-8": { "name": "Mercun Tanglung Merah", "desc": "Mercun merah tradisional yang direntang bersama untuk perayaan meriah." },
     "pw-9": { "name": "Roket Langit Neon", "desc": "6 pek roket berkuasa yang melayang ke udara dengan ekor neon sebelum meletup menjadi bunga peon berwarna-warni." }
+  },
+  "productCard": {
+    "outOfStock": "Stok Habis",
+    "inStock": "Dalam Stok",
+    "save": "Jimat"
   }
 }

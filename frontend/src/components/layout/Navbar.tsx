@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { useCart } from '../cart/CartProvider';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import { ShoppingCart, ChevronDown, Flame, Menu, X } from 'lucide-react';
+import { ShoppingCart, ChevronDown, Flame, Menu, X, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { cn } from '../../utils/cn';
@@ -34,7 +34,7 @@ export function Navbar() {
     router.pathname.startsWith(prefix) && router.pathname !== exclude;
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-sm transition-colors duration-300">
+    <nav className="sticky top-0 z-50 w-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center gap-4">
 
@@ -216,6 +216,15 @@ export function Navbar() {
                   </motion.span>
                 )}
               </AnimatePresence>
+            </Link>
+            
+            {/* Profile */}
+            <Link
+              href="/login"
+              className="p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-primary hover:bg-zinc-100 dark:hover:bg-white/5 transition-all ml-6 group"
+              title="Account"
+            >
+              <User size={22} className="group-hover:scale-110 transition-transform" />
             </Link>
 
             {/* Mobile hamburger */}

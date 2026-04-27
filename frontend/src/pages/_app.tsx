@@ -1,4 +1,5 @@
 import type { AppProps } from 'next/app';
+import { useRouter } from 'next/router';
 import { ThemeProvider } from 'next-themes';
 import '../assets/globals.css';
 import { CartProvider } from '../components/cart/CartProvider';
@@ -7,6 +8,9 @@ import { Layout } from '../components/layout/Layout';
 import Head from 'next/head';
 
 export default function App({ Component, pageProps }: AppProps) {
+  const router = useRouter();
+  const isAdminPath = router.pathname.startsWith('/admin');
+
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
       <Head>
@@ -14,9 +18,13 @@ export default function App({ Component, pageProps }: AppProps) {
       </Head>
       <CartProvider>
         <FlyToCartProvider>
-          <Layout>
+          {isAdminPath ? (
             <Component {...pageProps} />
-          </Layout>
+          ) : (
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+          )}
         </FlyToCartProvider>
       </CartProvider>
     </ThemeProvider>

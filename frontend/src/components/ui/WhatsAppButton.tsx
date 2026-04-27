@@ -1,19 +1,21 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { X, MessageCircle } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const WHATSAPP_NUMBER = '601112269835';
-
-// Pre-filled message — covers the most common questions shoppers ask
-const DEFAULT_MESSAGE = encodeURIComponent(
-  `Hello! 👋 I found your store online and I'm interested in your fireworks products.\n\nCould you help me with the following:\n\n1. 🎆 What fireworks do you have available?\n2. 💰 What are the current prices?\n3. 🕐 What are your operating hours?\n4. 📦 Do you offer delivery or only self-pickup?\n5. 🎉 Can I get a package deal for a special event?\n\nThank you!`
-);
-
-const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${DEFAULT_MESSAGE}`;
 
 export function WhatsAppButton() {
   const [showTooltip, setShowTooltip] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const { t } = useTranslation();
+
+  // Pre-filled message — covers the most common questions shoppers ask
+  const DEFAULT_MESSAGE = encodeURIComponent(
+    `Hello! 👋 I found your store online and I'm interested in your fireworks products.\n\nCould you help me with the following:\n\n1. 🎆 What fireworks do you have available?\n2. 💰 What are the current prices?\n3. 🕐 What are your operating hours?\n4. 📦 Do you offer delivery or only self-pickup?\n5. 🎉 Can I get a package deal for a special event?\n\nThank you!`
+  );
+
+  const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${DEFAULT_MESSAGE}`;
 
   return (
     <>
@@ -38,18 +40,18 @@ export function WhatsAppButton() {
                 <p className="text-sm font-bold text-zinc-900 dark:text-white">Cheng-BOOM</p>
                 <p className="text-xs text-green-500 font-medium flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block animate-pulse" />
-                  Online
+                  {t.floating.whatsapp.online}
                 </p>
               </div>
             </div>
 
             {/* Message bubble */}
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/30 rounded-xl rounded-tl-none p-3 text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed space-y-1">
-              <p>👋 Hello! I'd like to ask about:</p>
-              <p>🎆 Available fireworks</p>
-              <p>💰 Current prices</p>
-              <p>📦 Delivery / Pickup options</p>
-              <p>🎉 Event package deals</p>
+              <p>{t.floating.whatsapp.greeting}</p>
+              <p>{t.floating.whatsapp.q1}</p>
+              <p>{t.floating.whatsapp.q2}</p>
+              <p>{t.floating.whatsapp.q3}</p>
+              <p>{t.floating.whatsapp.q4}</p>
             </div>
 
             {/* CTA */}
@@ -61,7 +63,7 @@ export function WhatsAppButton() {
               className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-bold transition-all hover:scale-[1.02] shadow-lg shadow-green-500/30"
             >
               <MessageCircle size={16} />
-              Chat on WhatsApp
+              {t.floating.whatsapp.chatBtn}
             </a>
 
             {/* Pointer arrow */}
@@ -76,7 +78,7 @@ export function WhatsAppButton() {
         {/* Tooltip label */}
         {showTooltip && !showPreview && (
           <div className="bg-primary text-zinc-900 text-[10px] font-black px-4 py-1.5 rounded-full shadow-xl whitespace-nowrap animate-in fade-in slide-in-from-bottom-4 duration-300 uppercase tracking-widest border border-primary/20 flex items-center h-7">
-            Chat with us!
+            {t.floating.whatsapp.chatWithUs}
           </div>
         )}
 
@@ -84,7 +86,7 @@ export function WhatsAppButton() {
           onClick={() => setShowPreview(!showPreview)}
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
-          aria-label="Chat on WhatsApp"
+          aria-label={t.floating.whatsapp.chatBtn}
           className="relative w-16 h-16 rounded-full shadow-2xl shadow-green-500/40 hover:scale-110 active:scale-95 transition-all duration-300 overflow-hidden group"
         >
           {/* Pulsing ring */}

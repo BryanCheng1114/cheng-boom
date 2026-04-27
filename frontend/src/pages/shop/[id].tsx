@@ -22,13 +22,13 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
 
   // Handle fallback state for static generation
   if (router.isFallback) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">{t.productDetail.loading}</div>;
   }
 
   if (!product) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
-        <h1 className="text-3xl font-bold mb-4">Product Not Found</h1>
+        <h1 className="text-3xl font-bold mb-4">{t.productDetail.notFound}</h1>
         <Link href="/shop" className="text-primary hover:underline">{t.shop.returnToShop}</Link>
       </div>
     );
@@ -82,14 +82,14 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
   return (
     <>
       <Head>
-        <title>{translatedName} - Cheng-BOOM</title>
+        <title>{`${translatedName} - Cheng-BOOM`}</title>
       </Head>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
         {/* Breadcrumb */}
         <Link href="/shop" className="inline-flex items-center gap-2 text-zinc-500 hover:text-primary transition-colors mb-10 group text-sm font-medium">
           <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> 
-          Back to Collection
+          {t.productDetail.backToCollection}
         </Link>
         
         <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 mb-20 items-start">
@@ -115,7 +115,7 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
               </div>
               {hasDiscount && (
                 <div className="absolute top-4 left-4 bg-primary text-zinc-900 px-3 py-1.5 rounded-xl font-black text-xs shadow-xl animate-bounce z-20">
-                  SALE
+                  {t.productDetail.sale}
                 </div>
               )}
             </div>
@@ -147,7 +147,7 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
                 
                 {hasDiscount && (
                   <span className="text-xs font-bold text-green-500 mb-1 ml-1 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
-                    SAVE RM {savings.toFixed(2)}
+                    {t.productDetail.save} RM {savings.toFixed(2)}
                   </span>
                 )}
               </div>
@@ -155,7 +155,7 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
               <div className="mt-6 flex flex-col gap-4">
                 {/* Quantity Control */}
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Select Quantity</span>
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{t.productDetail.selectQuantity}</span>
                   <div className="flex items-center gap-3">
                     <div className="flex items-center bg-zinc-200 dark:bg-zinc-800 rounded-xl p-1 border border-zinc-300 dark:border-zinc-700">
                       <button 
@@ -182,7 +182,7 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
                   className="w-full py-4 bg-primary text-zinc-900 rounded-xl font-black text-lg hover:brightness-110 transition-all shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale disabled:shadow-none active:scale-[0.98]"
                 >
                   <ShoppingCart size={20} strokeWidth={3} /> 
-                  ADD TO CART
+                  {t.productDetail.addToCart}
                 </button>
               </div>
             </div>
@@ -190,7 +190,7 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
             {/* Availability */}
             <div className="flex items-center gap-2 text-zinc-500">
               <CheckCircle size={14} className="text-green-500" />
-              <span className="text-xs font-medium">{stock} units in stock — Ready to ship</span>
+              <span className="text-xs font-medium">{stock} {t.productDetail.inStockSuffix}</span>
             </div>
           </div>
         </div>
@@ -202,24 +202,24 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
           {/* 1. Description Section */}
           <section className="bg-white dark:bg-zinc-900 rounded-2xl p-8 md:p-10 border border-border shadow-sm">
             <div className="flex items-center gap-2 mb-8 border-l-4 border-primary pl-4">
-              <h2 className="text-2xl font-black tracking-tight uppercase">Description</h2>
+              <h2 className="text-2xl font-black tracking-tight uppercase">{t.productDetail.description}</h2>
             </div>
             
             <div className="space-y-8">
               <div className="space-y-2">
-                <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest">Product Details</h4>
+                <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest">{t.productDetail.productDetails}</h4>
                 <div className="space-y-1 text-sm text-zinc-600 dark:text-zinc-300 font-medium">
-                  <p>Code: {product.id.toUpperCase()}</p>
-                  <p>Name: {translatedName}</p>
-                  <p>Type: {translatedCategory}</p>
-                  <p>Quantity: 1 PCS / PER PACK</p>
+                  <p>{t.productDetail.code}: {product.id.toUpperCase()}</p>
+                  <p>{t.productDetail.name}: {translatedName}</p>
+                  <p>{t.productDetail.type}: {translatedCategory}</p>
+                  <p>{t.productDetail.quantity}: 1 {t.productDetail.perPack}</p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest">Product Description</h4>
+                <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest">{t.productDetail.productDescription}</h4>
                 <p className="text-sm text-zinc-600 dark:text-zinc-300 font-medium">
-                  {translatedDesc} / High quality materials / Professional grade
+                  {translatedDesc} / {t.productDetail.qualityNote}
                 </p>
               </div>
             </div>
@@ -228,7 +228,7 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
           {/* 2. Video Demonstration Section */}
           <section className="bg-white dark:bg-zinc-900 rounded-2xl p-8 md:p-10 border border-border shadow-sm">
             <div className="flex items-center gap-2 mb-8 border-l-4 border-primary pl-4">
-              <h2 className="text-2xl font-black tracking-tight uppercase">Video Demonstration</h2>
+              <h2 className="text-2xl font-black tracking-tight uppercase">{t.productDetail.videoDemo}</h2>
             </div>
             
             <div className="w-full">
@@ -294,7 +294,7 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
 
             {/* Hint */}
             <p className="text-white/40 text-sm mt-4 font-medium select-none">
-              Viewing only — Protected Image
+              {t.productDetail.protectedHint}
             </p>
           </motion.div>
         )}

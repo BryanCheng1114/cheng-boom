@@ -58,7 +58,7 @@ export function ProductCard({ id, name, price, originalPrice, image, category, s
       <div className={`h-full flex flex-col bg-card border border-border rounded-2xl overflow-hidden transition-all duration-300 shadow-sm hover:shadow-[0_8px_30px_rgba(245,158,11,0.15)] hover:-translate-y-1 ${isOutOfStock ? 'opacity-75' : 'hover:border-primary/50'}`}>
         
         {/* Image Container */}
-        <div ref={imageRef} className="relative h-64 w-full overflow-hidden bg-muted shrink-0">
+        <div ref={imageRef} className="relative h-56 w-full overflow-hidden bg-muted shrink-0">
           <div
             className={`absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out ${!isOutOfStock && 'group-hover:scale-110'}`}
             style={{ backgroundImage: `url(${image})` }}
@@ -75,7 +75,7 @@ export function ProductCard({ id, name, price, originalPrice, image, category, s
           {hasDiscount && !isOutOfStock && (
             <div className="absolute top-3 right-3">
               <div className="bg-primary text-zinc-900 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-tight shadow-[0_0_15px_rgba(245,158,11,0.5)] flex items-center gap-1 animate-bounce-subtle">
-                🔥 SAVE {discountPercent}%
+                🔥 {t.productCard.save} {discountPercent}%
               </div>
             </div>
           )}
@@ -85,12 +85,12 @@ export function ProductCard({ id, name, price, originalPrice, image, category, s
             {isOutOfStock ? (
               <div className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-tighter shadow-lg flex items-center gap-1.5 border border-red-500/50">
                 <AlertTriangle size={12} className="animate-pulse" />
-                OUT OF STOCK
+                {t.productCard.outOfStock}
               </div>
             ) : (
               <div className="bg-zinc-900/70 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-[10px] font-bold text-white flex items-center gap-2 border border-white/10 shadow-lg">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                {stock} IN STOCK
+                {stock} {t.productCard.inStock}
               </div>
             )}
           </div>
@@ -111,39 +111,39 @@ export function ProductCard({ id, name, price, originalPrice, image, category, s
                     RM {originalPrice?.toFixed(2)}
                   </span>
                 )}
-                <span className="text-xl font-black text-foreground tracking-tight">
+                <span className="text-lg font-black text-foreground tracking-tighter whitespace-nowrap">
                   RM {price.toFixed(2)}
                 </span>
               </div>
               
-              <div className={`flex items-center bg-zinc-100 dark:bg-zinc-800/80 rounded-full p-1 border border-zinc-200 dark:border-zinc-700/50 backdrop-blur-sm shadow-inner ${isOutOfStock && 'opacity-50 grayscale'}`}>
+              <div className={`flex items-center bg-zinc-100 dark:bg-zinc-800/80 rounded-full p-0.5 border border-zinc-200 dark:border-zinc-700/50 backdrop-blur-sm shadow-inner ${isOutOfStock && 'opacity-50 grayscale'}`}>
                 {quantity > 0 ? (
                   <button
                     onClick={handleMinus}
-                    className="w-8 h-8 flex items-center justify-center rounded-full text-zinc-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-600 shadow-sm transition-all"
+                    className="w-7 h-7 flex items-center justify-center rounded-full text-zinc-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-600 shadow-sm transition-all"
                     aria-label="Decrease quantity"
                   >
-                    <Minus size={16} strokeWidth={2.5} />
+                    <Minus size={14} strokeWidth={2.5} />
                   </button>
                 ) : (
-                  <div className="w-8 h-8 flex items-center justify-center text-zinc-400 dark:text-zinc-500">
-                    <ShoppingCart size={15} />
+                  <div className="w-7 h-7 flex items-center justify-center text-zinc-400 dark:text-zinc-500">
+                    <ShoppingCart size={13} />
                   </div>
                 )}
                 
-                <span className="w-7 text-center font-bold text-sm text-foreground">
+                <span className="w-6 text-center font-bold text-xs text-foreground">
                   {quantity}
                 </span>
 
                 <button
                   onClick={handleAdd}
                   disabled={isOutOfStock || quantity >= stock}
-                  className={`w-8 h-8 flex items-center justify-center rounded-full transition-all active:scale-95 ${isOutOfStock || quantity >= stock 
+                  className={`w-7 h-7 flex items-center justify-center rounded-full transition-all active:scale-95 ${isOutOfStock || quantity >= stock 
                     ? 'bg-zinc-300 dark:bg-zinc-700 text-zinc-500 cursor-not-allowed' 
                     : 'bg-primary text-zinc-900 hover:brightness-110 shadow-[0_0_12px_rgba(245,158,11,0.5)]'}`}
                   aria-label="Increase quantity"
                 >
-                  <Plus size={16} strokeWidth={3} />
+                  <Plus size={14} strokeWidth={3} />
                 </button>
               </div>
             </div>
