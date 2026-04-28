@@ -100,6 +100,7 @@ export function WhatsAppButton() {
               alt="Chat on WhatsApp"
               fill
               className="object-cover"
+              priority
               unoptimized
             />
           </div>

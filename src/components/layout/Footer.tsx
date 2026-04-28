@@ -14,7 +14,7 @@ export function Footer() {
   // Defined inside component so they can use t.*
   const quickLinks = [
     { href: '/shop',      label: t.nav.shopAll },
-    { href: '/shop',          label: t.footer.shopByCategory },
+    { href: '/#shop-categories', label: t.footer.shopByCategory },
     { href: '/about',         label: t.nav.aboutUs },
     { href: '/about/history', label: t.footer.ourHistory },
     { href: '/contact',       label: t.nav.contact },

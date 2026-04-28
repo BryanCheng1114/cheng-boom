@@ -60,7 +60,7 @@ export default function Cart() {
       </Head>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
         <h1 className="text-4xl font-black text-foreground mb-12 tracking-tight">
-          {t.cart.selection} <span className="text-primary italic">{t.cart.selection}</span> ({totalItems} {t.cart.items})
+          {t.cart.title} <span className="text-primary italic">{t.cart.selection}</span> ({totalItems} {t.cart.items})
         </h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
