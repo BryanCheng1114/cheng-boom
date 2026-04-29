@@ -10,13 +10,13 @@ export interface ProductCardProps {
   id: string;
   name: string;
   price: number;
-  originalPrice?: number;
-  image: string;
+  images: string[];
   category: string;
   stock?: number;
+  promotion?: number | null;
 }
 
-export function ProductCard({ id, name, price, originalPrice, image, category, stock = 0 }: ProductCardProps) {
+export function ProductCard({ id, name, price, promotion, images = [], category, stock = 0 }: ProductCardProps) {
   const { items, addItem, updateQuantity } = useCart();
   const { flyToCart } = useFlyToCart();
   const { t } = useTranslation();
@@ -26,17 +26,30 @@ export function ProductCard({ id, name, price, originalPrice, image, category, s
   const quantity = cartItem?.quantity || 0;
 
   const isOutOfStock = stock <= 0;
-  const hasDiscount = originalPrice && originalPrice > price;
+  
+  // Promotion is the NEW price, price is the ORIGINAL price
+  const hasPromo = promotion !== null && promotion !== undefined && promotion < price;
+  
+  // Seller Logic
+  const isSeller = typeof window !== 'undefined' && localStorage.getItem('user_role') === 'Seller';
+  const sellerMultiplier = isSeller ? 0.85 : 1; // 15% discount for sellers
+  
+  const activePrice = (hasPromo ? (promotion as number) : price) * sellerMultiplier;
+  const hasDiscount = hasPromo || isSeller;
+  const strikeThroughPrice = hasDiscount ? price : undefined;
+  
   const discountPercent = hasDiscount 
-    ? Math.round(((originalPrice! - price) / originalPrice!) * 100) 
+    ? Math.round(((price - activePrice) / price) * 100) 
     : 0;
+
+  const displayImage = images[0] || '';
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     if (quantity < stock) {
-      addItem({ id, name: translatedName, price, originalPrice, image });
-      if (imageRef.current) {
-        flyToCart(image, imageRef.current);
+      addItem({ id, name: translatedName, price: activePrice, originalPrice: strikeThroughPrice, image: displayImage });
+      if (imageRef.current && displayImage) {
+        flyToCart(displayImage, imageRef.current);
       }
     }
   };
@@ -61,7 +74,7 @@ export function ProductCard({ id, name, price, originalPrice, image, category, s
         <div ref={imageRef} className="relative h-56 w-full overflow-hidden bg-muted shrink-0">
           <div
             className={`absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out ${!isOutOfStock && 'group-hover:scale-110'}`}
-            style={{ backgroundImage: `url(${image})` }}
+            style={{ backgroundImage: `url(${displayImage})` }}
           />
           
           {/* Top Left: Category */}
@@ -108,11 +121,11 @@ export function ProductCard({ id, name, price, originalPrice, image, category, s
               <div className="flex flex-col">
                 {hasDiscount && (
                   <span className="text-xs text-muted-foreground line-through decoration-red-500/50">
-                    RM {originalPrice?.toFixed(2)}
+                    RM {strikeThroughPrice?.toFixed(2)}
                   </span>
                 )}
                 <span className="text-lg font-black text-foreground tracking-tighter whitespace-nowrap">
-                  RM {price.toFixed(2)}
+                  RM {activePrice.toFixed(2)}
                 </span>
               </div>
               

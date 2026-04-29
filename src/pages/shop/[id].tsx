@@ -1,19 +1,17 @@
 import Head from 'next/head';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
-import { getProductById, getProducts } from '../../utils/mockData';
+import { useState, useRef } from 'react';
+import { prisma } from '../../lib/prisma';
 import { useCart } from '../../components/cart/CartProvider';
-import { ArrowLeft, ShoppingCart, Plus, Minus, CheckCircle, Play, Info, Video, Maximize2, X } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Plus, Minus, CheckCircle, Maximize2, X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useFlyToCart } from '../../components/ui/FlyToCartProvider';
-import { useRef } from 'react';
 
-export default function ProductDetail({ product }: { product: ReturnType<typeof getProductById> }) {
+export default function ProductDetail({ product }: { product: any }) {
   const router = useRouter();
-  const { items, addItem, updateQuantity } = useCart();
+  const { items, addItem } = useCart();
   const { flyToCart } = useFlyToCart();
   const { t } = useTranslation();
   const [localQty, setLocalQty] = useState(0);
@@ -22,7 +20,12 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
 
   // Handle fallback state for static generation
   if (router.isFallback) {
-    return <div className="min-h-screen flex items-center justify-center">{t.productDetail.loading}</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+        <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">{t.productDetail.loading}</p>
+      </div>
+    );
   }
 
   if (!product) {
@@ -34,27 +37,31 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
     );
   }
 
-  const cartItem = items.find(item => item.id === product.id);
-  const stock = (product as any).stock || 0;
-  const originalPrice = (product as any).originalPrice;
-  const hasDiscount = originalPrice && originalPrice > product.price;
-  const savings = hasDiscount ? (originalPrice - product.price) : 0;
+  const stock = product.stock || 0;
+
+  // Seller Logic
+  const isSeller = typeof window !== 'undefined' && localStorage.getItem('user_role') === 'Seller';
+  const sellerMultiplier = isSeller ? 0.85 : 1;
+
+  const hasPromo = product.promotion !== null && product.promotion !== undefined && product.promotion < product.price;
+  const activePrice = (hasPromo ? (product.promotion as number) : product.price) * sellerMultiplier;
+  const hasDiscount = hasPromo || isSeller;
+  const strikeThroughPrice = hasDiscount ? product.price : undefined;
+  const savings = hasDiscount ? (product.price - activePrice) : 0;
 
   const handleAddToCart = () => {
     if (localQty > 0) {
       if (imageRef.current) {
-        flyToCart(product.image, imageRef.current);
+        flyToCart(images[activeImageIdx] || '', imageRef.current);
       }
-      // Logic to add specific amount
-      for(let i = 0; i < localQty; i++) {
-        addItem({ 
-          id: product.id, 
-          name: translatedName, 
-          price: product.price, 
-          originalPrice: (product as any).originalPrice, 
-          image: product.image 
-        });
-      }
+      
+      addItem({ 
+        id: product.id, 
+        name: translatedName, 
+        price: activePrice, 
+        originalPrice: strikeThroughPrice, 
+        image: images[activeImageIdx] || ''
+      }, localQty);
       setLocalQty(0);
     }
   };
@@ -75,9 +82,11 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
   const translatedCategory = t.shopCategories[product.category] || product.category;
 
   // YouTube Embed Logic
-  const youtubeUrl = "https://www.youtube.com/watch?v=CWYKpwlVGso";
-  const videoId = youtubeUrl.split('v=')[1]?.split('&')[0];
-  const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+  const videoId = product.videoUrl?.split('v=')[1]?.split('&')[0] || product.videoUrl?.split('youtu.be/')[1];
+  const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+
+  const [activeImageIdx, setActiveImageIdx] = useState(0);
+  const images = product.images || [];
 
   return (
     <>
@@ -95,19 +104,25 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
         <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 mb-20 items-start">
           
           {/* LEFT: Image Section */}
-          <div className="w-full">
+          <div className="w-full space-y-4">
             <div 
               ref={imageRef}
               onClick={() => setIsViewerOpen(true)}
-              className="w-full aspect-square rounded-2xl overflow-hidden shadow-2xl shadow-primary/10 bg-zinc-100 dark:bg-zinc-900 border border-border/50 cursor-zoom-in group relative"
+              className="w-full aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 bg-zinc-100 dark:bg-zinc-900 border border-border/50 cursor-zoom-in group relative"
             >
-              <img
-                src={product.image}
-                alt={translatedName}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                onContextMenu={(e) => e.preventDefault()}
-                draggable="false"
-              />
+              {images.length > 0 ? (
+                <img
+                  src={images[activeImageIdx]}
+                  alt={translatedName}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  onContextMenu={(e) => e.preventDefault()}
+                  draggable="false"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-zinc-500">
+                  <Package size={64} />
+                </div>
+              )}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
                 <div className="bg-white/20 backdrop-blur-md p-4 rounded-full text-white">
                   <Maximize2 size={32} />
@@ -119,6 +134,23 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
                 </div>
               )}
             </div>
+
+            {/* Thumbnails */}
+            {images.length > 1 && (
+              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                {images.map((img: string, idx: number) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImageIdx(idx)}
+                    className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
+                      activeImageIdx === idx ? 'border-primary shadow-lg scale-105' : 'border-transparent opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={img} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* RIGHT: Info Section */}
@@ -138,11 +170,11 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
               <div className="flex flex-wrap items-end gap-3 mb-2">
                 {hasDiscount && (
                   <span className="text-lg text-zinc-400 line-through decoration-red-500/50 mb-0.5">
-                    RM {originalPrice?.toFixed(2)}
+                    RM {strikeThroughPrice?.toFixed(2)}
                   </span>
                 )}
                 <span className="text-3xl font-black text-foreground tracking-tighter">
-                  RM {product.price.toFixed(2)}
+                  RM {activePrice.toFixed(2)}
                 </span>
                 
                 {hasDiscount && (
@@ -178,18 +210,18 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
                 {/* Add Button */}
                 <button
                   onClick={handleAddToCart}
-                  disabled={localQty === 0}
+                  disabled={localQty === 0 || stock <= 0}
                   className="w-full py-4 bg-primary text-zinc-900 rounded-xl font-black text-lg hover:brightness-110 transition-all shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale disabled:shadow-none active:scale-[0.98]"
                 >
                   <ShoppingCart size={20} strokeWidth={3} /> 
-                  {t.productDetail.addToCart}
+                  {stock <= 0 ? 'Out of Stock' : t.productDetail.addToCart}
                 </button>
               </div>
             </div>
 
             {/* Availability */}
             <div className="flex items-center gap-2 text-zinc-500">
-              <CheckCircle size={14} className="text-green-500" />
+              <CheckCircle size={14} className={stock > 0 ? "text-green-500" : "text-red-500"} />
               <span className="text-xs font-medium">{stock} {t.productDetail.inStockSuffix}</span>
             </div>
           </div>
@@ -212,53 +244,54 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
                   <p>{t.productDetail.code}: {product.id.toUpperCase()}</p>
                   <p>{t.productDetail.name}: {translatedName}</p>
                   <p>{t.productDetail.type}: {translatedCategory}</p>
-                  <p>{t.productDetail.quantity}: 1 {t.productDetail.perPack}</p>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest">{t.productDetail.productDescription}</h4>
                 <p className="text-sm text-zinc-600 dark:text-zinc-300 font-medium">
-                  {translatedDesc} / {t.productDetail.qualityNote}
+                  {translatedDesc}
                 </p>
               </div>
             </div>
           </section>
 
           {/* 2. Video Demonstration Section */}
-          <section className="bg-white dark:bg-zinc-900 rounded-2xl p-8 md:p-10 border border-border shadow-sm">
-            <div className="flex items-center gap-2 mb-8 border-l-4 border-primary pl-4">
-              <h2 className="text-2xl font-black tracking-tight uppercase">{t.productDetail.videoDemo}</h2>
-            </div>
-            
-            <div className="w-full">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border aspect-video bg-black shadow-primary/5">
-                <iframe 
-                  className="w-full h-full"
-                  src={embedUrl}
-                  title="YouTube video player" 
-                  frameBorder="0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                  allowFullScreen
-                ></iframe>
+          {embedUrl && (
+            <section className="bg-white dark:bg-zinc-900 rounded-2xl p-8 md:p-10 border border-border shadow-sm">
+              <div className="flex items-center gap-2 mb-8 border-l-4 border-primary pl-4">
+                <h2 className="text-2xl font-black tracking-tight uppercase">{t.productDetail.videoDemo}</h2>
               </div>
-            </div>
-          </section>
+              
+              <div className="w-full">
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border aspect-video bg-black shadow-primary/5">
+                  <iframe 
+                    className="w-full h-full"
+                    src={embedUrl}
+                    title="YouTube video player" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowFullScreen
+                  ></iframe>
+                </div>
+              </div>
+            </section>
+          )}
 
         </div>
       </div>
       <AnimatePresence>
-        {isViewerOpen && (
+        {isViewerOpen && images.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4"
+            className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 cursor-zoom-out"
             onClick={() => setIsViewerOpen(false)}
           >
             {/* Close Button */}
             <button 
-              className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors p-2"
+              className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors p-2 z-[110]"
               onClick={() => setIsViewerOpen(false)}
             >
               <X size={40} />
@@ -266,16 +299,15 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
 
             {/* Viewer Content */}
             <div 
-              className="relative max-w-5xl w-full h-full flex items-center justify-center select-none"
+              className="relative max-w-7xl w-full h-full flex items-center justify-center select-none"
               onClick={(e) => e.stopPropagation()}
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="relative w-full h-full flex items-center justify-center p-8"
+                className="relative w-full h-full flex items-center justify-center p-4 md:p-12"
               >
-                {/* Download Protection Layers */}
                 <div 
                   className="absolute inset-0 z-10" 
                   onContextMenu={(e) => e.preventDefault()}
@@ -283,17 +315,16 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
                 />
                 
                 <img 
-                  src={product.image} 
+                  src={images[activeImageIdx]} 
                   alt={translatedName}
-                  className="max-w-full max-h-full object-contain shadow-2xl pointer-events-none select-none"
+                  className="max-w-full max-h-full object-contain shadow-2xl pointer-events-none select-none rounded-lg"
                   onContextMenu={(e) => e.preventDefault()}
                   draggable="false"
                 />
               </motion.div>
             </div>
 
-            {/* Hint */}
-            <p className="text-white/40 text-sm mt-4 font-medium select-none">
+            <p className="text-white/40 text-xs mt-4 font-black uppercase tracking-[0.3em] select-none">
               {t.productDetail.protectedHint}
             </p>
           </motion.div>
@@ -303,9 +334,11 @@ export default function ProductDetail({ product }: { product: ReturnType<typeof 
   );
 }
 
-// Next.js standard static generation functions for dynamic routes
 export async function getStaticPaths() {
-  const products = getProducts();
+  const products = await prisma.product.findMany({
+    select: { id: true }
+  });
+  
   const paths = products.map((p) => ({
     params: { id: p.id },
   }));
@@ -314,14 +347,18 @@ export async function getStaticPaths() {
 }
 
 export async function getStaticProps({ params }: { params: { id: string } }) {
-  const product = getProductById(params.id);
+  const product = await prisma.product.findUnique({
+    where: { id: params.id },
+  });
   
   if (!product) {
     return { notFound: true };
   }
   
   return {
-    props: { product },
-    revalidate: 60, // revalidate every 60 seconds
+    props: { 
+      product: JSON.parse(JSON.stringify(product)) // serialize dates
+    },
+    revalidate: 10, // revalidate every 10 seconds for real-time feel
   };
 }

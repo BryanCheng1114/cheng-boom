@@ -5,6 +5,7 @@ import '../assets/globals.css';
 import { CartProvider } from '../components/cart/CartProvider';
 import { FlyToCartProvider } from '../components/ui/FlyToCartProvider';
 import { Layout } from '../components/layout/Layout';
+import { LanguageProvider } from '../context/LanguageContext';
 import Head from 'next/head';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -13,20 +14,22 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-      <Head>
-        <link rel="icon" href="/logo.png" />
-      </Head>
-      <CartProvider>
-        <FlyToCartProvider>
-          {isAdminPath ? (
-            <Component {...pageProps} />
-          ) : (
-            <Layout>
+      <LanguageProvider>
+        <Head>
+          <link rel="icon" href="/logo.png" />
+        </Head>
+        <CartProvider>
+          <FlyToCartProvider>
+            {isAdminPath ? (
               <Component {...pageProps} />
-            </Layout>
-          )}
-        </FlyToCartProvider>
-      </CartProvider>
+            ) : (
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+            )}
+          </FlyToCartProvider>
+        </CartProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

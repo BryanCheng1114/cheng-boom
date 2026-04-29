@@ -1,8 +1,9 @@
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Phone, BookOpen, ShoppingBag } from 'lucide-react';
-import { getProducts, categoriesData } from '../utils/mockData';
+import { getProducts, categoriesData as mockCategories } from '../utils/mockData';
 import { ProductCard } from '../components/ui/ProductCard';
 import { useTranslation } from '../hooks/useTranslation';
 
@@ -37,6 +38,29 @@ const tickerItems = [
 export default function Home() {
   const featuredProducts = getProducts().slice(0, 3);
   const { t } = useTranslation();
+
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('/api/categories');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.length > 0) {
+            setCategories(data);
+          } else {
+            setCategories(mockCategories);
+          }
+        } else {
+          setCategories(mockCategories);
+        }
+      } catch (err) {
+        setCategories(mockCategories);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   return (
     <>
@@ -179,19 +203,24 @@ export default function Home() {
           </div>
 
           <div className="flex flex-wrap justify-center max-w-5xl mx-auto gap-8 md:gap-14">
-            {categoriesData.map((category) => {
+            {categories.map((category) => {
+              // Handle database vs mock data structure
+              const key = category.key || category.name.toLowerCase().replace(/\s+/g, '');
+              const image = category.image || '/example.png';
+              
               // @ts-ignore - Dynamic key access based on language dictionary
-              const title = t.shopCategories[category.key];
+              const title = t.shopCategories[key] || category.name;
+
               return (
                 <Link
                   key={category.id}
-                  href={`/shop?category=${category.key}`}
+                  href={`/shop?category=${key}`}
                   className="group flex flex-col items-center gap-4 cursor-pointer transition-all duration-300 hover:scale-[1.15] hover:-translate-y-3 z-0 hover:z-10"
                 >
                   <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-full overflow-hidden bg-black/50 backdrop-blur-sm border-4 border-white/10 group-hover:border-primary transition-all duration-300 shadow-xl group-hover:shadow-[0_10px_40px_rgba(245,158,11,0.7)]">
                     <div
                       className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700 ease-out"
-                      style={{ backgroundImage: `url(${category.image})` }}
+                      style={{ backgroundImage: `url(${image})` }}
                     />
                     <div className="absolute inset-0 rounded-full border border-white/20 z-10 pointer-events-none" />
                   </div>

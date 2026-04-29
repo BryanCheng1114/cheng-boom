@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Phone, MessageCircle, Mail, MapPin, ChevronRight } from 'lucide-react';
@@ -10,6 +11,16 @@ const EMAIL           = 'hello@cheng-boom.test';
 
 export function Footer() {
   const { t } = useTranslation();
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) setCategories(data);
+      })
+      .catch(() => {});
+  }, []);
 
   // Defined inside component so they can use t.*
   const quickLinks = [
@@ -19,11 +30,6 @@ export function Footer() {
     { href: '/about/history', label: t.footer.ourHistory },
     { href: '/contact',       label: t.nav.contact },
   ];
-
-  const categoryKeys = [
-    'fireworks', 'firecrackers', 'fountain', 'handheld',
-    'skyline', 'spinning', 'poppop', 'dragonpili', 'soundcloud',
-  ] as const;
 
   const handleWhatsApp = () => {
     window.open(`https://wa.me/${WHATSAPP_NUMBER}`, '_blank');
@@ -93,23 +99,36 @@ export function Footer() {
               {t.footer.categories}
             </h3>
             <ul className="space-y-3">
-              {categoryKeys.map((key) => (
-                <li key={key}>
-                  <Link
-                    href={`/shop?category=${key}`}
-                    className="flex items-center gap-1.5 text-sm transition-colors group
-                      text-zinc-500 hover:text-primary
-                      dark:text-zinc-400 dark:hover:text-primary"
-                  >
-                    <ChevronRight
-                      size={14}
-                      className="text-zinc-300 group-hover:text-primary group-hover:translate-x-0.5 transition-all
-                        dark:text-zinc-600 dark:group-hover:text-primary"
-                    />
-                    {(t.shopCategories as any)[key]}
-                  </Link>
-                </li>
-              ))}
+              {(categories.length > 0 ? categories : [
+                { id: '1', name: 'Fireworks' },
+                { id: '2', name: 'Firecrackers' },
+                { id: '3', name: 'Fountain' },
+                { id: '4', name: 'Handheld' },
+                { id: '5', name: 'Skyline' },
+                { id: '6', name: 'Spinning' },
+                { id: '7', name: 'Pop Pop' },
+                { id: '8', name: 'Dragon Pili' },
+                { id: '9', name: 'Soundcloud' },
+              ]).map((cat) => {
+                const key = cat.key || cat.name.toLowerCase().replace(/\s+/g, '');
+                return (
+                  <li key={cat.id}>
+                    <Link
+                      href={`/shop?category=${key}`}
+                      className="flex items-center gap-1.5 text-sm transition-colors group
+                        text-zinc-500 hover:text-primary
+                        dark:text-zinc-400 dark:hover:text-primary"
+                    >
+                      <ChevronRight
+                        size={14}
+                        className="text-zinc-300 group-hover:text-primary group-hover:translate-x-0.5 transition-all
+                          dark:text-zinc-600 dark:group-hover:text-primary"
+                      />
+                      {(t.shopCategories as any)[key] || cat.name}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 

@@ -17,14 +17,50 @@ export default function Cart() {
   const [orderDetails, setOrderDetails] = useState<OrderDetails>({
     customerName: '',
     customerPhone: '',
-    paymentMethod: 'TNG e-Wallet',
-    deliveryMode: 'Self-Collect',
+    paymentMethod: 'TNG e-wallet',
+    deliveryMode: 'Self Collect',
     address: '',
     notes: ''
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     setMounted(true);
+    
+    // Auto-populate from logged in user
+    const fetchUserProfile = async () => {
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        const user = JSON.parse(savedUser);
+        try {
+          const res = await fetch(`/api/customers/${user.id}`);
+          if (res.ok) {
+            const fullProfile = await res.json();
+            setOrderDetails(prev => ({
+              ...prev,
+              customerName: fullProfile.name || '',
+              customerPhone: fullProfile.phone || '',
+              address: fullProfile.address || '',
+              paymentMethod: fullProfile.preferredPayment || 'TNG e-wallet',
+              deliveryMode: fullProfile.orderMode || 'Self Collect',
+              notes: fullProfile.notes || ''
+            }));
+          } else {
+            // Fallback to local storage basic info
+            setOrderDetails(prev => ({
+              ...prev,
+              customerName: user.name || '',
+              customerPhone: user.phone || ''
+            }));
+          }
+        } catch (err) {
+          console.error('Failed to fetch user profile for cart:', err);
+        }
+      }
+    };
+
+    fetchUserProfile();
   }, []);
 
   if (!mounted) return null; // Prevent hydration mismatch
@@ -44,11 +80,51 @@ export default function Cart() {
     );
   }
 
-  const handleCheckoutSubmit = (e: React.FormEvent) => {
+  const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = generateWhatsAppLink(items, totalPrice, orderDetails);
-    window.open(url, '_blank');
-    setIsCheckoutOpen(false);
+    setIsSubmitting(true);
+
+    try {
+      // 1. Save to database
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerInfo: {
+            name: orderDetails.customerName,
+            phone: orderDetails.customerPhone,
+            address: orderDetails.address || (orderDetails.deliveryMode === 'Self Collect' ? 'Self Collect' : ''),
+            paymentMethod: orderDetails.paymentMethod,
+            deliveryMode: orderDetails.deliveryMode,
+            notes: orderDetails.notes
+          },
+          items: items.map(item => ({
+            productId: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity
+          })),
+          totalAmount: totalPrice
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save order');
+      }
+
+      // 2. Open WhatsApp
+      const url = generateWhatsAppLink(items, totalPrice, orderDetails);
+      window.open(url, '_blank');
+
+      // 3. Cleanup
+      clearCart();
+      setIsCheckoutOpen(false);
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Failed to process order. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const totalSavings = totalOriginalPrice - totalPrice;
@@ -204,6 +280,18 @@ export default function Cart() {
                   </div>
 
                   <div className="space-y-8">
+                    {/* Seller Benefit Notice */}
+                    {typeof window !== 'undefined' && JSON.parse(localStorage.getItem('user') || '{}').role === 'Seller' && (
+                      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-3xl p-6 flex items-center gap-5 group">
+                        <div className="w-12 h-12 rounded-2xl bg-yellow-500 flex items-center justify-center text-zinc-900 shadow-lg shadow-yellow-500/20 group-hover:scale-110 transition-transform">
+                          <Zap size={24} strokeWidth={2.5} />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-yellow-600 dark:text-yellow-500 mb-1">Seller Benefit Active</p>
+                          <p className="text-sm font-bold text-foreground leading-tight">A <span className="text-primary font-black italic">15% discount</span> has been automatically applied to your selection.</p>
+                        </div>
+                      </div>
+                    )}
                     {/* Customer Info */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
@@ -240,16 +328,16 @@ export default function Cart() {
                         <CreditCard size={12} className="text-primary" /> {t.cart.checkout.paymentTitle}
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {['TNG e-Wallet', 'Bank Transfer', 'DuitNow QR'].map((method) => (
+                        {['TNG e-wallet', 'bank transfer', 'DuitNow qr'].map((method) => (
                           <button
                             key={method}
                             type="button"
                             onClick={() => setOrderDetails({ ...orderDetails, paymentMethod: method })}
                             className={cn(
-                              "px-4 py-4 rounded-2xl border text-sm font-black transition-all flex items-center justify-center gap-2",
+                              "px-4 py-4 rounded-2xl border text-[11px] font-black uppercase tracking-tight transition-all flex items-center justify-center gap-2",
                               orderDetails.paymentMethod === method
                                 ? "bg-primary border-primary text-zinc-900 shadow-lg shadow-primary/20 scale-[1.02]"
-                                : "bg-zinc-50 dark:bg-zinc-900 border-border text-zinc-500 hover:border-primary/50"
+                                : "bg-zinc-50 dark:bg-white/5 border-border text-zinc-500 dark:text-zinc-400 hover:border-primary/50"
                             )}
                           >
                             {orderDetails.paymentMethod === method && <Check size={14} strokeWidth={3} />}
@@ -265,7 +353,7 @@ export default function Cart() {
                         <MapPin size={12} className="text-primary" /> {t.cart.checkout.deliveryTitle}
                       </label>
                       <div className="grid grid-cols-2 gap-3">
-                        {['Self-Collect', 'Delivery'].map((mode) => (
+                        {['Self Collect', 'Delivery'].map((mode) => (
                           <button
                             key={mode}
                             type="button"
@@ -274,7 +362,7 @@ export default function Cart() {
                               "px-4 py-4 rounded-2xl border text-sm font-black transition-all flex items-center justify-center gap-2",
                               orderDetails.deliveryMode === mode
                                 ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-xl scale-[1.02]"
-                                : "bg-zinc-50 dark:bg-zinc-900 border-border text-zinc-500 hover:border-zinc-900/50 dark:hover:border-white/50"
+                                : "bg-zinc-50 dark:bg-white/5 border-border text-zinc-500 dark:text-zinc-400 hover:border-zinc-900/50 dark:hover:border-white/50"
                             )}
                           >
                             {mode}
@@ -314,10 +402,17 @@ export default function Cart() {
                   <div className="mt-12 flex flex-col gap-4">
                      <button 
                         type="submit"
-                        className="w-full py-5 px-4 bg-primary text-zinc-900 rounded-[20px] font-black text-lg hover:brightness-110 transition-all shadow-xl hover:shadow-primary/20 flex justify-center items-center gap-2 active:scale-[0.98]"
+                        disabled={isSubmitting}
+                        className="w-full py-5 px-4 bg-primary text-zinc-900 rounded-[20px] font-black text-lg hover:brightness-110 transition-all shadow-xl hover:shadow-primary/20 flex justify-center items-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                      >
-                        <MessageCircle size={22} strokeWidth={3} className="shrink-0" />
-                        <span className="leading-tight">{t.cart.checkout.confirmBtn}</span>
+                        {isSubmitting ? (
+                          <div className="w-6 h-6 border-4 border-zinc-900/20 border-t-zinc-900 rounded-full animate-spin" />
+                        ) : (
+                          <MessageCircle size={22} strokeWidth={3} className="shrink-0" />
+                        )}
+                        <span className="leading-tight">
+                          {isSubmitting ? 'Processing...' : t.cart.checkout.confirmBtn}
+                        </span>
                      </button>
                      <p className="text-[10px] text-center text-zinc-500 font-bold uppercase tracking-widest">
                        {t.cart.checkout.total}: RM {totalPrice.toFixed(2)}

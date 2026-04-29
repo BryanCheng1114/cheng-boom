@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { useCart } from '../cart/CartProvider';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import { ShoppingCart, ChevronDown, Flame, Menu, X, User } from 'lucide-react';
+import { ShoppingCart, ChevronDown, Flame, Menu, X, User, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { cn } from '../../utils/cn';
@@ -19,6 +19,30 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isWiggling, setIsWiggling] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const checkUser = () => {
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      } else {
+        setUser(null);
+      }
+    };
+    
+    checkUser();
+    // Listen for storage changes (for login/logout in other tabs)
+    window.addEventListener('storage', checkUser);
+    return () => window.removeEventListener('storage', checkUser);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('user_role');
+    setUser(null);
+    window.location.href = '/';
+  };
 
   useEffect(() => {
     registerCelebrationTrigger(() => {
@@ -32,6 +56,17 @@ export function Navbar() {
   const isActive = (path: string) => router.pathname === path;
   const isActivePrefix = (prefix: string, exclude?: string) =>
     router.pathname.startsWith(prefix) && router.pathname !== exclude;
+
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) setCategories(data);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl transition-colors duration-300">
@@ -90,16 +125,29 @@ export function Navbar() {
                   <div className="px-3 py-1.5 text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
                     Categories
                   </div>
-                  {(['soundcloud','fountain','handheld','spinning','poppop','dragonpili','fireworks','firecrackers','skyline'] as const).map((cat) => (
-                    <Link
-                      key={cat}
-                      href={`/shop?category=${cat}`}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:text-primary hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary/50 shrink-0" />
-                      {(t.shopCategories as any)[cat]}
-                    </Link>
-                  ))}
+                  {(categories.length > 0 ? categories : [
+                    { id: '1', name: 'Soundcloud' },
+                    { id: '2', name: 'Fountain' },
+                    { id: '3', name: 'Handheld' },
+                    { id: '4', name: 'Spinning' },
+                    { id: '5', name: 'Pop Pop' },
+                    { id: '6', name: 'Dragon Pili' },
+                    { id: '7', name: 'Fireworks' },
+                    { id: '8', name: 'Firecrackers' },
+                    { id: '9', name: 'Skyline' },
+                  ]).map((category) => {
+                    const key = category.key || category.name.toLowerCase().replace(/\s+/g, '');
+                    return (
+                      <Link
+                        key={category.id}
+                        href={`/shop?category=${key}`}
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:text-primary hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary/50 shrink-0" />
+                        {(t.shopCategories as any)[key] || category.name}
+                      </Link>
+                    );
+                  })}
                   <div className="border-t border-zinc-100 dark:border-zinc-800 mx-3 my-1" />
                   <Link
                     href="/shop"
@@ -218,14 +266,67 @@ export function Navbar() {
               </AnimatePresence>
             </Link>
             
-            {/* Profile */}
-            <Link
-              href="/login"
-              className="p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-primary hover:bg-zinc-100 dark:hover:bg-white/5 transition-all ml-6 group"
-              title="Account"
-            >
-              <User size={22} className="group-hover:scale-110 transition-transform" />
-            </Link>
+            {/* Profile Dropdown */}
+            <div className="relative group/profile ml-4 flex items-center">
+              {user ? (
+                <div className="flex items-center gap-3 cursor-pointer relative">
+                  <div className="flex flex-col items-end hidden sm:flex">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 leading-none mb-1">Active Member</span>
+                    <span className="text-sm font-bold text-foreground leading-none">{user.name}</span>
+                  </div>
+                  
+                  {/* Icon Frame */}
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-500 dark:text-zinc-400 group-hover/profile:text-primary group-hover/profile:bg-zinc-100 dark:group-hover/profile:bg-white/5 transition-all duration-200">
+                    <User size={22} />
+                  </div>
+
+                  {/* Invisible Bridge to prevent hover gap */}
+                  <div className="absolute -bottom-4 left-0 w-full h-4 z-10" />
+                  
+                  {/* Dropdown */}
+                  <div className="absolute top-[calc(100%+4px)] right-0 w-56 opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible translate-y-1 group-hover/profile:translate-y-0 transition-all duration-200 z-50">
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-[24px] shadow-2xl py-3 overflow-hidden">
+                      <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 mb-2">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">Account</p>
+                        <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
+                      </div>
+                      <Link 
+                        href="/profile" 
+                        className="flex items-center gap-3 px-5 py-3 text-sm text-zinc-600 dark:text-zinc-300 hover:text-primary hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <User size={16} /> My Profile
+                      </Link>
+                      {user.role === 'Seller' && (
+                        <div className="mx-2 mt-1 mb-2 px-4 py-2.5 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 rounded-2xl flex items-center gap-3 group/seller">
+                          <div className="w-8 h-8 rounded-xl bg-yellow-500 flex items-center justify-center text-zinc-900 shadow-lg shadow-yellow-500/20 group-hover/seller:rotate-12 transition-transform">
+                            <Sparkles size={16} strokeWidth={2.5} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-yellow-600 dark:text-yellow-500 leading-none mb-1">Seller Benefits</p>
+                            <p className="text-[9px] font-bold text-zinc-400 leading-none">15% Discount Active</p>
+                          </div>
+                        </div>
+                      )}
+                      <div className="h-px bg-zinc-100 dark:bg-zinc-800 mx-3 my-2" />
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-5 py-3 text-sm text-red-500 hover:bg-red-500/5 transition-colors"
+                      >
+                        <X size={16} /> Logout
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-primary hover:bg-zinc-100 dark:hover:bg-white/5 transition-all group"
+                  title="Sign In"
+                >
+                  <User size={22} className="group-hover:scale-110 transition-transform" />
+                </Link>
+              )}
+            </div>
 
             {/* Mobile hamburger */}
             <button
@@ -240,6 +341,19 @@ export function Navbar() {
         {/* ---- Mobile Menu ---- */}
         {mobileOpen && (
           <div className="md:hidden border-t border-zinc-100 dark:border-zinc-800 py-4 space-y-1">
+            {user && (
+              <div className="px-4 py-4 mb-2 bg-primary/5 rounded-2xl mx-2 border border-primary/10">
+                <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Welcome Back</p>
+                <p className="text-lg font-black italic text-foreground">{user.name}</p>
+                <Link 
+                  href="/profile" 
+                  onClick={() => setMobileOpen(false)}
+                  className="mt-3 flex items-center justify-between p-3 bg-white dark:bg-zinc-900 rounded-xl text-sm font-bold text-foreground border border-zinc-200 dark:border-white/5"
+                >
+                  View Profile <ChevronRight size={14} />
+                </Link>
+              </div>
+            )}
             {[
               { href: '/',        label: t.nav.home },
               { href: '/shop',    label: t.nav.shop },

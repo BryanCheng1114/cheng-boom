@@ -1,10 +1,10 @@
 import Head from 'next/head';
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { getProducts, categoriesData } from '../../utils/mockData';
+import { categoriesData } from '../../utils/mockData';
 import { ProductCard } from '../../components/ui/ProductCard';
 import { useTranslation } from '../../hooks/useTranslation';
-import { Search, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
+import { Search, SlidersHorizontal, X, ChevronDown, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'name-asc';
@@ -12,13 +12,38 @@ type SortOption = 'default' | 'price-asc' | 'price-desc' | 'name-asc';
 export default function Shop() {
   const router = useRouter();
   const { t } = useTranslation();
-  const allProducts = getProducts();
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery]       = useState('');
   const [sortBy, setSortBy]                 = useState<SortOption>('default');
   const [sortOpen, setSortOpen]             = useState(false);
+  const [categories, setCategories]         = useState<any[]>([]);
+
+  // Fetch from DB
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [prodRes, catRes] = await Promise.all([
+          fetch('/api/products'),
+          fetch('/api/categories')
+        ]);
+        const [prodData, catData] = await Promise.all([
+          prodRes.json(),
+          catRes.json()
+        ]);
+        setAllProducts(prodData);
+        setCategories(catData);
+      } catch (err) {
+        console.error('Failed to fetch data:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   // Sync category from URL query on mount / route change
   useEffect(() => {
@@ -32,7 +57,10 @@ export default function Shop() {
 
     // 1. Category filter
     if (activeCategory !== 'all') {
-      list = list.filter(p => p.category === activeCategory);
+      list = list.filter(p => {
+        const productCatKey = (p.category || '').toLowerCase().replace(/\s+/g, '');
+        return productCatKey === activeCategory;
+      });
     }
 
     // 2. Search filter (name or category key, case-insensitive)
@@ -40,7 +68,7 @@ export default function Shop() {
     if (q) {
       list = list.filter(p =>
         p.name.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) ||
+        (p.category || '').toLowerCase().includes(q) ||
         p.description.toLowerCase().includes(q)
       );
     }
@@ -89,7 +117,6 @@ export default function Shop() {
       <div className="bg-background border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
           <div className="text-center mb-16">
-            {/* Removed Badge */}
             <h1 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">
               {activeCategoryLabel}
             </h1>
@@ -128,14 +155,15 @@ export default function Shop() {
               </button>
 
               {/* Category tabs */}
-              {categoriesData.map(cat => {
-                const label = (t.shopCategories as any)[cat.key] || cat.key;
-                const count = allProducts.filter(p => p.category === cat.key).length;
-                const isActive = activeCategory === cat.key;
+              {categories.map(cat => {
+                const key = cat.key || cat.name.toLowerCase().replace(/\s+/g, '');
+                const label = (t.shopCategories as any)[key] || cat.name;
+                const count = allProducts.filter(p => (p.category || '').toLowerCase().replace(/\s+/g, '') === key).length;
+                const isActive = activeCategory === key;
                 return (
                   <button
-                    key={cat.key}
-                    onClick={() => handleCategoryClick(cat.key)}
+                    key={cat.id}
+                    onClick={() => handleCategoryClick(key)}
                     className={[
                       'relative shrink-0 flex items-center gap-2 px-6 py-2.5 text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full',
                       isActive
@@ -246,7 +274,12 @@ export default function Shop() {
           )}
         </p>
 
-        {filteredProducts.length === 0 ? (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">Syncing Inventory...</p>
+          </div>
+        ) : filteredProducts.length === 0 ? (
           /* Empty state */
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="text-6xl mb-6">🔍</div>

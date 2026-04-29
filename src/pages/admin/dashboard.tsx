@@ -1,86 +1,208 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   TrendingUp, 
   Package, 
-  Activity, 
+  ShoppingBag, 
   Users, 
-  AlertCircle, 
-  Check, 
-  UserPlus 
+  Clock, 
+  ArrowRight,
+  Activity,
+  ArrowUpRight,
+  Sparkles,
+  ChevronRight
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
+import Link from 'next/link';
+import { useLanguage } from '../../context/LanguageContext';
 
 const DashboardPage = () => {
+  const { t } = useLanguage();
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    liveProducts: 0,
+    totalOrders: 0,
+    totalCustomers: 0,
+    pendingOrders: 0,
+    lowStockCount: 0,
+    sellerCount: 0,
+    recentOrders: [] as any[]
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [prodRes, orderRes, custRes] = await Promise.all([
+          fetch('/api/products'),
+          fetch('/api/orders'),
+          fetch('/api/customers')
+        ]);
+
+        const products = await prodRes.json();
+        const orders = await orderRes.json();
+        const customers = await custRes.json();
+
+        const revenue = orders.reduce((acc: number, o: any) => acc + (o.status === 'Completed' ? o.totalAmount : 0), 0);
+        
+        setStats({
+          totalRevenue: revenue,
+          liveProducts: products.filter((p: any) => p.status === 'Live').length,
+          totalOrders: orders.length,
+          totalCustomers: customers.length,
+          pendingOrders: orders.filter((o: any) => o.status === 'Pending').length,
+          lowStockCount: products.filter((p: any) => p.stock > 0 && p.stock < 10).length,
+          sellerCount: customers.filter((c: any) => c.role === 'Seller').length,
+          recentOrders: orders.slice(0, 5)
+        });
+      } catch (err) {
+        console.error('Dashboard fetch error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const kpis = [
+    { label: t('total_revenue'), value: `RM ${stats.totalRevenue.toLocaleString()}`, sub: t('completed_sales'), icon: TrendingUp, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
+    { label: t('live_inventory'), value: stats.liveProducts, sub: t('active_products'), icon: Package, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { label: t('total_orders'), value: stats.totalOrders, sub: t('all_transactions'), icon: ShoppingBag, color: 'text-orange-500', bg: 'bg-orange-500/10' },
+    { label: t('registered_customers'), value: stats.totalCustomers, sub: t('growth_members'), icon: Users, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+  ];
+
   return (
-    <AdminLayout title="Dashboard">
+    <AdminLayout title={t('system_overview')}>
       <div className="space-y-10">
-        {/* KPI Cards */}
+        
+        {/* KPI Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            { label: 'Total Revenue', value: 'RM 24,150', sub: '+12% from last month', icon: TrendingUp, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
-            { label: 'Live Products', value: '156', sub: 'across 8 categories', icon: Package, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-            { label: 'Total Orders', value: '842', sub: '98% fulfillment rate', icon: Activity, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
-            { label: 'Total Customers', value: '3,120', sub: '24% return rate', icon: Users, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-          ].map((stat, i) => (
-            <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="dark:bg-zinc-900/30 bg-white border dark:border-white/5 border-zinc-100 rounded-[32px] p-7 transition-all duration-500 group shadow-lg">
+          {kpis.map((stat, i) => (
+            <motion.div 
+              key={stat.label} 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ delay: i * 0.1 }} 
+              className="dark:bg-zinc-900/40 bg-white border dark:border-white/5 border-zinc-100 rounded-[32px] p-7 transition-all duration-500 group shadow-lg hover:shadow-xl hover:-translate-y-1"
+            >
               <div className="flex items-center justify-between mb-6">
-                <div className={`p-3.5 rounded-[18px] ${stat.bg} ${stat.color}`}><stat.icon size={22} strokeWidth={2.5} /></div>
-                <div className="px-2 py-1 rounded-full text-[8px] font-black uppercase tracking-widest dark:bg-zinc-950 bg-zinc-50 dark:text-zinc-500 text-zinc-400">Live Update</div>
+                <div className={`p-4 rounded-[20px] ${stat.bg} ${stat.color}`}>
+                  <stat.icon size={24} strokeWidth={2.5} />
+                </div>
+                <ArrowUpRight size={20} className="text-zinc-500 opacity-0 group-hover:opacity-100 transition-all" />
               </div>
               <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">{stat.label}</p>
-              <h3 className="text-3xl font-black italic tracking-tight mb-2 dark:text-white text-zinc-900">{stat.value}</h3>
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{stat.sub}</p>
+              <h3 className="text-3xl font-black italic tracking-tight mb-2 dark:text-white text-zinc-900">{isLoading ? '---' : stat.value}</h3>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{stat.sub}</p>
+              </div>
             </motion.div>
           ))}
         </div>
 
-        {/* Main Stats Chart & Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          <div className="lg:col-span-2 border dark:border-white/10 border-zinc-100 rounded-[48px] p-8 shadow-2xl dark:bg-zinc-900/20 bg-white">
-            <div className="flex justify-between items-center mb-10">
-              <h3 className="text-xl font-black italic uppercase tracking-tight dark:text-white text-zinc-900">Revenue Stream</h3>
-              <select className="bg-transparent text-xs font-black uppercase tracking-widest border-none focus:ring-0 dark:text-zinc-400 text-zinc-500">
-                <option>Last 7 Days</option>
-                <option>Last 30 Days</option>
-              </select>
+        {/* Main Layout Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          
+          {/* Recent Orders - Visual Feed */}
+          <div className="xl:col-span-2 space-y-6">
+            <div className="flex items-center justify-between px-4">
+              <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                <Clock size={16} /> {t('recent_transactions')}
+              </h3>
+              <Link href="/admin/orders" className="text-[10px] font-black uppercase tracking-widest text-yellow-500 hover:gap-2 flex items-center gap-1 transition-all">
+                {t('orders')} <ChevronRight size={14} />
+              </Link>
             </div>
-            <div className="h-64 flex items-end gap-3 px-4">
-              {[40, 70, 45, 90, 65, 80, 100].map((h, i) => (
-                <motion.div key={i} initial={{ height: 0 }} animate={{ height: `${h}%` }} transition={{ delay: 0.5 + i * 0.1, duration: 1 }} className="flex-1 bg-gradient-to-t from-yellow-500/20 to-yellow-500 rounded-t-xl relative group">
-                  <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                    {h}%
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-            <div className="flex justify-between px-4 mt-6 text-[10px] font-black text-zinc-500 uppercase tracking-widest">
-              <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+            
+            <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] overflow-hidden shadow-2xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-zinc-500/5 border-b border-zinc-500/10">
+                      <th className="p-6 text-[10px] font-black text-zinc-400 uppercase tracking-widest">{t('orders')}</th>
+                      <th className="p-6 text-[10px] font-black text-zinc-400 uppercase tracking-widest">{t('customers')}</th>
+                      <th className="p-6 text-[10px] font-black text-zinc-400 uppercase tracking-widest">{t('total')}</th>
+                      <th className="p-6 text-[10px] font-black text-zinc-400 uppercase tracking-widest">{t('status')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-500/5">
+                    {stats.recentOrders.length === 0 ? (
+                      <tr><td colSpan={4} className="p-10 text-center text-zinc-500 font-bold uppercase text-[10px]">No recent orders found.</td></tr>
+                    ) : stats.recentOrders.map((order: any) => (
+                      <tr key={order.id} className="group hover:bg-zinc-500/5 transition-colors cursor-pointer" onClick={() => (window.location.href = `/admin/orders/${order.id}`)}>
+                        <td className="p-6">
+                          <span className="text-xs font-black dark:text-white text-zinc-900 font-mono">#{order.id.slice(-6).toUpperCase()}</span>
+                        </td>
+                        <td className="p-6">
+                          <span className="text-xs font-bold dark:text-white text-zinc-900">{order.customer?.name}</span>
+                        </td>
+                        <td className="p-6">
+                          <span className="text-sm font-black text-yellow-500 italic">RM {order.totalAmount.toFixed(2)}</span>
+                        </td>
+                        <td className="p-6">
+                          <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${
+                            order.status === 'Completed' ? 'bg-green-500/10 text-green-500' :
+                            order.status === 'Pending' ? 'bg-orange-500/10 text-orange-500 animate-pulse' :
+                            'bg-zinc-500/10 text-zinc-500'
+                          }`}>
+                            {t(order.status.toLowerCase().replace(/ /g, '_')) || order.status}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
-          <div className="border dark:border-white/10 border-zinc-100 rounded-[48px] p-8 shadow-2xl dark:bg-zinc-900/20 bg-white">
-            <h3 className="text-xl font-black italic uppercase tracking-tight mb-8 dark:text-white text-zinc-900">Recent Activity</h3>
-            <div className="space-y-6">
-              {[
-                { type: 'order', msg: 'New order #3412', time: '2m ago', icon: Activity },
-                { type: 'product', msg: 'Product stock low: Thunder Clap', time: '15m ago', icon: AlertCircle },
-                { type: 'user', msg: 'New seller account: Bryan Sales', time: '1h ago', icon: UserPlus },
-                { type: 'system', msg: 'System backup completed', time: '4h ago', icon: Check },
-              ].map((act, i) => (
-                <div key={i} className="flex items-center gap-4 group">
-                  <div className="p-2 rounded-xl transition-colors dark:bg-white/5 bg-zinc-50 group-hover:bg-yellow-500/10">
-                    <act.icon size={16} className="dark:text-zinc-500 text-zinc-400" />
+          {/* Business Distribution & Insights */}
+          <div className="space-y-8">
+            <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] p-8 shadow-2xl">
+              <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-8 flex items-center gap-2">
+                <Activity size={16} /> {t('market_split')}
+              </h3>
+              
+              <div className="space-y-8">
+                <div>
+                  <div className="flex justify-between items-end mb-3">
+                    <span className="text-[10px] font-black uppercase text-zinc-400">{t('verified_sellers')}</span>
+                    <span className="text-xl font-black italic text-white">{stats.sellerCount}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold truncate dark:text-white text-zinc-900">{act.msg}</p>
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase">{act.time}</p>
+                  <div className="h-2 w-full bg-zinc-500/10 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }} 
+                      animate={{ width: `${(stats.sellerCount / (stats.totalCustomers || 1)) * 100}%` }} 
+                      className="h-full bg-yellow-500" 
+                    />
                   </div>
                 </div>
-              ))}
+
+                <div>
+                  <div className="flex justify-between items-end mb-3">
+                    <span className="text-[10px] font-black uppercase text-zinc-400">{t('regular_members')}</span>
+                    <span className="text-xl font-black italic text-white">{stats.totalCustomers - stats.sellerCount}</span>
+                  </div>
+                  <div className="h-2 w-full bg-zinc-500/10 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }} 
+                      animate={{ width: `${((stats.totalCustomers - stats.sellerCount) / (stats.totalCustomers || 1)) * 100}%` }} 
+                      className="h-full bg-zinc-500" 
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-zinc-500/10">
+                   <Link href="/admin/customer" className="w-full py-4 bg-yellow-500/5 hover:bg-yellow-500/10 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] text-yellow-500 transition-all flex items-center justify-center gap-2">
+                    {t('manage_customer_base')} <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </div>
             </div>
-            <button className="w-full mt-10 py-4 bg-zinc-500/5 hover:bg-zinc-500/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 transition-all">View Full Logs</button>
           </div>
+
         </div>
       </div>
     </AdminLayout>

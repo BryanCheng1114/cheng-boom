@@ -15,20 +15,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'PATCH') {
     try {
-      const { theme } = req.body;
+      const { theme, language } = req.body;
       
       if (theme && !['light', 'dark'].includes(theme)) {
         return res.status(400).json({ message: 'Invalid theme' });
       }
 
+      if (language && !['en', 'zh', 'ms'].includes(language)) {
+        return res.status(400).json({ message: 'Invalid language' });
+      }
+
       const updatedAdmin = await prisma.admin.update({
         where: { id: admin.id },
-        data: { theme },
+        data: { 
+          ...(theme && { theme }),
+          ...(language && { language })
+        } as any,
         select: {
           id: true,
           username: true,
           theme: true,
-        }
+          language: true,
+        } as any
       });
 
       return res.status(200).json(updatedAdmin);

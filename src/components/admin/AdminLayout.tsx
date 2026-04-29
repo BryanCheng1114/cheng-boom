@@ -10,9 +10,13 @@ import {
   Users, 
   ChevronLeft, 
   ChevronRight,
+  ShoppingBag,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useLanguage } from '../../context/LanguageContext';
+
+import { useTheme } from 'next-themes';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -21,31 +25,37 @@ interface AdminLayoutProps {
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
   const router = useRouter();
+  const { t } = useLanguage();
+  const { theme, setTheme } = useTheme();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [mounted, setMounted] = useState(false);
 
+  // When mounted on client, now we can show the UI
   useEffect(() => {
+    setMounted(true);
+    // Initialize theme from DB once on mount if next-themes hasn't picked it up
     const fetchProfile = async () => {
       try {
         const res = await fetch('/api/admin/profile');
         if (res.ok) {
           const data = await res.json();
-          if (data.theme) setTheme(data.theme);
+          if (data.theme && theme !== data.theme) setTheme(data.theme);
         }
       } catch (err) {}
     };
     fetchProfile();
   }, []);
 
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-  }, [theme]);
+  if (!mounted) {
+    return <div className="min-h-screen bg-[#02040a]" />;
+  }
 
   const navItems = [
-    { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-    { name: 'Product', path: '/admin/product', icon: Package },
-    { name: 'Customer', path: '/admin/customer', icon: Users },
-    { name: 'Settings', path: '/admin/settings', icon: SettingsIcon },
+    { name: t('dashboard'), key: 'dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+    { name: t('inventory'), key: 'inventory', path: '/admin/product', icon: Package },
+    { name: t('orders'), key: 'orders', path: '/admin/orders', icon: ShoppingBag },
+    { name: t('customers'), key: 'customers', path: '/admin/customer', icon: Users },
+    { name: t('settings'), key: 'settings', path: '/admin/settings', icon: SettingsIcon },
   ];
 
   const handleLogout = async () => {
@@ -60,8 +70,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
       theme === 'dark' ? 'bg-[#02040a] text-zinc-100' : 'bg-[#f8f9fc] text-zinc-900'
     }`}>
       <Head>
-        <title>{title} | Cheng-BOOM Admin</title>
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+        <title>{`${title} | Cheng-BOOM Admin`}</title>
       </Head>
 
       {/* Sidebar */}
@@ -99,7 +108,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
             {navItems.map((item) => {
               const isActive = router.pathname === item.path;
               return (
-                <Link key={item.name} href={item.path}>
+                <Link key={item.key} href={item.path}>
                   <div className={`w-full flex items-center gap-4 px-4 py-4 rounded-[22px] transition-all relative group overflow-hidden cursor-pointer ${isActive ? (theme === 'dark' ? 'text-white' : 'text-zinc-900') : 'text-zinc-500 hover:text-zinc-400'}`}>
                     {isActive && (
                       <motion.div layoutId="activeNav" className={`absolute inset-0 border ${theme === 'dark' ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-yellow-500/10 border-yellow-500/30'}`} style={{ borderRadius: '22px' }} transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />
@@ -117,15 +126,15 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
         <div className={`p-6 border-t transition-colors duration-500 ${theme === 'dark' ? 'border-white/5 bg-[#05060a]/50' : 'border-zinc-100 bg-zinc-50/50'}`}>
           <button onClick={handleLogout} className="w-full flex items-center gap-4 px-4 py-4 rounded-[22px] text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-all group overflow-hidden">
             <LogOut size={22} className="shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
-            {!isCollapsed && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-bold text-sm tracking-wide whitespace-nowrap">Logout</motion.span>}
+            {!isCollapsed && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-bold text-sm tracking-wide whitespace-nowrap">{t('logout')}</motion.span>}
           </button>
         </div>
       </motion.aside>
 
-      <motion.main animate={{ marginLeft: isCollapsed ? 88 : 280 }} className="min-h-screen p-10 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]">
-        <header className="mb-10">
+      <motion.main animate={{ marginLeft: isCollapsed ? 88 : 280 }} className="min-h-screen p-8 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]">
+        <header className="mb-6">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
-            <h1 className={`text-5xl font-black tracking-tight italic mb-6 ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{title}</h1>
+            <h1 className={`text-4xl font-black tracking-tight italic mb-2 ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{title}</h1>
           </motion.div>
           <div className={`w-full h-[1px] ${theme === 'dark' ? 'bg-white/10' : 'bg-zinc-200'}`} />
         </header>
