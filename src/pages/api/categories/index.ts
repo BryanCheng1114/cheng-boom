@@ -30,14 +30,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'POST') {
     try {
-      const { name } = req.body;
-      if (!name) return res.status(400).json({ error: 'Name is required' });
+      const { name, code, nameZh, nameMs, image } = req.body;
+      if (!name || !name.trim()) return res.status(400).json({ error: 'Category Name is required' });
+      if (!code || !code.trim()) return res.status(400).json({ error: 'Category Code is required' });
 
-      const category = await prisma.category.upsert({
-        where: { name },
-        update: {},
-        create: { name },
+      const cleanCode = code.trim().replace(/[^a-zA-Z0-9-_]/g, '');
+      if (!cleanCode) return res.status(400).json({ error: 'Category Code must contain alphanumeric characters' });
+
+      // Check unique constraints for name and code
+      const existing = await prisma.category.findFirst({
+        where: {
+          OR: [
+            { name: { equals: name.trim(), mode: 'insensitive' } },
+            { code: { equals: cleanCode, mode: 'insensitive' } }
+          ]
+        }
       });
+
+      if (existing) {
+        if (existing.name.toLowerCase() === name.trim().toLowerCase()) {
+          return res.status(400).json({ error: 'Category with this Name already exists.' });
+        }
+        return res.status(400).json({ error: 'Category with this Code already exists.' });
+      }
+
+      const category = await prisma.category.create({
+        data: {
+          name: name.trim(),
+          code: cleanCode,
+          nameZh: nameZh?.trim() || null,
+          nameMs: nameMs?.trim() || null,
+          image: image?.trim() || null,
+        },
+      });
+
       return res.status(201).json(category);
     } catch (error) {
       console.error('Error creating category:', error);

@@ -304,5 +304,12 @@
     "outOfStock": "Stok Habis",
     "inStock": "Dalam Stok",
     "save": "Jimat"
+  },
+  "coverage": {
+    "title": "Liputan Penghantaran Kami",
+    "desc": "Cheng-BOOM secara eksklusif melayani pelanggan di seluruh Sabah dan Sarawak. Kami membawa bunga api premium terus ke perayaan tempatan anda dengan penghantaran yang boleh dipercayai dan selamat.",
+    "clickExpand": "Klik untuk besarkan",
+    "escHint": "Klik di mana-mana sahaja di luar untuk tutup",
+    "backToTop": "Kembali ke Atas"
   }
 }

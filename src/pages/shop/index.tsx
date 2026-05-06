@@ -11,7 +11,7 @@ type SortOption = 'default' | 'price-asc' | 'price-desc' | 'name-asc';
 
 export default function Shop() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -57,10 +57,19 @@ export default function Shop() {
 
     // 1. Category filter
     if (activeCategory !== 'all') {
-      list = list.filter(p => {
-        const productCatKey = (p.category || '').toLowerCase().replace(/\s+/g, '');
-        return productCatKey === activeCategory;
+      const activeCatObj = categories.find(c => {
+        const key = c.code || c.key || c.name.toLowerCase().replace(/\s+/g, '');
+        return key === activeCategory;
       });
+
+      if (activeCatObj) {
+        list = list.filter(p => p.category === activeCatObj.name);
+      } else {
+        list = list.filter(p => {
+          const productCatKey = (p.category || '').toLowerCase().replace(/\s+/g, '');
+          return productCatKey === activeCategory;
+        });
+      }
     }
 
     // 2. Search filter (name or category key, case-insensitive)
@@ -102,9 +111,22 @@ export default function Shop() {
   };
 
   // @ts-ignore
-  const activeCategoryLabel = activeCategory === 'all'
-    ? t.shopCategories.all
-    : (t.shopCategories as any)[activeCategory] || activeCategory;
+  const activeCatObj = useMemo(() => {
+    return categories.find(c => {
+      const key = c.code || c.key || c.name.toLowerCase().replace(/\s+/g, '');
+      return key === activeCategory;
+    });
+  }, [categories, activeCategory]);
+
+  const activeCategoryLabel = useMemo(() => {
+    if (activeCategory === 'all') return t.shopCategories.all;
+    if (activeCatObj) {
+      if (locale === 'zh' && activeCatObj.nameZh) return activeCatObj.nameZh;
+      if (locale === 'ms' && activeCatObj.nameMs) return activeCatObj.nameMs;
+      return activeCatObj.name;
+    }
+    return (t.shopCategories as any)[activeCategory] || activeCategory;
+  }, [activeCategory, activeCatObj, locale, t]);
 
   return (
     <>
@@ -156,9 +178,18 @@ export default function Shop() {
 
               {/* Category tabs */}
               {categories.map(cat => {
-                const key = cat.key || cat.name.toLowerCase().replace(/\s+/g, '');
-                const label = (t.shopCategories as any)[key] || cat.name;
-                const count = allProducts.filter(p => (p.category || '').toLowerCase().replace(/\s+/g, '') === key).length;
+                const key = cat.code || cat.key || cat.name.toLowerCase().replace(/\s+/g, '');
+                
+                let label = cat.name;
+                if (locale === 'zh' && cat.nameZh) {
+                  label = cat.nameZh;
+                } else if (locale === 'ms' && cat.nameMs) {
+                  label = cat.nameMs;
+                } else {
+                  label = (t.shopCategories as any)[key] || cat.name;
+                }
+
+                const count = allProducts.filter(p => p.category === cat.name).length;
                 const isActive = activeCategory === key;
                 return (
                   <button
@@ -265,14 +296,16 @@ export default function Shop() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         {/* Result count */}
-        <p className="text-sm text-muted-foreground mb-6">
-          {t.shop.showing}&nbsp;
-          <span className="font-bold text-foreground">{filteredProducts.length}</span>&nbsp;
-          {t.shop.products}
-          {searchQuery && (
-            <span> {t.shop.for} "<span className="font-semibold text-primary">{searchQuery}</span>"</span>
-          )}
-        </p>
+        {filteredProducts.length > 0 && (
+          <p className="text-sm text-muted-foreground mb-6">
+            {t.shop.showing}&nbsp;
+            <span className="font-bold text-foreground">{filteredProducts.length}</span>&nbsp;
+            {t.shop.products}
+            {searchQuery && (
+              <span> {t.shop.for} "<span className="font-semibold text-primary">{searchQuery}</span>"</span>
+            )}
+          </p>
+        )}
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">

@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useState, useRef } from 'react';
 import { prisma } from '../../lib/prisma';
 import { useCart } from '../../components/cart/CartProvider';
-import { ArrowLeft, ShoppingCart, Plus, Minus, CheckCircle, Maximize2, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Plus, Minus, CheckCircle, Maximize2, X, Loader2, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useTranslation } from '../../hooks/useTranslation';

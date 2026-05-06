@@ -304,5 +304,12 @@
     "outOfStock": "缺货",
     "inStock": "有货",
     "save": "节省"
+  },
+  "coverage": {
+    "title": "我们的送货范围",
+    "desc": "Cheng-BOOM 专门为沙巴和砂拉越的客户提供服务。我们直接将优质烟花送到您当地的庆祝活动中，送货可靠且安全。",
+    "clickExpand": "点击放大",
+    "escHint": "点击任意空白区域关闭",
+    "backToTop": "返回顶部"
   }
 }

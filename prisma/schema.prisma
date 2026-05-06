@@ -16,14 +16,17 @@ model Admin {
   theme     String   @default("dark")
   language  String   @default("en")
 }
-
 model Product {
   id          String   @id @default(cuid())
   name        String
+  code        String?  @unique // Unique product code
+  nameZh      String?  // Chinese name translation
+  nameMs      String?  // Malay name translation
   description String
   videoUrl    String?
   stock       Int      @default(0)
   price       Float
+  sellerPrice Float?   // Seller special price
   promotion   Float?
   category    String?
   status      String   @default("Live")
@@ -35,6 +38,9 @@ model Product {
 model Category {
   id        String   @id @default(cuid())
   name      String   @unique
+  code      String?  @unique
+  nameZh    String?  // Chinese name translation
+  nameMs    String?  // Malay name translation
   image     String?  // Image for homepage display
   createdAt DateTime @default(now())
 }

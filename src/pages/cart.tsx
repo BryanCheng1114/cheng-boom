@@ -2,7 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useCart } from '../components/cart/CartProvider';
 import { generateWhatsAppLink, OrderDetails } from '../services/whatsappService';
-import { Trash2, Plus, Minus, ArrowRight, MessageCircle, Shield, X, MapPin, CreditCard, User, Phone, Check } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, MessageCircle, Shield, X, MapPin, CreditCard, User, Phone, Check, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { cn } from '../utils/cn';

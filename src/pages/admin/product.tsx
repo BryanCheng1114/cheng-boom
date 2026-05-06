@@ -18,7 +18,8 @@ import {
   CheckCircle,
   Video as VideoIcon,
   AlertTriangle,
-  Check
+  Check,
+  Upload
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import Link from 'next/link';
@@ -44,6 +45,8 @@ const ProductPage = () => {
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+
+
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -73,7 +76,8 @@ const ProductPage = () => {
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            p.id.toLowerCase().includes(searchTerm.toLowerCase());
+                            p.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            (p.code && p.code.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter;
       return matchesSearch && matchesCategory;
     });
@@ -208,6 +212,13 @@ const ProductPage = () => {
                 </motion.button>
               )}
             </AnimatePresence>
+            <Link 
+              href="/admin/product/category"
+              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-zinc-800 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-700 hover:brightness-110 shadow-xl transition-all border border-zinc-700/60"
+            >
+              <Plus size={18} strokeWidth={3} />
+              Add New Category
+            </Link>
             <Link href="/admin/product/upload" className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-yellow-500 text-zinc-950 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:brightness-110 shadow-xl shadow-yellow-500/20 transition-all">
               <Plus size={18} strokeWidth={3} />
               {t('add_new_product')}
@@ -334,7 +345,12 @@ const ProductPage = () => {
                           </div>
                           <div className="flex flex-col">
                             <span className="font-bold text-sm dark:text-white text-zinc-900 group-hover:text-yellow-500 transition-colors line-clamp-1">{p.name}</span>
-                            <span className="text-[9px] text-zinc-500 font-medium">ID: {p.id.slice(-6).toUpperCase()}</span>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {p.code && (
+                                <span className="text-[9px] bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 px-1.5 py-0.5 rounded font-black tracking-wider uppercase shrink-0">{p.code}</span>
+                              )}
+                              <span className="text-[9px] text-zinc-500 font-medium shrink-0">ID: {p.id.slice(-6).toUpperCase()}</span>
+                            </div>
                           </div>
                         </div>
                       </td>

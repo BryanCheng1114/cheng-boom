@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { useCart } from '../cart/CartProvider';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import { ShoppingCart, ChevronDown, Flame, Menu, X, User, Sparkles } from 'lucide-react';
+import { ShoppingCart, ChevronDown, Flame, Menu, X, User, Sparkles, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { cn } from '../../utils/cn';
@@ -15,7 +15,7 @@ export function Navbar() {
   const { totalItems } = useCart();
   const { registerCelebrationTrigger } = useFlyToCart();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isWiggling, setIsWiggling] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -69,18 +69,18 @@ export function Navbar() {
   }, []);
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl transition-colors duration-300">
+    <nav className="sticky top-0 z-50 w-full bg-white/70 dark:bg-zinc-950/70 backdrop-blur-2xl border-b border-black/5 dark:border-white/5 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center gap-4">
+        <div className="flex justify-between h-20 items-center gap-4">
 
           {/* ---- Brand ---- */}
           <Link href="/" className="flex items-center gap-2 shrink-0 group">
             <Image
               src="/transparent-Background.png"
               alt="Cheng-BOOM Logo"
-              width={38}
-              height={38}
-              className="drop-shadow-[0_0_8px_rgba(245,158,11,0.5)] group-hover:scale-110 transition-transform duration-300"
+              width={42}
+              height={42}
+              className="drop-shadow-[0_0_12px_rgba(245,158,11,0.6)] group-hover:scale-110 transition-transform duration-300"
             />
             <span
               className="text-2xl font-black italic tracking-wider bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent group-hover:scale-110 group-hover:-rotate-2 transition-transform duration-300 origin-left inline-block pr-2"
@@ -97,14 +97,13 @@ export function Navbar() {
             <Link
               href="/"
               className={cn(
-                'relative px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-white/5',
-                isActive('/') ? 'text-primary' : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white'
+                'relative px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300',
+                isActive('/') 
+                  ? 'text-primary bg-primary/10' 
+                  : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/10'
               )}
             >
               {t.nav.home}
-              {isActive('/') && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-primary rounded-full" />
-              )}
             </Link>
 
             {/* Shop — with dropdown */}
@@ -112,17 +111,19 @@ export function Navbar() {
               <Link
                 href="/shop"
                 className={cn(
-                  'flex items-center gap-1 px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-white/5',
-                  isActivePrefix('/shop') ? 'text-primary' : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white'
+                  'flex items-center gap-1 px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300',
+                  isActivePrefix('/shop') 
+                    ? 'text-primary bg-primary/10' 
+                    : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/10'
                 )}
               >
                 {t.nav.shop}
-                <ChevronDown size={13} className="group-hover:rotate-180 transition-transform duration-200 opacity-60" />
+                <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300 opacity-70" />
               </Link>
               {/* Dropdown */}
-              <div className="absolute top-full left-0 pt-2 w-52 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-1 group-hover:translate-y-0 transition-all duration-200">
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/40 py-2 overflow-hidden">
-                  <div className="px-3 py-1.5 text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+              <div className="absolute top-full left-0 pt-3 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-2 scale-95 group-hover:translate-y-0 group-hover:scale-100 transition-all duration-300 ease-out origin-top-left z-50">
+                <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-700/60 rounded-2xl shadow-2xl shadow-black/10 dark:shadow-black/40 py-2 overflow-hidden">
+                  <div className="px-4 py-2 text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
                     Categories
                   </div>
                   {(categories.length > 0 ? categories : [
@@ -136,7 +137,17 @@ export function Navbar() {
                     { id: '8', name: 'Firecrackers' },
                     { id: '9', name: 'Skyline' },
                   ]).map((category) => {
-                    const key = category.key || category.name.toLowerCase().replace(/\s+/g, '');
+                    const key = category.code || category.key || category.name.toLowerCase().replace(/\s+/g, '');
+                    
+                    let label = category.name;
+                    if (locale === 'zh' && category.nameZh) {
+                      label = category.nameZh;
+                    } else if (locale === 'ms' && category.nameMs) {
+                      label = category.nameMs;
+                    } else {
+                      label = (t.shopCategories as any)[key] || category.name;
+                    }
+
                     return (
                       <Link
                         key={category.id}
@@ -144,7 +155,7 @@ export function Navbar() {
                         className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:text-primary hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors"
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-primary/50 shrink-0" />
-                        {(t.shopCategories as any)[key] || category.name}
+                        {label}
                       </Link>
                     );
                   })}
@@ -164,15 +175,17 @@ export function Navbar() {
               <Link
                 href="/about"
                 className={cn(
-                  'flex items-center gap-1 px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-white/5',
-                  isActivePrefix('/about') ? 'text-primary' : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white'
+                  'flex items-center gap-1 px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300',
+                  isActivePrefix('/about') 
+                    ? 'text-primary bg-primary/10' 
+                    : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/10'
                 )}
               >
                 {t.nav.aboutUs}
-                <ChevronDown size={13} className="group-hover:rotate-180 transition-transform duration-200 opacity-60" />
+                <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300 opacity-70" />
               </Link>
-              <div className="absolute top-full left-0 pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-1 group-hover:translate-y-0 transition-all duration-200">
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/40 py-2 overflow-hidden">
+              <div className="absolute top-full left-0 pt-3 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-2 scale-95 group-hover:translate-y-0 group-hover:scale-100 transition-all duration-300 ease-out origin-top-left z-50">
+                <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-700/60 rounded-2xl shadow-2xl shadow-black/10 dark:shadow-black/40 py-2 overflow-hidden">
                   <Link href="/about/origin" className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:text-primary hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary/50 shrink-0" />
                     {t.aboutLinks.origin}
@@ -183,7 +196,7 @@ export function Navbar() {
                   </Link>
                   <div className="border-t border-zinc-100 dark:border-zinc-800 mx-3 my-1" />
                   <Link href="/about" className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors">
-                    📖 {t.nav.aboutUs}
+                    {t.nav.aboutUs}
                   </Link>
                 </div>
               </div>
@@ -193,14 +206,13 @@ export function Navbar() {
             <Link
               href="/contact"
               className={cn(
-                'relative px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-white/5',
-                isActive('/contact') ? 'text-primary' : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white'
+                'relative px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300',
+                isActive('/contact') 
+                  ? 'text-primary bg-primary/10' 
+                  : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/10'
               )}
             >
               {t.nav.contact}
-              {isActive('/contact') && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-primary rounded-full" />
-              )}
             </Link>
           </div>
 
@@ -213,7 +225,7 @@ export function Navbar() {
             <Link
               id="navbar-cart-btn"
               href="/cart"
-              className="relative p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-primary hover:bg-zinc-100 dark:hover:bg-white/5 transition-all"
+              className="relative p-2.5 rounded-full text-zinc-500 dark:text-zinc-400 hover:text-primary hover:bg-zinc-100 dark:hover:bg-white/10 transition-all duration-300"
             >
               <motion.div
                 animate={isWiggling ? {
@@ -276,7 +288,7 @@ export function Navbar() {
                   </div>
                   
                   {/* Icon Frame */}
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-500 dark:text-zinc-400 group-hover/profile:text-primary group-hover/profile:bg-zinc-100 dark:group-hover/profile:bg-white/5 transition-all duration-200">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 group-hover/profile:text-primary group-hover/profile:bg-zinc-100 dark:group-hover/profile:bg-white/10 transition-all duration-300">
                     <User size={22} />
                   </div>
 
@@ -284,8 +296,8 @@ export function Navbar() {
                   <div className="absolute -bottom-4 left-0 w-full h-4 z-10" />
                   
                   {/* Dropdown */}
-                  <div className="absolute top-[calc(100%+4px)] right-0 w-56 opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible translate-y-1 group-hover/profile:translate-y-0 transition-all duration-200 z-50">
-                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-[24px] shadow-2xl py-3 overflow-hidden">
+                  <div className="absolute top-[calc(100%+8px)] right-0 w-56 opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible translate-y-2 scale-95 group-hover/profile:translate-y-0 group-hover/profile:scale-100 transition-all duration-300 ease-out origin-top-right z-50">
+                    <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-700/60 rounded-[24px] shadow-2xl shadow-black/10 dark:shadow-black/40 py-3 overflow-hidden">
                       <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 mb-2">
                         <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">Account</p>
                         <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
@@ -320,7 +332,7 @@ export function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-primary hover:bg-zinc-100 dark:hover:bg-white/5 transition-all group"
+                  className="p-2.5 rounded-full text-zinc-500 dark:text-zinc-400 hover:text-primary hover:bg-zinc-100 dark:hover:bg-white/10 transition-all duration-300 group"
                   title="Sign In"
                 >
                   <User size={22} className="group-hover:scale-110 transition-transform" />
@@ -331,7 +343,7 @@ export function Navbar() {
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors"
+              className="md:hidden p-2.5 rounded-full text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10 transition-all duration-300"
             >
               {mobileOpen ? <X size={22} /> : <Menu size={22} />}
             </button>

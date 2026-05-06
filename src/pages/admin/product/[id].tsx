@@ -173,9 +173,16 @@ const AdminProductDetail = () => {
                 <h1 className="text-5xl font-black italic uppercase tracking-tight mb-4 dark:text-white text-zinc-900 leading-tight">
                   {product.name}
                 </h1>
-                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                  <Tag size={12} /> ID: {product.id.toUpperCase()}
-                </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  {product.code && (
+                    <span className="px-3 py-1 bg-yellow-500/10 text-yellow-500 rounded-lg text-[9px] font-black tracking-widest uppercase border border-yellow-500/20">
+                      Code: {product.code}
+                    </span>
+                  )}
+                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                    <Tag size={12} /> ID: {product.id.toUpperCase()}
+                  </p>
+                </div>
               </div>
             </div>
 

@@ -12,21 +12,52 @@ const EditProductPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
-  const [isNewCategory, setIsNewCategory] = useState(false);
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
     name: '',
+    code: '',
+    nameZh: '',
+    nameMs: '',
     description: '',
     category: '',
-    newCategory: '',
     videoUrl: '',
     stock: '',
     price: '',
+    sellerPrice: '',
     promotion: '',
     status: 'Live',
   });
+
+  const handleAutoGenerateCode = async () => {
+    if (!formData.name.trim()) {
+      alert('Please input Product Name first to auto-generate code.');
+      return;
+    }
+
+    try {
+      // 1. Extract first two alphabetic letters, capitalized
+      let letters = formData.name.trim().replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase();
+      if (letters.length < 2) {
+        letters = letters.padEnd(2, 'P'); // e.g. "T" -> "TP" for Product
+      }
+      
+      // 2. Fetch all existing products to get current count
+      const res = await fetch('/api/products');
+      const products = await res.json();
+      
+      // 3. Format next unique suffix
+      const count = products.length;
+      const nextNum = (count + 1).toString().padStart(5, '0');
+      const generated = `${letters}${nextNum}`;
+
+      setFormData(prev => ({ ...prev, code: generated }));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to auto-generate product code.');
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,12 +75,15 @@ const EditProductPage = () => {
           
           setFormData({
             name: data.name || '',
+            code: data.code || '',
+            nameZh: data.nameZh || '',
+            nameMs: data.nameMs || '',
             description: data.description || '',
             category: data.category || '',
-            newCategory: '',
             videoUrl: data.videoUrl || '',
             stock: String(data.stock || '0'),
             price: String(data.price || '0'),
+            sellerPrice: String(data.sellerPrice || ''),
             promotion: String(data.promotion || ''),
             status: data.status || 'Live',
           });
@@ -115,9 +149,16 @@ const EditProductPage = () => {
       alert('Please upload at least one image');
       return;
     }
+    if (!formData.category) {
+      alert('Please select a category');
+      return;
+    }
+    if (!formData.code || !formData.code.trim()) {
+      alert('Product code is required');
+      return;
+    }
 
     setIsSaving(true);
-    const finalCategory = isNewCategory ? formData.newCategory : formData.category;
 
     try {
       const response = await fetch(`/api/products/${id}`, {
@@ -125,7 +166,6 @@ const EditProductPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          category: finalCategory,
           images: uploadedImages,
         }),
       });
@@ -146,7 +186,12 @@ const EditProductPage = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'code') {
+      const cleanCode = value.replace(/[^a-zA-Z0-9-_]/g, '').toUpperCase();
+      setFormData(prev => ({ ...prev, code: cleanCode }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   if (isLoading) {
@@ -272,60 +317,93 @@ const EditProductPage = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Product English Name */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Product Name</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Product Name (English) *</label>
                 <input 
                   type="text" 
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
                   placeholder="e.g. Thunder Clap"
                   required
                 />
               </div>
+
+              {/* Category Select */}
               <div className="space-y-2">
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Category</label>
-                  <button 
-                    type="button" 
-                    onClick={() => setIsNewCategory(!isNewCategory)}
-                    className="text-[9px] font-black uppercase tracking-widest text-blue-500 hover:underline"
-                  >
-                    {isNewCategory ? 'Select Existing' : '+ New Category'}
-                  </button>
-                </div>
-                {isNewCategory ? (
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Category *</label>
+                <select 
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm cursor-pointer"
+                  required
+                >
+                  <option value="">-- Choose Category --</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Product Code */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Product Code (Unique) *</label>
+                <div className="flex gap-2">
                   <input 
                     type="text" 
-                    name="newCategory"
-                    value={formData.newCategory}
+                    name="code"
+                    value={formData.code}
                     onChange={handleChange}
-                    className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all" 
-                    placeholder="New category name..."
+                    className="flex-1 px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                    placeholder="e.g. TC00001"
                     required
                   />
-                ) : (
-                  <select 
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all"
+                  <button
+                    type="button"
+                    onClick={handleAutoGenerateCode}
+                    className="px-6 py-4 bg-zinc-850 hover:bg-zinc-800 text-white hover:text-yellow-500 font-bold text-[10px] uppercase tracking-wider rounded-2xl transition-all border border-zinc-700/50 cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
                   >
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.name}>{cat.name}</option>
-                    ))}
-                    {categories.length === 0 && <option value="">No categories found</option>}
-                  </select>
-                )}
+                    <span>Auto-Gen</span>
+                  </button>
+                </div>
               </div>
+
+              {/* Chinese Translation */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Chinese Translation (optional)</label>
+                <input 
+                  type="text" 
+                  name="nameZh"
+                  value={formData.nameZh || ''}
+                  onChange={handleChange}
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                  placeholder="e.g. 雷霆万钧"
+                />
+              </div>
+
+              {/* Malay Translation */}
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Malay Translation (optional)</label>
+                <input 
+                  type="text" 
+                  name="nameMs"
+                  value={formData.nameMs || ''}
+                  onChange={handleChange}
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                  placeholder="e.g. Tepukan Petir"
+                />
+              </div>
+
               <div className="md:col-span-2 space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Item Description</label>
                 <textarea 
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold min-h-[120px] dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold min-h-[120px] dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
                   placeholder="Detail information..."
                   required
                 />
@@ -340,47 +418,68 @@ const EditProductPage = () => {
               <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Inventory & Commerce</h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Quantity Stock */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
                   <Package size={14} className="text-zinc-500" />
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Quantity Stock</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Quantity Stock</label>
                 </div>
                 <input 
                   type="number" 
                   name="stock"
                   value={formData.stock}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm" 
                   required
                 />
               </div>
+
+              {/* Original Price */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
                   <Tag size={14} className="text-zinc-500" />
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Original Price (RM)</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Original Price (RM)</label>
                 </div>
                 <input 
                   type="text" 
                   name="price"
                   value={formData.price}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm" 
                   placeholder="0.00"
                   required
                 />
               </div>
+
+              {/* Seller Price */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <DollarSign size={14} className="text-zinc-500" />
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Seller Price (RM)</label>
+                </div>
+                <input 
+                  type="text" 
+                  name="sellerPrice"
+                  value={formData.sellerPrice}
+                  onChange={handleChange}
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm" 
+                  placeholder="Optional"
+                />
+              </div>
+
+              {/* Sale Price */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-3.5 h-3.5 rounded-full bg-red-500 animate-pulse" />
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Sale Price / Discounted (RM)</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Sale Price (RM)</label>
                 </div>
                 <input 
                   type="text" 
                   name="promotion"
                   value={formData.promotion}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-red-500" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-red-500 text-sm" 
                   placeholder="Optional"
                 />
               </div>

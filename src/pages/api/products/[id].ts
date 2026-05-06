@@ -21,8 +21,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'PUT') {
     try {
-      const { name, description, images, videoUrl, stock, price, promotion, category, status } = req.body;
+      const { name, code, nameZh, nameMs, description, images, videoUrl, stock, price, sellerPrice, promotion, category, status } = req.body;
       
+      const trimmedCode = code?.trim();
+      if (trimmedCode) {
+        const existingProduct = await prisma.product.findFirst({
+          where: {
+            code: {
+              equals: trimmedCode,
+              mode: 'insensitive',
+            },
+            id: {
+              not: String(id),
+            },
+          },
+        });
+        if (existingProduct) {
+          return res.status(400).json({ error: `Product code '${trimmedCode}' already exists.` });
+        }
+      }
+
       if (category) {
         await prisma.category.upsert({
           where: { name: category },
@@ -35,11 +53,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: { id: String(id) },
         data: {
           name,
+          code: trimmedCode || null,
+          nameZh: nameZh?.trim() || null,
+          nameMs: nameMs?.trim() || null,
           description,
           images: Array.isArray(images) ? images : [],
           videoUrl,
           stock: parseInt(stock as any),
           price: parseFloat(price as any),
+          sellerPrice: sellerPrice ? parseFloat(sellerPrice as any) : null,
           promotion: promotion ? parseFloat(promotion as any) : null,
           category,
           status,

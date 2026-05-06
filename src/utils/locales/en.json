@@ -304,5 +304,12 @@
     "outOfStock": "Out of Stock",
     "inStock": "In Stock",
     "save": "Save"
+  },
+  "coverage": {
+    "title": "Our Delivery Coverage",
+    "desc": "Cheng-BOOM exclusively serves customers across Sabah and Sarawak. We bring premium fireworks directly to your local celebrations with reliable, safe delivery.",
+    "clickExpand": "Click to expand",
+    "escHint": "Click anywhere outside to close",
+    "backToTop": "Back to Top"
   }
 }

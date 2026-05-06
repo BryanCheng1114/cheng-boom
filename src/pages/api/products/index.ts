@@ -16,8 +16,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'POST') {
     try {
-      const { name, description, images, videoUrl, stock, price, promotion, category } = req.body;
+      const { name, code, nameZh, nameMs, description, images, videoUrl, stock, price, sellerPrice, promotion, category } = req.body;
       
+      if (!code || !code.trim()) {
+        return res.status(400).json({ error: 'Product code is required' });
+      }
+
+      // Check unique product code
+      const trimmedCode = code.trim();
+      const existingProduct = await prisma.product.findFirst({
+        where: {
+          code: {
+            equals: trimmedCode,
+            mode: 'insensitive',
+          },
+        },
+      });
+
+      if (existingProduct) {
+        return res.status(400).json({ error: `Product code '${trimmedCode}' already exists.` });
+      }
+
       // Ensure category exists in the Category table if provided
       if (category) {
         await prisma.category.upsert({
@@ -30,11 +49,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const product = await prisma.product.create({
         data: {
           name,
+          code: trimmedCode,
+          nameZh: nameZh?.trim() || null,
+          nameMs: nameMs?.trim() || null,
           description,
           images: Array.isArray(images) ? images : [],
           videoUrl,
           stock: parseInt(stock as any) || 0,
           price: parseFloat(price as any) || 0,
+          sellerPrice: sellerPrice ? parseFloat(sellerPrice as any) : null,
           promotion: promotion ? parseFloat(promotion as any) : null,
           category,
           status: 'Live',
