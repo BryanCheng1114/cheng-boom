@@ -44,7 +44,14 @@ const ProductPage = () => {
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  // Category Modal State
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+
+  // Fast Action States
+  const [editingProduct, setEditingProduct] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<{ stock?: number, price?: number }>({});
+  const [isSavingFastAction, setIsSavingFastAction] = useState(false);
+  const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
 
 
 
@@ -156,18 +163,54 @@ const ProductPage = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-    
+  const handleEditStart = (p: any) => {
+    setEditingProduct(p.id);
+    setEditValues({ stock: p.stock, price: p.price });
+  };
+
+  const handleFastActionSave = async (p: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsSavingFastAction(true);
     try {
-      const response = await fetch(`/api/products/${id}`, {
-        method: 'DELETE',
+      const response = await fetch(`/api/products/${p.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...p,
+          stock: editValues.stock,
+          price: editValues.price,
+        }),
       });
       if (response.ok) {
-        setProducts(products.filter(p => p.id !== id));
-        setSelectedIds(prev => prev.filter(i => i !== id));
+        setProducts(products.map(prod => prod.id === p.id ? { ...prod, stock: editValues.stock, price: editValues.price } : prod));
+        setEditingProduct(null);
       } else {
-        alert('Failed to delete product');
+        alert('Failed to update product');
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSavingFastAction(false);
+    }
+  };
+
+  const handleStatusChange = async (p: any, newStatus: string) => {
+    setEditingStatusId(null);
+    if (p.status === newStatus) return;
+    
+    try {
+      const response = await fetch(`/api/products/${p.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...p,
+          status: newStatus
+        }),
+      });
+      if (response.ok) {
+        setProducts(products.map(prod => prod.id === p.id ? { ...prod, status: newStatus } : prod));
+      } else {
+        alert('Failed to update status');
       }
     } catch (error) {
       console.error(error);
@@ -184,17 +227,34 @@ const ProductPage = () => {
       <div className="space-y-6">
         {/* Header Actions */}
         <div className="flex flex-col xl:flex-row gap-6 items-start xl:items-center justify-between">
-          <div className="flex gap-10">
+          <div className="flex flex-wrap gap-8">
             <div>
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('total_products')}</p>
-              <h4 className="text-3xl font-black italic dark:text-white text-zinc-900">{products.length}</h4>
-            </div>
-            <div className="pl-10 border-l border-zinc-500/10">
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('live_products')}</p>
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Live Products</p>
               <h4 className="text-3xl font-black italic text-green-500">
                 {products.filter(p => p.status === 'Live').length}
               </h4>
             </div>
+            <div className="pl-8 border-l border-zinc-500/10">
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Hold</p>
+              <h4 className="text-3xl font-black italic text-orange-500">
+                {products.filter(p => p.status === 'Hold').length}
+              </h4>
+            </div>
+            <div className="pl-8 border-l border-zinc-500/10">
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Deactive</p>
+              <h4 className="text-3xl font-black italic text-zinc-500">
+                {products.filter(p => p.status === 'Deactive').length}
+              </h4>
+            </div>
+            <button 
+              onClick={() => setShowCategoryModal(true)} 
+              className="pl-8 border-l border-zinc-500/10 text-left hover:opacity-70 transition-opacity group cursor-pointer outline-none"
+            >
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1 group-hover:text-yellow-500 transition-colors">Categories</p>
+              <h4 className="text-3xl font-black italic text-yellow-500 group-hover:scale-105 transition-transform origin-left">
+                {categories.length}
+              </h4>
+            </button>
           </div>
           
           <div className="flex items-center gap-4 w-full md:w-auto">
@@ -359,62 +419,95 @@ const ProductPage = () => {
                           {p.category}
                         </span>
                       </td>
-                      <td className="p-6 text-center text-xs font-black text-zinc-400">{p.stock}</td>
-                      <td className="p-6">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-black text-yellow-500 italic">
-                            RM {hasPromotion ? p.promotion.toFixed(2) : p.price.toFixed(2)}
-                          </span>
-                          {hasPromotion && (
-                            <span className="text-[9px] text-zinc-500 line-through">RM {p.price.toFixed(2)}</span>
-                          )}
-                        </div>
+                      <td className="p-6 text-center text-xs font-black text-zinc-400" onDoubleClick={(e) => { e.stopPropagation(); handleEditStart(p); }} onClick={(e) => e.stopPropagation()}>
+                        {editingProduct === p.id ? (
+                          <input 
+                            type="number" 
+                            value={editValues.stock} 
+                            onChange={e => setEditValues({ ...editValues, stock: parseInt(e.target.value) || 0 })}
+                            className="w-20 bg-zinc-800 text-white px-2 py-1 rounded text-center border border-zinc-600 outline-none focus:border-yellow-500"
+                            onClick={e => e.stopPropagation()}
+                          />
+                        ) : (
+                          p.stock
+                        )}
                       </td>
-                      <td className="p-6">
-                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
-                          p.status === 'Live' ? 'bg-green-500/10 text-green-500' :
-                          p.status === 'Low' ? 'bg-orange-500/10 text-orange-500' :
-                          'bg-zinc-500/10 text-zinc-500'
-                        }`}>
-                          <div className={`w-1 h-1 rounded-full ${p.status === 'Live' ? 'bg-green-500' : p.status === 'Low' ? 'bg-orange-500' : 'bg-zinc-500'}`} />
-                          {p.stock <= 0 ? 'Out of Stock' : p.stock < 10 ? 'Low Stock' : p.status}
-                        </div>
+                      <td className="p-6" onDoubleClick={(e) => { e.stopPropagation(); handleEditStart(p); }} onClick={(e) => e.stopPropagation()}>
+                        {editingProduct === p.id ? (
+                          <div className="flex flex-col gap-1" onClick={e => e.stopPropagation()}>
+                            <div className="flex items-center gap-1">
+                              <span className="text-sm font-black text-yellow-500 italic">RM</span>
+                              <input 
+                                type="number" 
+                                step="0.01"
+                                value={editValues.price} 
+                                onChange={e => setEditValues({ ...editValues, price: parseFloat(e.target.value) || 0 })}
+                                className="w-24 bg-zinc-800 text-white px-2 py-1 rounded border border-zinc-600 outline-none focus:border-yellow-500 font-bold"
+                              />
+                            </div>
+                            {hasPromotion && (
+                              <span className="text-[9px] text-zinc-500 line-through">RM {p.price.toFixed(2)}</span>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col">
+                            <span className="text-sm font-black text-yellow-500 italic">
+                              RM {hasPromotion ? p.promotion.toFixed(2) : p.price.toFixed(2)}
+                            </span>
+                            {hasPromotion && (
+                              <span className="text-[9px] text-zinc-500 line-through">RM {p.price.toFixed(2)}</span>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-6" onDoubleClick={(e) => { e.stopPropagation(); setEditingStatusId(p.id); }} onClick={(e) => e.stopPropagation()}>
+                        {editingStatusId === p.id ? (
+                          <select
+                            autoFocus
+                            value={p.status}
+                            onChange={(e) => handleStatusChange(p, e.target.value)}
+                            onBlur={() => setEditingStatusId(null)}
+                            onClick={e => e.stopPropagation()}
+                            className="bg-zinc-800 text-white px-2 py-1 rounded border border-zinc-600 outline-none text-[10px] font-black uppercase tracking-widest cursor-pointer"
+                          >
+                            <option value="Live">Live</option>
+                            <option value="Hold">Hold</option>
+                            <option value="Deactive">Deactive</option>
+                          </select>
+                        ) : (
+                          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
+                            p.status === 'Live' ? 'bg-green-500/10 text-green-500' :
+                            p.status === 'Hold' ? 'bg-yellow-500/10 text-yellow-500' :
+                            'bg-zinc-500/10 text-zinc-500'
+                          }`}>
+                            <div className={`w-1 h-1 rounded-full ${p.status === 'Live' ? 'bg-green-500' : p.status === 'Hold' ? 'bg-yellow-500' : 'bg-zinc-500'}`} />
+                            {p.stock <= 0 ? 'Out of Stock' : p.stock < 10 ? 'Low Stock' : p.status}
+                          </div>
+                        )}
                       </td>
                       <td className="p-6 text-right relative" onClick={(e) => e.stopPropagation()}>
-                        <button 
-                          onClick={() => setActiveDropdown(activeDropdown === p.id ? null : p.id)}
-                          className="p-2 text-zinc-500 hover:text-white transition-colors"
-                        >
-                          <MoreVertical size={18} />
-                        </button>
-                        
-                        <AnimatePresence>
-                          {activeDropdown === p.id && (
-                            <>
-                              <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
-                              <motion.div 
-                                initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                className="absolute right-8 top-16 z-20 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-2xl shadow-2xl py-2 overflow-hidden text-left"
-                              >
-                                <Link href={`/admin/product/edit/${p.id}`} className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:bg-zinc-500/10 hover:text-white transition-colors">
-                                  <Edit size={14} /> Edit Item
-                                </Link>
-                                <Link href={`/shop/${p.id}`} target="_blank" className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:bg-zinc-500/10 hover:text-white transition-colors">
-                                  <ExternalLink size={14} /> View Live
-                                </Link>
-                                <div className="h-px bg-zinc-500/5 my-1" />
-                                <button 
-                                  onClick={() => handleDelete(p.id)}
-                                  className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-colors"
-                                >
-                                  <Trash2 size={14} /> Delete Product
-                                </button>
-                              </motion.div>
-                            </>
-                          )}
-                        </AnimatePresence>
+                        {editingProduct === p.id ? (
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setEditingProduct(null); }}
+                              className="px-4 py-2 bg-zinc-500/10 text-zinc-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-500/20 transition-all"
+                            >
+                              Cancel
+                            </button>
+                            <button 
+                              onClick={(e) => handleFastActionSave(p, e)}
+                              disabled={isSavingFastAction}
+                              className="px-4 py-2 bg-yellow-500 text-zinc-900 rounded-xl font-black text-[10px] uppercase tracking-widest hover:brightness-110 shadow-lg shadow-yellow-500/20 transition-all flex items-center gap-2"
+                            >
+                              {isSavingFastAction ? (
+                                <div className="w-3 h-3 border-2 border-zinc-900/20 border-t-zinc-900 rounded-full animate-spin" />
+                              ) : (
+                                <Check size={14} strokeWidth={4} />
+                              )}
+                              Confirm
+                            </button>
+                          </div>
+                        ) : null}
                       </td>
                     </tr>
                   );
@@ -508,6 +601,70 @@ const ProductPage = () => {
                     <>Confirm Delete</>
                   )}
                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Category Overview Modal */}
+      <AnimatePresence>
+        {showCategoryModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowCategoryModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-6xl max-h-[85vh] flex flex-col bg-black border border-white/10 rounded-[40px] shadow-2xl overflow-hidden"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-8 border-b border-yellow-600/30 bg-yellow-500 shrink-0">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <h3 className="text-2xl font-black uppercase tracking-tight text-black">Category Overview</h3>
+                    <p className="text-[10px] font-bold text-black/60 uppercase tracking-widest mt-1">Total {categories.length} Categories Active</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowCategoryModal(false)}
+                  className="w-10 h-10 bg-black/5 hover:bg-black/10 text-black/70 hover:text-black rounded-full flex items-center justify-center transition-all"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+                  {categories.map(cat => {
+                    const count = products.filter(p => p.category === cat.name).length;
+                    return (
+                      <div key={cat.id} className="relative aspect-[4/5] rounded-3xl overflow-hidden group cursor-pointer border border-zinc-200 dark:border-white/5 shadow-xl">
+                        <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-900">
+                          {cat.image ? (
+                            <img src={cat.image} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-zinc-300 dark:text-zinc-800"><ImageIcon size={48} /></div>
+                          )}
+                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90 group-hover:opacity-100 transition-opacity" />
+                        
+                        <div className="absolute inset-x-0 bottom-0 p-5 flex flex-col items-start translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+                          <h4 className="text-sm font-bold text-white mb-2 group-hover:text-yellow-400 transition-colors drop-shadow-xl truncate w-full">{cat.name}</h4>
+                          <div className="inline-flex items-end gap-1 mt-auto pt-1">
+                            <span className="text-2xl font-black text-yellow-500 leading-none">{count}</span>
+                            <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest pb-0.5">Items</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </motion.div>
           </div>

@@ -34,7 +34,9 @@ export default function Shop() {
           prodRes.json(),
           catRes.json()
         ]);
-        setAllProducts(prodData);
+        
+        const activeProducts = prodData.filter((p: any) => p.status !== 'Hold' && p.status !== 'Deactive' && p.status !== 'Inactive');
+        setAllProducts(activeProducts);
         setCategories(catData);
       } catch (err) {
         console.error('Failed to fetch data:', err);

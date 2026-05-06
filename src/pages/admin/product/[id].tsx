@@ -83,7 +83,7 @@ const AdminProductDetail = () => {
   const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : null;
 
   return (
-    <AdminLayout title={`Detail: ${product.name}`}>
+    <AdminLayout title={product.name}>
       <div className="max-w-7xl mx-auto pb-20">
         {/* Breadcrumb & Actions */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
@@ -173,16 +173,13 @@ const AdminProductDetail = () => {
                 <h1 className="text-5xl font-black italic uppercase tracking-tight mb-4 dark:text-white text-zinc-900 leading-tight">
                   {product.name}
                 </h1>
-                <div className="flex flex-wrap items-center gap-3">
-                  {product.code && (
+                {product.code && (
+                  <div className="flex flex-wrap items-center gap-3">
                     <span className="px-3 py-1 bg-yellow-500/10 text-yellow-500 rounded-lg text-[9px] font-black tracking-widest uppercase border border-yellow-500/20">
                       Code: {product.code}
                     </span>
-                  )}
-                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                    <Tag size={12} /> ID: {product.id.toUpperCase()}
-                  </p>
-                </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -230,6 +227,12 @@ const AdminProductDetail = () => {
                   <span className="text-zinc-500">Base Listing Price</span>
                   <span className={hasPromotion ? 'text-zinc-400 dark:text-zinc-600 line-through' : 'dark:text-zinc-300 text-zinc-700'}>RM {product.price.toFixed(2)}</span>
                 </div>
+                {product.sellerPrice !== null && product.sellerPrice !== undefined && (
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-zinc-500">Seller Price</span>
+                    <span className="text-blue-500">RM {product.sellerPrice.toFixed(2)}</span>
+                  </div>
+                )}
                 {hasPromotion && (
                   <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
                     <span className="text-zinc-500">Promotional Sale Price</span>

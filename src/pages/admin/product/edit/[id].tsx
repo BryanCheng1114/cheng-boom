@@ -226,8 +226,8 @@ const EditProductPage = () => {
                 className="px-6 py-3 rounded-xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-xs uppercase tracking-widest"
               >
                 <option value="Live">Live</option>
-                <option value="Draft">Draft</option>
-                <option value="Archive">Archive</option>
+                <option value="Hold">Hold</option>
+                <option value="Deactive">Deactive</option>
               </select>
             </div>
           </div>
@@ -350,24 +350,16 @@ const EditProductPage = () => {
 
               {/* Product Code */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Product Code (Unique) *</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Product Code (Unique)</label>
                 <div className="flex gap-2">
                   <input 
                     type="text" 
                     name="code"
                     value={formData.code}
-                    onChange={handleChange}
-                    className="flex-1 px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                    readOnly
+                    className="flex-1 px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-zinc-500 text-zinc-400 cursor-not-allowed transition-all text-sm opacity-70" 
                     placeholder="e.g. TC00001"
-                    required
                   />
-                  <button
-                    type="button"
-                    onClick={handleAutoGenerateCode}
-                    className="px-6 py-4 bg-zinc-850 hover:bg-zinc-800 text-white hover:text-yellow-500 font-bold text-[10px] uppercase tracking-wider rounded-2xl transition-all border border-zinc-700/50 cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
-                  >
-                    <span>Auto-Gen</span>
-                  </button>
                 </div>
               </div>
 
