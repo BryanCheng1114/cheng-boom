@@ -19,6 +19,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { phone },
     });
 
+    if (existingCustomer && existingCustomer.password) {
+      return res.status(400).json({ 
+        code: 'PHONE_EXISTS', 
+        message: 'An account with this phone number already exists.' 
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     let customer;

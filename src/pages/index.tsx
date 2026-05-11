@@ -123,16 +123,7 @@ export default function Home() {
         {/* ---- Main Content ---- */}
         <div className="relative z-10 w-full max-w-4xl mx-auto flex flex-col items-center text-center">
 
-          {/* Transparent logo with float + glow */}
-          <div className="animate-float mb-10" style={{ filter: 'drop-shadow(0 0 40px rgba(245,158,11,0.65))' }}>
-            <Image
-              src="/transparent-Background.png"
-              alt="Cheng-BOOM Logo"
-              width={360}
-              height={360}
-              priority
-            />
-          </div>
+
 
           {/* Headline */}
           <div className="space-y-4" style={{ animation: 'fade-in-up 0.9s 0.15s ease both' }}>
@@ -212,11 +203,18 @@ export default function Home() {
             const sortedCategories = [...categories].sort((a, b) => {
               const keyA = a.key || a.name.toLowerCase().replace(/\s+/g, '');
               const keyB = b.key || b.name.toLowerCase().replace(/\s+/g, '');
-              // @ts-ignore
-              const titleA = (t.shopCategories[keyA] || a.name).toLowerCase();
-              // @ts-ignore
-              const titleB = (t.shopCategories[keyB] || b.name).toLowerCase();
-              return titleA.localeCompare(titleB);
+              
+              let titleA = a.name;
+              if (locale === 'zh' && a.nameZh) titleA = a.nameZh;
+              else if (locale === 'ms' && a.nameMs) titleA = a.nameMs;
+              else titleA = (t.shopCategories as any)[keyA] || a.name;
+              
+              let titleB = b.name;
+              if (locale === 'zh' && b.nameZh) titleB = b.nameZh;
+              else if (locale === 'ms' && b.nameMs) titleB = b.nameMs;
+              else titleB = (t.shopCategories as any)[keyB] || b.name;
+
+              return titleA.toLowerCase().localeCompare(titleB.toLowerCase());
             });
 
             const hasMoreThan11 = sortedCategories.length > 11;
@@ -230,8 +228,11 @@ export default function Home() {
                 {displayedCategories.map((category) => {
                   const key = category.key || category.name.toLowerCase().replace(/\s+/g, '');
                   const image = category.image || '/example.png';
-                  // @ts-ignore
-                  const title = t.shopCategories[key] || category.name;
+                  
+                  let title = category.name;
+                  if (locale === 'zh' && category.nameZh) title = category.nameZh;
+                  else if (locale === 'ms' && category.nameMs) title = category.nameMs;
+                  else title = (t.shopCategories as any)[key] || category.name;
 
                   return (
                     <Link

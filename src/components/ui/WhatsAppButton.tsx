@@ -12,7 +12,7 @@ export function WhatsAppButton() {
 
   // Pre-filled message — covers the most common questions shoppers ask
   const DEFAULT_MESSAGE = encodeURIComponent(
-    `Hello! 👋 I found your store online and I'm interested in your fireworks products.\n\nCould you help me with the following:\n\n1. 🎆 What fireworks do you have available?\n2. 💰 What are the current prices?\n3. 🕐 What are your operating hours?\n4. 📦 Do you offer delivery or only self-pickup?\n5. 🎉 Can I get a package deal for a special event?\n\nThank you!`
+    t.floating.whatsapp.defaultMessage || `Hello! 👋 I found your store online and I'm interested in your fireworks products.\n\nCould you help me with the following:\n\n1. 🎆 What fireworks do you have available?\n2. 💰 What are the current prices?\n3. 🕐 What are your operating hours?\n4. 📦 Do you offer delivery or only self-pickup?\n5. 🎉 Can I get a package deal for a special event?\n\nThank you!`
   );
 
   const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${DEFAULT_MESSAGE}`;

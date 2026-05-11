@@ -9,11 +9,11 @@ import Link from 'next/link';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useFlyToCart } from '../../components/ui/FlyToCartProvider';
 
-export default function ProductDetail({ product }: { product: any }) {
+export default function ProductDetail({ product, categoryZh, categoryMs }: { product: any, categoryZh?: string | null, categoryMs?: string | null }) {
   const router = useRouter();
   const { items, addItem } = useCart();
   const { flyToCart } = useFlyToCart();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [localQty, setLocalQty] = useState(0);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
@@ -56,7 +56,8 @@ export default function ProductDetail({ product }: { product: any }) {
       }
       
       addItem({ 
-        id: product.id, 
+        id: product.id,
+        code: product.code,
         name: translatedName, 
         price: activePrice, 
         originalPrice: strikeThroughPrice, 
@@ -75,11 +76,16 @@ export default function ProductDetail({ product }: { product: any }) {
   };
 
   // @ts-ignore
-  const translatedName     = (t.products as any)?.[product.id]?.name || product.name;
+  let translatedName = (locale === 'zh' && product.nameZh) ? product.nameZh : (locale === 'ms' && product.nameMs) ? product.nameMs : null;
+  translatedName = translatedName || (t.products as any)?.[product.id]?.name || product.name;
+  
   // @ts-ignore
-  const translatedDesc     = (t.products as any)?.[product.id]?.desc || product.description;
+  const translatedDesc = (t.products as any)?.[product.id]?.desc || product.description;
+  
+  const catKey = product.category ? product.category.toLowerCase().replace(/\s+/g, '') : '';
   // @ts-ignore
-  const translatedCategory = t.shopCategories[product.category] || product.category;
+  let translatedCategory = (locale === 'zh' && categoryZh) ? categoryZh : (locale === 'ms' && categoryMs) ? categoryMs : null;
+  translatedCategory = translatedCategory || (catKey ? t.shopCategories[catKey] : null) || t.shopCategories[product.category] || product.category;
 
   // YouTube Embed Logic
   const videoId = product.videoUrl?.split('v=')[1]?.split('&')[0] || product.videoUrl?.split('youtu.be/')[1];
@@ -354,10 +360,19 @@ export async function getStaticProps({ params }: { params: { id: string } }) {
   if (!product) {
     return { notFound: true };
   }
+
+  let categoryObj = null;
+  if (product.category) {
+    categoryObj = await prisma.category.findUnique({
+      where: { name: product.category }
+    });
+  }
   
   return {
     props: { 
-      product: JSON.parse(JSON.stringify(product)) // serialize dates
+      product: JSON.parse(JSON.stringify(product)), // serialize dates
+      categoryZh: categoryObj?.nameZh || null,
+      categoryMs: categoryObj?.nameMs || null
     },
     revalidate: 10, // revalidate every 10 seconds for real-time feel
   };

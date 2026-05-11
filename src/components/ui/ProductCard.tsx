@@ -8,18 +8,23 @@ import { useRef } from 'react';
 
 export interface ProductCardProps {
   id: string;
+  code?: string | null;
   name: string;
   price: number;
   images: string[];
   category: string;
+  categoryZh?: string | null;
+  categoryMs?: string | null;
+  nameZh?: string | null;
+  nameMs?: string | null;
   stock?: number;
   promotion?: number | null;
 }
 
-export function ProductCard({ id, name, price, promotion, images = [], category, stock = 0 }: ProductCardProps) {
+export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, images = [], category, categoryZh, categoryMs, stock = 0 }: ProductCardProps) {
   const { items, addItem, updateQuantity } = useCart();
   const { flyToCart } = useFlyToCart();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const imageRef = useRef<HTMLDivElement>(null);
 
   const cartItem = items.find((item) => item.id === id);
@@ -47,7 +52,7 @@ export function ProductCard({ id, name, price, promotion, images = [], category,
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     if (quantity < stock) {
-      addItem({ id, name: translatedName, price: activePrice, originalPrice: strikeThroughPrice, image: displayImage });
+      addItem({ id, code, name: translatedName, price: activePrice, originalPrice: strikeThroughPrice, image: displayImage });
       if (imageRef.current && displayImage) {
         flyToCart(displayImage, imageRef.current);
       }
@@ -62,9 +67,13 @@ export function ProductCard({ id, name, price, promotion, images = [], category,
   };
 
   // @ts-ignore
-  const translatedName = (t.products as any)?.[id]?.name || name;
+  let translatedName = (locale === 'zh' && nameZh) ? nameZh : (locale === 'ms' && nameMs) ? nameMs : null;
+  translatedName = translatedName || (t.products as any)?.[id]?.name || name;
+  
+  const catKey = category.toLowerCase().replace(/\s+/g, '');
   // @ts-ignore
-  const translatedCategory = t.shopCategories[category] || category;
+  let translatedCategory = (locale === 'zh' && categoryZh) ? categoryZh : (locale === 'ms' && categoryMs) ? categoryMs : null;
+  translatedCategory = translatedCategory || t.shopCategories[catKey] || t.shopCategories[category] || category;
 
   return (
     <Link href={`/shop/${id}`} className="group block h-full">
@@ -77,12 +86,7 @@ export function ProductCard({ id, name, price, promotion, images = [], category,
             style={{ backgroundImage: `url(${displayImage})` }}
           />
           
-          {/* Top Left: Category */}
-          <div className="absolute top-3 left-3">
-            <div className="bg-background/90 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-bold text-foreground uppercase tracking-widest shadow-sm border border-border/50">
-              {translatedCategory}
-            </div>
-          </div>
+
           
           {/* Top Right: Discount */}
           {hasDiscount && !isOutOfStock && (
@@ -116,20 +120,20 @@ export function ProductCard({ id, name, price, promotion, images = [], category,
             </h3>
           </div>
           
-          <div className="mt-auto pt-2 border-t border-border/50">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col">
+          <div className="mt-auto pt-3 border-t border-border/50">
+            <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-2">
+              <div className="flex flex-col min-w-0">
                 {hasDiscount && (
                   <span className="text-xs text-muted-foreground line-through decoration-red-500/50">
                     RM {strikeThroughPrice?.toFixed(2)}
                   </span>
                 )}
-                <span className="text-lg font-black text-foreground tracking-tighter whitespace-nowrap">
+                <span className="text-lg font-black text-foreground tracking-tighter break-words">
                   RM {activePrice.toFixed(2)}
                 </span>
               </div>
               
-              <div className={`flex items-center bg-zinc-100 dark:bg-zinc-800/80 rounded-full p-0.5 border border-zinc-200 dark:border-zinc-700/50 backdrop-blur-sm shadow-inner ${isOutOfStock && 'opacity-50 grayscale'}`}>
+              <div className={`flex shrink-0 items-center bg-zinc-100 dark:bg-zinc-800/80 rounded-full p-0.5 border border-zinc-200 dark:border-zinc-700/50 backdrop-blur-sm shadow-inner ${isOutOfStock && 'opacity-50 grayscale'}`}>
                 {quantity > 0 ? (
                   <button
                     onClick={handleMinus}

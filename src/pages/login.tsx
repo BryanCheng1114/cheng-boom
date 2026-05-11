@@ -18,6 +18,7 @@ import {
   ChevronRight,
   ShieldCheck
 } from 'lucide-react';
+import { LanguageSwitcher } from '../components/layout/LanguageSwitcher';
 
 export default function AuthPage() {
   const { t } = useTranslation();
@@ -33,15 +34,18 @@ export default function AuthPage() {
   // Form States
   const [loginData, setLoginData] = useState({ phone: '', password: '' });
   const [registerData, setRegisterData] = useState({ name: '', phone: '', password: '', address: '' });
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showRegPassword, setShowRegPassword] = useState(false);
+  const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (router.query.registered) {
-      setSuccess('Account created successfully! Please sign in.');
+      setSuccess(t.login?.successCreated || 'Account created successfully! Please sign in.');
     }
     if (router.query.mode === 'register') {
       setIsRegistering(true);
     }
-  }, [router.query]);
+  }, [router.query, t.login]);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +81,21 @@ export default function AuthPage() {
     setIsLoading(true);
     setError('');
 
+    // Validate Password Strength (Min 8 chars, 1 number, 1 special character)
+    const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+    if (!passwordRegex.test(registerData.password)) {
+      setError(t.login?.passwordTooWeak || 'Password must be at least 8 characters long and contain at least one number and one special character.');
+      setIsLoading(false);
+      return;
+    }
+
+    // Verify Password Match
+    if (registerData.password !== confirmPassword) {
+      setError(t.login?.passwordsDoNotMatch || 'Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
@@ -86,11 +105,15 @@ export default function AuthPage() {
 
       if (res.ok) {
         setIsRegistering(false);
-        setSuccess('Welcome to the BOOM! Your account is ready. Please sign in.');
+        setSuccess(t.login?.successRegister || 'Welcome to the BOOM! Your account is ready. Please sign in.');
         setLoginData({ ...loginData, phone: registerData.phone });
       } else {
         const data = await res.json();
-        setError(data.message || 'Registration failed');
+        if (data.code === 'PHONE_EXISTS') {
+          setError(t.login?.phoneExists || data.message || 'An account with this phone number already exists.');
+        } else {
+          setError(data.message || 'Registration failed');
+        }
       }
     } catch (err) {
       setError('An error occurred. Please try again.');
@@ -109,12 +132,12 @@ export default function AuthPage() {
   return (
     <>
       <Head>
-        <title>{isRegistering ? 'Join Cheng-BOOM' : 'Sign In - Cheng-BOOM'}</title>
+        <title>{isRegistering ? (t.login?.joinTitle || 'Join Cheng-BOOM') : (t.login?.signInTitle || 'Sign In - Cheng-BOOM')}</title>
       </Head>
 
-      <div className="h-screen bg-background flex flex-col relative overflow-hidden dark:bg-zinc-950">
+      <div className="min-h-screen bg-background flex flex-col relative overflow-x-hidden dark:bg-zinc-950">
         {/* Dynamic Background */}
-        <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <motion.div 
             animate={{ 
               scale: isRegistering ? 1.2 : 1,
@@ -140,19 +163,21 @@ export default function AuthPage() {
             className="inline-flex items-center gap-2 text-zinc-500 hover:text-primary transition-all font-bold group text-sm"
           >
             <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-            {t.login.backToHome}
+            {t.login?.backToHome || 'Back to Home'}
           </Link>
           
-          <div className="flex items-center gap-2 px-4 py-2 bg-zinc-500/5 rounded-full border border-zinc-500/10 backdrop-blur-sm">
-            <ShieldCheck size={14} className="text-primary" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Secure Protocol</span>
+          <div className="flex items-center gap-4">
+            <LanguageSwitcher />
+            <div className="flex items-center gap-2 px-4 py-2 bg-zinc-500/5 rounded-full border border-zinc-500/10 backdrop-blur-sm">
+              <ShieldCheck size={14} className="text-primary" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t.login?.secureProtocol || 'Secure Protocol'}</span>
+            </div>
           </div>
         </div>
 
-        <div className="flex-1 flex items-center justify-center p-4 relative z-10 overflow-hidden">
+        <div className="flex-1 flex items-center justify-center p-4 relative z-10">
           <div className="w-full max-w-[460px] py-4">
             
-            {/* Header Section */}
             <div className="text-center mb-6">
               <motion.h1 
                 key={isRegistering ? 'reg' : 'log'}
@@ -161,15 +186,15 @@ export default function AuthPage() {
                 className="text-3xl md:text-4xl font-black text-foreground tracking-tight mb-2"
               >
                 {isRegistering ? (
-                  <>Join the <span className="text-primary italic">BOOM</span></>
+                  <>{t.login?.joinBoom || 'Join the BOOM'}</>
                 ) : (
-                  <>Welcome <span className="text-primary italic">Back</span></>
+                  <>{t.login?.welcomeBack || 'Welcome Back'}</>
                 )}
               </motion.h1>
               <p className="text-muted-foreground font-medium text-[13px] max-w-xs mx-auto">
                 {isRegistering 
-                  ? "Experience the full power of premium pyrotechnics with your new member account."
-                  : "Sign in to access your orders and exclusive seller pricing benefits."}
+                  ? (t.login?.registerDesc || "Experience the full power of premium pyrotechnics with your new member account.")
+                  : (t.login?.loginDesc || "Sign in to access your orders and exclusive seller pricing benefits.")}
               </p>
             </div>
 
@@ -200,14 +225,14 @@ export default function AuthPage() {
 
                     <form onSubmit={handleLoginSubmit} className="space-y-5">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">Phone Number</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.login?.phoneLabel || 'Phone Number'}</label>
                         <div className="relative group">
                           <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-primary transition-colors" size={18} />
                           <input 
                             type="tel"
                             required
-                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold"
-                            placeholder="+60 12-345 6789"
+                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground dark:text-white"
+                            placeholder={t.login?.phonePlaceholder || '+60 12-345 6789'}
                             value={loginData.phone}
                             onChange={(e) => setLoginData({ ...loginData, phone: e.target.value })}
                           />
@@ -215,14 +240,14 @@ export default function AuthPage() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">Password</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.login?.labelPassword || 'Password'}</label>
                         <div className="relative group">
                           <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-primary transition-colors" size={18} />
                           <input 
                             type={showPassword ? "text" : "password"}
                             required
-                            className="w-full pl-14 pr-14 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold"
-                            placeholder="••••••••"
+                            className="w-full pl-14 pr-14 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground dark:text-white"
+                            placeholder={t.login?.placeholderPassword || '••••••••'}
                             value={loginData.password}
                             onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                           />
@@ -244,17 +269,17 @@ export default function AuthPage() {
                         className="w-full py-4 bg-primary text-zinc-900 rounded-[20px] font-black text-lg hover:brightness-110 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
                       >
                         {isLoading ? <Loader2 className="animate-spin" /> : <Sparkles size={18} strokeWidth={3} />}
-                        {t.login.signIn}
+                        {t.login?.signIn || 'Sign In'}
                       </motion.button>
                     </form>
 
                     <div className="mt-8 pt-6 border-t border-zinc-500/10 text-center">
-                      <p className="text-[12px] font-medium text-muted-foreground mb-3">New user? Click below to register</p>
+                      <p className="text-[12px] font-medium text-muted-foreground mb-3">{t.login?.newUser || 'New user? Click below to register'}</p>
                       <button 
                         onClick={() => { setIsRegistering(true); setError(''); setSuccess(''); }}
                         className="w-full py-3.5 border border-zinc-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-500/5 transition-all flex items-center justify-center gap-2 group"
                       >
-                        Create Account <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                        {t.login?.createAccount || 'Create Account'} <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                       </button>
                     </div>
                   </motion.div>
@@ -276,14 +301,14 @@ export default function AuthPage() {
 
                     <form onSubmit={handleRegisterSubmit} className="space-y-4">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">Full Name</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.login?.fullNameLabel || 'Full Name'}</label>
                         <div className="relative group">
                           <User className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-primary transition-colors" size={18} />
                           <input 
                             type="text"
                             required
-                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold"
-                            placeholder="John Doe"
+                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground dark:text-white"
+                            placeholder={t.login?.fullNamePlaceholder || 'John Doe'}
                             value={registerData.name}
                             onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                           />
@@ -291,14 +316,14 @@ export default function AuthPage() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">Phone Number</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.login?.phoneLabel || 'Phone Number'}</label>
                         <div className="relative group">
                           <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-primary transition-colors" size={18} />
                           <input 
                             type="tel"
                             required
-                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold"
-                            placeholder="+60 12-345 6789"
+                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground dark:text-white"
+                            placeholder={t.login?.phonePlaceholder || '+60 12-345 6789'}
                             value={registerData.phone}
                             onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
                           />
@@ -306,20 +331,61 @@ export default function AuthPage() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">Password</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.login?.labelPassword || 'Password'}</label>
                         <div className="relative group">
                           <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-primary transition-colors" size={18} />
                           <input 
-                            type="password"
+                            type={showRegPassword ? "text" : "password"}
                             required
-                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold"
-                            placeholder="Min. 6 characters"
-                            minLength={6}
+                            className="w-full pl-14 pr-14 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground dark:text-white"
+                            placeholder={t.login?.passwordMinPlaceholder || 'Min. 8 characters with a number & symbol'}
                             value={registerData.password}
                             onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                           />
+                          <button 
+                            type="button"
+                            onClick={() => setShowRegPassword(!showRegPassword)}
+                            className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-primary transition-colors p-2"
+                          >
+                            {showRegPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          </button>
                         </div>
+                        {registerData.password.length > 0 && !/^(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(registerData.password) && (
+                          <p className="text-[10px] font-bold text-amber-500 dark:text-amber-400 ml-1 mt-1 animate-pulse">
+                            ⚠️ {t.login?.passwordTooWeak || 'Password must be at least 8 characters with a number & symbol.'}
+                          </p>
+                        )}
                       </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.login?.labelConfirmPassword || 'Confirm Password'}</label>
+                        <div className="relative group">
+                          <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-primary transition-colors" size={18} />
+                          <input 
+                            type={showRegConfirmPassword ? "text" : "password"}
+                            required
+                            className="w-full pl-14 pr-14 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground dark:text-white"
+                            placeholder={t.login?.placeholderConfirmPassword || '••••••••'}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => setShowRegConfirmPassword(!showRegConfirmPassword)}
+                            className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-primary transition-colors p-2"
+                          >
+                            {showRegConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          </button>
+                        </div>
+                        {confirmPassword.length > 0 && confirmPassword !== registerData.password && (
+                          <p className="text-[10px] font-bold text-red-500 dark:text-red-400 ml-1 mt-1 animate-pulse">
+                            ⚠️ {t.login?.passwordsDoNotMatch || 'Passwords do not match.'}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Spacer to push Join Now button down slightly */}
+                      <div className="h-4" />
 
                       <motion.button 
                         whileHover={{ scale: 1.01 }}
@@ -329,17 +395,17 @@ export default function AuthPage() {
                         className="w-full py-4 bg-primary text-zinc-900 rounded-[20px] font-black text-lg hover:brightness-110 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
                       >
                         {isLoading ? <Loader2 className="animate-spin" /> : <Sparkles size={18} strokeWidth={3} />}
-                        Join Now
+                        {t.login?.joinNow || 'Join Now'}
                       </motion.button>
                     </form>
 
                     <div className="mt-8 pt-6 border-t border-zinc-500/10 text-center">
-                      <p className="text-[12px] font-medium text-muted-foreground mb-3">Existing member? Sign in here</p>
+                      <p className="text-[12px] font-medium text-muted-foreground mb-3">{t.login?.existingMember || 'Existing member? Sign in here'}</p>
                       <button 
                         onClick={() => { setIsRegistering(false); setError(''); setSuccess(''); }}
                         className="w-full py-3 border border-zinc-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-500/5 transition-all"
                       >
-                        Sign In Instead
+                        {t.login?.signInInstead || 'Sign In Instead'}
                       </button>
                     </div>
                   </motion.div>
@@ -349,7 +415,7 @@ export default function AuthPage() {
 
             {/* Footer */}
             <p className="mt-6 text-center text-[8px] font-black uppercase tracking-[0.4em] text-zinc-500 opacity-40">
-              © 2026 Cheng-BOOM Global Pyrotechnics
+              {t.login?.copyright || '© 2026 Cheng-BOOM Global Pyrotechnics'}
             </p>
           </div>
         </div>

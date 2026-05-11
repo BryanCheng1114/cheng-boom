@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
+import { sendOrderReceiptEmail } from '../../../lib/email';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -45,6 +46,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           items: true,
         },
       });
+
+      // 3. Send email notification to management
+      // We don't await this so it doesn't block the checkout response if email fails or is slow
+      sendOrderReceiptEmail(order, customerInfo, items, totalAmount).catch(console.error);
 
       return res.status(201).json(order);
     } catch (error) {

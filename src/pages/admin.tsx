@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from '../hooks/useTranslation';
+import { LanguageSwitcher } from '../components/layout/LanguageSwitcher';
 import { User, Lock, ShieldAlert, Loader2, LogIn, Sun, Moon, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 
@@ -52,10 +53,10 @@ export default function AdminLogin() {
   return (
     <>
       <Head>
-        <title>{`Admin Login - Cheng-BOOM`}</title>
+        <title>{t.admin?.headTitle || 'Admin Login - Cheng-BOOM'}</title>
       </Head>
 
-      <div className={`min-h-screen w-full flex items-center justify-center relative font-sans transition-colors duration-500 ${theme === 'dark' ? 'bg-[#050505]' : 'bg-zinc-50'}`}>
+      <div className="min-h-screen w-full flex items-center justify-center relative font-sans transition-colors duration-500 bg-[#050505]">
         
         {/* Constant Cinematic Background */}
         <div className="absolute inset-0 z-0">
@@ -70,8 +71,9 @@ export default function AdminLogin() {
           <div className="absolute inset-0 backdrop-blur-[3px]" />
         </div>
 
-        {/* Top Right Theme Toggle */}
-        <div className="absolute top-8 right-8 z-20">
+        {/* Top Right Controls */}
+        <div className="absolute top-8 right-8 z-20 flex items-center gap-3">
+          <LanguageSwitcher />
           <button 
             onClick={toggleTheme}
             className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all active:scale-90 shadow-xl"
@@ -91,10 +93,10 @@ export default function AdminLogin() {
           {/* Header */}
           <div className="text-center mb-6">
             <h1 className="text-4xl font-black text-white tracking-tight mb-2 uppercase italic drop-shadow-md">
-              Admin Panel
+              {t.admin?.panelTitle || 'Admin Panel'}
             </h1>
             <p className="text-zinc-400 font-medium text-sm">
-              Please sign in to continue
+              {t.admin?.panelSubtitle || 'Please sign in to continue'}
             </p>
           </div>
 
@@ -103,10 +105,10 @@ export default function AdminLogin() {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             className={`
-              backdrop-blur-2xl border transition-all duration-500 rounded-[40px] p-8 md:p-10 shadow-2xl
+              backdrop-blur-3xl border transition-all duration-500 rounded-[40px] p-8 md:p-10 shadow-2xl
               ${theme === 'dark' 
-                ? 'bg-zinc-900/70 border-white/10 shadow-black/50' 
-                : 'bg-white/80 border-black/5 shadow-black/10'
+                ? 'bg-zinc-900/60 border-white/10 shadow-black/40 text-white' 
+                : 'bg-zinc-100/95 border-white/30 shadow-black/30 text-zinc-900'
               }
             `}
           >
@@ -123,8 +125,8 @@ export default function AdminLogin() {
                       <LogIn size={40} />
                     </div>
                     <div>
-                      <p className={`text-xl font-black italic uppercase ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}>Access Granted</p>
-                      <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">Redirecting...</p>
+                      <p className={`text-xl font-black italic uppercase ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t.admin?.accessGranted || 'Access Granted'}</p>
+                      <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">{t.admin?.redirecting || 'Redirecting...'}</p>
                     </div>
                   </motion.div>
                 ) : (
@@ -132,7 +134,7 @@ export default function AdminLogin() {
                     {/* Username */}
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">
-                        Username
+                        {t.admin?.usernameLabel || 'Username'}
                       </label>
                       <div className="relative group">
                         <div className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors ${theme === 'dark' ? 'text-zinc-500 group-focus-within:text-primary' : 'text-zinc-400 group-focus-within:text-primary'}`}>
@@ -146,10 +148,10 @@ export default function AdminLogin() {
                             w-full pl-14 pr-6 py-4 rounded-2xl border outline-none transition-all font-bold
                             ${theme === 'dark' 
                               ? 'bg-zinc-950/50 border-white/5 text-white placeholder:text-zinc-800 focus:border-primary focus:ring-4 focus:ring-primary/10' 
-                              : 'bg-zinc-100/50 border-black/5 text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:ring-4 focus:ring-primary/10'
+                              : 'bg-white/85 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:ring-4 focus:ring-primary/10'
                             }
                           `}
-                          placeholder="Admin ID"
+                          placeholder={t.admin?.usernamePlaceholder || 'Admin ID'}
                           value={formData.username}
                           onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                         />
@@ -159,7 +161,7 @@ export default function AdminLogin() {
                     {/* Password */}
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">
-                        Password
+                        {t.admin?.passwordLabel || 'Password'}
                       </label>
                       <div className="relative group">
                         <div className={`absolute left-5 top-1/2 -translate-y-1/2 transition-colors ${theme === 'dark' ? 'text-zinc-500 group-focus-within:text-primary' : 'text-zinc-400 group-focus-within:text-primary'}`}>
@@ -173,7 +175,7 @@ export default function AdminLogin() {
                             w-full pl-14 pr-6 py-4 rounded-2xl border outline-none transition-all font-bold tracking-widest
                             ${theme === 'dark' 
                               ? 'bg-zinc-950/50 border-white/5 text-white placeholder:text-zinc-800 focus:border-primary focus:ring-4 focus:ring-primary/10' 
-                              : 'bg-zinc-100/50 border-black/5 text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:ring-4 focus:ring-primary/10'
+                              : 'bg-white/85 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:ring-4 focus:ring-primary/10'
                             }
                           `}
                           placeholder="••••••••"
@@ -214,7 +216,7 @@ export default function AdminLogin() {
                       ) : (
                         <>
                           <Sparkles size={18} strokeWidth={3} />
-                          Log In
+                          {t.admin?.signIn || 'Log In'}
                         </>
                       )}
                     </motion.button>
@@ -226,7 +228,7 @@ export default function AdminLogin() {
 
           {/* Footer Branding */}
           <p className="mt-8 text-center text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 opacity-40">
-            © 2026 Cheng-BOOM Global Pyrotechnics
+            {t.admin?.copyright || '© 2026 Cheng-BOOM Global Pyrotechnics'}
           </p>
         </motion.div>
       </div>

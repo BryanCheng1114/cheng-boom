@@ -283,7 +283,7 @@ export function Navbar() {
               {user ? (
                 <div className="flex items-center gap-3 cursor-pointer relative">
                   <div className="flex flex-col items-end hidden sm:flex">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 leading-none mb-1">Active Member</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 leading-none mb-1">{t.nav?.profile?.activeMember || 'Active Member'}</span>
                     <span className="text-sm font-bold text-foreground leading-none">{user.name}</span>
                   </div>
                   
@@ -299,32 +299,21 @@ export function Navbar() {
                   <div className="absolute top-[calc(100%+8px)] right-0 w-56 opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible translate-y-2 scale-95 group-hover/profile:translate-y-0 group-hover/profile:scale-100 transition-all duration-300 ease-out origin-top-right z-50">
                     <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-700/60 rounded-[24px] shadow-2xl shadow-black/10 dark:shadow-black/40 py-3 overflow-hidden">
                       <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 mb-2">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">Account</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">{t.nav?.profile?.account || 'Account'}</p>
                         <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
                       </div>
                       <Link 
                         href="/profile" 
                         className="flex items-center gap-3 px-5 py-3 text-sm text-zinc-600 dark:text-zinc-300 hover:text-primary hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors"
                       >
-                        <User size={16} /> My Profile
+                        <User size={16} /> {t.nav?.profile?.myProfile || 'My Profile'}
                       </Link>
-                      {user.role === 'Seller' && (
-                        <div className="mx-2 mt-1 mb-2 px-4 py-2.5 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 rounded-2xl flex items-center gap-3 group/seller">
-                          <div className="w-8 h-8 rounded-xl bg-yellow-500 flex items-center justify-center text-zinc-900 shadow-lg shadow-yellow-500/20 group-hover/seller:rotate-12 transition-transform">
-                            <Sparkles size={16} strokeWidth={2.5} />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-yellow-600 dark:text-yellow-500 leading-none mb-1">Seller Benefits</p>
-                            <p className="text-[9px] font-bold text-zinc-400 leading-none">15% Discount Active</p>
-                          </div>
-                        </div>
-                      )}
                       <div className="h-px bg-zinc-100 dark:bg-zinc-800 mx-3 my-2" />
                       <button 
                         onClick={handleLogout}
                         className="w-full flex items-center gap-3 px-5 py-3 text-sm text-red-500 hover:bg-red-500/5 transition-colors"
                       >
-                        <X size={16} /> Logout
+                        <X size={16} /> {t.nav?.profile?.logout || 'Logout'}
                       </button>
                     </div>
                   </div>
@@ -355,14 +344,14 @@ export function Navbar() {
           <div className="md:hidden border-t border-zinc-100 dark:border-zinc-800 py-4 space-y-1">
             {user && (
               <div className="px-4 py-4 mb-2 bg-primary/5 rounded-2xl mx-2 border border-primary/10">
-                <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Welcome Back</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">{t.nav?.profile?.welcomeBack || 'Welcome Back'}</p>
                 <p className="text-lg font-black italic text-foreground">{user.name}</p>
                 <Link 
                   href="/profile" 
                   onClick={() => setMobileOpen(false)}
                   className="mt-3 flex items-center justify-between p-3 bg-white dark:bg-zinc-900 rounded-xl text-sm font-bold text-foreground border border-zinc-200 dark:border-white/5"
                 >
-                  View Profile <ChevronRight size={14} />
+                  {t.nav?.profile?.viewProfile || 'View Profile'} <ChevronRight size={14} />
                 </Link>
               </div>
             )}

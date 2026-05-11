@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export interface CartItem {
   id: string;
+  code?: string | null;
   name: string;
   price: number;
   originalPrice?: number;

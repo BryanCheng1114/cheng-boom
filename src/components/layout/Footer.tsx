@@ -10,7 +10,7 @@ const DISPLAY_NUMBER  = '+60 111-226-9835';
 const EMAIL           = 'hello@cheng-boom.test';
 
 export function Footer() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
@@ -111,6 +111,12 @@ export function Footer() {
                 { id: '9', name: 'Soundcloud' },
               ]).map((cat) => {
                 const key = cat.key || cat.name.toLowerCase().replace(/\s+/g, '');
+                
+                let label = cat.name;
+                if (locale === 'zh' && cat.nameZh) label = cat.nameZh;
+                else if (locale === 'ms' && cat.nameMs) label = cat.nameMs;
+                else label = (t.shopCategories as any)[key] || cat.name;
+
                 return (
                   <li key={cat.id}>
                     <Link
@@ -124,7 +130,7 @@ export function Footer() {
                         className="text-zinc-300 group-hover:text-primary group-hover:translate-x-0.5 transition-all
                           dark:text-zinc-600 dark:group-hover:text-primary"
                       />
-                      {(t.shopCategories as any)[key] || cat.name}
+                      {label}
                     </Link>
                   </li>
                 );
@@ -195,18 +201,7 @@ export function Footer() {
                 </a>
               </li>
 
-              {/* Address */}
-              <li className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5
-                  bg-zinc-200 dark:bg-zinc-800"
-                >
-                  <MapPin size={15} className="text-zinc-500 dark:text-zinc-400" />
-                </div>
-                <span className="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-                  Fireworks District,<br />
-                  Kuala Lumpur, Malaysia
-                </span>
-              </li>
+
             </ul>
           </div>
 

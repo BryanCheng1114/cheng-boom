@@ -334,7 +334,9 @@ export default function Shop() {
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-10 w-full"
           >
             <AnimatePresence mode="popLayout">
-              {filteredProducts.map((product, index) => (
+              {filteredProducts.map((product, index) => {
+                const catObj = categories.find(c => c.name === product.category);
+                return (
                 <motion.div
                   key={product.id}
                   layout
@@ -347,9 +349,10 @@ export default function Shop() {
                     ease: "easeOut"
                   }}
                 >
-                  <ProductCard {...product} />
+                  <ProductCard {...product} categoryZh={catObj?.nameZh} categoryMs={catObj?.nameMs} />
                 </motion.div>
-              ))}
+                );
+              })}
             </AnimatePresence>
           </motion.div>
         )}

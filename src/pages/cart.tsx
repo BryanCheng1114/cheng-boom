@@ -11,7 +11,7 @@ export default function Cart() {
   const { items, updateQuantity, removeItem, clearCart, totalPrice, totalOriginalPrice, totalItems } = useCart();
   const [mounted, setMounted] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   // Modal Form State
   const [orderDetails, setOrderDetails] = useState<OrderDetails>({
@@ -37,13 +37,26 @@ export default function Cart() {
           const res = await fetch(`/api/customers/${user.id}`);
           if (res.ok) {
             const fullProfile = await res.json();
+            
+            const mapPayment = (val: string | null | undefined) => {
+              if (!val) return 'TNG e-wallet';
+              const lower = val.toLowerCase();
+              if (lower.includes('bank')) return 'bank transfer';
+              if (lower.includes('duit')) return 'DuitNow qr';
+              return 'TNG e-wallet';
+            };
+            const mapDelivery = (val: string | null | undefined) => {
+              if (!val) return 'Self Collect';
+              return val.toLowerCase().includes('delivery') ? 'Delivery' : 'Self Collect';
+            };
+
             setOrderDetails(prev => ({
               ...prev,
               customerName: fullProfile.name || '',
               customerPhone: fullProfile.phone || '',
               address: fullProfile.address || '',
-              paymentMethod: fullProfile.preferredPayment || 'TNG e-wallet',
-              deliveryMode: fullProfile.orderMode || 'Self Collect',
+              paymentMethod: mapPayment(fullProfile.preferredPayment),
+              deliveryMode: mapDelivery(fullProfile.orderMode),
               notes: fullProfile.notes || ''
             }));
           } else {
@@ -96,10 +109,12 @@ export default function Cart() {
             address: orderDetails.address || (orderDetails.deliveryMode === 'Self Collect' ? 'Self Collect' : ''),
             paymentMethod: orderDetails.paymentMethod,
             deliveryMode: orderDetails.deliveryMode,
-            notes: orderDetails.notes
+            notes: orderDetails.notes,
+            role: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}').role : 'Guest'
           },
           items: items.map(item => ({
             productId: item.id,
+            code: item.code,
             name: item.name,
             price: item.price,
             quantity: item.quantity
@@ -113,7 +128,8 @@ export default function Cart() {
       }
 
       // 2. Open WhatsApp
-      const url = generateWhatsAppLink(items, totalPrice, orderDetails);
+      const isSeller = typeof window !== 'undefined' && JSON.parse(localStorage.getItem('user') || '{}').role === 'Seller';
+      const url = generateWhatsAppLink(items, totalPrice, orderDetails, locale as 'en' | 'zh' | 'ms', isSeller);
       window.open(url, '_blank');
 
       // 3. Cleanup
