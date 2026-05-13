@@ -58,6 +58,7 @@ export const sendOrderReceiptEmail = async (order: any, customerInfo: any, items
         <table style="width: 100%; margin-bottom: 20px; font-size: 14px;">
           <tr><td style="padding: 4px 0; width: 120px; color: #666;">Name:</td><td><strong>${customerInfo.name}</strong></td></tr>
           <tr><td style="padding: 4px 0; color: #666;">Phone:</td><td><strong>${customerInfo.phone}</strong></td></tr>
+          <tr><td style="padding: 4px 0; color: #666;">Account Type:</td><td><strong style="text-transform: uppercase; color: #f59e0b;">${customerInfo.role || 'Guest'}</strong></td></tr>
           <tr><td style="padding: 4px 0; color: #666;">Payment:</td><td>${customerInfo.paymentMethod}</td></tr>
           <tr><td style="padding: 4px 0; color: #666;">Mode:</td><td>${customerInfo.deliveryMode}</td></tr>
           ${customerInfo.deliveryMode === 'Delivery' ? `<tr><td style="padding: 4px 0; color: #666;">Address:</td><td>${customerInfo.address}</td></tr>` : ''}

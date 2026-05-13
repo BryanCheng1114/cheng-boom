@@ -19,9 +19,10 @@ export interface ProductCardProps {
   nameMs?: string | null;
   stock?: number;
   promotion?: number | null;
+  sellerPrice?: number | null;
 }
 
-export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, images = [], category, categoryZh, categoryMs, stock = 0 }: ProductCardProps) {
+export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, sellerPrice, images = [], category, categoryZh, categoryMs, stock = 0 }: ProductCardProps) {
   const { items, addItem, updateQuantity } = useCart();
   const { flyToCart } = useFlyToCart();
   const { t, locale } = useTranslation();
@@ -32,16 +33,40 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
 
   const isOutOfStock = stock <= 0;
   
-  // Promotion is the NEW price, price is the ORIGINAL price
-  const hasPromo = promotion !== null && promotion !== undefined && promotion < price;
-  
   // Seller Logic
-  const isSeller = typeof window !== 'undefined' && localStorage.getItem('user_role') === 'Seller';
-  const sellerMultiplier = isSeller ? 0.85 : 1; // 15% discount for sellers
+  const isSeller = typeof window !== 'undefined' && (
+    localStorage.getItem('user_role') === 'Seller' || 
+    JSON.parse(localStorage.getItem('user') || '{}').role === 'Seller'
+  );
   
-  const activePrice = (hasPromo ? (promotion as number) : price) * sellerMultiplier;
-  const hasDiscount = hasPromo || isSeller;
-  const strikeThroughPrice = hasDiscount ? price : undefined;
+  let activePrice = price;
+  let hasDiscount = false;
+  let strikeThroughPrice: number | undefined = undefined;
+
+  if (isSeller) {
+    if (sellerPrice !== null && sellerPrice !== undefined && sellerPrice > 0) {
+      activePrice = sellerPrice;
+      if (sellerPrice < price) {
+        hasDiscount = true;
+        strikeThroughPrice = price;
+      }
+    } else {
+      // Fallback to promo if no sellerPrice is set
+      const hasPromo = promotion !== null && promotion !== undefined && promotion < price;
+      if (hasPromo) {
+        activePrice = promotion as number;
+        hasDiscount = true;
+        strikeThroughPrice = price;
+      }
+    }
+  } else {
+    const hasPromo = promotion !== null && promotion !== undefined && promotion < price;
+    if (hasPromo) {
+      activePrice = promotion as number;
+      hasDiscount = true;
+      strikeThroughPrice = price;
+    }
+  }
   
   const discountPercent = hasDiscount 
     ? Math.round(((price - activePrice) / price) * 100) 
@@ -52,7 +77,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     if (quantity < stock) {
-      addItem({ id, code, name: translatedName, price: activePrice, originalPrice: strikeThroughPrice, image: displayImage });
+      addItem({ id, code, name: translatedName, price: activePrice, originalPrice: strikeThroughPrice, image: displayImage, stock });
       if (imageRef.current && displayImage) {
         flyToCart(displayImage, imageRef.current);
       }

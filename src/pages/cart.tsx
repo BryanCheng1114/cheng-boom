@@ -24,6 +24,13 @@ export default function Cart() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [productsStock, setProductsStock] = useState<Record<string, number>>({});
+  const [isWhatsAppTermsAgreed, setIsWhatsAppTermsAgreed] = useState(false);
+
+  const isSeller = typeof window !== 'undefined' && (
+    localStorage.getItem('user_role') === 'Seller' || 
+    JSON.parse(localStorage.getItem('user') || '{}').role === 'Seller'
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -75,6 +82,38 @@ export default function Cart() {
 
     fetchUserProfile();
   }, []);
+
+  // Fetch product stocks on mount
+  useEffect(() => {
+    const fetchStocks = async () => {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          const stockMap: Record<string, number> = {};
+          data.forEach((p: any) => {
+            stockMap[p.id] = p.stock || 0;
+          });
+          setProductsStock(stockMap);
+        }
+      } catch (err) {
+        console.error('Failed to fetch product stocks:', err);
+      }
+    };
+    fetchStocks();
+  }, []);
+
+  // Monitor stock and auto-clamp quantities if database stock levels decrease
+  useEffect(() => {
+    if (Object.keys(productsStock).length > 0) {
+      items.forEach((item) => {
+        const dbStock = productsStock[item.id];
+        if (dbStock !== undefined && item.quantity > dbStock) {
+          updateQuantity(item.id, dbStock);
+        }
+      });
+    }
+  }, [productsStock, items, updateQuantity]);
 
   if (!mounted) return null; // Prevent hydration mismatch
 
@@ -128,7 +167,6 @@ export default function Cart() {
       }
 
       // 2. Open WhatsApp
-      const isSeller = typeof window !== 'undefined' && JSON.parse(localStorage.getItem('user') || '{}').role === 'Seller';
       const url = generateWhatsAppLink(items, totalPrice, orderDetails, locale as 'en' | 'zh' | 'ms', isSeller);
       window.open(url, '_blank');
 
@@ -175,6 +213,11 @@ export default function Cart() {
                       <p className="text-zinc-400 line-through text-sm font-bold">RM {item.originalPrice.toFixed(2)}</p>
                     )}
                   </div>
+                  {item.quantity >= (productsStock[item.id] !== undefined ? productsStock[item.id] : (item.stock ?? Infinity)) && (
+                    <p className="text-red-500 text-[10px] font-black uppercase tracking-wider mt-1.5 flex items-center justify-center sm:justify-start gap-1">
+                      ⚠️ Max Stock Reached
+                    </p>
+                  )}
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-center gap-6 w-full sm:w-auto border-t sm:border-t-0 pt-6 sm:pt-0 border-border">
@@ -187,14 +230,18 @@ export default function Cart() {
                     </button>
                     <span className="w-6 text-center font-black text-lg text-foreground">{item.quantity}</span>
                     <button 
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="p-1 hover:text-primary transition-colors text-muted-foreground active:scale-90"
+                      onClick={() => {
+                        const maxStock = productsStock[item.id] !== undefined ? productsStock[item.id] : (item.stock ?? Infinity);
+                        updateQuantity(item.id, item.quantity + 1, maxStock);
+                      }}
+                      disabled={item.quantity >= (productsStock[item.id] !== undefined ? productsStock[item.id] : (item.stock ?? Infinity))}
+                      className="p-1 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-muted-foreground active:scale-90"
                     >
                       <Plus size={18} />
                     </button>
                   </div>
 
-                  <div className="hidden sm:block w-28 text-right font-black text-xl text-foreground">
+                  <div className="hidden sm:block w-32 text-right font-black text-xl text-foreground whitespace-nowrap">
                     RM {(item.price * item.quantity).toFixed(2)}
                   </div>
 
@@ -235,7 +282,7 @@ export default function Cart() {
                 </div>
                 {totalSavings > 0 && (
                   <div className="flex justify-between text-green-400 font-bold">
-                    <span>⚡ {t.cart.savings}</span>
+                    <span>{isSeller ? (locale === 'zh' ? '卖家折扣' : locale === 'ms' ? 'Diskaun Penjual' : 'Seller Discount') : t.cart.savings}</span>
                     <span>- RM {totalSavings.toFixed(2)}</span>
                   </div>
                 )}
@@ -253,19 +300,16 @@ export default function Cart() {
               </div>
 
               <button
-                onClick={() => setIsCheckoutOpen(true)}
+                onClick={() => {
+                  setIsWhatsAppTermsAgreed(false);
+                  setIsCheckoutOpen(true);
+                }}
                 className="w-full py-5 px-4 bg-primary text-zinc-900 rounded-[20px] font-black text-lg hover:brightness-110 transition-all shadow-xl hover:shadow-primary/20 flex justify-center items-center gap-2 active:scale-[0.98]"
               >
                 <MessageCircle size={22} strokeWidth={3} className="shrink-0" />
                 <span className="leading-tight">{t.cart.orderBtn}</span>
               </button>
-              
-              <div className="mt-8 space-y-3">
-                 <div className="flex items-center gap-3 text-xs text-zinc-500 font-medium bg-white/5 p-3 rounded-xl border border-white/5">
-                   <Shield size={14} className="text-primary" />
-                   {t.cart.verified}
-                 </div>
-              </div>
+
             </div>
           </div>
         </div>
@@ -296,18 +340,7 @@ export default function Cart() {
                   </div>
 
                   <div className="space-y-8">
-                    {/* Seller Benefit Notice */}
-                    {typeof window !== 'undefined' && JSON.parse(localStorage.getItem('user') || '{}').role === 'Seller' && (
-                      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-3xl p-6 flex items-center gap-5 group">
-                        <div className="w-12 h-12 rounded-2xl bg-yellow-500 flex items-center justify-center text-zinc-900 shadow-lg shadow-yellow-500/20 group-hover:scale-110 transition-transform">
-                          <Zap size={24} strokeWidth={2.5} />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-yellow-600 dark:text-yellow-500 mb-1">Seller Benefit Active</p>
-                          <p className="text-sm font-bold text-foreground leading-tight">A <span className="text-primary font-black italic">15% discount</span> has been automatically applied to your selection.</p>
-                        </div>
-                      </div>
-                    )}
+
                     {/* Customer Info */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
@@ -418,8 +451,8 @@ export default function Cart() {
                   <div className="mt-12 flex flex-col gap-4">
                      <button 
                         type="submit"
-                        disabled={isSubmitting}
-                        className="w-full py-5 px-4 bg-primary text-zinc-900 rounded-[20px] font-black text-lg hover:brightness-110 transition-all shadow-xl hover:shadow-primary/20 flex justify-center items-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={isSubmitting || !isWhatsAppTermsAgreed}
+                        className="w-full py-5 px-4 bg-primary text-zinc-900 rounded-[20px] font-black text-lg hover:brightness-110 transition-all shadow-xl hover:shadow-primary/20 flex justify-center items-center gap-2 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:grayscale disabled:shadow-none"
                      >
                         {isSubmitting ? (
                           <div className="w-6 h-6 border-4 border-zinc-900/20 border-t-zinc-900 rounded-full animate-spin" />
@@ -430,6 +463,46 @@ export default function Cart() {
                           {isSubmitting ? 'Processing...' : t.cart.checkout.confirmBtn}
                         </span>
                      </button>
+
+                     {/* Premium custom robot verification checkbox */}
+                     <div className={cn(
+                       "border rounded-2xl p-4 transition-all duration-300 flex items-start gap-4 cursor-pointer select-none",
+                       isWhatsAppTermsAgreed 
+                         ? "bg-green-500/5 border-green-500/30 dark:bg-green-500/10" 
+                         : "bg-blue-500/5 border-blue-500/20 dark:bg-blue-500/10 hover:border-blue-500/40"
+                     )}
+                     onClick={() => setIsWhatsAppTermsAgreed(!isWhatsAppTermsAgreed)}
+                     >
+                       <div className="flex items-center mt-0.5">
+                         <div className={cn(
+                           "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200 shrink-0",
+                           isWhatsAppTermsAgreed 
+                             ? "bg-green-500 border-green-500 text-zinc-900 scale-105 shadow-md shadow-green-500/20" 
+                             : "border-blue-400 dark:border-blue-500 bg-white dark:bg-zinc-950"
+                         )}>
+                           {isWhatsAppTermsAgreed && <Check size={14} strokeWidth={4} />}
+                         </div>
+                       </div>
+                       <div className="text-left">
+                         <p className={cn(
+                           "text-[10px] font-black uppercase tracking-widest mb-1 transition-colors",
+                           isWhatsAppTermsAgreed ? "text-green-500 animate-pulse" : "text-blue-500"
+                         )}>
+                           {locale === 'zh' ? '安全下单验证' : locale === 'ms' ? 'Pengesahan Pesanan Selamat' : 'Secure Order Verification'}
+                         </p>
+                         <p className={cn(
+                           "text-[11px] font-bold leading-relaxed transition-colors",
+                           isWhatsAppTermsAgreed ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400"
+                         )}>
+                           {locale === 'zh' 
+                             ? '我明了并同意：点击后，我将被重定向到 WhatsApp 且内容已自动填好。为避免下单失败，我绝不修改文本，直接点击发送。' 
+                             : locale === 'ms' 
+                               ? 'Saya faham & setuju: Selepas klik, saya akan dihalakan ke WhatsApp dengan maklumat yang diisi automatik. Saya tidak akan mengubah mesej dan terus klik hantar.' 
+                               : 'I understand & agree: After clicking, I will be redirected to WhatsApp with autofilled information. I will not edit the text and click send directly.'}
+                         </p>
+                       </div>
+                     </div>
+
                      <p className="text-[10px] text-center text-zinc-500 font-bold uppercase tracking-widest">
                        {t.cart.checkout.total}: RM {totalPrice.toFixed(2)}
                      </p>

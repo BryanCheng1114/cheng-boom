@@ -8,18 +8,20 @@ export interface CartItem {
   originalPrice?: number;
   image?: string;
   quantity: number;
+  stock?: number;
 }
 
 interface CartContextType {
   items: CartItem[];
   addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void;
   removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
+  updateQuantity: (id: string, quantity: number, maxStockOverride?: number) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
   totalOriginalPrice: number;
 }
+
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -48,14 +50,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addItem = (newItem: Omit<CartItem, 'quantity'>, quantity: number = 1) => {
     setItems((prev) => {
       const existing = prev.find((item) => item.id === newItem.id);
+      const maxStock = newItem.stock !== undefined ? newItem.stock : Infinity;
       if (existing) {
         return prev.map((item) =>
           item.id === newItem.id
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: Math.min(item.quantity + quantity, maxStock) }
             : item
         );
       }
-      return [...prev, { ...newItem, quantity }];
+      return [...prev, { ...newItem, quantity: Math.min(quantity, maxStock) }];
     });
   };
 
@@ -63,13 +66,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = (id: string, quantity: number, maxStockOverride?: number) => {
     if (quantity <= 0) {
       removeItem(id);
       return;
     }
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, quantity } : item))
+      prev.map((item) => {
+        if (item.id === id) {
+          const limit = maxStockOverride !== undefined 
+            ? maxStockOverride 
+            : (item.stock !== undefined ? item.stock : Infinity);
+          return { ...item, quantity: Math.min(quantity, limit) };
+        }
+        return item;
+      })
     );
   };
 

@@ -161,12 +161,11 @@ export const generateWhatsAppLink = (
 
   msg += `${divider}\n`;
   if (savings > 0) {
+    const savingsLabel = isSeller 
+      ? (locale === 'zh' ? '卖家折扣' : locale === 'ms' ? 'Diskaun Penjual' : 'Seller Discount')
+      : l.savings;
     msg += `${l.originalTotal}: RM ${totalOriginal.toFixed(2)}\n`;
-    msg += `${l.savings}: *RM ${savings.toFixed(2)}*\n`;
-  }
-  
-  if (isSeller) {
-    msg += `⭐ *Seller Discount Applied (15%)*\n`;
+    msg += `${savingsLabel}: *RM ${savings.toFixed(2)}*\n`;
   }
 
   msg += `\n*${l.total}: RM ${totalPrice.toFixed(2)}*\n\n`;

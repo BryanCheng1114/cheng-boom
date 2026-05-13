@@ -47,9 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      // 3. Send email notification to management
-      // We don't await this so it doesn't block the checkout response if email fails or is slow
-      sendOrderReceiptEmail(order, customerInfo, items, totalAmount).catch(console.error);
+      sendOrderReceiptEmail(order, { ...customerInfo, role: customer.role }, items, totalAmount).catch(console.error);
 
       return res.status(201).json(order);
     } catch (error) {

@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { prisma } from '../../lib/prisma';
 import { useCart } from '../../components/cart/CartProvider';
 import { ArrowLeft, ShoppingCart, Plus, Minus, CheckCircle, Maximize2, X, Loader2, Package } from 'lucide-react';
@@ -40,17 +40,54 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   const stock = product.stock || 0;
 
   // Seller Logic
-  const isSeller = typeof window !== 'undefined' && localStorage.getItem('user_role') === 'Seller';
-  const sellerMultiplier = isSeller ? 0.85 : 1;
+  const isSeller = typeof window !== 'undefined' && (
+    localStorage.getItem('user_role') === 'Seller' || 
+    JSON.parse(localStorage.getItem('user') || '{}').role === 'Seller'
+  );
 
-  const hasPromo = product.promotion !== null && product.promotion !== undefined && product.promotion < product.price;
-  const activePrice = (hasPromo ? (product.promotion as number) : product.price) * sellerMultiplier;
-  const hasDiscount = hasPromo || isSeller;
-  const strikeThroughPrice = hasDiscount ? product.price : undefined;
+  let activePrice = product.price;
+  let hasDiscount = false;
+  let strikeThroughPrice: number | undefined = undefined;
+
+  if (isSeller) {
+    if (product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0) {
+      activePrice = product.sellerPrice;
+      if (product.sellerPrice < product.price) {
+        hasDiscount = true;
+        strikeThroughPrice = product.price;
+      }
+    } else {
+      const hasPromo = product.promotion !== null && product.promotion !== undefined && product.promotion < product.price;
+      if (hasPromo) {
+        activePrice = product.promotion as number;
+        hasDiscount = true;
+        strikeThroughPrice = product.price;
+      }
+    }
+  } else {
+    const hasPromo = product.promotion !== null && product.promotion !== undefined && product.promotion < product.price;
+    if (hasPromo) {
+      activePrice = product.promotion as number;
+      hasDiscount = true;
+      strikeThroughPrice = product.price;
+    }
+  }
+
   const savings = hasDiscount ? (product.price - activePrice) : 0;
 
+  const cartItem = items.find((item) => item.id === product.id);
+  const currentCartQty = cartItem?.quantity || 0;
+  const maxAvailable = Math.max(0, stock - currentCartQty);
+
+  // Sync / Clamp local selection if it exceeds max available stock
+  useEffect(() => {
+    if (localQty > maxAvailable) {
+      setLocalQty(maxAvailable);
+    }
+  }, [maxAvailable, localQty]);
+
   const handleAddToCart = () => {
-    if (localQty > 0) {
+    if (localQty > 0 && localQty <= maxAvailable) {
       if (imageRef.current) {
         flyToCart(images[activeImageIdx] || '', imageRef.current);
       }
@@ -61,14 +98,15 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
         name: translatedName, 
         price: activePrice, 
         originalPrice: strikeThroughPrice, 
-        image: images[activeImageIdx] || ''
+        image: images[activeImageIdx] || '',
+        stock: stock
       }, localQty);
       setLocalQty(0);
     }
   };
 
   const increment = () => {
-    if (localQty < stock) setLocalQty(prev => prev + 1);
+    if (localQty < maxAvailable) setLocalQty(prev => prev + 1);
   };
   
   const decrement = () => {
@@ -190,6 +228,80 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                 )}
               </div>
 
+              {isSeller && (() => {
+                const labelsMap = {
+                  en: {
+                    original: 'Original Price',
+                    promo: 'Promotion Price',
+                    seller: 'Seller Price',
+                    discount: 'Seller Discount',
+                    title: 'Seller Pricing Analysis'
+                  },
+                  zh: {
+                    original: '产品原价',
+                    promo: '促销特价',
+                    seller: '卖家特价',
+                    discount: '卖家节省',
+                    title: '卖家价格对比分析'
+                  },
+                  ms: {
+                    original: 'Harga Asal',
+                    promo: 'Harga Promosi',
+                    seller: 'Harga Penjual',
+                    discount: 'Diskaun Penjual',
+                    title: 'Analisis Harga Penjual'
+                  }
+                };
+                const currentLabels = labelsMap[locale as 'en' | 'zh' | 'ms'] || labelsMap.en;
+
+                return (
+                  <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-3">
+                      {currentLabels.title}
+                    </p>
+                    <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-[11px] border-collapse min-w-[320px]">
+                          <thead>
+                            <tr className="bg-zinc-50 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 font-extrabold border-b border-zinc-200 dark:border-zinc-800">
+                              <th className="px-4 py-2.5">{currentLabels.original}</th>
+                              <th className="px-4 py-2.5">{currentLabels.promo}</th>
+                              <th className="px-4 py-2.5">{currentLabels.seller}</th>
+                              <th className="px-4 py-2.5 text-right">{currentLabels.discount}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr className="font-bold text-foreground">
+                              <td className="px-4 py-3 text-zinc-400 dark:text-zinc-500 line-through">
+                                RM {product.price.toFixed(2)}
+                              </td>
+                              <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">
+                                {product.promotion !== null && product.promotion !== undefined && product.promotion < product.price
+                                  ? `RM ${product.promotion.toFixed(2)}`
+                                  : '-'
+                                }
+                              </td>
+                              <td className="px-4 py-3 text-primary font-extrabold">
+                                {product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0
+                                  ? `RM ${product.sellerPrice.toFixed(2)}`
+                                  : '-'
+                                }
+                              </td>
+                              <td className="px-4 py-3 text-green-500 font-extrabold text-right">
+                                {product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0 && product.sellerPrice < product.price
+                                  ? `RM ${(product.price - product.sellerPrice).toFixed(2)}`
+                                  : '-'
+                                }
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div className="mt-6 flex flex-col gap-4">
                 {/* Quantity Control */}
                 <div className="flex items-center justify-between">
@@ -198,14 +310,16 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                     <div className="flex items-center bg-zinc-200 dark:bg-zinc-800 rounded-xl p-1 border border-zinc-300 dark:border-zinc-700">
                       <button 
                         onClick={decrement}
-                        className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-zinc-700 transition-all text-zinc-600 dark:text-zinc-300 disabled:opacity-30"
+                        disabled={localQty === 0}
+                        className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-zinc-700 transition-all text-zinc-600 dark:text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         <Minus size={16} />
                       </button>
                       <span className="w-12 text-center font-black text-lg">{localQty}</span>
                       <button 
                         onClick={increment}
-                        className="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-zinc-900 hover:brightness-110 transition-all shadow-md"
+                        disabled={localQty >= maxAvailable}
+                        className="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-zinc-900 hover:brightness-110 transition-all shadow-md disabled:bg-zinc-300 dark:disabled:bg-zinc-700 disabled:text-zinc-500 disabled:shadow-none disabled:cursor-not-allowed"
                       >
                         <Plus size={16} />
                       </button>
@@ -216,11 +330,15 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                 {/* Add Button */}
                 <button
                   onClick={handleAddToCart}
-                  disabled={localQty === 0 || stock <= 0}
+                  disabled={localQty === 0 || stock <= 0 || maxAvailable === 0}
                   className="w-full py-4 bg-primary text-zinc-900 rounded-xl font-black text-lg hover:brightness-110 transition-all shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale disabled:shadow-none active:scale-[0.98]"
                 >
                   <ShoppingCart size={20} strokeWidth={3} /> 
-                  {stock <= 0 ? 'Out of Stock' : t.productDetail.addToCart}
+                  {stock <= 0 
+                    ? 'Out of Stock' 
+                    : maxAvailable <= 0 
+                      ? 'Stock Limit Reached in Cart' 
+                      : t.productDetail.addToCart}
                 </button>
               </div>
             </div>
