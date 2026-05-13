@@ -155,13 +155,24 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
               className="w-full aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 bg-zinc-100 dark:bg-zinc-900 border border-border/50 cursor-zoom-in group relative"
             >
               {images.length > 0 ? (
-                <img
-                  src={images[activeImageIdx]}
-                  alt={translatedName}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  onContextMenu={(e) => e.preventDefault()}
-                  draggable="false"
-                />
+                <>
+                  <img
+                    src={images[activeImageIdx]}
+                    alt={translatedName}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    onContextMenu={(e) => e.preventDefault()}
+                    draggable="false"
+                  />
+                  {/* Dynamic Watermark Overlay - Bottom Right */}
+                  <div className="absolute bottom-4 right-4 z-10 pointer-events-none w-16 h-16 opacity-85 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+                    <img 
+                      src="/transparent-Background.png" 
+                      className="w-full h-full object-contain select-none" 
+                      alt="" 
+                      draggable={false}
+                    />
+                  </div>
+                </>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-zinc-500">
                   <Package size={64} />
@@ -438,13 +449,24 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                   draggable="false"
                 />
                 
-                <img 
-                  src={images[activeImageIdx]} 
-                  alt={translatedName}
-                  className="max-w-full max-h-full object-contain shadow-2xl pointer-events-none select-none rounded-lg"
-                  onContextMenu={(e) => e.preventDefault()}
-                  draggable="false"
-                />
+                <div className="relative max-w-full max-h-full flex items-center justify-center">
+                  <img 
+                    src={images[activeImageIdx]} 
+                    alt={translatedName}
+                    className="max-w-full max-h-full object-contain shadow-2xl pointer-events-none select-none rounded-lg"
+                    onContextMenu={(e) => e.preventDefault()}
+                    draggable="false"
+                  />
+                  {/* Dynamic Watermark Overlay - Bottom Right */}
+                  <div className="absolute bottom-6 right-6 z-20 pointer-events-none w-24 h-24 opacity-80 drop-shadow-[0_3px_6px_rgba(0,0,0,0.5)]">
+                    <img 
+                      src="/transparent-Background.png" 
+                      className="w-full h-full object-contain select-none" 
+                      alt="" 
+                      draggable={false}
+                    />
+                  </div>
+                </div>
               </motion.div>
             </div>
 

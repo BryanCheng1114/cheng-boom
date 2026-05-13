@@ -51,7 +51,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ 
       message: 'Login successful',
-      user: { id: admin.id, username: admin.username }
+      user: { 
+        id: admin.id, 
+        username: admin.username,
+        theme: admin.theme || 'dark',
+        language: admin.language || 'en'
+      }
     });
   } catch (error: any) {
     console.error('Login error:', error);

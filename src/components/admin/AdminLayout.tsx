@@ -25,7 +25,7 @@ interface AdminLayoutProps {
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -33,13 +33,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
   // When mounted on client, now we can show the UI
   useEffect(() => {
     setMounted(true);
-    // Initialize theme from DB once on mount if next-themes hasn't picked it up
+    // Initialize theme and language from DB once on mount
     const fetchProfile = async () => {
       try {
         const res = await fetch('/api/admin/profile');
         if (res.ok) {
           const data = await res.json();
           if (data.theme && theme !== data.theme) setTheme(data.theme);
+          if (data.language && language !== data.language) setLanguage(data.language);
         }
       } catch (err) {}
     };
@@ -47,7 +48,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
   }, []);
 
   if (!mounted) {
-    return <div className="min-h-screen bg-[#02040a]" />;
+    return <div className="min-h-screen bg-[#f8f9fc] dark:bg-[#02040a]" />;
   }
 
   const navItems = [
@@ -84,16 +85,24 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
         }`}
       >
         <div className={`h-24 flex items-center px-7 overflow-hidden border-b transition-colors duration-500 ${theme === 'dark' ? 'border-white/5' : 'border-zinc-100'}`}>
-          <div className="flex items-center gap-4 min-w-max">
-            <div className="relative w-11 h-11 shrink-0 group">
-              <div className={`absolute inset-0 rounded-xl blur-lg transition-all duration-500 ${theme === 'dark' ? 'bg-yellow-500/20' : 'bg-yellow-500/40'}`} />
-              <div className={`relative w-full h-full rounded-xl border flex items-center justify-center p-2 transition-colors duration-500 ${theme === 'dark' ? 'bg-zinc-900 border-white/10' : 'bg-zinc-50 border-zinc-200'}`}>
-                <Image src="/transparent-Background.png" alt="Logo" fill className="object-contain p-1.5" />
-              </div>
-            </div>
-            {!isCollapsed && (
-              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col">
-                <span className={`font-black tracking-[0.1em] text-lg italic leading-tight ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}>ADMIN</span>
+          <div className="flex items-center min-w-max w-full">
+            {!isCollapsed ? (
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }} 
+                animate={{ opacity: 1, x: 0 }} 
+                className="flex flex-col"
+              >
+                <span className={`font-black tracking-[0.15em] text-lg italic leading-tight uppercase ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}>
+                  MANAGEMENT
+                </span>
+              </motion.div>
+            ) : (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                className="w-11 h-11 rounded-xl border flex items-center justify-center transition-colors duration-500 bg-zinc-950/20 border-white/5"
+              >
+                <span className="font-black text-lg italic text-yellow-500">M</span>
               </motion.div>
             )}
           </div>

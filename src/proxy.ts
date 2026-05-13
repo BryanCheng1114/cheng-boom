@@ -6,7 +6,7 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'fallback-secret-key-123'
 );
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Only protect admin routes that are not the login page itself
@@ -22,7 +22,7 @@ export async function middleware(request: NextRequest) {
       await jose.jwtVerify(token, JWT_SECRET);
       return NextResponse.next();
     } catch (error) {
-      console.error('Middleware JWT verification failed:', error);
+      console.error('Proxy JWT verification failed:', error);
       // If invalid, clear cookie and redirect
       const response = NextResponse.redirect(new URL('/admin', request.url));
       response.cookies.delete('admin_token');
@@ -33,7 +33,6 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// See "Matching Paths" below to learn more
 export const config = {
   matcher: ['/admin/:path*'],
 };

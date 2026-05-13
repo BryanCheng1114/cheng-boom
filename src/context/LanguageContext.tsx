@@ -269,15 +269,36 @@ const translations: Record<Language, Record<string, string>> = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguageState] = useState<Language>('en');
 
+  // 1. Instantly retrieve saved preference from memory on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedLang = localStorage.getItem('admin_selected_language');
+      if (savedLang && ['en', 'zh', 'ms'].includes(savedLang)) {
+        setLanguageState(savedLang as Language);
+      }
+    }
+  }, []);
+
+  // 2. Custom setLanguage wrapper to update state & persist to localStorage
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('admin_selected_language', lang);
+    }
+  };
+
+  // 3. Keep database preferences in sync if logged in as admin
   useEffect(() => {
     const fetchSettings = async () => {
       try {
         const res = await fetch('/api/admin/profile');
         if (res.ok) {
           const data = await res.json();
-          if (data.language) setLanguage(data.language as Language);
+          if (data.language) {
+            setLanguage(data.language as Language);
+          }
         }
       } catch (err) {}
     };

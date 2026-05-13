@@ -28,6 +28,12 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   const { t, locale } = useTranslation();
   const imageRef = useRef<HTMLDivElement>(null);
 
+  // Translation helpers
+  const translatedName: string = (((locale === 'zh' && nameZh) ? nameZh : (locale === 'ms' && nameMs) ? nameMs : null) || (t.products as any)?.[id]?.name || name) as string;
+
+  const catKey = category.toLowerCase().replace(/\s+/g, '');
+  const translatedCategory: string = (((locale === 'zh' && categoryZh) ? categoryZh : (locale === 'ms' && categoryMs) ? categoryMs : null) || t.shopCategories[catKey] || t.shopCategories[category] || category) as string;
+
   const cartItem = items.find((item) => item.id === id);
   const quantity = cartItem?.quantity || 0;
 
@@ -91,14 +97,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
     }
   };
 
-  // @ts-ignore
-  let translatedName = (locale === 'zh' && nameZh) ? nameZh : (locale === 'ms' && nameMs) ? nameMs : null;
-  translatedName = translatedName || (t.products as any)?.[id]?.name || name;
-  
-  const catKey = category.toLowerCase().replace(/\s+/g, '');
-  // @ts-ignore
-  let translatedCategory = (locale === 'zh' && categoryZh) ? categoryZh : (locale === 'ms' && categoryMs) ? categoryMs : null;
-  translatedCategory = translatedCategory || t.shopCategories[catKey] || t.shopCategories[category] || category;
+
 
   return (
     <Link href={`/shop/${id}`} className="group block h-full">
@@ -111,8 +110,6 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
             style={{ backgroundImage: `url(${displayImage})` }}
           />
           
-
-          
           {/* Top Right: Discount */}
           {hasDiscount && !isOutOfStock && (
             <div className="absolute top-3 right-3">
@@ -122,8 +119,17 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
             </div>
           )}
 
-          {/* Bottom Right: Stock Status / Out of Stock */}
-          <div className="absolute bottom-3 right-3 flex flex-col items-end gap-2">
+          {/* Bottom Right: Stock Status & Watermark Stack */}
+          <div className="absolute bottom-3 right-3 flex flex-col items-end gap-2 z-20">
+            {/* Dynamic Small Watermark */}
+            <div className="pointer-events-none w-12 h-12 opacity-80 mr-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+              <img 
+                src="/transparent-Background.png" 
+                className="w-full h-full object-contain select-none" 
+                alt="" 
+                draggable={false}
+              />
+            </div>
             {isOutOfStock ? (
               <div className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-tighter shadow-lg flex items-center gap-1.5 border border-red-500/50">
                 <AlertTriangle size={12} className="animate-pulse" />

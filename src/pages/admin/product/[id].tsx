@@ -97,16 +97,23 @@ const AdminProductDetail = () => {
             <span className="text-[10px] font-black uppercase tracking-widest">Back to Inventory</span>
           </Link>
 
-          <div className="flex gap-4 w-full md:w-auto">
+          <div className="flex flex-wrap md:flex-nowrap gap-3 w-full md:w-auto">
+            <Link 
+              href={`/shop/${product.id}`}
+              target="_blank"
+              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-6 py-4 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500/20 transition-all shadow-lg shadow-yellow-500/5"
+            >
+              <ExternalLink size={16} /> View Live Store
+            </Link>
             <Link 
               href={`/admin/product/edit/${product.id}`}
-              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all"
+              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-6 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all"
             >
               <Edit size={16} /> Edit Product
             </Link>
             <button 
               onClick={handleDelete}
-              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/20 transition-all"
+              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-6 py-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/20 transition-all"
             >
               <Trash2 size={16} /> Delete
             </button>
@@ -116,7 +123,7 @@ const AdminProductDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* LEFT COLUMN: Visuals */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="aspect-square rounded-[48px] overflow-hidden dark:bg-zinc-900/40 bg-zinc-50 border dark:border-white/5 border-zinc-200 relative group">
+            <div className="aspect-square rounded-[48px] overflow-hidden dark:bg-zinc-900/40 bg-zinc-50 border dark:border-white/5 border-zinc-200 relative group shadow-2xl">
               {product.images && product.images[activeImageIdx] ? (
                 <img src={product.images[activeImageIdx]} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
               ) : (
@@ -137,23 +144,6 @@ const AdminProductDetail = () => {
                     <img src={img} className="w-full h-full object-cover" />
                   </button>
                 ))}
-              </div>
-            )}
-
-            {embedUrl && (
-              <div className="dark:bg-zinc-900/40 bg-zinc-50 rounded-[48px] overflow-hidden border dark:border-white/5 border-zinc-200">
-                <div className="p-8 border-b dark:border-white/5 border-zinc-200 flex items-center gap-4">
-                  <div className="p-3 bg-red-500/10 text-red-500 rounded-2xl"><VideoIcon size={20} /></div>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Live Demonstration</h3>
-                </div>
-                <div className="aspect-video">
-                  <iframe 
-                    src={embedUrl}
-                    className="w-full h-full border-0"
-                    allowFullScreen
-                    title="Product Demo"
-                  />
-                </div>
               </div>
             )}
           </div>
@@ -241,31 +231,44 @@ const AdminProductDetail = () => {
                 )}
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Information */}
-            <div className="dark:bg-zinc-900/40 bg-zinc-50 p-10 rounded-[48px] border dark:border-white/5 border-zinc-200">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg"><Info size={16} /></div>
-                <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Description</h4>
+        {/* FULL WIDTH COLUMN: Description & YouTube Video */}
+        <div className="space-y-8 mt-8">
+          {/* Description Box - Long Way */}
+          <div className="dark:bg-zinc-900/40 bg-zinc-50 p-10 rounded-[48px] border dark:border-white/5 border-zinc-200 shadow-xl">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-yellow-500/10 text-yellow-500 rounded-lg"><Info size={16} /></div>
+              <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Description</h4>
+            </div>
+            <p className="dark:text-zinc-400 text-zinc-600 font-medium leading-relaxed text-sm">
+              {product.description}
+            </p>
+            
+            <div className="mt-8 pt-8 border-t dark:border-white/5 border-zinc-200 flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+              <Clock size={14} />
+              <span>Last Updated: {new Date().toLocaleDateString()}</span>
+            </div>
+          </div>
+
+          {/* Live Demonstration Video (YouTube) */}
+          {embedUrl && (
+            <div className="dark:bg-zinc-900/40 bg-zinc-50 rounded-[48px] overflow-hidden border dark:border-white/5 border-zinc-200 shadow-xl">
+              <div className="p-8 border-b dark:border-white/5 border-zinc-200 flex items-center gap-4">
+                <div className="p-3 bg-red-500/10 text-red-500 rounded-2xl"><VideoIcon size={20} /></div>
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Live Demonstration</h3>
               </div>
-              <p className="dark:text-zinc-400 text-zinc-600 font-medium leading-relaxed">
-                {product.description}
-              </p>
-              
-              <div className="mt-8 pt-8 border-t dark:border-white/5 border-zinc-200 flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                <Clock size={14} />
-                <span>Last Updated: {new Date().toLocaleDateString()}</span>
+              <div className="aspect-video w-full">
+                <iframe 
+                  src={embedUrl}
+                  className="w-full h-full border-0"
+                  allowFullScreen
+                  title="Product Demo"
+                />
               </div>
             </div>
-
-            <Link 
-              href={`/shop/${product.id}`}
-              target="_blank"
-              className="flex items-center justify-center gap-4 w-full py-6 dark:bg-zinc-500/5 bg-zinc-100 hover:brightness-95 border dark:border-white/5 border-zinc-200 rounded-[32px] text-[10px] font-black uppercase tracking-widest transition-all dark:text-white text-zinc-600"
-            >
-              <ExternalLink size={18} /> View in Live Store
-            </Link>
-          </div>
+          )}
         </div>
       </div>
     </AdminLayout>

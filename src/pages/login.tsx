@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,8 +16,7 @@ import {
   CheckCircle2, 
   User, 
   MapPin, 
-  ChevronRight,
-  ShieldCheck
+  ChevronRight
 } from 'lucide-react';
 import { LanguageSwitcher } from '../components/layout/LanguageSwitcher';
 
@@ -37,6 +37,7 @@ export default function AuthPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
     if (router.query.registered) {
@@ -44,6 +45,13 @@ export default function AuthPage() {
     }
     if (router.query.mode === 'register') {
       setIsRegistering(true);
+    }
+
+    // Remember Me initialization
+    const rememberedPhone = localStorage.getItem('user_remembered_phone');
+    if (rememberedPhone) {
+      setLoginData(prev => ({ ...prev, phone: rememberedPhone }));
+      setRememberMe(true);
     }
   }, [router.query, t.login]);
 
@@ -64,6 +72,14 @@ export default function AuthPage() {
         const user = await res.json();
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('user_role', user.role);
+
+        // Handle Remember Me caching
+        if (rememberMe) {
+          localStorage.setItem('user_remembered_phone', loginData.phone);
+        } else {
+          localStorage.removeItem('user_remembered_phone');
+        }
+
         router.push('/');
       } else {
         const data = await res.json();
@@ -135,9 +151,22 @@ export default function AuthPage() {
         <title>{isRegistering ? (t.login?.joinTitle || 'Join Cheng-BOOM') : (t.login?.signInTitle || 'Sign In - Cheng-BOOM')}</title>
       </Head>
 
-      <div className="min-h-screen bg-background flex flex-col relative overflow-x-hidden dark:bg-zinc-950">
-        {/* Dynamic Background */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <div className="dark min-h-screen bg-[#050505] flex flex-col relative overflow-x-hidden text-zinc-100">
+        {/* Cinematic Background Image */}
+        <div className="absolute inset-0 z-0">
+          <Image 
+            src="/istockphoto-1174615840-612x612.jpg"
+            alt="Background"
+            fill
+            className="object-cover opacity-20 dark:opacity-40"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/60 dark:bg-black/85" />
+          <div className="absolute inset-0 backdrop-blur-[2px]" />
+        </div>
+
+        {/* Dynamic Glowing Accents on Top of Background */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
           <motion.div 
             animate={{ 
               scale: isRegistering ? 1.2 : 1,
@@ -166,12 +195,8 @@ export default function AuthPage() {
             {t.login?.backToHome || 'Back to Home'}
           </Link>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <LanguageSwitcher />
-            <div className="flex items-center gap-2 px-4 py-2 bg-zinc-500/5 rounded-full border border-zinc-500/10 backdrop-blur-sm">
-              <ShieldCheck size={14} className="text-primary" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t.login?.secureProtocol || 'Secure Protocol'}</span>
-            </div>
           </div>
         </div>
 
@@ -183,7 +208,7 @@ export default function AuthPage() {
                 key={isRegistering ? 'reg' : 'log'}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-3xl md:text-4xl font-black text-foreground tracking-tight mb-2"
+                className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2"
               >
                 {isRegistering ? (
                   <>{t.login?.joinBoom || 'Join the BOOM'}</>
@@ -191,7 +216,7 @@ export default function AuthPage() {
                   <>{t.login?.welcomeBack || 'Welcome Back'}</>
                 )}
               </motion.h1>
-              <p className="text-muted-foreground font-medium text-[13px] max-w-xs mx-auto">
+              <p className="text-zinc-400 font-medium text-[13px] max-w-xs mx-auto">
                 {isRegistering 
                   ? (t.login?.registerDesc || "Experience the full power of premium pyrotechnics with your new member account.")
                   : (t.login?.loginDesc || "Sign in to access your orders and exclusive seller pricing benefits.")}
@@ -199,7 +224,7 @@ export default function AuthPage() {
             </div>
 
             {/* Auth Card */}
-            <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-3xl border border-zinc-200 dark:border-white/5 rounded-[40px] shadow-2xl shadow-black/5 overflow-hidden relative">
+            <div className="bg-zinc-900/80 backdrop-blur-3xl border border-white/5 rounded-[40px] shadow-2xl shadow-black/40 overflow-hidden relative text-white">
               
               <AnimatePresence mode="wait">
                 {!isRegistering ? (
@@ -231,7 +256,7 @@ export default function AuthPage() {
                           <input 
                             type="tel"
                             required
-                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground dark:text-white"
+                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-white placeholder:text-zinc-500"
                             placeholder={t.login?.phonePlaceholder || '+60 12-345 6789'}
                             value={loginData.phone}
                             onChange={(e) => setLoginData({ ...loginData, phone: e.target.value })}
@@ -246,7 +271,7 @@ export default function AuthPage() {
                           <input 
                             type={showPassword ? "text" : "password"}
                             required
-                            className="w-full pl-14 pr-14 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground dark:text-white"
+                            className="w-full pl-14 pr-14 py-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-white placeholder:text-zinc-500"
                             placeholder={t.login?.placeholderPassword || '••••••••'}
                             value={loginData.password}
                             onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
@@ -261,6 +286,30 @@ export default function AuthPage() {
                         </div>
                       </div>
 
+                      {/* Remember Me Checkbox */}
+                      <div className="flex items-center justify-between pt-1">
+                        <label className="flex items-center gap-2.5 cursor-pointer group select-none">
+                          <div className="relative">
+                            <input 
+                              type="checkbox"
+                              className="sr-only"
+                              checked={rememberMe}
+                              onChange={(e) => setRememberMe(e.target.checked)}
+                            />
+                            <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all duration-200 ${rememberMe ? 'bg-primary border-primary text-zinc-900 shadow-md shadow-primary/20' : 'border-white/10 hover:border-primary/50 bg-zinc-950/40'}`}>
+                              {rememberMe && (
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3.5} stroke="currentColor" className="w-3.5 h-3.5">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-black tracking-[0.2em] text-zinc-500 group-hover:text-zinc-300 transition-colors select-none ml-1">
+                            {t.login?.rememberMe || 'REMEMBER ME'}
+                          </span>
+                        </label>
+                      </div>
+
                       <motion.button 
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.99 }}
@@ -273,11 +322,11 @@ export default function AuthPage() {
                       </motion.button>
                     </form>
 
-                    <div className="mt-8 pt-6 border-t border-zinc-500/10 text-center">
-                      <p className="text-[12px] font-medium text-muted-foreground mb-3">{t.login?.newUser || 'New user? Click below to register'}</p>
+                    <div className="mt-8 pt-6 border-t border-white/10 text-center">
+                      <p className="text-[12px] font-medium text-zinc-400 mb-3">{t.login?.newUser || 'New user? Click below to register'}</p>
                       <button 
                         onClick={() => { setIsRegistering(true); setError(''); setSuccess(''); }}
-                        className="w-full py-3.5 border border-zinc-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-500/5 transition-all flex items-center justify-center gap-2 group"
+                        className="w-full py-3.5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/5 text-zinc-300 transition-all flex items-center justify-center gap-2 group"
                       >
                         {t.login?.createAccount || 'Create Account'} <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                       </button>
@@ -307,7 +356,7 @@ export default function AuthPage() {
                           <input 
                             type="text"
                             required
-                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground dark:text-white"
+                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-white placeholder:text-zinc-500"
                             placeholder={t.login?.fullNamePlaceholder || 'John Doe'}
                             value={registerData.name}
                             onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
@@ -322,7 +371,7 @@ export default function AuthPage() {
                           <input 
                             type="tel"
                             required
-                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground dark:text-white"
+                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-white placeholder:text-zinc-500"
                             placeholder={t.login?.phonePlaceholder || '+60 12-345 6789'}
                             value={registerData.phone}
                             onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
@@ -337,7 +386,7 @@ export default function AuthPage() {
                           <input 
                             type={showRegPassword ? "text" : "password"}
                             required
-                            className="w-full pl-14 pr-14 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground dark:text-white"
+                            className="w-full pl-14 pr-14 py-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-white placeholder:text-zinc-500"
                             placeholder={t.login?.passwordMinPlaceholder || 'Min. 8 characters with a number & symbol'}
                             value={registerData.password}
                             onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
@@ -351,7 +400,7 @@ export default function AuthPage() {
                           </button>
                         </div>
                         {registerData.password.length > 0 && !/^(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(registerData.password) && (
-                          <p className="text-[10px] font-bold text-amber-500 dark:text-amber-400 ml-1 mt-1 animate-pulse">
+                          <p className="text-[10px] font-bold text-amber-400 ml-1 mt-1 animate-pulse">
                             ⚠️ {t.login?.passwordTooWeak || 'Password must be at least 8 characters with a number & symbol.'}
                           </p>
                         )}
@@ -364,7 +413,7 @@ export default function AuthPage() {
                           <input 
                             type={showRegConfirmPassword ? "text" : "password"}
                             required
-                            className="w-full pl-14 pr-14 py-3.5 rounded-2xl bg-zinc-500/5 dark:bg-zinc-950/50 border border-zinc-500/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-foreground dark:text-white"
+                            className="w-full pl-14 pr-14 py-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-white placeholder:text-zinc-500"
                             placeholder={t.login?.placeholderConfirmPassword || '••••••••'}
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -378,7 +427,7 @@ export default function AuthPage() {
                           </button>
                         </div>
                         {confirmPassword.length > 0 && confirmPassword !== registerData.password && (
-                          <p className="text-[10px] font-bold text-red-500 dark:text-red-400 ml-1 mt-1 animate-pulse">
+                          <p className="text-[10px] font-bold text-red-400 ml-1 mt-1 animate-pulse">
                             ⚠️ {t.login?.passwordsDoNotMatch || 'Passwords do not match.'}
                           </p>
                         )}
@@ -399,11 +448,11 @@ export default function AuthPage() {
                       </motion.button>
                     </form>
 
-                    <div className="mt-8 pt-6 border-t border-zinc-500/10 text-center">
-                      <p className="text-[12px] font-medium text-muted-foreground mb-3">{t.login?.existingMember || 'Existing member? Sign in here'}</p>
+                    <div className="mt-8 pt-6 border-t border-white/10 text-center">
+                      <p className="text-[12px] font-medium text-zinc-400 mb-3">{t.login?.existingMember || 'Existing member? Sign in here'}</p>
                       <button 
                         onClick={() => { setIsRegistering(false); setError(''); setSuccess(''); }}
-                        className="w-full py-3 border border-zinc-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-500/5 transition-all"
+                        className="w-full py-3 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-300 hover:bg-white/5 transition-all"
                       >
                         {t.login?.signInInstead || 'Sign In Instead'}
                       </button>

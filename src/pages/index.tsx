@@ -245,6 +245,15 @@ export default function Home() {
                           className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700 ease-out"
                           style={{ backgroundImage: `url(${image})` }}
                         />
+                        {/* Dynamic Watermark Overlay - Bottom Right */}
+                        <div className="absolute bottom-1.5 right-1.5 z-10 pointer-events-none w-7 h-7 sm:w-8 sm:h-8 opacity-85 drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.5)]">
+                          <img 
+                            src="/transparent-Background.png" 
+                            className="w-full h-full object-contain select-none" 
+                            alt="" 
+                            draggable={false}
+                          />
+                        </div>
                         <div className="absolute inset-0 rounded-full border border-white/20 z-10 pointer-events-none" />
                       </div>
                       <span className="font-extrabold text-sm sm:text-base text-white/90 group-hover:text-primary transition-colors text-center uppercase tracking-widest leading-tight drop-shadow-md group-hover:drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]">
