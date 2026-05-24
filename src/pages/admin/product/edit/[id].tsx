@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Image as ImageIcon, Video, Package, Tag, Info, DollarSign, Save, X, Upload, Plus as PlusIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Image as ImageIcon, Video, Package, Tag, Info, DollarSign, Save, X, Upload, Plus as PlusIcon, HelpCircle } from 'lucide-react';
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import Link from 'next/link';
 
@@ -14,6 +14,9 @@ const EditProductPage = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [showYoutubeGuide, setShowYoutubeGuide] = useState(false);
+  const [initialFormData, setInitialFormData] = useState<any>(null);
+  const [initialImages, setInitialImages] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -91,7 +94,22 @@ const EditProductPage = () => {
           if (data.images) {
             setPreviews(data.images);
             setUploadedImages(data.images);
+            setInitialImages(data.images);
           }
+          setInitialFormData({
+            name: data.name || '',
+            code: data.code || '',
+            nameZh: data.nameZh || '',
+            nameMs: data.nameMs || '',
+            description: data.description || '',
+            category: data.category || '',
+            videoUrl: data.videoUrl || '',
+            stock: String(data.stock || '0'),
+            price: String(data.price || '0'),
+            sellerPrice: String(data.sellerPrice || ''),
+            promotion: String(data.promotion || ''),
+            status: data.status || 'Live',
+          });
         } else {
           alert('Product not found');
           router.push('/admin/product');
@@ -292,17 +310,70 @@ const EditProductPage = () => {
                 )}
               </AnimatePresence>
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <Video size={14} className="text-zinc-500" />
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">YouTube Video Link</label>
+              <div className="space-y-2 relative">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <Video size={14} className="text-zinc-500" />
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">YouTube Video Link</label>
+                    <button
+                      type="button"
+                      onMouseEnter={() => setShowYoutubeGuide(true)}
+                      onMouseLeave={() => setShowYoutubeGuide(false)}
+                      className="text-zinc-400 hover:text-yellow-500 transition-colors ml-1 outline-none"
+                    >
+                      <HelpCircle size={14} />
+                    </button>
+                  </div>
+                  <a
+                    href="https://youtube.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[10px] font-black uppercase tracking-widest text-yellow-500 hover:text-yellow-600 dark:hover:text-yellow-400 transition-all flex items-center gap-1 hover:gap-2 group"
+                  >
+                    Open YouTube <ChevronRight size={12} strokeWidth={3} className="opacity-70 group-hover:opacity-100 transition-opacity" />
+                  </a>
                 </div>
-                <input 
-                  type="text" 
+
+                <AnimatePresence>
+                  {showYoutubeGuide && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute z-50 bottom-full left-0 mb-2 w-[600px] bg-zinc-900 border border-white/10 rounded-[32px] p-8 shadow-2xl pointer-events-none"
+                    >
+                      <h4 className="text-sm font-black text-white uppercase tracking-widest mb-4 border-b border-white/10 pb-3">How to Add Video</h4>
+                      <div className="space-y-4">
+                        <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
+                          <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">1</span>
+                          <p>Click "Open YouTube" to visit youtube.com</p>
+                        </div>
+                        <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
+                          <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">2</span>
+                          <p>Find and open the video you want to display</p>
+                        </div>
+                        <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
+                          <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">3</span>
+                          <p>Copy the URL from the browser address bar</p>
+                        </div>
+                        <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
+                          <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">4</span>
+                          <p>Paste the copied link into this input box</p>
+                        </div>
+                      </div>
+                      <div className="mt-6 bg-zinc-800/50 rounded-2xl overflow-hidden border border-white/5 p-2">
+                        <img src="/youtube1.png" alt="YouTube Tutorial Guide" className="w-full h-auto rounded-xl object-contain" />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <input
+                  type="text"
                   name="videoUrl"
                   value={formData.videoUrl}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all"
                   placeholder="https://youtube.com/watch?v=..."
                 />
               </div>
@@ -479,17 +550,20 @@ const EditProductPage = () => {
           </div>
 
           <div className="flex gap-4">
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => router.push('/admin/product')}
               className="flex-1 py-6 bg-zinc-500/10 text-zinc-500 rounded-3xl font-black uppercase tracking-widest text-xs hover:bg-zinc-500/20 transition-all"
             >
               Cancel Changes
             </button>
-            <button 
-              type="submit" 
-              disabled={isSaving}
-              className="flex-[2] py-6 bg-yellow-500 text-zinc-950 rounded-3xl font-black uppercase tracking-[0.5em] text-xs hover:brightness-110 transition-all shadow-2xl shadow-yellow-500/20 disabled:opacity-50 flex items-center justify-center gap-4"
+            <button
+              type="submit"
+              disabled={isSaving || !initialFormData || (
+                JSON.stringify(formData) === JSON.stringify(initialFormData) &&
+                JSON.stringify(uploadedImages) === JSON.stringify(initialImages)
+              )}
+              className="flex-[2] py-6 bg-yellow-500 text-zinc-950 rounded-3xl font-black uppercase tracking-[0.5em] text-xs hover:brightness-110 transition-all shadow-2xl shadow-yellow-500/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-4"
             >
               <Save size={18} />
               {isSaving ? 'Saving...' : 'Update Product Listing'}

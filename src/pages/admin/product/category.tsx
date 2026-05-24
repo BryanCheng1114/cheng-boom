@@ -324,17 +324,27 @@ const UploadCategoryPage = () => {
               </div>
             </div>
 
-            <button 
-              type="submit" 
-              disabled={isLoading}
-              className="w-full py-5 bg-yellow-500 text-zinc-950 rounded-[24px] font-bold text-sm hover:brightness-110 transition-all shadow-2xl shadow-yellow-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-zinc-950/20 border-t-zinc-950 rounded-full animate-spin" />
-              ) : (
-                'CONFIRM UPLOAD'
-              )}
-            </button>
+            <div className="flex items-center gap-4 pt-4">
+              <button 
+                type="button" 
+                onClick={() => router.push('/admin/product')}
+                disabled={isLoading}
+                className="w-1/3 py-4 bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-[24px] font-bold text-sm hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer"
+              >
+                CANCEL
+              </button>
+              <button 
+                type="submit" 
+                disabled={isLoading || !formData.name.trim() || !formData.code.trim()}
+                className="w-2/3 py-5 bg-yellow-500 text-zinc-950 rounded-[24px] font-bold text-sm hover:brightness-110 transition-all shadow-2xl shadow-yellow-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-zinc-950/20 border-t-zinc-950 rounded-full animate-spin" />
+                ) : (
+                  'CONFIRM UPLOAD'
+                )}
+              </button>
+            </div>
           </form>
         )}
       </div>

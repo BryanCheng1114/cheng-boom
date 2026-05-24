@@ -274,7 +274,7 @@ const ProductPage = () => {
             </AnimatePresence>
             <Link 
               href="/admin/product/category"
-              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-zinc-800 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-700 hover:brightness-110 shadow-xl transition-all border border-zinc-700/60"
+              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:brightness-110 shadow-xl transition-all border border-zinc-200 dark:border-zinc-700/60"
             >
               <Plus size={18} strokeWidth={3} />
               Add New Category
@@ -409,7 +409,6 @@ const ProductPage = () => {
                               {p.code && (
                                 <span className="text-[9px] bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 px-1.5 py-0.5 rounded font-black tracking-wider uppercase shrink-0">{p.code}</span>
                               )}
-                              <span className="text-[9px] text-zinc-500 font-medium shrink-0">ID: {p.id.slice(-6).toUpperCase()}</span>
                             </div>
                           </div>
                         </div>
@@ -425,7 +424,7 @@ const ProductPage = () => {
                             type="number" 
                             value={editValues.stock} 
                             onChange={e => setEditValues({ ...editValues, stock: parseInt(e.target.value) || 0 })}
-                            className="w-20 bg-zinc-800 text-white px-2 py-1 rounded text-center border border-zinc-600 outline-none focus:border-yellow-500"
+                            className="w-20 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white px-2 py-1 rounded text-center border border-zinc-300 dark:border-zinc-600 outline-none focus:border-yellow-500 dark:focus:border-yellow-500"
                             onClick={e => e.stopPropagation()}
                           />
                         ) : (
@@ -442,7 +441,7 @@ const ProductPage = () => {
                                 step="0.01"
                                 value={editValues.price} 
                                 onChange={e => setEditValues({ ...editValues, price: parseFloat(e.target.value) || 0 })}
-                                className="w-24 bg-zinc-800 text-white px-2 py-1 rounded border border-zinc-600 outline-none focus:border-yellow-500 font-bold"
+                                className="w-24 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white px-2 py-1 rounded border border-zinc-300 dark:border-zinc-600 outline-none focus:border-yellow-500 dark:focus:border-yellow-500 font-bold"
                               />
                             </div>
                             {hasPromotion && (
@@ -468,7 +467,7 @@ const ProductPage = () => {
                             onChange={(e) => handleStatusChange(p, e.target.value)}
                             onBlur={() => setEditingStatusId(null)}
                             onClick={e => e.stopPropagation()}
-                            className="bg-zinc-800 text-white px-2 py-1 rounded border border-zinc-600 outline-none text-[10px] font-black uppercase tracking-widest cursor-pointer"
+                            className="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white px-2 py-1 rounded border border-zinc-300 dark:border-zinc-600 outline-none text-[10px] font-black uppercase tracking-widest cursor-pointer"
                           >
                             <option value="Live">Live</option>
                             <option value="Hold">Hold</option>
@@ -620,7 +619,7 @@ const ProductPage = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-6xl max-h-[85vh] flex flex-col bg-black border border-white/10 rounded-[40px] shadow-2xl overflow-hidden"
+              className="relative w-full max-w-6xl max-h-[85vh] flex flex-col bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-white/10 rounded-[40px] shadow-2xl overflow-hidden"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-8 border-b border-yellow-600/30 bg-yellow-500 shrink-0">
@@ -664,6 +663,12 @@ const ProductPage = () => {
                       </div>
                     );
                   })}
+                  <Link href="/admin/product/category" className="relative aspect-[4/5] rounded-3xl overflow-hidden group cursor-pointer border border-dashed border-zinc-300 dark:border-zinc-700 hover:border-yellow-500 dark:hover:border-yellow-500 transition-colors flex flex-col items-center justify-center bg-zinc-100/50 dark:bg-zinc-900/50 hover:bg-yellow-500/5 dark:hover:bg-yellow-500/10 shadow-sm">
+                    <div className="w-16 h-16 rounded-full bg-zinc-200 dark:bg-zinc-800 group-hover:bg-yellow-500 group-hover:text-zinc-900 flex items-center justify-center text-zinc-400 dark:text-zinc-500 transition-all shadow-sm">
+                      <Plus size={24} strokeWidth={3} />
+                    </div>
+                    <p className="mt-4 text-xs font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 group-hover:text-yellow-600 dark:group-hover:text-yellow-500">Add Category</p>
+                  </Link>
                 </div>
               </div>
             </motion.div>
