@@ -15,7 +15,7 @@ type Locale = 'en' | 'zh' | 'ms';
 
 const labels = {
   en: {
-    header:       'NEW ORDER REQUEST — CHENG-BOOM',
+    header:       'NEW ORDER REQUEST — {BUSINESS}',
     customer:     'CUSTOMER DETAILS',
     name:         'Name',
     phone:        'Phone',
@@ -38,7 +38,7 @@ const labels = {
     closing:      'Kindly confirm my order and provide the payment details or QR code at your earliest convenience. Thank you.',
   },
   zh: {
-    header:       '新订单请求 — CHENG-BOOM',
+    header:       '新订单请求 — {BUSINESS}',
     customer:     '客户信息',
     name:         '姓名',
     phone:        '电话',
@@ -61,7 +61,7 @@ const labels = {
     closing:      '烦请确认我的订单并提供付款详情或二维码，谢谢。',
   },
   ms: {
-    header:       'PERMINTAAN PESANAN BARU — CHENG-BOOM',
+    header:       'PERMINTAAN PESANAN BARU — {BUSINESS}',
     customer:     'MAKLUMAT PELANGGAN',
     name:         'Nama',
     phone:        'Telefon',
@@ -90,7 +90,9 @@ export const generateWhatsAppLink = (
   totalPrice: number,
   details: OrderDetails,
   locale: Locale = 'en',
-  isSeller: boolean = false
+  isSeller: boolean = false,
+  businessName: string = 'CHENG-BOOM',
+  whatsappNumber: string = '601112269835'
 ): string => {
   const l = labels[locale] || labels.en;
 
@@ -99,7 +101,7 @@ export const generateWhatsAppLink = (
   const divider = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
 
   // --- Header ---
-  let msg = `*${l.header}*\n`;
+  let msg = `*${l.header.replace('{BUSINESS}', businessName.toUpperCase())}*\n`;
   msg += `${date}  |  ${time}\n`;
   msg += `${divider}\n\n`;
 
@@ -174,6 +176,6 @@ export const generateWhatsAppLink = (
   msg += `${divider}\n`;
   msg += `${l.closing}`;
 
-  const cleanNumber = WHATSAPP_NUMBER.replace(/\D/g, '');
+  const cleanNumber = whatsappNumber.replace(/\D/g, '');
   return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`;
 };

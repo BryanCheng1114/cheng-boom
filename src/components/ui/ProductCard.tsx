@@ -4,6 +4,7 @@ import { useCart } from '../cart/CartProvider';
 import { ShoppingCart, Plus, Minus, AlertTriangle, Package } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useFlyToCart } from './FlyToCartProvider';
+import { useBusiness } from '../../context/BusinessContext';
 import { useRef } from 'react';
 
 export interface ProductCardProps {
@@ -26,6 +27,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   const { items, addItem, updateQuantity } = useCart();
   const { flyToCart } = useFlyToCart();
   const { t, locale } = useTranslation();
+  const { settings } = useBusiness();
   const imageRef = useRef<HTMLDivElement>(null);
 
   // Translation helpers
@@ -124,7 +126,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
             {/* Dynamic Small Watermark */}
             <div className="pointer-events-none w-12 h-12 opacity-80 mr-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
               <img 
-                src="/transparent-Background.png" 
+                src={settings?.watermarkUrl || "/transparent-Background.png"} 
                 className="w-full h-full object-contain select-none" 
                 alt="" 
                 draggable={false}

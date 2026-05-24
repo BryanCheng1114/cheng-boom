@@ -7,6 +7,8 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   MoreVertical, 
   User,
   Shield,
@@ -31,7 +33,7 @@ const CustomerPage = () => {
   const [roleFilter, setRoleFilter] = useState('All');
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: '', direction: null });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 15;
+  const itemsPerPage = 10;
 
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
@@ -51,6 +53,11 @@ const CustomerPage = () => {
     };
     fetchCustomers();
   }, []);
+
+  // Scroll to top when page changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
 
   // Filtering Logic
   const filteredCustomers = useMemo(() => {
@@ -247,8 +254,17 @@ const CustomerPage = () => {
             <div className="flex items-center gap-2">
               <button 
                 disabled={currentPage === 1}
+                onClick={() => setCurrentPage(1)}
+                className="p-3 rounded-2xl bg-zinc-500/10 text-zinc-500 hover:text-yellow-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                title="First Page"
+              >
+                <ChevronsLeft size={24} />
+              </button>
+              <button 
+                disabled={currentPage === 1}
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 className="p-3 rounded-2xl bg-zinc-500/10 text-zinc-500 hover:text-yellow-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                title="Previous Page"
               >
                 <ChevronLeft size={24} />
               </button>
@@ -273,8 +289,17 @@ const CustomerPage = () => {
                 disabled={currentPage === totalPages || totalPages === 0}
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 className="p-3 rounded-2xl bg-zinc-500/10 text-zinc-500 hover:text-yellow-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                title="Next Page"
               >
                 <ChevronRight size={24} />
+              </button>
+              <button 
+                disabled={currentPage === totalPages || totalPages === 0}
+                onClick={() => setCurrentPage(totalPages)}
+                className="p-3 rounded-2xl bg-zinc-500/10 text-zinc-500 hover:text-yellow-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                title="Last Page"
+              >
+                <ChevronsRight size={24} />
               </button>
             </div>
           </div>

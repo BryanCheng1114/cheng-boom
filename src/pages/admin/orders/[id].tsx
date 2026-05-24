@@ -24,7 +24,7 @@ import { cn } from '../../../utils/cn';
 
 const OrderDetailsPage = () => {
   const router = useRouter();
-  const { id } = router.query;
+  const { id, viewOnly, customerId } = router.query;
   const { t } = useLanguage();
   
   const [order, setOrder] = useState<any>(null);
@@ -88,12 +88,18 @@ const OrderDetailsPage = () => {
   };
 
   const isStatusDisabled = (statusValue: string) => {
+    // If the order is finalized, lock all options except the current one (so it remains visibly active)
+    if (order.status === 'Cancelled' || order.status === 'Completed') {
+      return statusValue !== order.status;
+    }
+    
+    // Allow cancellation at any point before completion
     if (statusValue === 'Cancelled') return false;
-    if (order.status === 'Cancelled' || order.status === 'Completed') return true;
     
     const currentIndex = getStatusIndex(order.status);
     const targetIndex = getStatusIndex(statusValue);
     
+    // Sequential progression only
     return targetIndex !== currentIndex + 1 && targetIndex !== currentIndex;
   };
 
@@ -116,11 +122,11 @@ const OrderDetailsPage = () => {
         {/* Top Actions */}
         <div className="flex items-center justify-between">
           <button 
-            onClick={() => router.push('/admin/orders')}
+            onClick={() => viewOnly && customerId ? router.push(`/admin/customer/${customerId}`) : router.push('/admin/orders')}
             className="flex items-center gap-2 text-zinc-500 hover:text-yellow-500 transition-colors font-black uppercase text-[10px] tracking-widest group"
           >
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-            {t('back_to_orders')}
+            {viewOnly ? 'BACK TO CUSTOMER' : t('back_to_orders')}
           </button>
 
           <div className="flex items-center gap-4">
@@ -142,7 +148,7 @@ const OrderDetailsPage = () => {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           
           {/* Main Content (Items & Info) */}
-          <div className="xl:col-span-2 space-y-8">
+          <div className={viewOnly ? "xl:col-span-3 space-y-8" : "xl:col-span-2 space-y-8"}>
             
             {/* Items Card */}
             <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] shadow-xl overflow-hidden">
@@ -257,7 +263,8 @@ const OrderDetailsPage = () => {
           </div>
 
           {/* Sidebar (Status Management) */}
-          <div className="space-y-8">
+          {!viewOnly && (
+            <div className="space-y-8">
             <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] p-8 shadow-2xl sticky top-8">
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-10 h-10 rounded-xl bg-zinc-500/5 flex items-center justify-center text-zinc-500">
@@ -324,9 +331,10 @@ const OrderDetailsPage = () => {
                     {new Date(order.createdAt).toLocaleString([], { dateStyle: 'full', timeStyle: 'short' })}
                   </p>
                 </div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </AdminLayout>

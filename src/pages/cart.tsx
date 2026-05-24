@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useCart } from '../components/cart/CartProvider';
 import { generateWhatsAppLink, OrderDetails } from '../services/whatsappService';
+import { useBusiness } from '../context/BusinessContext';
 import { Trash2, Plus, Minus, ArrowRight, MessageCircle, Shield, X, MapPin, CreditCard, User, Phone, Check, Zap, HelpCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
@@ -20,10 +21,11 @@ const deliveryModeLabels: Record<string, Record<string, string>> = {
 };
 
 export default function Cart() {
-  const { items, updateQuantity, removeItem, clearCart, totalPrice, totalOriginalPrice, totalItems } = useCart();
+  const { items, updateQuantity, removeItem, clearCart, totalPrice, totalOriginalPrice, totalItems, totalDiscount, discountPercent, isFreeShipping } = useCart();
   const [mounted, setMounted] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const { t, locale } = useTranslation();
+  const { settings } = useBusiness();
 
   // Modal Form State
   const [orderDetails, setOrderDetails] = useState<OrderDetails>({
@@ -183,7 +185,15 @@ export default function Cart() {
       }
 
       // 2. Open WhatsApp
-      const url = generateWhatsAppLink(items, totalPrice, orderDetails, locale as 'en' | 'zh' | 'ms', isSeller);
+      const url = generateWhatsAppLink(
+        items, 
+        totalPrice, 
+        orderDetails, 
+        locale as 'en' | 'zh' | 'ms', 
+        isSeller,
+        settings?.businessName,
+        settings?.whatsapp
+      );
       window.open(url, '_blank');
 
       // 3. Cleanup
@@ -197,7 +207,8 @@ export default function Cart() {
     }
   };
 
-  const totalSavings = totalOriginalPrice - totalPrice;
+  const baseTotalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalItemSavings = totalOriginalPrice - baseTotalPrice;
 
   return (
     <>
@@ -296,15 +307,23 @@ export default function Cart() {
                   <span>{t.cart.subtotal}</span>
                   <span>RM {totalOriginalPrice.toFixed(2)}</span>
                 </div>
-                {totalSavings > 0 && (
+                {totalItemSavings > 0 && (
                   <div className="flex justify-between text-green-400 font-bold">
-                    <span>{isSeller ? (locale === 'zh' ? '卖家折扣' : locale === 'ms' ? 'Diskaun Penjual' : 'Seller Discount') : t.cart.savings}</span>
-                    <span>- RM {totalSavings.toFixed(2)}</span>
+                    <span>{t.cart.savings || 'Promo Savings'}</span>
+                    <span>- RM {totalItemSavings.toFixed(2)}</span>
+                  </div>
+                )}
+                {totalDiscount > 0 && (
+                  <div className="flex justify-between text-yellow-500 font-bold">
+                    <span>{locale === 'zh' ? '卖家折扣' : locale === 'ms' ? 'Diskaun Penjual' : `Seller Discount (${discountPercent}%)`}</span>
+                    <span>- RM {totalDiscount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-zinc-400 font-medium">
                   <span>{t.cart.shipping}</span>
-                  <span className="text-[10px] uppercase tracking-widest bg-white/10 px-2 py-1 rounded-md">{t.cart.calculatedNext}</span>
+                  <span className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded-md ${isFreeShipping ? 'bg-blue-500/20 text-blue-400 font-black' : 'bg-white/10'}`}>
+                    {isFreeShipping ? 'FREE' : t.cart.calculatedNext}
+                  </span>
                 </div>
                 
                 <div className="pt-6 border-t border-white/10 flex justify-between items-center">

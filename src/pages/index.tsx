@@ -6,6 +6,7 @@ import { ArrowRight, Phone, BookOpen, ShoppingBag, ArrowUp } from 'lucide-react'
 import { getProducts, categoriesData as mockCategories } from '../utils/mockData';
 import { ProductCard } from '../components/ui/ProductCard';
 import { useTranslation } from '../hooks/useTranslation';
+import { useBusiness } from '../context/BusinessContext';
 
 // Pre-computed spark data — no Math.random() to avoid SSR hydration mismatch
 const SPARKS = [
@@ -38,6 +39,7 @@ const tickerItems = [
 export default function Home() {
   const featuredProducts = getProducts().slice(0, 3);
   const { t, locale } = useTranslation();
+  const { settings } = useBusiness();
 
   const mapImageSrc = locale === 'zh' ? '/mapzh.png' : locale === 'ms' ? '/mapms.png' : '/map.png';
 
@@ -248,7 +250,7 @@ export default function Home() {
                         {/* Dynamic Watermark Overlay - Bottom Right */}
                         <div className="absolute bottom-1.5 right-1.5 z-10 pointer-events-none w-7 h-7 sm:w-8 sm:h-8 opacity-85 drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.5)]">
                           <img 
-                            src="/transparent-Background.png" 
+                            src={settings?.watermarkUrl || "/transparent-Background.png"} 
                             className="w-full h-full object-contain select-none" 
                             alt="" 
                             draggable={false}
@@ -343,7 +345,7 @@ export default function Home() {
             {/* Dynamic Watermark Overlay - Bottom Right */}
             <div className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 z-10 pointer-events-none w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 opacity-90 drop-shadow-md">
               <img 
-                src="/transparent-Background.png" 
+                src={settings?.watermarkUrl || "/transparent-Background.png"} 
                 className="w-full h-full object-contain select-none" 
                 alt="" 
                 draggable={false}
@@ -394,7 +396,7 @@ export default function Home() {
             {/* Dynamic Watermark Overlay - Bottom Right */}
             <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 md:bottom-4 md:right-4 z-10 pointer-events-none w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32 opacity-90 drop-shadow-xl">
               <img 
-                src="/transparent-Background.png" 
+                src={settings?.watermarkUrl || "/transparent-Background.png"} 
                 className="w-full h-full object-contain select-none" 
                 alt="" 
                 draggable={false}

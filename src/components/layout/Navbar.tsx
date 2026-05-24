@@ -10,8 +10,10 @@ import { cn } from '../../utils/cn';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useState, useEffect, useRef } from 'react';
 import { useFlyToCart } from '../ui/FlyToCartProvider';
+import { useBusiness } from '../../context/BusinessContext';
 
 export function Navbar() {
+  const { settings } = useBusiness();
   const { totalItems, clearCart } = useCart();
   const { registerCelebrationTrigger } = useFlyToCart();
   const router = useRouter();
@@ -76,18 +78,18 @@ export function Navbar() {
 
           {/* ---- Brand ---- */}
           <Link href="/" className="flex items-center gap-2 shrink-0 group">
-            <Image
-              src="/transparent-Background.png"
-              alt="Cheng-BOOM Logo"
+            <img
+              src={settings?.watermarkUrl || "/transparent-Background.png"}
+              alt={`${settings?.businessName || 'Cheng-BOOM'} Logo`}
               width={42}
               height={42}
-              className="drop-shadow-[0_0_12px_rgba(245,158,11,0.6)] group-hover:scale-110 transition-transform duration-300"
+              className="drop-shadow-[0_0_12px_rgba(245,158,11,0.6)] group-hover:scale-110 transition-transform duration-300 object-contain"
             />
             <span
               className="text-2xl font-black italic tracking-wider bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent group-hover:scale-110 group-hover:-rotate-2 transition-transform duration-300 origin-left inline-block pr-2"
               style={{ fontFamily: "'Impact', 'Arial Black', sans-serif" }}
             >
-              Cheng-BOOM
+              {settings?.businessName || 'Cheng-BOOM'}
             </span>
           </Link>
 
@@ -179,41 +181,22 @@ export function Navbar() {
               </div>
             </div>
 
-            {/* About Us — with dropdown */}
-            <div className="relative group">
-              <Link
-                href="/about"
-                className={cn(
-                  'relative flex items-center gap-1 px-4 py-2 text-sm font-semibold transition-all duration-300 group/link',
-                  isActivePrefix('/about') 
-                    ? 'text-primary' 
-                    : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white'
-                )}
-              >
-                {t.nav.aboutUs}
-                <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300 opacity-70" />
-                <span className={cn(
-                  "absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full bg-primary transition-all duration-300",
-                  isActivePrefix('/about') ? "w-1/2" : "w-0 group-hover/link:w-1/3"
-                )} />
-              </Link>
-              <div className="absolute top-full left-0 pt-3 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-2 scale-95 group-hover:translate-y-0 group-hover:scale-100 transition-all duration-300 ease-out origin-top-left z-50">
-                <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-700/60 rounded-2xl shadow-2xl shadow-black/10 dark:shadow-black/40 py-2 overflow-hidden">
-                  <Link href="/about/origin" className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:text-primary hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary/50 shrink-0" />
-                    {t.aboutLinks.origin}
-                  </Link>
-                  <Link href="/about/history" className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:text-primary hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary/50 shrink-0" />
-                    {t.aboutLinks.history}
-                  </Link>
-                  <div className="border-t border-zinc-100 dark:border-zinc-800 mx-3 my-1" />
-                  <Link href="/about" className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors">
-                    ✨ {t.nav.aboutUs}
-                  </Link>
-                </div>
-              </div>
-            </div>
+            {/* About Us */}
+            <Link
+              href="/about"
+              className={cn(
+                'relative px-4 py-2 text-sm font-semibold transition-all duration-300 group/link',
+                isActive('/about') 
+                  ? 'text-primary' 
+                  : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white'
+              )}
+            >
+              {t.nav.aboutUs}
+              <span className={cn(
+                "absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full bg-primary transition-all duration-300",
+                isActive('/about') ? "w-1/2" : "w-0 group-hover/link:w-1/3"
+              )} />
+            </Link>
 
             {/* Contact Us */}
             <Link

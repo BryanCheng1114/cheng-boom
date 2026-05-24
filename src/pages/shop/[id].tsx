@@ -8,12 +8,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useFlyToCart } from '../../components/ui/FlyToCartProvider';
+import { useBusiness } from '../../context/BusinessContext';
 
 export default function ProductDetail({ product, categoryZh, categoryMs }: { product: any, categoryZh?: string | null, categoryMs?: string | null }) {
   const router = useRouter();
   const { items, addItem } = useCart();
   const { flyToCart } = useFlyToCart();
   const { t, locale } = useTranslation();
+  const { settings } = useBusiness();
   const [localQty, setLocalQty] = useState(0);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
@@ -166,7 +168,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                   {/* Dynamic Watermark Overlay - Bottom Right */}
                   <div className="absolute bottom-4 right-4 z-10 pointer-events-none w-16 h-16 opacity-85 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
                     <img 
-                      src="/transparent-Background.png" 
+                      src={settings?.watermarkUrl || "/transparent-Background.png"} 
                       className="w-full h-full object-contain select-none" 
                       alt="" 
                       draggable={false}
@@ -460,7 +462,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                   {/* Dynamic Watermark Overlay - Bottom Right */}
                   <div className="absolute bottom-6 right-6 z-20 pointer-events-none w-24 h-24 opacity-80 drop-shadow-[0_3px_6px_rgba(0,0,0,0.5)]">
                     <img 
-                      src="/transparent-Background.png" 
+                      src={settings?.watermarkUrl || "/transparent-Background.png"} 
                       className="w-full h-full object-contain select-none" 
                       alt="" 
                       draggable={false}

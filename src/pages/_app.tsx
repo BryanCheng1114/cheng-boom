@@ -6,7 +6,17 @@ import { CartProvider } from '../components/cart/CartProvider';
 import { FlyToCartProvider } from '../components/ui/FlyToCartProvider';
 import { Layout } from '../components/layout/Layout';
 import { LanguageProvider } from '../context/LanguageContext';
+import { BusinessProvider, useBusiness } from '../context/BusinessContext';
 import Head from 'next/head';
+
+function AppHead() {
+  const { settings } = useBusiness();
+  return (
+    <Head>
+      <link rel="icon" href={settings?.logoUrl || '/logo.png'} />
+    </Head>
+  );
+}
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -14,22 +24,22 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-      <LanguageProvider>
-        <Head>
-          <link rel="icon" href="/logo.png" />
-        </Head>
-        <CartProvider>
-          <FlyToCartProvider>
-            {isAdminPath ? (
-              <Component {...pageProps} />
-            ) : (
-              <Layout>
+      <BusinessProvider>
+        <LanguageProvider>
+          <AppHead />
+          <CartProvider>
+            <FlyToCartProvider>
+              {isAdminPath ? (
                 <Component {...pageProps} />
-              </Layout>
-            )}
-          </FlyToCartProvider>
-        </CartProvider>
-      </LanguageProvider>
+              ) : (
+                <Layout>
+                  <Component {...pageProps} />
+                </Layout>
+              )}
+            </FlyToCartProvider>
+          </CartProvider>
+        </LanguageProvider>
+      </BusinessProvider>
     </ThemeProvider>
   );
 }

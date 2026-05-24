@@ -45,6 +45,38 @@ model Category {
   createdAt DateTime @default(now())
 }
 
+model BusinessSettings {
+  id                String   @id @default(cuid())
+  businessName      String   @default("Cheng-BOOM")
+  logoUrl           String?
+  watermarkUrl      String?
+  faviconUrl        String?
+  primaryColor      String?
+  accentColor       String?
+  businessType      String?
+  ownerName         String?
+  address           String?
+  phone             String?
+  email             String?
+  whatsapp          String?
+  description       String?
+  operatingHours    String?
+  facebook          String?
+  instagram         String?
+  tiktok            String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model SellerLevel {
+  id               String     @id @default(cuid())
+  name             String     @unique
+  discountPercent  Float      @default(0)
+  freeShipping     Boolean    @default(false)
+  prioritySupport  Boolean    @default(false)
+  customers        Customer[]
+}
+
 model Customer {
   id               String   @id @default(cuid())
   name             String
@@ -55,9 +87,12 @@ model Customer {
   orderMode        String?  // "Self Collect" or "Delivery"
   deliveryDetails  String?
   notes            String?
-  role             String   @default("Guest") // "Guest", "Member", or "Seller"
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  role             String       @default("Guest") // "Guest", "Member", or "Seller"
+  sellerLevelId    String?
+  sellerLevel      SellerLevel? @relation(fields: [sellerLevelId], references: [id])
+  isActive         Boolean      @default(true) // For suspension/activation
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
   orders           Order[]
 }
 

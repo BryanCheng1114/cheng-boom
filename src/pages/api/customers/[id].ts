@@ -9,6 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const customer = await prisma.customer.findUnique({
         where: { id: String(id) },
         include: {
+          sellerLevel: true,
           orders: {
             include: {
               items: true

@@ -154,7 +154,7 @@ const CustomerDetailsPage = () => {
                 </div>
               </div>
 
-              {customer.role !== 'Seller' && (
+              {customer.role === 'Member' && (
                 <button 
                   onClick={handlePromoteToSeller}
                   className="w-full mt-8 py-4 bg-yellow-500 text-zinc-900 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/20"
@@ -201,58 +201,44 @@ const CustomerDetailsPage = () => {
                 customer.orders.map((order: any, idx: number) => (
                   <motion.div 
                     key={order.id}
+                    onClick={() => router.push(`/admin/orders/${order.id}?viewOnly=true&customerId=${customer.id}`)}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1 }}
-                    className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/5 rounded-[32px] overflow-hidden shadow-lg group"
+                    className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-md cursor-pointer group transition-all hover:border-yellow-500/50"
                   >
-                    {/* Order Header */}
-                    <div className="p-6 flex flex-wrap items-center justify-between gap-4 border-b dark:border-white/5 border-zinc-100 bg-zinc-500/5 group-hover:bg-zinc-500/10 transition-colors">
+                    <div className="p-4 flex flex-wrap items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-yellow-500 flex items-center justify-center text-zinc-900 shadow-lg shadow-yellow-500/20">
-                          <Package size={24} />
+                        <div className="w-10 h-10 rounded-xl bg-yellow-500/10 text-yellow-500 flex items-center justify-center group-hover:bg-yellow-500 group-hover:text-zinc-900 transition-colors">
+                          <Package size={18} />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Order ID</span>
+                          <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Order ID</span>
                           <span className="text-sm font-bold dark:text-white text-zinc-900 font-mono">{order.id.slice(-8).toUpperCase()}</span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-8">
-                        <div className="flex flex-col text-right">
-                          <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Date</span>
+                      <div className="flex items-center gap-6">
+                        <div className="flex flex-col text-right hidden sm:flex">
+                          <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Date</span>
                           <span className="text-xs font-bold dark:text-zinc-300 text-zinc-600">{new Date(order.createdAt).toLocaleDateString()}</span>
                         </div>
                         <div className="flex flex-col text-right">
-                          <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Status</span>
-                          <div className={`inline-flex items-center gap-2 mt-1 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
-                            order.status === 'Completed' ? 'bg-green-500/10 text-green-500' : 
-                            order.status === 'Pending' ? 'bg-orange-500/10 text-orange-500' : 'bg-zinc-500/10 text-zinc-500'
+                          <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Status</span>
+                          <div className={`inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest ${
+                            order.status === 'Completed' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 
+                            order.status === 'Pending' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' : 'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'
                           }`}>
-                            <div className={`w-1 h-1 rounded-full ${order.status === 'Completed' ? 'bg-green-500' : 'bg-orange-500'}`} />
+                            <div className={`w-1 h-1 rounded-full ${order.status === 'Completed' ? 'bg-green-500' : order.status === 'Pending' ? 'bg-orange-500' : 'bg-zinc-500'}`} />
                             {order.status}
                           </div>
                         </div>
-                        <div className="flex flex-col text-right">
-                          <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Total</span>
+                        <div className="flex flex-col text-right min-w-[70px]">
+                          <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Total</span>
                           <span className="text-sm font-black text-yellow-500 italic">RM {order.totalAmount.toFixed(2)}</span>
                         </div>
+                        <ArrowRight size={18} className="text-zinc-400 group-hover:text-yellow-500 group-hover:translate-x-1 transition-all" />
                       </div>
-                    </div>
-
-                    {/* Order Items */}
-                    <div className="p-6 space-y-4">
-                      {order.items.map((item: any) => (
-                        <div key={item.id} className="flex items-center justify-between py-2 border-b border-dashed dark:border-white/5 border-zinc-100 last:border-0">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-zinc-500/5 flex items-center justify-center text-zinc-500 font-bold text-[10px]">
-                              {item.quantity}x
-                            </div>
-                            <span className="text-sm font-bold dark:text-zinc-300 text-zinc-700">{item.name}</span>
-                          </div>
-                          <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">RM {item.price.toFixed(2)} / ea</span>
-                        </div>
-                      ))}
                     </div>
                   </motion.div>
                 ))

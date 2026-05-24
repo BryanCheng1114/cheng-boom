@@ -8,6 +8,9 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  ChevronDown,
   MoreVertical, 
   Image as ImageIcon,
   Trash2,
@@ -19,7 +22,11 @@ import {
   Video as VideoIcon,
   AlertTriangle,
   Check,
-  Upload
+  Upload,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  Table
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import Link from 'next/link';
@@ -37,7 +44,7 @@ const ProductPage = () => {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: '', direction: null });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 15;
+  const itemsPerPage = 10;
 
   // Selection States
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -52,6 +59,79 @@ const ProductPage = () => {
   const [editValues, setEditValues] = useState<{ stock?: number, price?: number }>({});
   const [isSavingFastAction, setIsSavingFastAction] = useState(false);
   const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+
+  // ── Download helpers ──────────────────────────────────────────────
+  const buildRows = () => {
+    // Sort products by category first, then by code ascending (e.g., PO0001, PO0002)
+    const sortedProducts = [...products].sort((a, b) => {
+      const catCompare = (a.category || '').localeCompare(b.category || '');
+      if (catCompare !== 0) return catCompare;
+      return (a.code || '').localeCompare(b.code || '');
+    });
+
+    return sortedProducts.map((p, i) => ({
+      'No.': i + 1,
+      'Code': p.code || '-',
+      'Name': p.name || '-',
+      'Category': p.category || '-',
+      'Stock': p.stock ?? '-',
+      'Original Price (RM)': p.price != null ? Number(p.price).toFixed(2) : '-',
+      'Promotion Price (RM)': p.promotion != null && p.promotion !== '' ? Number(p.promotion).toFixed(2) : '-',
+      'Seller Price (RM)': p.sellerPrice != null && p.sellerPrice !== '' ? Number(p.sellerPrice).toFixed(2) : '-',
+      'Status': p.status || '-',
+    }));
+  };
+
+  const downloadCSV = () => {
+    const rows = buildRows();
+    if (!rows.length) return;
+    const headers = Object.keys(rows[0]);
+    const csv = [headers.join(','), ...rows.map(r => headers.map(h => `"${String((r as any)[h]).replace(/"/g, '""')}"`).join(','))].join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'inventory.csv'; a.click();
+    URL.revokeObjectURL(url);
+    setShowDownloadMenu(false);
+  };
+
+  const downloadExcel = async () => {
+    const XLSX = await import('xlsx');
+    const rows = buildRows();
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+    XLSX.writeFile(wb, 'inventory.xlsx');
+    setShowDownloadMenu(false);
+  };
+
+  const downloadPDF = async () => {
+    const { default: jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
+    const rows = buildRows();
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Inventory Report', 14, 15);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated: ${new Date().toLocaleString()}  |  Total Products: ${products.length}`, 14, 22);
+    const headers = Object.keys(rows[0] || {});
+    
+    autoTable(doc, {
+      startY: 28,
+      head: [headers],
+      body: rows.map(r => headers.map(h => (r as any)[h])),
+      styles: { fontSize: 7, cellPadding: 2, textColor: 0, lineColor: 0, lineWidth: 0.1 },
+      headStyles: { fillColor: [240, 240, 240], textColor: 0, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [255, 255, 255] },
+      margin: { left: 10, right: 10 },
+    });
+    doc.save('inventory.pdf');
+
+    setShowDownloadMenu(false);
+  };
+  // ─────────────────────────────────────────────────────────────────
 
 
 
@@ -66,10 +146,10 @@ const ProductPage = () => {
         prodRes.json(),
         catRes.json()
       ]);
-      setProducts(prodData);
-      setCategories(catData);
+      setProducts(Array.isArray(prodData) ? prodData : []);
+      setCategories(Array.isArray(catData) ? catData : []);
     } catch (error) {
-      console.error('Failed to fetch data:', error);
+      console.error('Error fetching data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -78,6 +158,11 @@ const ProductPage = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Scroll to top when page changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
 
   // Filtering Logic
   const filteredProducts = useMemo(() => {
@@ -279,10 +364,48 @@ const ProductPage = () => {
               <Plus size={18} strokeWidth={3} />
               Add New Category
             </Link>
+
             <Link href="/admin/product/upload" className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-yellow-500 text-zinc-950 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:brightness-110 shadow-xl shadow-yellow-500/20 transition-all">
               <Plus size={18} strokeWidth={3} />
               {t('add_new_product')}
             </Link>
+
+            {/* Download Button */}
+            <div className="relative">
+              <button
+                onClick={() => setShowDownloadMenu(v => !v)}
+                className="flex items-center justify-center gap-2 p-4 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-700 shadow-xl transition-all border border-zinc-200 dark:border-zinc-700/60"
+                title="Download Inventory"
+              >
+                <Download size={18} strokeWidth={3} />
+                <ChevronDown size={14} strokeWidth={3} />
+              </button>
+              <AnimatePresence>
+                {showDownloadMenu && (
+                  <>
+                    {/* Click-away backdrop */}
+                    <div className="fixed inset-0 z-10" onClick={() => setShowDownloadMenu(false)} />
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-20"
+                    >
+                      <button onClick={downloadCSV} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                        <FileText size={15} className="text-blue-500" /> Export CSV
+                      </button>
+                      <button onClick={downloadExcel} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors border-t border-zinc-100 dark:border-white/5">
+                        <Table size={15} className="text-green-500" /> Export Excel
+                      </button>
+                      <button onClick={downloadPDF} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors border-t border-zinc-100 dark:border-white/5">
+                        <FileSpreadsheet size={15} className="text-red-500" /> Export PDF
+                      </button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
 
@@ -524,8 +647,17 @@ const ProductPage = () => {
             <div className="flex items-center gap-2">
               <button 
                 disabled={currentPage === 1}
+                onClick={() => setCurrentPage(1)}
+                className="p-2 rounded-xl bg-zinc-500/10 text-zinc-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                title="First Page"
+              >
+                <ChevronsLeft size={20} />
+              </button>
+              <button 
+                disabled={currentPage === 1}
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 className="p-2 rounded-xl bg-zinc-500/10 text-zinc-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                title="Previous Page"
               >
                 <ChevronLeft size={20} />
               </button>
@@ -550,8 +682,17 @@ const ProductPage = () => {
                 disabled={currentPage === totalPages || totalPages === 0}
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 className="p-2 rounded-xl bg-zinc-500/10 text-zinc-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                title="Next Page"
               >
                 <ChevronRight size={20} />
+              </button>
+              <button 
+                disabled={currentPage === totalPages || totalPages === 0}
+                onClick={() => setCurrentPage(totalPages)}
+                className="p-2 rounded-xl bg-zinc-500/10 text-zinc-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                title="Last Page"
+              >
+                <ChevronsRight size={20} />
               </button>
             </div>
           </div>

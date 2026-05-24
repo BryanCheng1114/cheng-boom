@@ -16,6 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const customer = await (prisma as any).customer.findUnique({
       where: { phone },
+      include: { sellerLevel: true }
     });
 
     if (!customer || !customer.password) {

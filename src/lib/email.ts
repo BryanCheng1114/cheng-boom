@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { prisma } from './prisma';
 
 // You will need to set these in your .env file
 // SMTP_USER=bryancheng3396@gmail.com
@@ -25,6 +26,17 @@ export const sendOrderReceiptEmail = async (order: any, customerInfo: any, items
     return;
   }
 
+  // Fetch dynamic business settings
+  let businessName = 'CHENG-BOOM';
+  try {
+    const settings = await prisma.businessSettings.findFirst();
+    if (settings && settings.businessName) {
+      businessName = settings.businessName;
+    }
+  } catch (error) {
+    console.error('Failed to fetch business settings for email:', error);
+  }
+
   const date = new Date().toLocaleString('en-MY', { 
     timeZone: 'Asia/Kuala_Lumpur',
     dateStyle: 'medium',
@@ -47,7 +59,7 @@ export const sendOrderReceiptEmail = async (order: any, customerInfo: any, items
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
       <div style="background-color: #09090b; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-        <h1 style="color: #f59e0b; margin: 0; font-style: italic; font-weight: 900;">CHENG-BOOM</h1>
+        <h1 style="color: #f59e0b; margin: 0; font-style: italic; font-weight: 900; text-transform: uppercase;">${businessName}</h1>
         <p style="color: #fff; margin: 5px 0 0 0; letter-spacing: 2px; font-size: 12px;">NEW ORDER NOTIFICATION</p>
       </div>
       
@@ -95,7 +107,7 @@ export const sendOrderReceiptEmail = async (order: any, customerInfo: any, items
   `;
 
   const mailOptions = {
-    from: '"Cheng-BOOM System" <no-reply@cheng-boom.com>',
+    from: `"${businessName} System" <no-reply@cheng-boom.com>`,
     to: 'bryancheng3396@gmail.com',
     subject: `🚨 NEW ORDER RECEIVED - RM ${parseFloat(totalAmount.toString()).toFixed(2)} (${customerInfo.name})`,
     html: htmlContent,

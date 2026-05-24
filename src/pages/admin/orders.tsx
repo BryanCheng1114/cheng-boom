@@ -7,6 +7,8 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Package,
   Calendar,
   Clock,
@@ -14,7 +16,8 @@ import {
   AlertCircle,
   Truck,
   Activity,
-  ShoppingBag
+  ShoppingBag,
+  HelpCircle
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { useLanguage } from '../../context/LanguageContext';
@@ -31,7 +34,7 @@ const OrdersPage = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: 'createdAt', direction: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 15;
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -49,6 +52,11 @@ const OrdersPage = () => {
     };
     fetchOrders();
   }, []);
+
+  // Scroll to top when page changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
 
   // Filtering Logic
   const filteredOrders = useMemo(() => {
@@ -155,7 +163,7 @@ const OrdersPage = () => {
               onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
               className="bg-transparent outline-none dark:text-white text-zinc-900 font-bold text-sm pr-10 appearance-none cursor-pointer"
             >
-              <option value="All" className="dark:bg-zinc-900 bg-white">{t('orders')}</option>
+              <option value="All" className="dark:bg-zinc-900 bg-white">All</option>
               <option value="Pending" className="dark:bg-zinc-900 bg-white">{t('incoming')}</option>
               <option value="In Process" className="dark:bg-zinc-900 bg-white">{t('processing')}</option>
               <option value="Delivering" className="dark:bg-zinc-900 bg-white">{t('out_for_delivery')}</option>
@@ -174,8 +182,17 @@ const OrdersPage = () => {
             <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
                 <tr className="border-b dark:border-white/5 border-zinc-100 bg-zinc-500/5">
-                  <th onClick={() => handleSort('id')} className="p-8 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer hover:text-yellow-500 transition-colors">
-                    <div className="flex items-center gap-2">{t('order_id')} <SortIndicator column="id" /></div>
+                  <th onClick={() => handleSort('id')} className="p-8 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer hover:text-yellow-500 transition-colors group/header">
+                    <div className="flex items-center gap-2">
+                      {t('order_id')} 
+                      <SortIndicator column="id" />
+                      <div className="relative group/tooltip">
+                        <HelpCircle size={12} className="text-zinc-400 hover:text-yellow-500 transition-colors" />
+                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-48 p-2 bg-zinc-900 text-white text-[9px] font-medium rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all text-center z-[50] pointer-events-none before:content-[''] before:absolute before:left-1/2 before:-translate-x-1/2 before:bottom-full before:border-4 before:border-transparent before:border-b-zinc-900">
+                          This ID represents the last 8 alphanumeric characters of the unique order identifier.
+                        </div>
+                      </div>
+                    </div>
                   </th>
                   <th className="p-8 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('customers')}</th>
                   <th onClick={() => handleSort('totalAmount')} className="p-8 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer hover:text-yellow-500 transition-colors">
@@ -264,8 +281,17 @@ const OrdersPage = () => {
             <div className="flex items-center gap-2">
               <button 
                 disabled={currentPage === 1}
+                onClick={() => setCurrentPage(1)}
+                className="p-3 rounded-2xl bg-zinc-500/10 text-zinc-500 hover:text-yellow-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                title="First Page"
+              >
+                <ChevronsLeft size={24} />
+              </button>
+              <button 
+                disabled={currentPage === 1}
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 className="p-3 rounded-2xl bg-zinc-500/10 text-zinc-500 hover:text-yellow-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                title="Previous Page"
               >
                 <ChevronLeft size={24} />
               </button>
@@ -290,8 +316,17 @@ const OrdersPage = () => {
                 disabled={currentPage === totalPages || totalPages === 0}
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 className="p-3 rounded-2xl bg-zinc-500/10 text-zinc-500 hover:text-yellow-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                title="Next Page"
               >
                 <ChevronRight size={24} />
+              </button>
+              <button 
+                disabled={currentPage === totalPages || totalPages === 0}
+                onClick={() => setCurrentPage(totalPages)}
+                className="p-3 rounded-2xl bg-zinc-500/10 text-zinc-500 hover:text-yellow-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                title="Last Page"
+              >
+                <ChevronsRight size={24} />
               </button>
             </div>
           </div>

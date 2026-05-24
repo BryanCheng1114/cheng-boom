@@ -109,7 +109,7 @@ const DashboardPage = () => {
               <Clock size={16} /> {t('recent_transactions')}
             </h3>
             <Link href="/admin/orders" className="text-[10px] font-black uppercase tracking-widest text-yellow-500 hover:gap-2 flex items-center gap-1 transition-all">
-              {t('more_orders') || 'More Orders'} <ChevronRight size={14} />
+              {t('View More') || 'More Orders'} <ChevronRight size={14} />
             </Link>
           </div>
           

@@ -2,13 +2,15 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { X, MessageCircle } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
-
-const WHATSAPP_NUMBER = '601112269835';
+import { useBusiness } from '../../context/BusinessContext';
 
 export function WhatsAppButton() {
   const [showTooltip, setShowTooltip] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const { t } = useTranslation();
+  const { settings } = useBusiness();
+
+  const WHATSAPP_NUMBER = settings?.whatsapp || '601112269835';
 
   // Pre-filled message — covers the most common questions shoppers ask
   const DEFAULT_MESSAGE = encodeURIComponent(
@@ -37,7 +39,7 @@ export function WhatsAppButton() {
                 <MessageCircle size={18} className="text-white" />
               </div>
               <div>
-                <p className="text-sm font-bold text-zinc-900 dark:text-white">Cheng-BOOM</p>
+                <p className="text-sm font-bold text-zinc-900 dark:text-white">{settings?.businessName || 'Cheng-BOOM'}</p>
                 <p className="text-xs text-green-500 font-medium flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block animate-pulse" />
                   {t.floating.whatsapp.online}

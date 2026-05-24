@@ -20,11 +20,13 @@ import {
 } from 'lucide-react';
 import { LanguageSwitcher } from '../components/layout/LanguageSwitcher';
 import { useCart } from '../components/cart/CartProvider';
+import { useBusiness } from '../context/BusinessContext';
 
 export default function AuthPage() {
   const { clearCart } = useCart();
   const { t } = useTranslation();
   const router = useRouter();
+  const { settings } = useBusiness();
   
   // Toggle between Login and Register
   const [isRegistering, setIsRegistering] = useState(false);
@@ -152,7 +154,7 @@ export default function AuthPage() {
   return (
     <>
       <Head>
-        <title>{isRegistering ? (t.login?.joinTitle || 'Join Cheng-BOOM') : (t.login?.signInTitle || 'Sign In - Cheng-BOOM')}</title>
+        <title>{isRegistering ? (t.login?.joinTitle || `Join ${settings?.businessName || 'Us'}`) : (t.login?.signInTitle || `Sign In - ${settings?.businessName || 'Cheng-BOOM'}`)}</title>
       </Head>
 
       <div className="dark min-h-screen bg-[#050505] flex flex-col relative overflow-x-hidden text-zinc-100">
@@ -215,7 +217,7 @@ export default function AuthPage() {
                 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2"
               >
                 {isRegistering ? (
-                  <>{t.login?.joinBoom || 'Join the BOOM'}</>
+                  <>{t.login?.joinBoom || 'Join Us!'}</>
                 ) : (
                   <>{t.login?.welcomeBack || 'Welcome Back'}</>
                 )}
@@ -468,7 +470,7 @@ export default function AuthPage() {
 
             {/* Footer */}
             <p className="mt-6 text-center text-[8px] font-black uppercase tracking-[0.4em] text-zinc-500 opacity-40">
-              {t.login?.copyright || '© 2026 Cheng-BOOM Global Pyrotechnics'}
+              © {new Date().getFullYear()} {settings?.businessName || 'Cheng-BOOM'}. {t.footer?.allRightsReserved || 'All rights reserved.'}
             </p>
           </div>
         </div>

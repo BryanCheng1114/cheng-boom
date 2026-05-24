@@ -2,19 +2,23 @@ import Head from 'next/head';
 import { Mail, MessageCircle, ArrowUpRight, Sparkles, Zap, Clock } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import { motion } from 'framer-motion';
-
-const WHATSAPP_NUMBER = '601112269835';
-const COMPANY_EMAIL = 'bryancheng3396@gmail.com';
+import { useBusiness } from '../context/BusinessContext';
 
 export default function Contact() {
   const { t } = useTranslation();
+  const { settings } = useBusiness();
+
+  const WHATSAPP_NUMBER = settings?.whatsapp || '601112269835';
+  const DISPLAY_NUMBER = settings?.phone || '+60 111-226-9835';
+  const COMPANY_EMAIL = settings?.email || 'bryancheng3396@gmail.com';
+  const BUSINESS_NAME = settings?.businessName || 'Cheng-BOOM';
 
   const handleWhatsApp = () => {
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}`, '_blank');
+    window.open(`https://wa.me/${WHATSAPP_NUMBER.replace(/\D/g, '')}`, '_blank');
   };
 
   const handleEmail = () => {
-    window.location.href = `mailto:${COMPANY_EMAIL}?subject=Enquiry%20from%20Cheng-BOOM%20Website`;
+    window.location.href = `mailto:${COMPANY_EMAIL}?subject=Enquiry%20from%20${encodeURIComponent(BUSINESS_NAME)}%20Website`;
   };
 
   return (
@@ -92,7 +96,7 @@ export default function Contact() {
                       {t.contact.whatsappLabel}
                     </p>
                     <p className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight mb-3 group-hover:text-[#25D366] transition-colors duration-300">
-                      +60 111-226-9835
+                      {DISPLAY_NUMBER}
                     </p>
                     <div className="flex items-center gap-2 text-zinc-500 text-xs">
                       <Zap size={12} className="text-[#25D366]" />
@@ -134,7 +138,7 @@ export default function Contact() {
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">
                       {t.contact.emailLabel}
                     </p>
-                    <p className="text-xl font-black text-zinc-900 dark:text-white tracking-tight mb-3 group-hover:text-primary transition-colors duration-300 break-all">
+                    <p className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight mb-3 group-hover:text-[#FACC15] transition-colors duration-300 truncate">
                       {COMPANY_EMAIL}
                     </p>
                     <div className="flex items-center gap-2 text-zinc-500 text-xs">

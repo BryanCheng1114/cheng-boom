@@ -13,7 +13,9 @@ import {
   CheckCircle,
   Video as VideoIcon,
   DollarSign,
-  Info
+  Info,
+  X,
+  ZoomIn
 } from 'lucide-react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import Link from 'next/link';
@@ -24,6 +26,14 @@ const AdminProductDetail = () => {
   const [product, setProduct] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  // Close lightbox on Escape key
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxOpen(false); };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -126,12 +136,19 @@ const AdminProductDetail = () => {
 
           {/* LEFT — Image Gallery */}
           <div className="flex flex-col gap-4 h-full">
-            <div className="flex-1 min-h-0 rounded-[40px] overflow-hidden dark:bg-zinc-900/40 bg-zinc-100 border dark:border-white/5 border-zinc-200 relative group shadow-2xl">
+            <div className="flex-1 min-h-0 rounded-[40px] overflow-hidden dark:bg-zinc-900/40 bg-zinc-100 border dark:border-white/5 border-zinc-200 relative group shadow-2xl cursor-zoom-in" onClick={() => product.images?.[activeImageIdx] && setLightboxOpen(true)}>
               {product.images && product.images[activeImageIdx] ? (
-                <img
-                  src={product.images[activeImageIdx]}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
+                <>
+                  <img
+                    src={product.images[activeImageIdx]}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                    <div className="p-3 bg-black/60 rounded-2xl backdrop-blur-sm">
+                      <ZoomIn size={24} className="text-white" />
+                    </div>
+                  </div>
+                </>
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-zinc-400">
                   <ImageIcon size={64} />
@@ -280,7 +297,84 @@ const AdminProductDetail = () => {
         </div>
 
       </div>
+
+      {/* Lightbox Modal */}
+      <AnimatePresence>
+        {lightboxOpen && product.images?.[activeImageIdx] && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-xl flex items-center justify-center"
+            onClick={() => setLightboxOpen(false)}
+          >
+            {/* Close button */}
+            <button
+              className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 rounded-2xl text-white transition-all z-10"
+              onClick={() => setLightboxOpen(false)}
+            >
+              <X size={22} />
+            </button>
+
+            {/* Image counter */}
+            {product.images.length > 1 && (
+              <div className="absolute top-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/10 rounded-full text-white text-[10px] font-black uppercase tracking-widest">
+                {activeImageIdx + 1} / {product.images.length}
+              </div>
+            )}
+
+            {/* Main image */}
+            <motion.img
+              key={activeImageIdx}
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              src={product.images[activeImageIdx]}
+              className="max-w-[90vw] max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+
+            {/* Prev / Next arrows */}
+            {product.images.length > 1 && (
+              <>
+                <button
+                  className="absolute left-6 p-3 bg-white/10 hover:bg-white/20 rounded-2xl text-white transition-all"
+                  onClick={(e) => { e.stopPropagation(); setActiveImageIdx(i => (i - 1 + product.images.length) % product.images.length); }}
+                >
+                  <ChevronLeft size={22} />
+                </button>
+                <button
+                  className="absolute right-6 p-3 bg-white/10 hover:bg-white/20 rounded-2xl text-white transition-all"
+                  onClick={(e) => { e.stopPropagation(); setActiveImageIdx(i => (i + 1) % product.images.length); }}
+                >
+                  <ChevronLeft size={22} className="rotate-180" />
+                </button>
+              </>
+            )}
+
+            {/* Thumbnail strip */}
+            {product.images.length > 1 && (
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3" onClick={(e) => e.stopPropagation()}>
+                {product.images.map((img: string, i: number) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveImageIdx(i)}
+                    className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
+                      activeImageIdx === i ? 'border-yellow-500 scale-110' : 'border-white/20 opacity-50 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={img} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </AdminLayout>
+
   );
 };
 

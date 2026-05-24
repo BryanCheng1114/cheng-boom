@@ -3,15 +3,36 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Phone, MessageCircle, Mail, MapPin, ChevronRight } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useBusiness } from '../../context/BusinessContext';
 
+const FacebookIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[15px] h-[15px] text-blue-600 dark:text-blue-400">
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+  </svg>
+);
 
-const WHATSAPP_NUMBER = '601112269835';
-const DISPLAY_NUMBER  = '+60 111-226-9835';
-const EMAIL           = 'hello@cheng-boom.test';
+const InstagramIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[15px] h-[15px] text-pink-600 dark:text-pink-400">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+  </svg>
+);
+
+const TikTokIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[15px] h-[15px] text-black dark:text-white">
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/>
+  </svg>
+);
 
 export function Footer() {
   const { t, locale } = useTranslation();
+  const { settings } = useBusiness();
   const [categories, setCategories] = useState<any[]>([]);
+
+  const WHATSAPP_NUMBER = settings?.whatsapp || '601112269835';
+  const DISPLAY_NUMBER  = settings?.phone || '+60 111-226-9835';
+  const EMAIL           = settings?.email || 'hello@cheng-boom.test';
 
   useEffect(() => {
     fetch('/api/categories')
@@ -27,7 +48,6 @@ export function Footer() {
     { href: '/shop',      label: t.nav.shopAll },
     { href: '/#shop-categories', label: t.footer.shopByCategory },
     { href: '/about',         label: t.nav.aboutUs },
-    { href: '/about/history', label: t.footer.ourHistory },
     { href: '/contact',       label: t.nav.contact },
   ];
 
@@ -46,20 +66,17 @@ export function Footer() {
           <div className="space-y-6 flex flex-col">
             <Link href="/" className="flex flex-col items-start gap-4 group">
               <div className="relative w-48 h-24 sm:w-64 sm:h-32 transition-transform duration-500 group-hover:scale-105">
-                <Image
-                  src="/transparent-Background.png"
-                  alt="Cheng-BOOM Logo"
-                  fill
-                  sizes="(max-width: 768px) 192px, 256px"
-                  className="object-contain object-left drop-shadow-[0_0_20px_rgba(255,165,0,0.3)] filter transition-all duration-500 group-hover:drop-shadow-[0_0_30px_rgba(255,165,0,0.5)]"
-                  priority
+                <img
+                  src={settings?.watermarkUrl || "/transparent-Background.png"}
+                  alt={`${settings?.businessName || 'Cheng-BOOM'} Logo`}
+                  className="w-full h-full object-contain object-left drop-shadow-[0_0_20px_rgba(255,165,0,0.3)] filter transition-all duration-500 group-hover:drop-shadow-[0_0_30px_rgba(255,165,0,0.5)]"
                 />
               </div>
               <span 
                 className="font-black text-3xl italic tracking-wider bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300 origin-left inline-block pr-2"
                 style={{ fontFamily: "'Impact', 'Arial Black', sans-serif" }}
               >
-                Cheng-BOOM
+                {settings?.businessName || 'Cheng-BOOM'}
               </span>
             </Link>
             <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed max-w-xs">
@@ -201,6 +218,71 @@ export function Footer() {
                 </a>
               </li>
 
+              {/* Instagram */}
+              {settings?.instagram && (
+                <li>
+                  <a
+                    href={settings.instagram.startsWith('http') ? settings.instagram : `https://instagram.com/${settings.instagram.replace('@', '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 transition-colors group
+                      text-zinc-500 hover:text-pink-600
+                      dark:text-zinc-400 dark:hover:text-pink-400"
+                  >
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors
+                      bg-pink-100 group-hover:bg-pink-200
+                      dark:bg-pink-500/10 dark:group-hover:bg-pink-500/20"
+                    >
+                      <InstagramIcon />
+                    </div>
+                    <span className="text-sm font-medium">@{settings.instagram.replace('@', '')}</span>
+                  </a>
+                </li>
+              )}
+
+              {/* Facebook */}
+              {settings?.facebook && (
+                <li>
+                  <a
+                    href={settings.facebook.startsWith('http') ? settings.facebook : `https://facebook.com/${settings.facebook}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 transition-colors group
+                      text-zinc-500 hover:text-blue-600
+                      dark:text-zinc-400 dark:hover:text-blue-400"
+                  >
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors
+                      bg-blue-100 group-hover:bg-blue-200
+                      dark:bg-blue-500/10 dark:group-hover:bg-blue-500/20"
+                    >
+                      <FacebookIcon />
+                    </div>
+                    <span className="text-sm font-medium">Facebook</span>
+                  </a>
+                </li>
+              )}
+
+              {/* TikTok */}
+              {settings?.tiktok && (
+                <li>
+                  <a
+                    href={settings.tiktok.startsWith('http') ? settings.tiktok : `https://tiktok.com/@${settings.tiktok.replace('@', '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 transition-colors group
+                      text-zinc-500 hover:text-black
+                      dark:text-zinc-400 dark:hover:text-white"
+                  >
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors
+                      bg-zinc-200 group-hover:bg-zinc-300
+                      dark:bg-white/10 dark:group-hover:bg-white/20"
+                    >
+                      <TikTokIcon />
+                    </div>
+                    <span className="text-sm font-medium">@{settings.tiktok.replace('@', '')}</span>
+                  </a>
+                </li>
+              )}
 
             </ul>
           </div>
@@ -212,7 +294,7 @@ export function Footer() {
       <div className="border-t border-gray-200 dark:border-zinc-800 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-zinc-400 dark:text-zinc-500 text-sm">
-            &copy; {new Date().getFullYear()} {t.footer.copyright}
+            &copy; {new Date().getFullYear()} {settings?.businessName || 'Cheng-BOOM'}. {t.footer.allRightsReserved || 'All rights reserved.'}
           </p>
           <p className="text-zinc-400 dark:text-zinc-600 text-xs">{t.footer.orderNote}</p>
         </div>

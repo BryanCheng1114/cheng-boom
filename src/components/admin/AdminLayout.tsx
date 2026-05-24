@@ -11,6 +11,8 @@ import {
   ChevronLeft, 
   ChevronRight,
   ShoppingBag,
+  Building,
+  Award
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -56,7 +58,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
     { name: t('inventory'), key: 'inventory', path: '/admin/product', icon: Package },
     { name: t('orders'), key: 'orders', path: '/admin/orders', icon: ShoppingBag },
     { name: t('customers'), key: 'customers', path: '/admin/customer', icon: Users },
-    { name: t('settings'), key: 'settings', path: '/admin/settings', icon: SettingsIcon },
+    { name: 'Seller Setup', key: 'seller-setup', path: '/admin/seller-setup', icon: Award },
+    { name: 'Business Setup', key: 'business-setup', path: '/admin/business-setup', icon: Building },
   ];
 
   const handleLogout = async () => {
@@ -132,7 +135,20 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
           </LayoutGroup>
         </nav>
 
-        <div className={`p-6 border-t transition-colors duration-500 ${theme === 'dark' ? 'border-white/5 bg-[#05060a]/50' : 'border-zinc-100 bg-zinc-50/50'}`}>
+        <div className={`p-4 border-t transition-colors duration-500 space-y-2 ${theme === 'dark' ? 'border-white/5 bg-[#05060a]/50' : 'border-zinc-100 bg-zinc-50/50'}`}>
+          <Link href="/admin/settings">
+            <div className={`w-full flex items-center gap-4 px-4 py-4 rounded-[22px] transition-all relative group overflow-hidden cursor-pointer ${router.pathname === '/admin/settings' ? (theme === 'dark' ? 'text-white' : 'text-zinc-900') : 'text-zinc-500 hover:text-zinc-400'}`}>
+              {router.pathname === '/admin/settings' && (
+                <div className={`absolute inset-0 border ${theme === 'dark' ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-yellow-500/10 border-yellow-500/30'}`} style={{ borderRadius: '22px' }} />
+              )}
+              <div className={`relative z-10 transition-transform duration-300 ${router.pathname === '/admin/settings' ? 'scale-110 text-yellow-500' : 'group-hover:scale-110'}`}>
+                <SettingsIcon size={22} strokeWidth={router.pathname === '/admin/settings' ? 2.5 : 2} />
+              </div>
+              {!isCollapsed && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative z-10 font-bold text-sm tracking-wide whitespace-nowrap">{t('settings')}</motion.span>}
+              {router.pathname === '/admin/settings' && <div className="absolute left-0 w-1.5 h-6 bg-yellow-500 rounded-r-full shadow-[4px_0_15px_rgba(234,179,8,0.5)]" />}
+            </div>
+          </Link>
+
           <button onClick={handleLogout} className="w-full flex items-center gap-4 px-4 py-4 rounded-[22px] text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-all group overflow-hidden">
             <LogOut size={22} className="shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
             {!isCollapsed && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-bold text-sm tracking-wide whitespace-nowrap">{t('logout')}</motion.span>}

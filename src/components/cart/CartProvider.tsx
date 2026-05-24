@@ -20,6 +20,9 @@ interface CartContextType {
   totalItems: number;
   totalPrice: number;
   totalOriginalPrice: number;
+  totalDiscount: number;
+  discountPercent: number;
+  isFreeShipping: boolean;
 }
 
 
@@ -28,6 +31,21 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isMounted, setIsMounted] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const checkUser = () => {
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      } else {
+        setUser(null);
+      }
+    };
+    checkUser();
+    window.addEventListener('storage', checkUser);
+    return () => window.removeEventListener('storage', checkUser);
+  }, []);
 
   useEffect(() => {
     setIsMounted(true);
@@ -89,12 +107,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const totalOriginalPrice = items.reduce((sum, item) => sum + (item.originalPrice || item.price) * item.quantity, 0);
+  const baseTotalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  let discountPercent = 0;
+  let isFreeShipping = false;
+  if (user?.role === 'Seller' && user?.sellerLevel) {
+    discountPercent = user.sellerLevel.discountPercent || 0;
+    isFreeShipping = user.sellerLevel.freeShipping || false;
+  }
+
+  const totalDiscount = baseTotalPrice * (discountPercent / 100);
+  const totalPrice = baseTotalPrice - totalDiscount;
 
   return (
     <CartContext.Provider
-      value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, totalOriginalPrice }}
+      value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, totalOriginalPrice, totalDiscount, discountPercent, isFreeShipping }}
     >
       {children}
     </CartContext.Provider>
