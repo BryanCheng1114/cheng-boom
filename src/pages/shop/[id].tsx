@@ -245,21 +245,21 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                     original: 'Original Price',
                     promo: 'Promotion Price',
                     seller: 'Seller Price',
-                    discount: 'Seller Discount',
+                    discount: 'Total Discount',
                     title: 'Seller Pricing Analysis'
                   },
                   zh: {
                     original: '产品原价',
                     promo: '促销特价',
                     seller: '卖家特价',
-                    discount: '卖家节省',
+                    discount: '总折扣',
                     title: '卖家价格对比分析'
                   },
                   ms: {
                     original: 'Harga Asal',
                     promo: 'Harga Promosi',
                     seller: 'Harga Penjual',
-                    discount: 'Diskaun Penjual',
+                    discount: 'Jumlah Diskaun',
                     title: 'Analisis Harga Penjual'
                   }
                 };

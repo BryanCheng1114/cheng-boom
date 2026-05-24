@@ -282,6 +282,7 @@
     "backToHome": "返回首页",
     "joinBoom": "加入烟花盛宴",
     "welcomeBack": "欢迎回来",
+    "rememberMe": "记住我",
     "registerDesc": "使用您的新会员账户体验高品质烟花的无限魅力。",
     "loginDesc": "登录以查看您的订单并享受专属于卖家的专属优惠价格。",
     "phoneLabel": "电话号码",
@@ -313,6 +314,7 @@
     "usernameLabel": "用户名",
     "usernamePlaceholder": "管理员账号",
     "passwordLabel": "密码",
+    "rememberMe": "记住我",
     "signIn": "登录",
     "securityNotice": "此区域受限制。所有活动都将被监控。",
     "panelTitle": "管理员面板",
@@ -359,6 +361,11 @@
     "backOnline": "您已恢复在线！"
   },
   "profilePage": {
+    "roles": {
+      "Seller": "卖家",
+      "Customer": "顾客"
+    },
+    "viewProfile": "查看个人资料",
     "backToHome": "返回主页",
     "status": "状态",
     "editProfile": "编辑个人资料",

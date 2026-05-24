@@ -66,7 +66,7 @@ export default function About() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
             <h2 className="text-5xl md:text-8xl font-black text-foreground tracking-tighter mb-8 leading-[0.9]">
               {t.about.heroTitle1} <br />
-              <span className="text-primary italic">{t.about.heroTitle2}</span>
+              <span className="italic dark:text-white text-foreground">{t.about.heroTitle2}</span>
             </h2>
             <p className="max-w-2xl mx-auto text-xl text-muted-foreground leading-relaxed">
               {t.about.heroDesc}
@@ -112,7 +112,7 @@ export default function About() {
                 transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
                 className="space-y-8 lg:mt-48"
               >
-                <div className="flex items-center gap-3 text-primary">
+                <div className="flex items-center gap-3 dark:text-white text-foreground">
                   <Sparkles size={20} />
                   <span className="text-sm font-black tracking-widest uppercase">{t.about.futureTitle}</span>
                 </div>
@@ -133,65 +133,7 @@ export default function About() {
         </section>
 
 
-        {/* ── OUR MISSION ─────────────────────────────────────────────── */}
-        <section className="relative py-32 text-white overflow-hidden">
-           {/* Background Image with Overlay */}
-           <div 
-             className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 hover:scale-105"
-             style={{ backgroundImage: 'url(/ray-hennessy-gdTxVSAE5sk-unsplash.webp)' }}
-           />
-           <div className="absolute inset-0 bg-zinc-950/70 backdrop-blur-[2px]" />
-           <div className="absolute inset-0 bg-gradient-to-b from-zinc-950 via-transparent to-zinc-950" />
 
-           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-             <motion.h2 
-               initial={{ opacity: 0, scale: 0.9 }}
-               whileInView={{ opacity: 1, scale: 1 }}
-               transition={{ duration: 1 }}
-               className="text-4xl md:text-6xl font-black mb-16 tracking-tighter italic leading-tight"
-             >
-               "{t.about.missionQuote}"
-             </motion.h2>
-             <div className="flex flex-wrap justify-center gap-16">
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="flex flex-col items-center gap-5 max-w-[220px] group"
-                >
-                  <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                    <Shield size={32} />
-                  </div>
-                  <h4 className="font-black uppercase tracking-[0.2em] text-sm">{t.about.feature1Title}</h4>
-                  <p className="text-xs text-zinc-300 text-center leading-relaxed font-medium">{t.about.feature1Desc}</p>
-                </motion.div>
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="flex flex-col items-center gap-5 max-w-[220px] group"
-                >
-                  <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                    <Flame size={32} />
-                  </div>
-                  <h4 className="font-black uppercase tracking-[0.2em] text-sm">{t.about.feature2Title}</h4>
-                  <p className="text-xs text-zinc-300 text-center leading-relaxed font-medium">{t.about.feature2Desc}</p>
-                </motion.div>
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="flex flex-col items-center gap-5 max-w-[220px] group"
-                >
-                  <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                    <Star size={32} />
-                  </div>
-                  <h4 className="font-black uppercase tracking-[0.2em] text-sm">{t.about.feature3Title}</h4>
-                  <p className="text-xs text-zinc-300 text-center leading-relaxed font-medium">{t.about.feature3Desc}</p>
-                </motion.div>
-             </div>
-           </div>
-        </section>
 
       </div>
     </>

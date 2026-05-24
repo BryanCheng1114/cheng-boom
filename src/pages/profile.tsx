@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useCart } from '../components/cart/CartProvider';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -30,21 +31,23 @@ import {
   Clock,
   TrendingUp,
   Award,
-  Zap
+  Crown,
+  Search
 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 
 export default function ProfilePage() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { clearCart } = useCart();
   const [user, setUser] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [showAllOrders, setShowAllOrders] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
 
   // Form States
   const [editForm, setEditForm] = useState({
@@ -103,7 +106,24 @@ export default function ProfilePage() {
   };
 
   const totalSpend = orders.reduce((sum, order) => sum + order.totalAmount, 0);
-  const displayedOrders = showAllOrders ? orders : orders.slice(0, 3);
+  const totalSaved = orders.reduce((sum, order) => {
+    const savings = order.items?.reduce((itemSum: number, item: any) => {
+      if (item.originalPrice && item.originalPrice > item.price) {
+        return itemSum + ((item.originalPrice - item.price) * item.quantity);
+      }
+      return itemSum;
+    }, 0) || 0;
+    return sum + savings;
+  }, 0);
+
+  const hasEditChanges = user && (
+    editForm.name !== (user.name || '') ||
+    editForm.phone !== (user.phone || '') ||
+    editForm.address !== (user.address || '') ||
+    editForm.preferredPayment !== (user.preferredPayment || '') ||
+    editForm.orderMode !== (user.orderMode || '') ||
+    editForm.notes !== (user.notes || '')
+  );
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,7 +143,7 @@ export default function ProfilePage() {
       if (res.ok) {
         const updated = await res.json();
         setUser(updated);
-        setIsEditing(false);
+        setActiveTab('view_profile');
         setSuccess('Profile updated successfully!');
         setTimeout(() => setSuccess(''), 3000);
       } else {
@@ -135,6 +155,8 @@ export default function ProfilePage() {
       setIsSaving(false);
     }
   };
+
+  const isPasswordFormValid = passwordForm.newPassword.length > 0 && passwordForm.confirmPassword.length > 0;
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,7 +176,7 @@ export default function ProfilePage() {
       });
 
       if (res.ok) {
-        setIsChangingPassword(false);
+        setActiveTab('view_profile');
         setSuccess('Password changed successfully!');
         setPasswordForm({ newPassword: '', confirmPassword: '' });
         setTimeout(() => setSuccess(''), 3000);
@@ -171,8 +193,19 @@ export default function ProfilePage() {
   const handleLogout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('user_role');
+    clearCart();
     window.location.href = '/';
   };
+
+  const filteredOrders = orders.filter((order: any) => {
+    const searchLower = searchQuery.toLowerCase();
+    const idMatch = order.id.toLowerCase().includes(searchLower);
+    const dateMatch = new Date(order.createdAt).toLocaleDateString().toLowerCase().includes(searchLower);
+    const matchesSearch = idMatch || dateMatch;
+    
+    if (statusFilter === 'All') return matchesSearch;
+    return matchesSearch && order.status === statusFilter;
+  });
 
   if (isLoading || !user) {
     return (
@@ -199,15 +232,7 @@ export default function ProfilePage() {
           
           {/* Header */}
           <div className="flex items-center justify-between mb-12">
-            <button 
-              onClick={() => router.push('/')}
-              className="group flex items-center gap-2 text-zinc-500 hover:text-primary transition-all font-bold text-sm uppercase tracking-widest"
-            >
-              <div className="w-10 h-10 rounded-2xl bg-zinc-500/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                <ArrowLeft size={20} />
-              </div>
-              {t.profilePage?.backToHome || 'Back to Home'}
-            </button>
+
             <div className="flex items-center gap-4">
                {success && <span className="text-xs font-black text-green-500 uppercase tracking-widest animate-pulse">{success}</span>}
                {error && <span className="text-xs font-black text-red-500 uppercase tracking-widest">{error}</span>}
@@ -230,37 +255,68 @@ export default function ProfilePage() {
                     <span className="font-black italic text-4xl">{user.name.charAt(0)}</span>
                   </div>
                   <h2 className="text-3xl font-black italic dark:text-white text-zinc-900 mb-2 leading-tight">{user.name}</h2>
-                  <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${
-                    user.role === 'Seller' ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' : 'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'
-                  }`}>
-                    {user.role === 'Seller' ? <Shield size={12} /> : <UserCheck size={12} />}
-                    {user.role} {t.profilePage?.status || 'Status'}
+                  <div className="group relative">
+                    <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-default transition-all ${
+                      user.role === 'Seller' ? 'bg-gradient-to-r from-yellow-500/10 to-amber-500/10 text-yellow-600 dark:text-yellow-500 border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.15)]' : 'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'
+                    }`}>
+                      {user.role === 'Seller' ? <Crown size={14} className="text-yellow-500 drop-shadow-md" /> : <UserCheck size={12} />}
+                      {t.profilePage?.roles?.[user.role] || user.role} {t.profilePage?.status || 'Status'}
+                    </div>
+                    {user.role === 'Seller' && (
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-zinc-900 dark:bg-zinc-800 border border-white/10 rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 text-center pointer-events-none">
+                        <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-900 dark:bg-zinc-800 border-t border-l border-white/10 rotate-45" />
+                        <p className="text-xs font-bold text-white relative z-10 leading-relaxed">
+                          <span className="text-yellow-400">{t.profilePage?.sellerActivated || 'Seller Account Activated'}</span>. {t.profilePage?.sellerActivatedDesc || 'Enjoy exclusive seller benefits.'}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="space-y-4 pt-4 border-t dark:border-white/5 border-zinc-100">
                   <button 
-                    onClick={() => setIsEditing(!isEditing)}
-                    className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all font-bold text-sm ${isEditing ? 'bg-primary text-zinc-900 shadow-lg shadow-primary/20' : 'bg-zinc-500/5 text-zinc-500 hover:bg-zinc-500/10'}`}
+                    onClick={() => setActiveTab('view_profile')}
+                    className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all font-bold text-sm ${activeTab === 'view_profile' ? 'bg-primary text-zinc-900 shadow-lg shadow-primary/20' : 'bg-zinc-500/5 text-zinc-500 hover:bg-zinc-500/10'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <User size={18} />
+                      {t.profilePage?.viewProfile || 'View Profile'}
+                    </div>
+                    {activeTab !== 'view_profile' && <ChevronRight size={16} />}
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('edit_profile')}
+                    className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all font-bold text-sm ${activeTab === 'edit_profile' ? 'bg-primary text-zinc-900 shadow-lg shadow-primary/20' : 'bg-zinc-500/5 text-zinc-500 hover:bg-zinc-500/10'}`}
                   >
                     <div className="flex items-center gap-3">
                       <Edit3 size={18} />
-                      {isEditing ? (t.profilePage?.cancelEditing || 'Cancel Editing') : (t.profilePage?.editProfile || 'Edit Profile')}
+                      {t.profilePage?.editProfile || 'Edit Profile'}
                     </div>
-                    {!isEditing && <ChevronRight size={16} />}
+                    {activeTab !== 'edit_profile' && <ChevronRight size={16} />}
                   </button>
                   <button 
-                    onClick={() => setIsChangingPassword(!isChangingPassword)}
-                    className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all font-bold text-sm ${isChangingPassword ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900' : 'bg-zinc-500/5 text-zinc-500 hover:bg-zinc-500/10'}`}
+                    onClick={() => setActiveTab('change_password')}
+                    className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all font-bold text-sm ${activeTab === 'change_password' ? 'bg-primary text-zinc-900 shadow-lg shadow-primary/20' : 'bg-zinc-500/5 text-zinc-500 hover:bg-zinc-500/10'}`}
                   >
                     <div className="flex items-center gap-3">
                       <Lock size={18} />
-                      {isChangingPassword ? (t.profilePage?.cancelChange || 'Cancel Change') : (t.profilePage?.changePassword || 'Change Password')}
+                      {t.profilePage?.changePassword || 'Change Password'}
                     </div>
+                    {activeTab !== 'change_password' && <ChevronRight size={16} />}
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('all_orders')}
+                    className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all font-bold text-sm ${activeTab === 'all_orders' ? 'bg-primary text-zinc-900 shadow-lg shadow-primary/20' : 'bg-zinc-500/5 text-zinc-500 hover:bg-zinc-500/10'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Package size={18} />
+                      {t.profilePage?.allOrders || 'All Orders'}
+                    </div>
+                    {activeTab !== 'all_orders' && <ChevronRight size={16} />}
                   </button>
                   <button 
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 p-4 rounded-2xl bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-all font-bold text-sm"
+                    className="w-full flex items-center gap-3 p-4 rounded-2xl bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-all font-bold text-sm mt-4 border border-red-500/10"
                   >
                     <LogOut size={18} />
                     {t.profilePage?.logout || 'Logout'}
@@ -268,52 +324,14 @@ export default function ProfilePage() {
                 </div>
               </motion.div>
 
-              {/* Enhanced Stats Grid */}
-              <div className="grid grid-cols-1 gap-4">
-                {/* Total Orders Card */}
-                <div className="group relative bg-white dark:bg-zinc-900 border border-border rounded-[32px] p-8 shadow-sm overflow-hidden transition-all hover:shadow-xl hover:border-primary/20">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-                  <div className="relative z-10 flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2">{t.profilePage?.totalOrders || 'Total Orders'}</p>
-                      <p className="text-4xl font-black italic text-foreground tracking-tighter">{orders.length}</p>
-                      <div className="flex items-center gap-1.5 mt-2 text-primary font-bold text-[10px] uppercase tracking-widest">
-                        <Award size={12} /> {t.profilePage?.milestoneReached || 'Milestone Reached'}
-                      </div>
-                    </div>
-                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                      <ShoppingBag size={32} strokeWidth={2.5} />
-                    </div>
-                  </div>
-                </div>
 
-                {/* Total Spend Card */}
-                <div className="group relative bg-zinc-950 dark:bg-zinc-900 border border-white/5 rounded-[32px] p-8 shadow-2xl overflow-hidden transition-all hover:shadow-primary/10 hover:border-primary/20">
-                  <div className="absolute top-0 left-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2" />
-                  <div className="relative z-10 flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">{t.profilePage?.lifetimeInvestment || 'Lifetime Investment'}</p>
-                      <p className="text-3xl font-black italic text-white tracking-tighter">
-                        RM<span className="text-primary">{totalSpend.toFixed(2).split('.')[0]}</span>
-                        <span className="text-xl opacity-50">.{totalSpend.toFixed(2).split('.')[1]}</span>
-                      </p>
-                      <div className="flex items-center gap-1.5 mt-2 text-zinc-500 font-bold text-[10px] uppercase tracking-widest">
-                        <TrendingUp size={12} className="text-green-500" /> {t.profilePage?.activeShopper || 'Active Shopper'}
-                      </div>
-                    </div>
-                    <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-primary group-hover:rotate-12 transition-transform">
-                      <DollarSign size={32} strokeWidth={2.5} />
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* Main Content */}
             <div className="lg:col-span-8 space-y-8">
               
               <AnimatePresence mode="wait">
-                {isEditing ? (
+                {activeTab === 'edit_profile' && (
                   /* ── EDIT PROFILE FORM ────────────────────────────────── */
                   <motion.div 
                     key="edit"
@@ -322,11 +340,14 @@ export default function ProfilePage() {
                     exit={{ opacity: 0, y: -20 }}
                     className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 md:p-10 shadow-2xl"
                   >
-                    <div className="flex items-center gap-4 mb-8">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                        <User size={24} />
-                      </div>
-                      <h3 className="text-2xl font-black italic uppercase tracking-tight">{t.profilePage?.editInformation || 'Edit Information'}</h3>
+                    <div className="flex items-center gap-3 mb-8">
+                      <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
+                        <ArrowLeft size={18} />
+                      </button>
+                      <User size={20} className="text-zinc-400" />
+                      <h3 className="text-xl font-black italic uppercase tracking-tight">
+                        {t.profilePage?.editInformation || 'Edit Information'}
+                      </h3>
                     </div>
 
                     <form onSubmit={handleUpdateProfile} className="space-y-6">
@@ -411,15 +432,19 @@ export default function ProfilePage() {
                       <div className="flex items-center gap-4 pt-4">
                         <button 
                           type="submit"
-                          disabled={isSaving}
-                          className="flex-1 py-4 bg-primary text-zinc-900 rounded-2xl font-black text-lg hover:brightness-110 transition-all flex items-center justify-center gap-2"
+                          disabled={isSaving || !hasEditChanges}
+                          className={`flex-1 py-4 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-2 ${
+                            !hasEditChanges || isSaving
+                              ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed'
+                              : 'bg-primary text-zinc-900 hover:brightness-110 shadow-lg shadow-primary/20'
+                          }`}
                         >
                           {isSaving ? <Loader2 className="animate-spin" /> : <Check size={20} strokeWidth={3} />}
                           {t.profilePage?.saveChanges || 'Save Changes'}
                         </button>
                         <button 
                           type="button"
-                          onClick={() => setIsEditing(false)}
+                          onClick={() => setActiveTab('')}
                           className="px-8 py-4 bg-zinc-500/10 text-zinc-500 rounded-2xl font-bold hover:bg-zinc-500/20 transition-all"
                         >
                           {t.profilePage?.cancel || 'Cancel'}
@@ -427,7 +452,9 @@ export default function ProfilePage() {
                       </div>
                     </form>
                   </motion.div>
-                ) : isChangingPassword ? (
+                )}
+                
+                {activeTab === 'change_password' && (
                   /* ── CHANGE PASSWORD FORM ──────────────────────────────── */
                   <motion.div 
                     key="password"
@@ -436,11 +463,14 @@ export default function ProfilePage() {
                     exit={{ opacity: 0, y: -20 }}
                     className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 md:p-12 shadow-2xl"
                   >
-                    <div className="flex items-center gap-4 mb-10">
-                      <div className="w-12 h-12 rounded-2xl bg-zinc-950 dark:bg-white flex items-center justify-center text-white dark:text-zinc-950">
-                        <Lock size={24} />
-                      </div>
-                      <h3 className="text-2xl font-black italic uppercase tracking-tight">{t.profilePage?.securitySettings || 'Security Settings'}</h3>
+                    <div className="flex items-center gap-3 mb-10">
+                      <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
+                        <ArrowLeft size={18} />
+                      </button>
+                      <Lock size={20} className="text-zinc-400" />
+                      <h3 className="text-xl font-black italic uppercase tracking-tight">
+                        {t.profilePage?.securitySettings || 'Security Settings'}
+                      </h3>
                     </div>
 
                     <form onSubmit={handleChangePassword} className="space-y-6">
@@ -471,15 +501,19 @@ export default function ProfilePage() {
                       <div className="flex items-center gap-4 pt-6">
                         <button 
                           type="submit"
-                          disabled={isSaving}
-                          className="flex-1 py-4 bg-zinc-950 text-white dark:bg-white dark:text-zinc-900 rounded-2xl font-black text-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                          disabled={isSaving || !isPasswordFormValid}
+                          className={`flex-1 py-4 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-2 ${
+                            !isPasswordFormValid || isSaving
+                              ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed'
+                              : 'bg-primary text-zinc-900 hover:brightness-110 shadow-lg shadow-primary/20'
+                          }`}
                         >
                           {isSaving ? <Loader2 className="animate-spin" /> : <Sparkles size={20} strokeWidth={3} />}
                           {t.profilePage?.updatePassword || 'Update Password'}
                         </button>
                         <button 
                           type="button"
-                          onClick={() => setIsChangingPassword(false)}
+                          onClick={() => setActiveTab('')}
                           className="px-8 py-4 bg-zinc-500/10 text-zinc-500 rounded-2xl font-bold hover:bg-zinc-500/20 transition-all"
                         >
                           {t.profilePage?.cancel || 'Cancel'}
@@ -487,48 +521,78 @@ export default function ProfilePage() {
                       </div>
                     </form>
                   </motion.div>
-                ) : (
-                  /* ── DEFAULT VIEW ─────────────────────────────────────── */
-                  <motion.div 
-                    key="default"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                )}
+
+                {activeTab === '' && (
+                  /* ── DEFAULT DASHBOARD VIEW ───────────────────────────── */
+                  <motion.div
+                    key="default_dashboard"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
                     className="space-y-8"
                   >
-                    {/* Seller Benefits Hub */}
-                    {user.role === 'Seller' && (
-                      <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-[32px] p-6 flex items-center gap-5">
-                        <div className="w-14 h-14 rounded-2xl bg-yellow-500 flex items-center justify-center text-zinc-900 shadow-lg shadow-yellow-500/20">
-                          <Shield size={28} strokeWidth={2.5} />
-                        </div>
-                        <div>
-                          <h3 className="text-xl font-black italic text-foreground tracking-tight">{t.profilePage?.sellerActivated || 'Seller Account Activated'}</h3>
-                          <p className="text-xs font-bold text-zinc-500">{t.profilePage?.sellerActivatedDesc || 'You are recognized as an official Cheng-BOOM seller.'}</p>
+
+                    {/* Top Stats Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Total Orders Card */}
+                      <div className="group relative bg-white dark:bg-zinc-900 border border-border rounded-[32px] p-6 shadow-sm overflow-hidden transition-all hover:shadow-xl hover:border-primary/20">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+                        <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">{t.profilePage?.totalOrders || 'Total Orders'}</p>
+                            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                              <ShoppingBag size={20} strokeWidth={2.5} />
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-4xl font-black italic text-foreground tracking-tighter">{orders.length}</p>
+                          </div>
                         </div>
                       </div>
-                    )}
 
-                    {/* Recent Orders Section */}
-                    <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 shadow-sm">
+                      {/* Total Spend Card */}
+                      <div className="group relative bg-white dark:bg-zinc-900 border border-border rounded-[32px] p-6 shadow-sm overflow-hidden transition-all hover:shadow-xl hover:border-primary/20">
+                        <div className="absolute top-0 left-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2" />
+                        <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{t.profilePage?.lifetimeInvestment || 'Total Spent'}</p>
+                            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:rotate-12 transition-transform">
+                              <DollarSign size={20} strokeWidth={2.5} />
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-3xl font-black italic text-foreground dark:text-white tracking-tighter">
+                              RM<span className="text-primary">{totalSpend.toFixed(2).split('.')[0]}</span>
+                              <span className="text-xl opacity-50 text-foreground dark:text-white">.{totalSpend.toFixed(2).split('.')[1]}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* Recent Orders List */}
+                    <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 shadow-sm mt-8">
                       <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
                           <Package size={20} className="text-zinc-400" />
                           <h3 className="text-xl font-black italic uppercase tracking-tight">
-                            {showAllOrders ? (t.profilePage?.allOrders || 'All Orders') : (t.profilePage?.recentOrders || 'Recent Orders')}
+                            {t.profilePage?.recentOrders || 'Recent Orders'}
                           </h3>
                         </div>
                         {orders.length > 3 && (
                           <button 
-                            onClick={() => setShowAllOrders(!showAllOrders)}
-                            className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline px-4 py-2 bg-primary/5 rounded-full"
+                            onClick={() => setActiveTab('all_orders')}
+                            className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline px-4 py-2 bg-primary/5 rounded-full flex items-center gap-1"
                           >
-                            {showAllOrders ? (t.profilePage?.showLess || 'Show Less') : (t.profilePage?.viewAll || 'View All')}
+                            {t.profilePage?.viewAll || 'View All'} <ChevronRight size={12} />
                           </button>
                         )}
                       </div>
 
                       {orders.length === 0 ? (
-                        <div className="py-20 text-center">
+                        <div className="py-12 text-center">
                           <div className="w-16 h-16 bg-zinc-500/5 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-300">
                             <Package size={32} />
                           </div>
@@ -536,7 +600,7 @@ export default function ProfilePage() {
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          {displayedOrders.map((order: any) => (
+                          {orders.slice(0, 3).map((order: any) => (
                             <button 
                               key={order.id}
                               onClick={() => setSelectedOrder(order)}
@@ -548,7 +612,7 @@ export default function ProfilePage() {
                                 </div>
                                 <div className="flex flex-col">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-sm font-black text-foreground">{t.profilePage?.orderHash || 'Order #'} {order.id.slice(-6).toUpperCase()}</span>
+                                    <span className="text-[10px] md:text-xs font-black text-foreground" title={order.id}>{t.profilePage?.orderHash || 'Order #'} {order.id}</span>
                                     <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tight ${
                                       order.status === 'Completed' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
                                     }`}>
@@ -575,35 +639,179 @@ export default function ProfilePage() {
                         </div>
                       )}
                     </div>
+                  </motion.div>
+                )}
 
-                    {/* Quick Prefs */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-                      <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8">
-                        <div className="flex items-center gap-3 mb-6">
-                          <CreditCard size={18} className="text-zinc-400" />
-                          <h4 className="text-sm font-black uppercase tracking-widest text-foreground">{t.profilePage?.paymentPrefTitle || 'Payment preference'}</h4>
-                        </div>
-                        <p className="text-xs font-bold text-zinc-500 mb-2">{t.profilePage?.methodLabel || 'Method:'}</p>
-                        <p className="text-sm font-black text-primary">{user.preferredPayment || (t.profilePage?.notSet || 'Not set')}</p>
+                {activeTab === 'view_profile' && (
+                  /* ── VIEW PROFILE (READ-ONLY) ─────────────────────────── */
+                  <motion.div
+                    key="view_profile"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="space-y-6"
+                  >
+                    <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 md:p-10 shadow-2xl">
+                      <div className="flex items-center gap-3 mb-8">
+                        <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
+                          <ArrowLeft size={18} />
+                        </button>
+                        <User size={20} className="text-zinc-400" />
+                        <h3 className="text-xl font-black italic uppercase tracking-tight">
+                          {t.profilePage?.viewProfile || 'View Profile'}
+                        </h3>
                       </div>
-                      <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8">
-                        <div className="flex items-center gap-3 mb-6">
-                          <Truck size={18} className="text-zinc-400" />
-                          <h4 className="text-sm font-black uppercase tracking-widest text-foreground">{t.profilePage?.orderModeTitle || 'Order Mode'}</h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.fullName || 'Full Name'}</label>
+                          <p className="px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 font-bold text-foreground dark:text-white">
+                            {user.name || '-'}
+                          </p>
                         </div>
-                        <p className="text-xs font-bold text-zinc-500 mb-2">{t.profilePage?.fulfillmentLabel || 'Fulfillment:'}</p>
-                        <p className="text-sm font-black text-primary">{user.orderMode || (t.profilePage?.notSet || 'Not set')}</p>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.phoneNumber || 'Phone Number'}</label>
+                          <p className="px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 font-bold text-foreground dark:text-white">
+                            {user.phone || '-'}
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.preferredPayment || 'Preferred Payment'}</label>
+                          <p className="px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 font-bold text-primary">
+                            {user.preferredPayment || (t.profilePage?.notSet || 'Not set')}
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.orderMode || 'Order Mode'}</label>
+                          <p className="px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 font-bold text-primary">
+                            {user.orderMode || (t.profilePage?.notSet || 'Not set')}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2 mt-8">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.addressLabel || 'Delivery / Collection Address'}</label>
+                        <p className="px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 font-bold text-foreground dark:text-white min-h-[100px] whitespace-pre-wrap">
+                          {user.address || '-'}
+                        </p>
+                      </div>
+                      <div className="space-y-2 mt-8">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.notesLabel || 'Default Order Notes (Optional)'}</label>
+                        <p className="px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 font-bold text-foreground dark:text-white min-h-[60px] whitespace-pre-wrap">
+                          {user.notes || '-'}
+                        </p>
                       </div>
                     </div>
+                  </motion.div>
+                )}
 
-                    <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 text-left">
-                      <div className="flex items-center gap-3 mb-6">
-                        <MapPin size={18} className="text-zinc-400" />
-                        <h4 className="text-sm font-black uppercase tracking-widest text-foreground">{t.profilePage?.addressDetailsTitle || 'Address details'}</h4>
+                {activeTab === 'all_orders' && (
+                  /* ── ALL ORDERS VIEW ──────────────────────────────────── */
+                  <motion.div
+                    key="all_orders"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="space-y-8"
+                  >
+                    {/* All Orders List */}
+                    <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 shadow-sm">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+                        <div className="flex items-center gap-3">
+                          <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
+                            <ArrowLeft size={18} />
+                          </button>
+                          <Package size={20} className="text-zinc-400" />
+                          <h3 className="text-xl font-black italic uppercase tracking-tight">
+                            {t.profilePage?.allOrders || 'All Orders'}
+                          </h3>
+                        </div>
+                        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                          <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-zinc-500/5 dark:bg-zinc-900 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold text-sm text-foreground dark:text-white cursor-pointer appearance-none"
+                          >
+                            <option value="All" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">All Status</option>
+                            <option value="Completed" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Completed</option>
+                            <option value="Pending" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Pending</option>
+                            <option value="In Process" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">In Process</option>
+                            <option value="Cancelled" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Cancelled</option>
+                          </select>
+
+                          <div className="relative w-full sm:w-auto">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Search size={16} className="text-zinc-400" />
+                            </div>
+                            <input
+                              type="text"
+                              placeholder={t.profilePage?.searchOrders || 'Search by Order ID or Date...'}
+                              className="w-full sm:w-64 pl-10 pr-10 py-3 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold text-sm text-foreground dark:text-white"
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            {searchQuery && (
+                              <button 
+                                onClick={() => setSearchQuery('')}
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-red-500 transition-colors"
+                              >
+                                <X size={16} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm font-black text-foreground leading-relaxed">{user.address || (t.profilePage?.noAddress || 'No address provided')}</p>
-                    </div>
 
+                      {filteredOrders.length === 0 ? (
+                        <div className="py-20 text-center">
+                          <div className="w-16 h-16 bg-zinc-500/5 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-300">
+                            {searchQuery ? <Search size={32} /> : <Package size={32} />}
+                          </div>
+                          <p className="text-sm font-bold text-zinc-400">
+                            {searchQuery ? 'No orders match your search.' : (t.profilePage?.noOrdersYet || "You haven't placed any orders yet.")}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {filteredOrders.map((order: any) => (
+                            <button 
+                              key={order.id}
+                              onClick={() => setSelectedOrder(order)}
+                              className="w-full group p-5 rounded-3xl bg-zinc-500/5 border border-transparent hover:border-primary/20 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                            >
+                              <div className="flex items-center gap-4 text-left">
+                                <div className="w-12 h-12 rounded-2xl bg-white dark:bg-zinc-950 flex items-center justify-center text-primary shadow-sm border border-border">
+                                  <ShoppingBag size={20} />
+                                </div>
+                                <div className="flex flex-col">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[10px] md:text-xs font-black text-foreground" title={order.id}>{t.profilePage?.orderHash || 'Order #'} {order.id}</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tight ${
+                                      order.status === 'Completed' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
+                                    }`}>
+                                      {order.status}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Calendar size={12} className="text-zinc-400" />
+                                    <span className="text-[10px] text-zinc-500 font-bold">{new Date(order.createdAt).toLocaleDateString()}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center justify-between md:justify-end gap-6">
+                                <div className="flex flex-col items-end">
+                                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{t.profilePage?.amount || 'Amount'}</span>
+                                  <span className="text-lg font-black text-foreground">RM {order.totalAmount.toFixed(2)}</span>
+                                </div>
+                                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Info size={20} strokeWidth={3} />
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -625,7 +833,7 @@ export default function ProfilePage() {
                 className="relative w-full max-w-3xl bg-zinc-50 dark:bg-zinc-900/50 rounded-[48px] shadow-2xl overflow-hidden border border-white/10 flex flex-col md:flex-row max-h-[90vh]"
               >
                 {/* Close Button */}
-                <button onClick={() => setSelectedOrder(null)} className="absolute top-8 right-8 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all z-30 backdrop-blur-md">
+                <button data-html2canvas-ignore="true" onClick={() => setSelectedOrder(null)} className="absolute top-8 right-8 p-3 rounded-full bg-zinc-900/5 hover:bg-zinc-900/10 dark:bg-white/10 dark:hover:bg-white/20 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-all z-30 backdrop-blur-md">
                   <X size={20} strokeWidth={3} />
                 </button>
 
@@ -732,15 +940,12 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Final Billing */}
-                    <div className="mt-12 space-y-4">
+                    <div className="mt-20 space-y-4">
                       <div className="flex justify-between items-center px-4">
                         <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">{t.profilePage?.netTotal || 'Net Total'}</span>
                         <span className="text-sm font-black text-foreground">RM {selectedOrder.totalAmount.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between items-center px-4">
-                        <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">{t.profilePage?.serviceFee || 'Service Fee'}</span>
-                        <span className="text-sm font-black text-foreground">RM 0.00</span>
-                      </div>
+
                       <div className="bg-zinc-900 dark:bg-primary p-8 rounded-[32px] flex justify-between items-center shadow-2xl">
                         <div>
                           <p className="text-[10px] font-black text-primary dark:text-zinc-900 uppercase tracking-[0.2em] mb-1">{t.profilePage?.totalAmountPaid || 'Total Amount Paid'}</p>

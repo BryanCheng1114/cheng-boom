@@ -360,6 +360,11 @@
     "backToTop": "Back to Top"
   },
   "profilePage": {
+    "roles": {
+      "Seller": "Seller",
+      "Customer": "Customer"
+    },
+    "viewProfile": "View Profile",
     "backToHome": "Back to Home",
     "status": "Status",
     "editProfile": "Edit Profile",

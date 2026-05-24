@@ -2,10 +2,22 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useCart } from '../components/cart/CartProvider';
 import { generateWhatsAppLink, OrderDetails } from '../services/whatsappService';
-import { Trash2, Plus, Minus, ArrowRight, MessageCircle, Shield, X, MapPin, CreditCard, User, Phone, Check, Zap } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, MessageCircle, Shield, X, MapPin, CreditCard, User, Phone, Check, Zap, HelpCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { cn } from '../utils/cn';
+import { motion, useAnimation } from 'framer-motion';
+
+const paymentMethodLabels: Record<string, Record<string, string>> = {
+  'TNG e-wallet': { en: 'TNG eWallet', zh: 'TNG电子钱包', ms: 'e-Dompet TNG' },
+  'bank transfer': { en: 'Bank Transfer', zh: '银行转账', ms: 'Pindahan Bank' },
+  'DuitNow qr': { en: 'DuitNow QR', zh: 'DuitNow二维码', ms: 'DuitNow QR' }
+};
+
+const deliveryModeLabels: Record<string, Record<string, string>> = {
+  'Self Collect': { en: 'Self Collect', zh: '自取', ms: 'Ambil Sendiri' },
+  'Delivery': { en: 'Delivery', zh: '运送', ms: 'Penghantaran' }
+};
 
 export default function Cart() {
   const { items, updateQuantity, removeItem, clearCart, totalPrice, totalOriginalPrice, totalItems } = useCart();
@@ -26,6 +38,10 @@ export default function Cart() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [productsStock, setProductsStock] = useState<Record<string, number>>({});
   const [isWhatsAppTermsAgreed, setIsWhatsAppTermsAgreed] = useState(false);
+  const [shakeTerms, setShakeTerms] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const shakeControls = useAnimation();
 
   const isSeller = typeof window !== 'undefined' && (
     localStorage.getItem('user_role') === 'Seller' || 
@@ -390,7 +406,7 @@ export default function Cart() {
                             )}
                           >
                             {orderDetails.paymentMethod === method && <Check size={14} strokeWidth={3} />}
-                            {method}
+                            {paymentMethodLabels[method]?.[locale] || method}
                           </button>
                         ))}
                       </div>
@@ -414,7 +430,7 @@ export default function Cart() {
                                 : "bg-zinc-50 dark:bg-white/5 border-border text-zinc-500 dark:text-zinc-400 hover:border-zinc-900/50 dark:hover:border-white/50"
                             )}
                           >
-                            {mode}
+                            {deliveryModeLabels[mode]?.[locale] || mode}
                           </button>
                         ))}
                       </div>
@@ -451,8 +467,24 @@ export default function Cart() {
                   <div className="mt-12 flex flex-col gap-4">
                      <button 
                         type="submit"
-                        disabled={isSubmitting || !isWhatsAppTermsAgreed}
-                        className="w-full py-5 px-4 bg-primary text-zinc-900 rounded-[20px] font-black text-lg hover:brightness-110 transition-all shadow-xl hover:shadow-primary/20 flex justify-center items-center gap-2 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:grayscale disabled:shadow-none"
+                        disabled={isSubmitting}
+                        onClick={(e) => {
+                          if (!isWhatsAppTermsAgreed) {
+                            e.preventDefault();
+                            shakeControls.start({
+                              x: [0, -15, 15, -12, 12, -8, 8, -4, 4, 0],
+                              y: [0, 8, -8, 6, -6, 4, -4, 2, -2, 0],
+                              rotate: [0, -3, 3, -2, 2, -1, 1, 0],
+                              transition: { duration: 0.5, ease: "easeInOut" }
+                            });
+                            setShakeTerms(true);
+                            setTimeout(() => setShakeTerms(false), 500);
+                          }
+                        }}
+                        className={cn(
+                          "w-full py-5 px-4 bg-primary text-zinc-900 rounded-[20px] font-black text-lg transition-all flex justify-center items-center gap-2",
+                          (!isWhatsAppTermsAgreed || isSubmitting) ? "opacity-40 cursor-not-allowed grayscale shadow-none" : "hover:brightness-110 shadow-xl hover:shadow-primary/20 active:scale-[0.98]"
+                        )}
                      >
                         {isSubmitting ? (
                           <div className="w-6 h-6 border-4 border-zinc-900/20 border-t-zinc-900 rounded-full animate-spin" />
@@ -464,14 +496,28 @@ export default function Cart() {
                         </span>
                      </button>
 
+                     <div className="flex justify-end my-2">
+                       <button
+                         type="button"
+                         onClick={() => setIsGuideOpen(true)}
+                         className="flex items-center gap-1.5 text-white hover:text-primary transition-colors text-xs font-black uppercase tracking-widest drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
+                       >
+                         <HelpCircle size={14} strokeWidth={3} />
+                         {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}
+                       </button>
+                     </div>
+
                      {/* Premium custom robot verification checkbox */}
-                     <div className={cn(
-                       "border rounded-2xl p-4 transition-all duration-300 flex items-start gap-4 cursor-pointer select-none",
-                       isWhatsAppTermsAgreed 
-                         ? "bg-green-500/5 border-green-500/30 dark:bg-green-500/10" 
-                         : "bg-blue-500/5 border-blue-500/20 dark:bg-blue-500/10 hover:border-blue-500/40"
-                     )}
-                     onClick={() => setIsWhatsAppTermsAgreed(!isWhatsAppTermsAgreed)}
+                     <motion.div 
+                       animate={shakeControls}
+                       className={cn(
+                         "border rounded-2xl p-4 transition-all duration-300 flex items-start gap-4 cursor-pointer select-none",
+                         isWhatsAppTermsAgreed 
+                           ? "bg-green-500/5 border-green-500/30 dark:bg-green-500/10" 
+                           : "bg-blue-500/5 border-blue-500/20 dark:bg-blue-500/10 hover:border-blue-500/40",
+                         shakeTerms && "border-red-500 bg-red-500/5 dark:bg-red-500/10"
+                       )}
+                       onClick={() => setIsWhatsAppTermsAgreed(!isWhatsAppTermsAgreed)}
                      >
                        <div className="flex items-center mt-0.5">
                          <div className={cn(
@@ -501,7 +547,7 @@ export default function Cart() {
                                : 'I understand & agree: After clicking, I will be redirected to WhatsApp with autofilled information. I will not edit the text and click send directly.'}
                          </p>
                        </div>
-                     </div>
+                     </motion.div>
 
                      <p className="text-[10px] text-center text-zinc-500 font-bold uppercase tracking-widest">
                        {t.cart.checkout.total}: RM {totalPrice.toFixed(2)}
@@ -512,6 +558,130 @@ export default function Cart() {
             </div>
           </div>
         )}
+
+        {/* ── GUIDANCE MODAL ────────────────────────────────────────── */}
+        {isGuideOpen && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6">
+            <div 
+              className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity animate-in fade-in duration-300"
+              onClick={() => setIsGuideOpen(false)}
+            />
+            <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-950 rounded-[40px] shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 animate-in slide-in-from-bottom-8 duration-500">
+              <button 
+                onClick={() => setIsGuideOpen(false)}
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors z-20 text-zinc-500"
+              >
+                <X size={24} />
+              </button>
+              <div className="p-8 sm:p-12 max-h-[85vh] overflow-y-auto text-center">
+                 <h2 className="text-3xl font-black text-foreground mb-8">
+                   {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}
+                 </h2>
+                 
+                 <div className="space-y-12 text-left">
+                   {/* Step 1 placeholder */}
+                   <div className="space-y-4">
+                     <h3 className="text-xl font-bold flex items-center gap-3">
+                       <span className="w-8 h-8 rounded-full bg-primary text-zinc-900 flex items-center justify-center font-black">1</span> 
+                       {locale === 'zh' ? '自动跳转到 WhatsApp' : locale === 'ms' ? 'Hala ke WhatsApp' : 'Redirect to WhatsApp'}
+                     </h3>
+                     <p className="text-muted-foreground leading-relaxed">
+                       {locale === 'zh' 
+                         ? '点击确认后，您将被直接带到 WhatsApp，我们已为您自动填好包含订单详细信息的消息。' 
+                         : locale === 'ms' 
+                         ? 'Selepas pengesahan, anda akan dibawa ke WhatsApp. Mesej mengandungi butiran pesanan anda akan diisi secara automatik.' 
+                         : 'After confirming, you will be taken to WhatsApp where your message containing order details will be automatically filled.'}
+                     </p>
+                     <div 
+                       className="w-full rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm relative cursor-zoom-in group"
+                       onClick={() => setZoomedImage('/ordering guide/image1.png')}
+                     >
+                       <img 
+                         src="/ordering guide/image1.png" 
+                         alt="Guide Step 1" 
+                         className="w-full h-auto object-contain bg-zinc-50 dark:bg-zinc-900 group-hover:scale-105 transition-transform duration-500" 
+                       />
+                     </div>
+                   </div>
+
+                   {/* Step 2 placeholder */}
+                   <div className="space-y-4">
+                     <h3 className="text-xl font-bold flex items-center gap-3">
+                       <span className="w-8 h-8 rounded-full bg-primary text-zinc-900 flex items-center justify-center font-black">2</span> 
+                       {locale === 'zh' ? '发送信息' : locale === 'ms' ? 'Hantar Mesej' : 'Send the Message'}
+                     </h3>
+                     <p className="text-muted-foreground leading-relaxed">
+                       {locale === 'zh' 
+                         ? '只需在 WhatsApp 中点击“发送”即可！为确保系统准确处理，请不要修改任何预填文本。' 
+                         : locale === 'ms' 
+                         ? 'Hanya klik "Hantar" di WhatsApp! Jangan ubah sebarang teks pramuat untuk memastikan pemprosesan yang tepat.' 
+                         : 'Simply click "Send" in WhatsApp! Please do not modify the pre-filled text to ensure your order is processed accurately.'}
+                     </p>
+                     <div 
+                       className="w-full rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm relative cursor-zoom-in group"
+                       onClick={() => setZoomedImage('/ordering guide/image2.png')}
+                     >
+                       <img 
+                         src="/ordering guide/image2.png" 
+                         alt="Guide Step 2" 
+                         className="w-full h-auto object-contain bg-zinc-50 dark:bg-zinc-900 group-hover:scale-105 transition-transform duration-500" 
+                       />
+                     </div>
+                   </div>
+
+
+                   {/* Step 3 */}
+                   <div className="space-y-4">
+                     <h3 className="text-xl font-bold flex items-center gap-3">
+                       <span className="w-8 h-8 rounded-full bg-primary text-zinc-900 flex items-center justify-center font-black">3</span> 
+                       {locale === 'zh' ? '等待客服确认' : locale === 'ms' ? 'Tunggu Pengesahan Peniaga' : 'Wait for Dealer Confirmation'}
+                     </h3>
+                     <p className="text-muted-foreground leading-relaxed">
+                       {locale === 'zh' 
+                         ? '我们的客服将在 24 小时内回复您，处理您的订单并完成交易。请耐心等待，我们会尽快与您对接！' 
+                         : locale === 'ms' 
+                         ? 'Peniaga kami akan membalas dalam masa 24 jam untuk memproses pesanan anda. Sila tunggu dengan sabar sementara kami menyelesaikan urusan dengan anda!' 
+                         : 'Our dealer will reply within 24 hours to process your order and complete the deal. Please wait patiently as we will assist you very soon!'}
+                     </p>
+                   </div>
+                 </div>
+
+                 <button 
+                   onClick={() => setIsGuideOpen(false)}
+                   className="w-full mt-10 py-5 bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 rounded-[20px] font-black text-lg transition-all active:scale-[0.98] shadow-xl hover:shadow-black/20"
+                 >
+                   {locale === 'zh' ? '知道了！' : locale === 'ms' ? 'Faham!' : 'Got it!'}
+                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── IMAGE LIGHTBOX ────────────────────────────────────────── */}
+        {zoomedImage && (
+          <div 
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-sm p-4 sm:p-8"
+            onClick={() => setZoomedImage(null)}
+          >
+            <button
+              onClick={() => setZoomedImage(null)}
+              className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-white transition-all duration-200 z-10"
+            >
+              <X size={20} />
+            </button>
+            <div
+              className="relative w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={zoomedImage}
+                alt="Zoomed Preview"
+                className="w-auto h-auto max-w-full max-h-[85vh] object-contain"
+              />
+            </div>
+          </div>
+        )}
+
       </div>
     </>
   );

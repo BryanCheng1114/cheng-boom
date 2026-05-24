@@ -30,7 +30,7 @@ export default function Origin() {
           </div>
 
           {/* ── OUR ORIGIN SECTION ────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-32">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-8">
             <div className="relative group">
               <div className="absolute -inset-4 bg-primary/20 rounded-[40px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <div className="relative rounded-[40px] overflow-hidden border-8 border-white dark:border-zinc-800 shadow-2xl aspect-[4/5]">
@@ -63,51 +63,11 @@ export default function Origin() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-6 pt-8">
-                <div className="p-6 rounded-3xl bg-zinc-50 dark:bg-zinc-900 border border-border">
-                  <p className="text-4xl font-black text-primary mb-1">40+</p>
-                  <p className="text-sm font-bold text-foreground">{t.origin.stat1Label}</p>
-                </div>
-                <div className="p-6 rounded-3xl bg-zinc-50 dark:bg-zinc-900 border border-border">
-                  <p className="text-4xl font-black text-primary mb-1">1M+</p>
-                  <p className="text-sm font-bold text-foreground">{t.origin.stat2Label}</p>
-                </div>
-              </div>
+
             </div>
           </div>
 
-          {/* ── CORE VALUES ──────────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="group p-10 bg-card rounded-[40px] border border-border hover:border-primary/50 transition-all hover:-translate-y-2 hover:shadow-2xl shadow-primary/5">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-                <Flame size={32} />
-              </div>
-              <h3 className="text-2xl font-black text-foreground mb-4">{t.origin.value1Title}</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {t.origin.value1Desc}
-              </p>
-            </div>
 
-            <div className="group p-10 bg-card rounded-[40px] border border-border hover:border-primary/50 transition-all hover:-translate-y-2 hover:shadow-2xl shadow-primary/5">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-                <Shield size={32} />
-              </div>
-              <h3 className="text-2xl font-black text-foreground mb-4">{t.origin.value2Title}</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {t.origin.value2Desc}
-              </p>
-            </div>
-
-            <div className="group p-10 bg-card rounded-[40px] border border-border hover:border-primary/50 transition-all hover:-translate-y-2 hover:shadow-2xl shadow-primary/5">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-                <Globe size={32} />
-              </div>
-              <h3 className="text-2xl font-black text-foreground mb-4">{t.origin.value3Title}</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {t.origin.value3Desc}
-              </p>
-            </div>
-          </div>
 
 
         </div>

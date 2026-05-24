@@ -19,8 +19,10 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { LanguageSwitcher } from '../components/layout/LanguageSwitcher';
+import { useCart } from '../components/cart/CartProvider';
 
 export default function AuthPage() {
+  const { clearCart } = useCart();
   const { t } = useTranslation();
   const router = useRouter();
   
@@ -72,6 +74,8 @@ export default function AuthPage() {
         const user = await res.json();
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('user_role', user.role);
+        
+        clearCart();
 
         // Handle Remember Me caching
         if (rememberMe) {

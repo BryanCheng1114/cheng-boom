@@ -282,6 +282,7 @@
     "backToHome": "Kembali ke Laman Utama",
     "joinBoom": "Sertai BOOM",
     "welcomeBack": "Selamat Kembali",
+    "rememberMe": "INGAT SAYA",
     "registerDesc": "Alami kehebatan penuh bunga api premium dengan akaun ahli baru anda.",
     "loginDesc": "Log masuk untuk mengakses pesanan anda dan faedah harga penjual eksklusif.",
     "phoneLabel": "Nombor Telefon",
@@ -313,6 +314,7 @@
     "usernameLabel": "Nama Pengguna",
     "usernamePlaceholder": "ID Pentadbir",
     "passwordLabel": "Kata Laluan",
+    "rememberMe": "INGAT SAYA",
     "signIn": "Log Masuk",
     "securityNotice": "Ini adalah kawasan larangan. Semua aktiviti dipantau.",
     "panelTitle": "Panel Pentadbir",
@@ -359,6 +361,11 @@
     "backOnline": "Anda kembali dalam talian!"
   },
   "profilePage": {
+    "roles": {
+      "Seller": "Penjual",
+      "Customer": "Pelanggan"
+    },
+    "viewProfile": "Lihat Profil",
     "backToHome": "Kembali ke Laman Utama",
     "status": "Status",
     "editProfile": "Edit Profil",

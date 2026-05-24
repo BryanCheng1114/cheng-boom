@@ -36,7 +36,7 @@ export default function History() {
           <div className="text-center max-w-3xl mx-auto mb-24">
             <h1 className="text-5xl md:text-7xl font-black text-foreground tracking-tight mb-8">
               {t.history.title} <br />
-              <span className="text-primary italic">{t.history.titleItalic}</span>
+              <span className="italic dark:text-white text-foreground">{t.history.titleItalic}</span>
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">
               {t.history.desc}

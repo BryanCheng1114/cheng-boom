@@ -325,29 +325,37 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Full-width white long horizontal box - stretches to fill the rest of the viewport screen */}
-        <div
-          onClick={() => setMapOpen(true)}
-          className="relative z-10 w-full flex-1 min-h-[350px] sm:min-h-[450px] md:min-h-[550px] cursor-zoom-in group bg-transparent overflow-hidden transition-all duration-500 mt-auto"
-        >
-          {/* Safe padded intermediate layout wrapper */}
-          <div className="absolute inset-0 pt-2 px-4 pb-4 sm:pt-3 sm:px-6 sm:pb-6 md:pt-4 md:px-10 md:pb-10 flex items-center justify-center">
-            <div className="relative w-full h-full">
-              <Image
-                src={mapImageSrc}
-                alt={t.coverage?.title || 'East Malaysia Coverage Map — Sabah & Sarawak'}
-                fill
-                className="object-contain object-center group-hover:scale-[1.01] transition-transform duration-700 ease-out"
-                priority
+        {/* Map Container */}
+        <div className="relative z-10 w-full flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-10 mt-auto">
+          <div
+            onClick={() => setMapOpen(true)}
+            className="relative cursor-zoom-in group flex items-center justify-center max-w-4xl w-full"
+          >
+            <Image
+              src={mapImageSrc}
+              alt={t.coverage?.title || 'East Malaysia Coverage Map — Sabah & Sarawak'}
+              width={1600}
+              height={900}
+              className="w-full h-auto object-contain object-center group-hover:scale-[1.01] transition-transform duration-700 ease-out drop-shadow-2xl"
+              priority
+            />
+
+            {/* Dynamic Watermark Overlay - Bottom Right */}
+            <div className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 z-10 pointer-events-none w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 opacity-90 drop-shadow-md">
+              <img 
+                src="/transparent-Background.png" 
+                className="w-full h-full object-contain select-none" 
+                alt="" 
+                draggable={false}
               />
             </div>
-          </div>
 
-          {/* Click hint overlay */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/5">
-            <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/95 backdrop-blur-sm shadow-xl border border-zinc-200 transition-all duration-500">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-800"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-              <span className="text-xs font-bold text-zinc-800">{t.coverage?.clickExpand || 'Click to expand'}</span>
+            {/* Click hint overlay */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/5 pointer-events-none rounded-[2rem]">
+              <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/95 backdrop-blur-sm shadow-xl border border-zinc-200 transition-all duration-500">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-800"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                <span className="text-xs font-bold text-zinc-800">{t.coverage?.clickExpand || 'Click to expand'}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -382,6 +390,16 @@ export default function Home() {
               className="w-full h-auto object-contain"
               priority
             />
+
+            {/* Dynamic Watermark Overlay - Bottom Right */}
+            <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 md:bottom-4 md:right-4 z-10 pointer-events-none w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32 opacity-90 drop-shadow-xl">
+              <img 
+                src="/transparent-Background.png" 
+                className="w-full h-full object-contain select-none" 
+                alt="" 
+                draggable={false}
+              />
+            </div>
           </div>
 
           {/* ESC hint */}

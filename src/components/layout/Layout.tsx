@@ -2,7 +2,6 @@ import React from 'react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { WhatsAppButton } from '../ui/WhatsAppButton';
-import { MusicToggle } from '../ui/MusicToggle';
 import { Inter } from 'next/font/google';
 import { cn } from '../../utils/cn';
 import { useRouter } from 'next/router';
@@ -21,7 +20,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </main>
       {!isLoginPage && <Footer />}
       <WhatsAppButton />
-      <MusicToggle />
     </div>
   );
 }
