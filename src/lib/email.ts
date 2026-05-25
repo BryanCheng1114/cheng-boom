@@ -19,7 +19,17 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendOrderReceiptEmail = async (order: any, customerInfo: any, items: any[], totalAmount: number) => {
+export const sendOrderReceiptEmail = async (
+  order: any, 
+  customerInfo: any, 
+  items: any[], 
+  totalAmount: number,
+  originalAmount?: number,
+  totalDiscount?: number,
+  sellerLevelName?: string,
+  discountPercent?: number,
+  isFreeShipping?: boolean
+) => {
   // If no password is set, log a warning and skip to prevent crashing
   if (!process.env.SMTP_PASS) {
     console.warn('⚠️ SMTP_PASS is not set in .env. Order email receipt was NOT sent.');
@@ -43,7 +53,12 @@ export const sendOrderReceiptEmail = async (order: any, customerInfo: any, items
     timeStyle: 'short'
   });
 
-  const itemsHtml = items.map((item, index) => `
+  const itemsHtml = items.map((item, index) => {
+    const orig = item.originalPrice || item.price;
+    const isPromo = orig > item.price;
+    const promoVal = isPromo ? (orig - item.price) * item.quantity : 0;
+    
+    return `
     <tr>
       <td style="padding: 12px; border-bottom: 1px solid #eeeeee;">${index + 1}</td>
       <td style="padding: 12px; border-bottom: 1px solid #eeeeee;">
@@ -51,10 +66,14 @@ export const sendOrderReceiptEmail = async (order: any, customerInfo: any, items
         <span style="color: #666; font-size: 12px;">Code: ${item.code || '-'}</span>
       </td>
       <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: center;">${item.quantity}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right;">RM ${parseFloat(item.price).toFixed(2)}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right;">RM ${parseFloat(orig).toFixed(2)}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right; color: #dc2626;">${isPromo ? '-RM ' + promoVal.toFixed(2) : '-'}</td>
       <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right;">RM ${(parseFloat(item.price) * item.quantity).toFixed(2)}</td>
     </tr>
-  `).join('');
+  `}).join('');
+  
+  const baseTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const itemDiscount = (originalAmount || baseTotal) - baseTotal;
 
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
@@ -70,7 +89,7 @@ export const sendOrderReceiptEmail = async (order: any, customerInfo: any, items
         <table style="width: 100%; margin-bottom: 20px; font-size: 14px;">
           <tr><td style="padding: 4px 0; width: 120px; color: #666;">Name:</td><td><strong>${customerInfo.name}</strong></td></tr>
           <tr><td style="padding: 4px 0; color: #666;">Phone:</td><td><strong>${customerInfo.phone}</strong></td></tr>
-          <tr><td style="padding: 4px 0; color: #666;">Account Type:</td><td><strong style="text-transform: uppercase; color: #f59e0b;">${customerInfo.role || 'Guest'}</strong></td></tr>
+          <tr><td style="padding: 4px 0; color: #666;">Account Type:</td><td><strong style="text-transform: uppercase; color: #f59e0b;">${sellerLevelName || customerInfo.role || 'Guest'}</strong></td></tr>
           <tr><td style="padding: 4px 0; color: #666;">Payment:</td><td>${customerInfo.paymentMethod}</td></tr>
           <tr><td style="padding: 4px 0; color: #666;">Mode:</td><td>${customerInfo.deliveryMode}</td></tr>
           ${customerInfo.deliveryMode === 'Delivery' ? `<tr><td style="padding: 4px 0; color: #666;">Address:</td><td>${customerInfo.address}</td></tr>` : ''}
@@ -85,6 +104,7 @@ export const sendOrderReceiptEmail = async (order: any, customerInfo: any, items
               <th style="padding: 10px; text-align: left;">Product</th>
               <th style="padding: 10px; text-align: center;">Qty</th>
               <th style="padding: 10px; text-align: right;">Unit Price</th>
+              <th style="padding: 10px; text-align: right;">Promo</th>
               <th style="padding: 10px; text-align: right;">Total</th>
             </tr>
           </thead>
@@ -92,8 +112,32 @@ export const sendOrderReceiptEmail = async (order: any, customerInfo: any, items
             ${itemsHtml}
           </tbody>
           <tfoot>
+            ${originalAmount && originalAmount > baseTotal ? `
             <tr>
-              <td colspan="4" style="padding: 15px 12px; text-align: right; font-weight: bold;">TOTAL PAYABLE:</td>
+              <td colspan="5" style="padding: 10px 12px; text-align: right; font-size: 14px; color: #666;">Original Total:</td>
+              <td style="padding: 10px 12px; text-align: right; font-size: 14px; color: #666;">RM ${parseFloat(originalAmount.toString()).toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td colspan="5" style="padding: 10px 12px; text-align: right; font-size: 14px; color: #666;">Item Discount:</td>
+              <td style="padding: 10px 12px; text-align: right; font-size: 14px; color: #666;">-RM ${parseFloat(itemDiscount.toString()).toFixed(2)}</td>
+            </tr>
+            ` : ''}
+            ${totalDiscount && totalDiscount > 0 ? `
+            <tr>
+              <td colspan="5" style="padding: 10px 12px; text-align: right; font-size: 14px; color: #f59e0b;">
+                ${sellerLevelName || 'Seller'} Discount (${discountPercent || 0}%):
+              </td>
+              <td style="padding: 10px 12px; text-align: right; font-size: 14px; color: #f59e0b;">-RM ${parseFloat((baseTotal - totalAmount).toString()).toFixed(2)}</td>
+            </tr>
+            ` : ''}
+            ${isFreeShipping ? `
+            <tr>
+              <td colspan="5" style="padding: 10px 12px; text-align: right; font-size: 14px; color: #3b82f6;">Shipping:</td>
+              <td style="padding: 10px 12px; text-align: right; font-size: 14px; color: #3b82f6; font-weight: bold;">FREE</td>
+            </tr>
+            ` : ''}
+            <tr>
+              <td colspan="5" style="padding: 15px 12px; text-align: right; font-weight: bold;">TOTAL PAYABLE:</td>
               <td style="padding: 15px 12px; text-align: right; font-weight: bold; color: #f59e0b; font-size: 16px;">RM ${parseFloat(totalAmount.toString()).toFixed(2)}</td>
             </tr>
           </tfoot>

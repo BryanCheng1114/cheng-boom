@@ -64,6 +64,7 @@ model BusinessSettings {
   facebook          String?
   instagram         String?
   tiktok            String?
+  businessFont      String?  @default("Inter")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }

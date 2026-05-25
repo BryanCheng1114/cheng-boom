@@ -9,6 +9,7 @@ export interface OrderDetails {
   deliveryMode: string;
   address?: string;
   notes?: string;
+  role?: string;
 }
 
 type Locale = 'en' | 'zh' | 'ms';
@@ -92,7 +93,10 @@ export const generateWhatsAppLink = (
   locale: Locale = 'en',
   isSeller: boolean = false,
   businessName: string = 'CHENG-BOOM',
-  whatsappNumber: string = '601112269835'
+  whatsappNumber: string = '601112269835',
+  sellerLevelName: string = '',
+  discountPercent: number = 0,
+  isFreeShipping: boolean = false
 ): string => {
   const l = labels[locale] || labels.en;
 
@@ -107,6 +111,8 @@ export const generateWhatsAppLink = (
 
   // --- Customer ---
   msg += `*${l.customer}*\n`;
+  const accountType = isSeller && sellerLevelName ? sellerLevelName : (details.role || 'Guest');
+  msg += `Account Type: ${accountType}\n`;
   msg += `${l.name}: ${details.customerName}\n`;
   msg += `${l.phone}: ${details.customerPhone}\n`;
   msg += `${l.payment}: ${details.paymentMethod}\n`;
@@ -136,38 +142,28 @@ export const generateWhatsAppLink = (
     msg += `   ${l.subtotal}: *RM ${itemTotal}*\n\n`;
   });
 
-  // --- Packing List (For Shop) ---
-  msg += `${divider}\n`;
-  msg += `📦 *${l.packingList}*\n\n`;
-  
-  // Create a simple text-based table
-  // Headers
-  const noHeader = l.no.padEnd(4);
-  const codeHeader = l.code.padEnd(12);
-  const qtyHeader = l.qty;
-  
-  msg += `\`${noHeader}| ${codeHeader}| ${qtyHeader}\`\n`;
-  msg += `\`--------------------------\`\n`;
-  
-  items.forEach((item, idx) => {
-    const noStr = `${idx + 1}`.padEnd(4);
-    const codeStr = (item.code || '-').padEnd(12);
-    const qtyStr = `${item.quantity}`;
-    msg += `\`${noStr}| ${codeStr}| ${qtyStr}\`\n`;
-  });
-  msg += `\n`;
-
   // --- Summary ---
   const totalOriginal = items.reduce((sum, item) => sum + (item.originalPrice || item.price) * item.quantity, 0);
-  const savings = totalOriginal - totalPrice;
+  const baseTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const itemSavings = totalOriginal - baseTotal;
+  const sellerDiscountVal = baseTotal - totalPrice;
 
   msg += `${divider}\n`;
-  if (savings > 0) {
+  msg += `${l.originalTotal}: RM ${totalOriginal.toFixed(2)}\n`;
+
+  if (itemSavings > 0) {
+    msg += `Item Discount: *-RM ${itemSavings.toFixed(2)}*\n`;
+  }
+
+  if (sellerDiscountVal > 0) {
     const savingsLabel = isSeller 
-      ? (locale === 'zh' ? '卖家折扣' : locale === 'ms' ? 'Diskaun Penjual' : 'Seller Discount')
+      ? (locale === 'zh' ? `${sellerLevelName || '卖家'}折扣 (${discountPercent}%)` : locale === 'ms' ? `Diskaun ${sellerLevelName || 'Penjual'} (${discountPercent}%)` : `${sellerLevelName || 'Seller'} Discount (${discountPercent}%)`)
       : l.savings;
-    msg += `${l.originalTotal}: RM ${totalOriginal.toFixed(2)}\n`;
-    msg += `${savingsLabel}: *RM ${savings.toFixed(2)}*\n`;
+    msg += `${savingsLabel}: *-RM ${sellerDiscountVal.toFixed(2)}*\n`;
+  }
+  
+  if (isFreeShipping) {
+    msg += `Shipping: *FREE*\n`;
   }
 
   msg += `\n*${l.total}: RM ${totalPrice.toFixed(2)}*\n\n`;

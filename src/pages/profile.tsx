@@ -35,10 +35,12 @@ import {
   Search
 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
+import { useBusiness } from '../context/BusinessContext';
 
 export default function ProfilePage() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { settings } = useBusiness();
   const { clearCart } = useCart();
   const [user, setUser] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
@@ -96,7 +98,14 @@ export default function ProfilePage() {
           notes: data.notes || ''
         });
         // Update local storage in case role/name changed
-        localStorage.setItem('user', JSON.stringify({ id: data.id, name: data.name, phone: data.phone, role: data.role }));
+        localStorage.setItem('user', JSON.stringify({ 
+          id: data.id, 
+          name: data.name, 
+          phone: data.phone, 
+          role: data.role,
+          sellerLevel: data.sellerLevel 
+        }));
+        window.dispatchEvent(new Event('user-updated'));
       }
     } catch (err) {
       console.error('Failed to fetch profile:', err);
@@ -143,6 +152,14 @@ export default function ProfilePage() {
       if (res.ok) {
         const updated = await res.json();
         setUser(updated);
+        localStorage.setItem('user', JSON.stringify({ 
+          id: updated.id, 
+          name: updated.name, 
+          phone: updated.phone, 
+          role: updated.role,
+          sellerLevel: updated.sellerLevel 
+        }));
+        window.dispatchEvent(new Event('user-updated'));
         setActiveTab('view_profile');
         setSuccess('Profile updated successfully!');
         setTimeout(() => setSuccess(''), 3000);
@@ -263,11 +280,20 @@ export default function ProfilePage() {
                       {t.profilePage?.roles?.[user.role] || user.role} {t.profilePage?.status || 'Status'}
                     </div>
                     {user.role === 'Seller' && (
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-zinc-900 dark:bg-zinc-800 border border-white/10 rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 text-center pointer-events-none">
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-4 bg-zinc-900 dark:bg-zinc-800 border border-white/10 rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 text-center pointer-events-none">
                         <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-900 dark:bg-zinc-800 border-t border-l border-white/10 rotate-45" />
-                        <p className="text-xs font-bold text-white relative z-10 leading-relaxed">
-                          <span className="text-yellow-400">{t.profilePage?.sellerActivated || 'Seller Account Activated'}</span>. {t.profilePage?.sellerActivatedDesc || 'Enjoy exclusive seller benefits.'}
-                        </p>
+                        <div className="relative z-10 space-y-1">
+                          <p className="text-sm font-black text-yellow-400 italic drop-shadow-md">
+                            {user.sellerLevel ? user.sellerLevel.name : 'Normal Member'}
+                          </p>
+                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-relaxed">
+                            {user.sellerLevel ? (
+                                `${user.sellerLevel.discountPercent}% Discount${user.sellerLevel.freeShipping ? ' + Free Shipping' : ''}`
+                            ) : (
+                                (t.profilePage?.sellerActivatedDesc as string || 'Enjoy exclusive seller benefits.').replace(/CHENG-BOOM|Cheng-BOOM/i, settings?.businessName || 'Cheng-BOOM')
+                            )}
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>

@@ -75,36 +75,36 @@ const SettingsPage = () => {
             </AnimatePresence>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="flex p-1.5 bg-zinc-100 dark:bg-zinc-900/50 rounded-full relative w-full max-w-lg">
+            {/* Sliding background indicator */}
+            <div 
+              className="absolute top-1.5 bottom-1.5 rounded-full bg-white dark:bg-zinc-800 shadow-sm transition-all duration-300 ease-out border border-zinc-200 dark:border-zinc-700/50"
+              style={{
+                width: 'calc(50% - 6px)',
+                left: theme === 'dark' ? '6px' : 'calc(50%)'
+              }}
+            />
+            
             {[
-              { id: 'dark', label: t('midnight_protocol'), icon: Moon, desc: 'Optimized for low-light focus' },
-              { id: 'light', label: t('daylight_clarity'), icon: Sun, desc: 'Enhanced daytime visibility' },
-            ].map((opt) => (
-              <button 
-                key={opt.id}
-                onClick={() => handleSave(opt.id, undefined)}
-                className={`group flex items-center justify-between p-5 rounded-[24px] border-2 transition-all duration-500 ${
-                  theme === opt.id 
-                    ? 'bg-zinc-900 dark:bg-zinc-950 border-yellow-500 shadow-xl shadow-yellow-500/10 scale-[1.02]' 
-                    : 'bg-white dark:bg-zinc-900/40 border-zinc-100 dark:border-white/5 hover:border-yellow-500/20 hover:bg-zinc-50 dark:hover:bg-white/5'
-                }`}
-              >
-                <div className="flex items-center gap-4 text-left">
-                  <div className={`p-3 rounded-xl transition-all duration-500 ${theme === opt.id ? 'bg-yellow-500 text-zinc-900' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 group-hover:text-yellow-500'}`}>
-                    <opt.icon size={20} />
-                  </div>
-                  <div>
-                    <h4 className={`text-[11px] font-black uppercase italic tracking-wider ${theme === opt.id ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300'}`}>{opt.label}</h4>
-                    <p className="text-[9px] font-bold text-zinc-500 opacity-50 uppercase tracking-tighter">{opt.desc}</p>
-                  </div>
-                </div>
-                {theme === opt.id && (
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-zinc-950">
-                    <Check size={14} strokeWidth={4} />
-                  </motion.div>
-                )}
-              </button>
-            ))}
+              { id: 'dark', label: t('midnight_protocol'), icon: Moon },
+              { id: 'light', label: t('daylight_clarity'), icon: Sun },
+            ].map((opt) => {
+              const isSelected = theme === opt.id;
+              return (
+                <button 
+                  key={opt.id}
+                  onClick={() => handleSave(opt.id, undefined)}
+                  className={`relative z-10 flex-1 flex items-center justify-center gap-3 py-3 px-6 rounded-full font-bold text-sm transition-colors duration-300 ${
+                    isSelected 
+                      ? 'text-yellow-600 dark:text-yellow-500' 
+                      : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                  }`}
+                >
+                  <opt.icon size={18} strokeWidth={isSelected ? 3 : 2} />
+                  <span className="uppercase tracking-widest text-[10px] sm:text-xs">{opt.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -118,35 +118,41 @@ const SettingsPage = () => {
             <div className="h-1 w-8 bg-blue-500 rounded-full mt-1.5 opacity-50" />
           </div>
           
-          <div className="grid grid-cols-3 gap-6">
+          <div className="flex p-1.5 bg-zinc-100 dark:bg-zinc-900/50 rounded-full relative w-full max-w-2xl">
+            {/* Sliding background indicator */}
+            <div 
+              className="absolute top-1.5 bottom-1.5 rounded-full bg-white dark:bg-zinc-800 shadow-sm transition-all duration-300 ease-out border border-zinc-200 dark:border-zinc-700/50"
+              style={{
+                width: 'calc(33.333% - 4px)',
+                left: language === 'en' ? '6px' : language === 'zh' ? 'calc(33.333% + 2px)' : 'calc(66.666% - 2px)'
+              }}
+            />
+            
             {[
-              { id: 'en', label: t('english'), sub: 'International' },
-              { id: 'zh', label: t('chinese'), sub: '中文界面' },
-              { id: 'ms', label: t('malay'), sub: 'Bahasa Melayu' },
-            ].map((lang) => (
-              <button 
-                key={lang.id}
-                onClick={() => handleSave(undefined, lang.id)}
-                className={`group flex flex-col items-center justify-center p-6 rounded-[24px] border-2 transition-all duration-500 gap-3 relative overflow-hidden ${
-                  language === lang.id 
-                    ? 'bg-blue-500/5 border-blue-500 shadow-xl shadow-blue-500/5 scale-[1.02]' 
-                    : 'bg-white dark:bg-zinc-900/40 border-zinc-100 dark:border-white/5 hover:border-blue-500/20 hover:bg-zinc-50 dark:hover:bg-white/5'
-                }`}
-              >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs transition-all duration-500 ${language === lang.id ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 group-hover:text-blue-500'}`}>
-                  {lang.id.toUpperCase()}
-                </div>
-                <div className="text-center">
-                  <h4 className={`text-[11px] font-black uppercase italic tracking-wider ${language === lang.id ? 'dark:text-white text-zinc-900' : 'text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300'}`}>{lang.label}</h4>
-                  <p className="text-[9px] font-bold text-zinc-500 opacity-50 uppercase tracking-tighter">{lang.sub}</p>
-                </div>
-                {language === lang.id && (
-                  <motion.div initial={{ y: -5, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="absolute top-4 right-4 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white">
-                    <Check size={12} strokeWidth={4} />
-                  </motion.div>
-                )}
-              </button>
-            ))}
+              { id: 'en', label: t('english'), sub: 'EN' },
+              { id: 'zh', label: t('chinese'), sub: 'ZH' },
+              { id: 'ms', label: t('malay'), sub: 'MS' },
+            ].map((lang) => {
+              const isSelected = language === lang.id;
+              return (
+                <button 
+                  key={lang.id}
+                  onClick={() => handleSave(undefined, lang.id)}
+                  className={`relative z-10 flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 py-3 px-2 sm:px-6 rounded-full transition-colors duration-300 ${
+                    isSelected 
+                      ? 'text-blue-600 dark:text-blue-500' 
+                      : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                  }`}
+                >
+                  <span className={`text-xs font-black px-2 py-0.5 rounded-md ${isSelected ? 'bg-blue-100 dark:bg-blue-500/20' : 'bg-zinc-200 dark:bg-zinc-800'}`}>
+                    {lang.sub}
+                  </span>
+                  <span className={`uppercase tracking-widest text-[10px] sm:text-xs ${isSelected ? 'font-bold' : 'font-semibold'}`}>
+                    {lang.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 

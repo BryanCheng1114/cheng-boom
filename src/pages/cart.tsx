@@ -49,6 +49,9 @@ export default function Cart() {
     localStorage.getItem('user_role') === 'Seller' || 
     JSON.parse(localStorage.getItem('user') || '{}').role === 'Seller'
   );
+  
+  const sellerLevelName = typeof window !== 'undefined' ? 
+    JSON.parse(localStorage.getItem('user') || '{}').sellerLevel?.name : '';
 
   useEffect(() => {
     setMounted(true);
@@ -174,9 +177,15 @@ export default function Cart() {
             code: item.code,
             name: item.name,
             price: item.price,
+            originalPrice: item.originalPrice,
             quantity: item.quantity
           })),
-          totalAmount: totalPrice
+          totalAmount: totalPrice,
+          originalAmount: totalOriginalPrice,
+          totalDiscount: totalDiscount,
+          sellerLevelName: sellerLevelName,
+          discountPercent: discountPercent,
+          isFreeShipping: isFreeShipping
         }),
       });
 
@@ -188,11 +197,17 @@ export default function Cart() {
       const url = generateWhatsAppLink(
         items, 
         totalPrice, 
-        orderDetails, 
+        { 
+          ...orderDetails, 
+          role: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}').role : 'Guest' 
+        }, 
         locale as 'en' | 'zh' | 'ms', 
         isSeller,
         settings?.businessName,
-        settings?.whatsapp
+        settings?.whatsapp,
+        sellerLevelName,
+        discountPercent,
+        isFreeShipping
       );
       window.open(url, '_blank');
 
@@ -315,7 +330,7 @@ export default function Cart() {
                 )}
                 {totalDiscount > 0 && (
                   <div className="flex justify-between text-yellow-500 font-bold">
-                    <span>{locale === 'zh' ? '卖家折扣' : locale === 'ms' ? 'Diskaun Penjual' : `Seller Discount (${discountPercent}%)`}</span>
+                    <span>{locale === 'zh' ? `${sellerLevelName || '卖家'}折扣` : locale === 'ms' ? `Diskaun ${sellerLevelName || 'Penjual'}` : `${sellerLevelName || 'Seller'} Discount (${discountPercent}%)`}</span>
                     <span>- RM {totalDiscount.toFixed(2)}</span>
                   </div>
                 )}

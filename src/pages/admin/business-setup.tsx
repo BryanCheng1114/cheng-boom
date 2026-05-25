@@ -31,6 +31,7 @@ const BusinessSetupPage = () => {
         facebook: formData.facebook || '',
         tiktok: formData.tiktok || '',
         instagram: formData.instagram || '',
+        businessFont: formData.businessFont || 'Impact',
       };
       const original = {
         businessName: settings.businessName || '',
@@ -43,6 +44,7 @@ const BusinessSetupPage = () => {
         facebook: settings.facebook || '',
         tiktok: settings.tiktok || '',
         instagram: settings.instagram || '',
+        businessFont: settings.businessFont || 'Impact',
       };
       setIsDirty(JSON.stringify(current) !== JSON.stringify(original));
     }
@@ -157,6 +159,47 @@ const BusinessSetupPage = () => {
                   placeholder="e.g. Cheng-BOOM"
                 />
               </div>
+
+              {/* Font Dropdown + Preview */}
+              {(() => {
+                const FONTS = [
+                  { name: 'Impact',           label: 'Bold Impact',       style: "Impact, 'Arial Black', sans-serif" },
+                  { name: 'Playfair Display', label: 'Elegant Serif',     style: "Georgia, 'Times New Roman', serif" },
+                  { name: 'Bebas Neue',       label: 'Modern Strong',     style: "'Arial Black', 'Arial Bold', sans-serif" },
+                  { name: 'Pacifico',         label: 'Friendly Script',   style: "'Comic Sans MS', 'Bradley Hand', cursive" },
+                  { name: 'Montserrat',       label: 'Clean Geometric',   style: "'Trebuchet MS', 'Lucida Grande', sans-serif" },
+                ];
+                const selectedFont = FONTS.find(f => f.name === (formData.businessFont || 'Impact')) || FONTS[0];
+
+                return (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Business Name Font</label>
+                      <select
+                        value={formData.businessFont || 'Impact'}
+                        onChange={(e) => setFormData({ ...formData, businessFont: e.target.value })}
+                        className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white text-sm font-bold px-4 py-3 rounded-2xl focus:outline-none focus:border-yellow-500 transition-colors"
+                      >
+                        {FONTS.map(f => (
+                          <option key={f.name} value={f.name} className="bg-white dark:bg-zinc-800">{f.label} — {f.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Live Preview */}
+                    <div className="bg-zinc-500/5 border border-zinc-500/15 rounded-2xl px-5 py-4">
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Preview</p>
+                      <p
+                        className="text-4xl font-black italic tracking-wider bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent leading-tight"
+                        style={{ fontFamily: selectedFont.style }}
+                      >
+                        {formData.businessName || 'Cheng-BOOM'}
+                      </p>
+                      <p className="text-[10px] text-zinc-400 mt-2">{selectedFont.label} • Applied to header and footer business name</p>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

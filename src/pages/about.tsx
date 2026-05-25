@@ -54,30 +54,10 @@ export default function About() {
           </div>
         </section>
 
-        {/* ── PREVIOUS HERO SECTION ───────────────────────────────────── */}
-        <motion.section 
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="relative py-32 overflow-hidden"
-        >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(245,158,11,0.05),transparent_70%)]" />
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-            <h2 className="text-5xl md:text-8xl font-black text-foreground tracking-tighter mb-8 leading-[0.9]">
-              {t.about.heroTitle1} <br />
-              <span className="italic dark:text-white text-foreground">{t.about.heroTitle2}</span>
-            </h2>
-            <p className="max-w-2xl mx-auto text-xl text-muted-foreground leading-relaxed">
-              {t.about.heroDesc}
-            </p>
-          </div>
-        </motion.section>
-
         {/* ── THE EVOLUTION (PAST VS PRESENT) ─────────────────────────── */}
-        <section className="py-24 bg-zinc-50 dark:bg-zinc-900/30 border-y border-border overflow-hidden">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-start">
+        <section className="min-h-[90vh] flex items-center py-16 bg-zinc-50 dark:bg-zinc-900/30 border-y border-border overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
               
               {/* VINTAGE SIDE */}
               <motion.div 
@@ -85,13 +65,13 @@ export default function About() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 1, ease: "easeOut" }}
-                className="space-y-8"
+                className="space-y-6"
               >
                 <div className="flex items-center gap-3 text-zinc-400">
                   <Clock size={20} />
                   <span className="text-sm font-black tracking-widest uppercase">{t.about.heritageTitle}</span>
                 </div>
-                <h2 className="text-4xl font-black tracking-tight text-foreground">{t.about.heritageSub}</h2>
+                <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground">{t.about.heritageSub}</h2>
                 <div className="relative rounded-3xl overflow-hidden shadow-2xl group border-4 border-white dark:border-zinc-800">
                   <div 
                     className="aspect-[16/10] bg-cover bg-center transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0"
@@ -99,7 +79,7 @@ export default function About() {
                   />
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
                 </div>
-                <p className="text-lg text-muted-foreground leading-relaxed">
+                <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
                   {t.about.heritageDesc}
                 </p>
               </motion.div>
@@ -110,20 +90,20 @@ export default function About() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-                className="space-y-8 lg:mt-48"
+                className="space-y-6"
               >
                 <div className="flex items-center gap-3 dark:text-white text-foreground">
                   <Sparkles size={20} />
                   <span className="text-sm font-black tracking-widest uppercase">{t.about.futureTitle}</span>
                 </div>
-                <h2 className="text-4xl font-black tracking-tight text-foreground">{t.about.futureSub}</h2>
+                <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground">{t.about.futureSub}</h2>
                 <div className="relative rounded-3xl overflow-hidden shadow-2xl group border-4 border-white dark:border-zinc-800">
                   <div 
                     className="aspect-[16/10] bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
                     style={{ backgroundImage: 'url(/Roman-Candles-min-1-scaled.jpg)' }}
                   />
                 </div>
-                <p className="text-lg text-muted-foreground leading-relaxed">
+                <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
                   {t.about.futureDesc}
                 </p>
               </motion.div>

@@ -71,6 +71,16 @@ export function Navbar() {
       .catch(() => {});
   }, []);
 
+  const FONT_MAP: Record<string, string> = {
+    'Impact': "Impact, 'Arial Black', sans-serif",
+    'Playfair Display': "Georgia, 'Times New Roman', serif",
+    'Bebas Neue': "'Arial Black', 'Arial Bold', sans-serif",
+    'Pacifico': "'Comic Sans MS', 'Bradley Hand', cursive",
+    'Montserrat': "'Trebuchet MS', 'Lucida Grande', sans-serif",
+  };
+  const selectedFont = settings?.businessFont || 'Impact';
+  const fontFamily = FONT_MAP[selectedFont] || FONT_MAP['Impact'];
+
   return (
     <nav className="sticky top-0 z-50 w-full bg-white/70 dark:bg-zinc-950/70 backdrop-blur-2xl border-b border-black/5 dark:border-white/5 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -87,7 +97,7 @@ export function Navbar() {
             />
             <span
               className="text-2xl font-black italic tracking-wider bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent group-hover:scale-110 group-hover:-rotate-2 transition-transform duration-300 origin-left inline-block pr-2"
-              style={{ fontFamily: "'Impact', 'Arial Black', sans-serif" }}
+              style={{ fontFamily }}
             >
               {settings?.businessName || 'Cheng-BOOM'}
             </span>
@@ -225,7 +235,7 @@ export function Navbar() {
             <Link
               id="navbar-cart-btn"
               href="/cart"
-              className="relative p-2.5 rounded-full text-zinc-500 dark:text-zinc-400 hover:text-primary hover:bg-zinc-100 dark:hover:bg-white/10 transition-all duration-300"
+              className="relative w-10 h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md hover:shadow-primary/10 transition-all duration-300"
             >
               <motion.div
                 animate={isWiggling ? {
@@ -234,7 +244,7 @@ export function Navbar() {
                 } : {}}
                 transition={{ duration: 0.4 }}
               >
-                <ShoppingCart size={22} className={cn(isWiggling && "text-primary")} />
+                <ShoppingCart strokeWidth={1.5} size={20} className={cn(isWiggling && "text-primary")} />
               </motion.div>
 
               {/* Confetti Burst */}
@@ -288,8 +298,8 @@ export function Navbar() {
                   </div>
                   
                   {/* Icon Frame */}
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 group-hover/profile:text-primary group-hover/profile:bg-zinc-100 dark:group-hover/profile:bg-white/10 transition-all duration-300">
-                    <User size={22} />
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 group-hover/profile:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 group-hover/profile:border-primary/30 group-hover/profile:bg-white dark:group-hover/profile:bg-zinc-900 shadow-sm group-hover/profile:shadow-md group-hover/profile:shadow-primary/10 transition-all duration-300">
+                    <User strokeWidth={1.5} size={20} />
                   </div>
 
                   {/* Invisible Bridge to prevent hover gap */}
@@ -321,10 +331,10 @@ export function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="p-2.5 rounded-full text-zinc-500 dark:text-zinc-400 hover:text-primary hover:bg-zinc-100 dark:hover:bg-white/10 transition-all duration-300 group"
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md hover:shadow-primary/10 transition-all duration-300 group"
                   title="Sign In"
                 >
-                  <User size={22} className="group-hover:scale-110 transition-transform" />
+                  <User strokeWidth={1.5} size={20} className="group-hover:scale-110 transition-transform" />
                 </Link>
               )}
             </div>
@@ -332,9 +342,9 @@ export function Navbar() {
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2.5 rounded-full text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10 transition-all duration-300"
+              className="md:hidden w-10 h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md transition-all duration-300 ml-1"
             >
-              {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+              {mobileOpen ? <X strokeWidth={1.5} size={20} /> : <Menu strokeWidth={1.5} size={20} />}
             </button>
           </div>
         </div>

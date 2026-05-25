@@ -31,36 +31,31 @@ export default function Contact() {
         />
       </Head>
 
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="h-screen w-full overflow-hidden flex flex-col relative">
 
-        {/* ── HERO ──────────────────────────────────────────────── */}
-        <section className="relative flex-1 flex flex-col items-center justify-center pt-28 pb-16 overflow-hidden bg-white dark:bg-black transition-colors duration-300">
+        {/* ── HERO / BACKGROUND ──────────────────────────────────────────────── */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105 z-0"
+          style={{ backgroundImage: 'url("/Firework_Photography_1024x.webp")' }}
+        />
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] z-0" />
+        
+        <section className="relative z-10 flex-1 flex flex-col items-center justify-center pt-20 pb-10 w-full h-full">
 
-          <div className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center justify-center">
 
             {/* Headline */}
             <motion.h1
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-5xl sm:text-7xl md:text-8xl font-black text-zinc-900 dark:text-white tracking-tighter leading-[0.88] mb-6 transition-colors duration-300"
+              className="text-6xl sm:text-7xl md:text-8xl font-black text-white tracking-tighter leading-[0.88] mb-12"
             >
-              {t.contact.heroTitle}
-              <br />
-              <span className="italic">{t.contact.heroTitleItalic}</span>
+              Contact Us
             </motion.h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.22 }}
-              className="text-zinc-600 dark:text-zinc-400 text-lg max-w-xl mx-auto leading-relaxed mb-16 transition-colors duration-300"
-            >
-              {t.contact.heroDesc}
-            </motion.p>
-
             {/* ── TWO CHANNEL CARDS ─────────────────────────── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto">
+            <div className="grid grid-cols-2 gap-6 w-full" style={{ maxWidth: '1400px' }}>
 
               {/* WhatsApp */}
               <motion.button
@@ -70,10 +65,10 @@ export default function Contact() {
                 whileHover={{ y: -6, scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={handleWhatsApp}
-                className="group relative text-left p-8 rounded-3xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 hover:bg-[#25D366]/10 hover:border-[#25D366]/50 transition-all duration-300 overflow-hidden shadow-xl hover:shadow-[0_20px_60px_rgba(37,211,102,0.2)]"
+                className="group relative text-left p-8 xl:p-10 rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-xl hover:bg-white/20 hover:border-[#25D366]/50 transition-all duration-300 shadow-2xl hover:shadow-[0_20px_60px_rgba(37,211,102,0.2)] w-full"
               >
-                {/* Shine sweep */}
-                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-black/5 dark:via-white/5 to-transparent skew-x-12 pointer-events-none" />
+                {/* Shine sweep - uses a pseudo element so overflow is not needed on the button */}
+                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 pointer-events-none rounded-[2rem]" />
 
                 {/* Online dot */}
                 <div className="absolute top-5 right-5 flex items-center gap-1.5">
@@ -85,26 +80,17 @@ export default function Contact() {
                 </div>
 
                 <div className="flex flex-col gap-6 h-full">
-                  {/* Icon */}
                   <div className="w-16 h-16 rounded-2xl bg-[#25D366]/15 border border-[#25D366]/20 flex items-center justify-center group-hover:scale-110 group-hover:bg-[#25D366]/25 transition-all duration-300">
                     <MessageCircle size={30} className="text-[#25D366]" strokeWidth={1.8} />
                   </div>
-
-                  {/* Text */}
-                  <div className="flex-1 text-left">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">
-                      {t.contact.whatsappLabel}
-                    </p>
-                    <p className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight mb-3 group-hover:text-[#25D366] transition-colors duration-300">
-                      {DISPLAY_NUMBER}
-                    </p>
-                    <div className="flex items-center gap-2 text-zinc-500 text-xs">
+                  <div className="flex-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 mb-2">{t.contact.whatsappLabel}</p>
+                    <p className="text-xl xl:text-2xl font-black text-white tracking-tight mb-3 group-hover:text-[#25D366] transition-colors duration-300">{DISPLAY_NUMBER}</p>
+                    <div className="flex items-center gap-2 text-white/60 text-xs">
                       <Zap size={12} className="text-[#25D366]" />
                       <span>{t.contact.whatsappSpeed}</span>
                     </div>
                   </div>
-
-                  {/* CTA row */}
                   <div className="flex items-center justify-between">
                     <span className="text-[#25D366] font-bold text-sm">{t.contact.openWhatsapp}</span>
                     <div className="w-9 h-9 rounded-full bg-[#25D366]/15 border border-[#25D366]/20 flex items-center justify-center group-hover:bg-[#25D366] group-hover:border-[#25D366] transition-all duration-300">
@@ -122,32 +108,22 @@ export default function Contact() {
                 whileHover={{ y: -6, scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={handleEmail}
-                className="group relative text-left p-8 rounded-3xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 overflow-hidden shadow-xl hover:shadow-[0_20px_60px_rgba(245,158,11,0.18)]"
+                className="group relative text-left p-8 xl:p-10 rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-xl hover:bg-white/20 hover:border-primary/50 transition-all duration-300 shadow-2xl hover:shadow-[0_20px_60px_rgba(245,158,11,0.18)] w-full"
               >
-                {/* Shine sweep */}
-                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-black/5 dark:via-white/5 to-transparent skew-x-12 pointer-events-none" />
+                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 pointer-events-none rounded-[2rem]" />
 
                 <div className="flex flex-col gap-6 h-full">
-                  {/* Icon */}
                   <div className="w-16 h-16 rounded-2xl bg-primary/15 border border-primary/20 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary/25 transition-all duration-300">
                     <Mail size={30} className="text-primary" strokeWidth={1.8} />
                   </div>
-
-                  {/* Text */}
-                  <div className="flex-1 text-left">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">
-                      {t.contact.emailLabel}
-                    </p>
-                    <p className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight mb-3 group-hover:text-[#FACC15] transition-colors duration-300 truncate">
-                      {COMPANY_EMAIL}
-                    </p>
-                    <div className="flex items-center gap-2 text-zinc-500 text-xs">
+                  <div className="flex-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 mb-2">{t.contact.emailLabel}</p>
+                    <p className="text-base xl:text-lg font-black text-white tracking-tight mb-3 group-hover:text-[#FACC15] transition-colors duration-300 break-all">{COMPANY_EMAIL}</p>
+                    <div className="flex items-center gap-2 text-white/60 text-xs">
                       <Clock size={12} className="text-primary" />
                       <span>{t.contact.emailSpeed}</span>
                     </div>
                   </div>
-
-                  {/* CTA row */}
                   <div className="flex items-center justify-between">
                     <span className="text-primary font-bold text-sm">{t.contact.openEmail}</span>
                     <div className="w-9 h-9 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-all duration-300">
@@ -164,7 +140,7 @@ export default function Contact() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.65 }}
-              className="text-zinc-600 text-xs mt-10 tracking-wide"
+              className="text-white/60 text-xs mt-10 tracking-wide"
             >
               {t.contact.channelNote}
             </motion.p>

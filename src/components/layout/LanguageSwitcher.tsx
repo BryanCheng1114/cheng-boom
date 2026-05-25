@@ -35,11 +35,10 @@ export function LanguageSwitcher() {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1 p-2 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors duration-200 text-foreground/80"
+        className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md hover:shadow-primary/10 transition-all duration-300"
         aria-label="Select Language"
       >
-        <Globe size={20} />
-        <span className="text-xs font-semibold uppercase hidden sm:inline-block">{currentLang.code}</span>
+        <Globe strokeWidth={1.5} size={20} />
       </button>
 
       {isOpen && (

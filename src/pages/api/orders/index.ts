@@ -5,7 +5,7 @@ import { sendOrderReceiptEmail } from '../../../lib/email';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     try {
-      const { customerInfo, items, totalAmount } = req.body;
+      const { customerInfo, items, totalAmount, originalAmount, totalDiscount, sellerLevelName, discountPercent, isFreeShipping } = req.body;
       const { name, phone, address } = customerInfo;
 
       // 1. Find or create the customer based on phone number
@@ -47,7 +47,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      sendOrderReceiptEmail(order, { ...customerInfo, role: customer.role }, items, totalAmount).catch(console.error);
+      sendOrderReceiptEmail(
+        order, 
+        { ...customerInfo, role: customer.role }, 
+        items, 
+        totalAmount,
+        originalAmount,
+        totalDiscount,
+        sellerLevelName,
+        discountPercent,
+        isFreeShipping
+      ).catch(console.error);
 
       return res.status(201).json(order);
     } catch (error) {

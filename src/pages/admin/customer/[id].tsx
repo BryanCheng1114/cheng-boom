@@ -12,7 +12,9 @@ import {
   Clock,
   CheckCircle2,
   Package,
-  ArrowRight
+  ArrowRight,
+  X,
+  AlertTriangle
 } from 'lucide-react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { useLanguage } from '../../../context/LanguageContext';
@@ -23,6 +25,8 @@ const CustomerDetailsPage = () => {
   const { t } = useLanguage();
   const [customer, setCustomer] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
+  const [isPromoting, setIsPromoting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -42,9 +46,12 @@ const CustomerDetailsPage = () => {
     fetchCustomer();
   }, [id]);
 
-  const handlePromoteToSeller = async () => {
-    if (!confirm('Are you sure you want to promote this member to a Seller? They will receive supplier pricing benefits.')) return;
-    
+  const handlePromoteToSeller = () => {
+    setIsPromoteModalOpen(true);
+  };
+
+  const executePromote = async () => {
+    setIsPromoting(true);
     try {
       const res = await fetch(`/api/customers/${id}`, {
         method: 'PATCH',
@@ -53,11 +60,15 @@ const CustomerDetailsPage = () => {
       });
       if (res.ok) {
         setCustomer({ ...customer, role: 'Seller' });
-        alert('Customer promoted to Seller successfully!');
+        setIsPromoteModalOpen(false);
+      } else {
+        alert('Failed to promote customer.');
       }
     } catch (err) {
       console.error(err);
       alert('Failed to promote customer.');
+    } finally {
+      setIsPromoting(false);
     }
   };
 
@@ -247,6 +258,59 @@ const CustomerDetailsPage = () => {
           </div>
         </div>
       </div>
+
+      {/* ---- Promote to Seller Modal ---- */}
+      <AnimatePresence>
+        {isPromoteModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl w-full max-w-sm shadow-xl overflow-hidden relative"
+            >
+              <div className="p-6">
+                <h3 className="text-lg font-bold dark:text-white text-zinc-900 mb-2">
+                  Confirmation Dialog
+                </h3>
+                
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6 leading-relaxed">
+                  Are you sure you want to promote <span className="font-semibold text-foreground">{customer.name}</span> to a Seller? They will gain access to exclusive supplier pricing.
+                </p>
+                
+                <div className="flex items-center justify-end gap-3 w-full">
+                  <button
+                    onClick={() => setIsPromoteModalOpen(false)}
+                    disabled={isPromoting}
+                    className="px-4 py-2 rounded-lg font-semibold text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={executePromote}
+                    disabled={isPromoting}
+                    className="px-4 py-2 rounded-lg font-semibold text-sm bg-yellow-500 text-zinc-900 hover:brightness-110 transition-all flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {isPromoting ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-zinc-900/20 border-t-zinc-900 rounded-full animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      'Confirm'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AdminLayout>
   );
 };

@@ -44,7 +44,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
     checkUser();
     window.addEventListener('storage', checkUser);
-    return () => window.removeEventListener('storage', checkUser);
+    window.addEventListener('user-updated', checkUser);
+    return () => {
+      window.removeEventListener('storage', checkUser);
+      window.removeEventListener('user-updated', checkUser);
+    };
   }, []);
 
   useEffect(() => {

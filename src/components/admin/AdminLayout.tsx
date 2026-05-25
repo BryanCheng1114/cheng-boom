@@ -170,7 +170,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
       </motion.main>
 
       <style jsx global>{`
-        * { font-family: 'Outfit', sans-serif !important; }
+        body { font-family: 'Outfit', sans-serif; }
         body { background-color: ${theme === 'dark' ? '#02040a' : '#f8f9fc'}; overflow-x: hidden; transition: background-color 0.7s ease; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }

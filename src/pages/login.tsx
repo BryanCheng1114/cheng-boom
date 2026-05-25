@@ -76,6 +76,7 @@ export default function AuthPage() {
         const user = await res.json();
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('user_role', user.role);
+        window.dispatchEvent(new Event('user-updated'));
         
         clearCart();
 

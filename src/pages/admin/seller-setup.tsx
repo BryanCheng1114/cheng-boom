@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { Award, Users, Plus, Edit, Trash2, Shield, Loader2, ArrowRight } from 'lucide-react';
+import { Award, Users, Plus, Edit, Trash2, Shield, Loader2, ArrowRight, HelpCircle, X, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const SellerSetupPage = () => {
   const [activeTab, setActiveTab] = useState<'levels' | 'sellers'>('levels');
@@ -11,7 +12,8 @@ const SellerSetupPage = () => {
   // Level Form
   const [showLevelModal, setShowLevelModal] = useState(false);
   const [editingLevel, setEditingLevel] = useState<any>(null);
-  const [levelForm, setLevelForm] = useState({ name: '', discountPercent: 0, freeShipping: false, prioritySupport: false });
+  const [levelForm, setLevelForm] = useState({ name: '', discountPercent: 0, freeShipping: false });
+  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -71,7 +73,7 @@ const SellerSetupPage = () => {
       setLevelForm(level);
     } else {
       setEditingLevel(null);
-      setLevelForm({ name: '', discountPercent: 0, freeShipping: false, prioritySupport: false });
+      setLevelForm({ name: '', discountPercent: 0, freeShipping: false });
     }
     setShowLevelModal(true);
   };
@@ -93,28 +95,57 @@ const SellerSetupPage = () => {
 
   return (
     <AdminLayout title="Seller Setup">
-      <div className="space-y-8">
+      <div className="space-y-6">
         
-        {/* Tabs */}
-        <div className="flex items-center gap-4 border-b border-zinc-200 dark:border-white/10 pb-4">
-          <button 
-            onClick={() => setActiveTab('levels')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-black uppercase tracking-widest transition-all ${
-              activeTab === 'levels' ? 'bg-yellow-500 text-zinc-900 shadow-lg shadow-yellow-500/20' : 'bg-zinc-500/5 text-zinc-500 hover:bg-zinc-500/10 hover:text-zinc-900 dark:hover:text-white'
-            }`}
-          >
-            <Award size={18} />
-            Seller Levels
-          </button>
-          <button 
-            onClick={() => setActiveTab('sellers')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-black uppercase tracking-widest transition-all ${
-              activeTab === 'sellers' ? 'bg-yellow-500 text-zinc-900 shadow-lg shadow-yellow-500/20' : 'bg-zinc-500/5 text-zinc-500 hover:bg-zinc-500/10 hover:text-zinc-900 dark:hover:text-white'
-            }`}
-          >
-            <Users size={18} />
-            Sellers List
-          </button>
+        {/* Header Row: Toggle & Actions */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* Sliding Tabs Toggle */}
+          <div className="relative inline-flex p-1.5 bg-zinc-100 dark:bg-zinc-800/50 rounded-full border border-zinc-200 dark:border-white/5 shadow-inner">
+            {[
+              { id: 'levels', label: 'Seller Levels', icon: Award },
+              { id: 'sellers', label: 'Sellers List', icon: Users }
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`relative z-10 flex items-center gap-2 px-8 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-colors ${
+                    isActive ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                  }`}
+                >
+                  <Icon size={16} />
+                  {tab.label}
+                  {isActive && (
+                    <motion.div
+                      layoutId="sellerTabsToggle"
+                      className="absolute inset-0 bg-yellow-500 rounded-full z-[-1] shadow-lg shadow-yellow-500/30"
+                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Actions */}
+          {activeTab === 'levels' && (
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setShowTutorial(true)}
+                className="w-11 h-11 rounded-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-yellow-500 hover:bg-yellow-500/10 transition-colors shadow-inner"
+              >
+                <HelpCircle size={20} />
+              </button>
+              <button 
+                onClick={() => openLevelModal()}
+                className="flex items-center gap-2 px-6 py-3.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-full font-black uppercase tracking-widest text-xs hover:scale-105 transition-transform shadow-xl w-full sm:w-auto justify-center"
+              >
+                <Plus size={16} /> Add Level
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Tab Content */}
@@ -123,17 +154,7 @@ const SellerSetupPage = () => {
             <Loader2 className="animate-spin text-yellow-500" size={32} />
           </div>
         ) : activeTab === 'levels' ? (
-          <div className="space-y-6">
-            <div className="flex justify-end">
-              <button 
-                onClick={() => openLevelModal()}
-                className="flex items-center gap-2 px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 transition-transform"
-              >
-                <Plus size={16} /> Add Level
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {levels.map((level) => (
                 <div key={level.id} className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[32px] p-6 shadow-xl relative group">
                   <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
@@ -157,15 +178,10 @@ const SellerSetupPage = () => {
                       <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Free Shipping</span>
                       <span className={`text-sm font-black ${level.freeShipping ? 'text-blue-500' : 'text-zinc-500'}`}>{level.freeShipping ? 'Yes' : 'No'}</span>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Priority Support</span>
-                      <span className={`text-sm font-black ${level.prioritySupport ? 'text-purple-500' : 'text-zinc-500'}`}>{level.prioritySupport ? 'Yes' : 'No'}</span>
-                    </div>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
         ) : (
           <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] overflow-hidden shadow-xl">
             <div className="overflow-x-auto">
@@ -205,11 +221,11 @@ const SellerSetupPage = () => {
                         <select
                           value={seller.sellerLevelId || ''}
                           onChange={(e) => updateSeller(seller.id, { sellerLevelId: e.target.value || null })}
-                          className="bg-zinc-500/10 border border-zinc-500/20 text-xs font-bold px-3 py-2 rounded-xl focus:outline-none focus:border-yellow-500 dark:text-white"
+                          className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white text-xs font-bold px-3 py-2 rounded-xl focus:outline-none focus:border-yellow-500"
                         >
-                          <option value="">No Level</option>
+                          <option value="" className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white">No Level</option>
                           {levels.map(l => (
-                            <option key={l.id} value={l.id}>{l.name}</option>
+                            <option key={l.id} value={l.id} className="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white">{l.name}</option>
                           ))}
                         </select>
                       </td>
@@ -266,10 +282,6 @@ const SellerSetupPage = () => {
                 <span className="text-xs font-bold dark:text-white">Free Shipping Eligibility</span>
                 <input type="checkbox" checked={levelForm.freeShipping} onChange={e => setLevelForm({...levelForm, freeShipping: e.target.checked})} className="w-5 h-5 accent-yellow-500" />
               </div>
-              <div className="flex items-center justify-between p-4 bg-zinc-500/5 rounded-2xl border border-zinc-500/10">
-                <span className="text-xs font-bold dark:text-white">Priority Support</span>
-                <input type="checkbox" checked={levelForm.prioritySupport} onChange={e => setLevelForm({...levelForm, prioritySupport: e.target.checked})} className="w-5 h-5 accent-yellow-500" />
-              </div>
             </div>
             <div className="flex justify-end gap-3 mt-8">
               <button onClick={() => setShowLevelModal(false)} className="px-6 py-3 rounded-2xl text-xs font-bold text-zinc-500 hover:bg-zinc-500/10">Cancel</button>
@@ -278,6 +290,86 @@ const SellerSetupPage = () => {
           </div>
         </div>
       )}
+
+      {/* Tutorial Modal */}
+      <AnimatePresence>
+        {showTutorial && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] w-full max-w-2xl shadow-2xl overflow-hidden relative max-h-[90vh] overflow-y-auto"
+            >
+              <div className="p-8">
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-2xl font-black italic tracking-tight dark:text-white text-zinc-900">
+                    Seller Setup Guide
+                  </h3>
+                  <button
+                    onClick={() => setShowTutorial(false)}
+                    className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                <div className="space-y-8">
+                  {/* Step 1 */}
+                  <div className="flex flex-col md:flex-row gap-6 items-center">
+                    <div className="w-full md:w-1/2 bg-zinc-100 dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 flex items-center justify-center relative overflow-hidden p-2">
+                      <img src="/seller%20guide/silver.png" alt="Silver Tier Example" className="w-full h-auto object-contain rounded-xl shadow-md" />
+                    </div>
+                    <div className="w-full md:w-1/2 space-y-2">
+                      <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-yellow-500/10 text-yellow-500 font-black text-xs mb-2">1</div>
+                      <h4 className="text-lg font-bold dark:text-white text-zinc-900">Silver Tier (Level 1)</h4>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">Set up an entry-level tier for your new sellers. Typically, you can offer a <span className="font-bold text-green-500">5% discount</span> on all products without free shipping.</p>
+                    </div>
+                  </div>
+
+                  {/* Step 2 */}
+                  <div className="flex flex-col md:flex-row-reverse gap-6 items-center">
+                    <div className="w-full md:w-1/2 bg-zinc-100 dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 flex items-center justify-center relative overflow-hidden p-2">
+                      <img src="/seller%20guide/gold.png" alt="Gold Tier Example" className="w-full h-auto object-contain rounded-xl shadow-md" />
+                    </div>
+                    <div className="w-full md:w-1/2 space-y-2">
+                      <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-orange-500/10 text-orange-500 font-black text-xs mb-2">2</div>
+                      <h4 className="text-lg font-bold dark:text-white text-zinc-900">Gold Tier (Level 2)</h4>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">Create a mid-level tier to motivate your sellers. A good standard is a <span className="font-bold text-green-500">10% discount</span> on all products.</p>
+                    </div>
+                  </div>
+
+                  {/* Step 3 */}
+                  <div className="flex flex-col md:flex-row gap-6 items-center">
+                    <div className="w-full md:w-1/2 bg-zinc-100 dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 flex items-center justify-center relative overflow-hidden p-2">
+                      <img src="/seller%20guide/platinum.png" alt="Platinum Tier Example" className="w-full h-auto object-contain rounded-xl shadow-md" />
+                    </div>
+                    <div className="w-full md:w-1/2 space-y-2">
+                      <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-500/10 text-purple-500 font-black text-xs mb-2">3</div>
+                      <h4 className="text-lg font-bold dark:text-white text-zinc-900">Platinum Tier (Level 3)</h4>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">Reward your top-performing sellers with the highest tier. Set it to a <span className="font-bold text-green-500">15% discount</span> and enable <span className="font-bold text-blue-500">Free Shipping</span>.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 flex justify-end">
+                  <button 
+                    onClick={() => setShowTutorial(false)}
+                    className="px-8 py-3.5 bg-yellow-500 text-zinc-900 rounded-full font-black uppercase tracking-widest text-xs hover:brightness-110 shadow-lg shadow-yellow-500/20 transition-all flex items-center gap-2"
+                  >
+                    Got it <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </AdminLayout>
   );

@@ -18,6 +18,7 @@ interface BusinessSettings {
   facebook?: string | null;
   instagram?: string | null;
   tiktok?: string | null;
+  businessFont?: string | null;
 }
 
 interface BusinessContextType {

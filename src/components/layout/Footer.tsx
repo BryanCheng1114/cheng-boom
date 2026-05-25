@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import Head from 'next/head';
 import { Phone, MessageCircle, Mail, MapPin, ChevronRight } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useBusiness } from '../../context/BusinessContext';
@@ -55,6 +56,16 @@ export function Footer() {
     window.open(`https://wa.me/${WHATSAPP_NUMBER}`, '_blank');
   };
 
+  const FONT_MAP: Record<string, string> = {
+    'Impact': "Impact, 'Arial Black', sans-serif",
+    'Playfair Display': "Georgia, 'Times New Roman', serif",
+    'Bebas Neue': "'Arial Black', 'Arial Bold', sans-serif",
+    'Pacifico': "'Comic Sans MS', 'Bradley Hand', cursive",
+    'Montserrat': "'Trebuchet MS', 'Lucida Grande', sans-serif",
+  };
+  const selectedFont = settings?.businessFont || 'Impact';
+  const fontFamily = FONT_MAP[selectedFont] || FONT_MAP['Impact'];
+
   return (
     <footer className="bg-gray-50 dark:bg-zinc-950 border-t border-gray-200 dark:border-zinc-800 mt-auto transition-colors duration-300">
 
@@ -74,7 +85,7 @@ export function Footer() {
               </div>
               <span 
                 className="font-black text-3xl italic tracking-wider bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300 origin-left inline-block pr-2"
-                style={{ fontFamily: "'Impact', 'Arial Black', sans-serif" }}
+                style={{ fontFamily }}
               >
                 {settings?.businessName || 'Cheng-BOOM'}
               </span>
@@ -285,6 +296,24 @@ export function Footer() {
               )}
 
             </ul>
+
+            {settings?.address && (
+              <div className="mt-4">
+                <a 
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.address)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-start gap-3 transition-colors group text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400"
+                >
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors
+                    bg-zinc-100 dark:bg-zinc-800 group-hover:bg-red-100 dark:group-hover:bg-red-500/20"
+                  >
+                    <MapPin size={15} className="text-zinc-600 dark:text-zinc-400 group-hover:text-red-600 dark:group-hover:text-red-400" />
+                  </div>
+                  <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap flex-1 mt-1">{settings.address}</p>
+                </a>
+              </div>
+            )}
           </div>
 
         </div>
