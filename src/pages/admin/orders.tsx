@@ -163,7 +163,7 @@ const OrdersPage = () => {
               onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
               className="bg-transparent outline-none dark:text-white text-zinc-900 font-bold text-sm pr-10 appearance-none cursor-pointer"
             >
-              <option value="All" className="dark:bg-zinc-900 bg-white">All</option>
+              <option value="All" className="dark:bg-zinc-900 bg-white">{t('all_status')}</option>
               <option value="Pending" className="dark:bg-zinc-900 bg-white">{t('incoming')}</option>
               <option value="In Process" className="dark:bg-zinc-900 bg-white">{t('processing')}</option>
               <option value="Delivering" className="dark:bg-zinc-900 bg-white">{t('out_for_delivery')}</option>

@@ -12,7 +12,8 @@ import {
   ChevronRight,
   ShoppingBag,
   Building,
-  Award
+  Award,
+  TrendingUp
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -55,11 +56,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
 
   const navItems = [
     { name: t('dashboard'), key: 'dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+    { name: t('revenue'), key: 'revenue', path: '/admin/revenue', icon: TrendingUp },
     { name: t('inventory'), key: 'inventory', path: '/admin/product', icon: Package },
     { name: t('orders'), key: 'orders', path: '/admin/orders', icon: ShoppingBag },
     { name: t('customers'), key: 'customers', path: '/admin/customer', icon: Users },
-    { name: 'Seller Setup', key: 'seller-setup', path: '/admin/seller-setup', icon: Award },
-    { name: 'Business Setup', key: 'business-setup', path: '/admin/business-setup', icon: Building },
+    { name: t('seller_setup') || 'Seller Setup', key: 'seller-setup', path: '/admin/seller-setup', icon: Award },
+    { name: t('business_setup') || 'Business Setup', key: 'business-setup', path: '/admin/business-setup', icon: Building },
   ];
 
   const handleLogout = async () => {
@@ -96,7 +98,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
                 className="flex flex-col"
               >
                 <span className={`font-black tracking-[0.15em] text-lg italic leading-tight uppercase ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}>
-                  MANAGEMENT
+                  {t('management') || 'MANAGEMENT'}
                 </span>
               </motion.div>
             ) : (

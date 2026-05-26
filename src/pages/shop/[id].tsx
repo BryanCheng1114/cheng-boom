@@ -19,6 +19,18 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   const [localQty, setLocalQty] = useState(0);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
+  const [activeImageIdx, setActiveImageIdx] = useState(0);
+
+  const cartItemSafe = items.find((item) => item.id === product?.id);
+  const currentCartQtySafe = cartItemSafe?.quantity || 0;
+  const maxAvailableSafe = Math.max(0, (product?.stock || 0) - currentCartQtySafe);
+
+  // Sync / Clamp local selection if it exceeds max available stock
+  useEffect(() => {
+    if (localQty > maxAvailableSafe) {
+      setLocalQty(maxAvailableSafe);
+    }
+  }, [maxAvailableSafe, localQty]);
 
   // Handle fallback state for static generation
   if (router.isFallback) {
@@ -81,13 +93,6 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   const currentCartQty = cartItem?.quantity || 0;
   const maxAvailable = Math.max(0, stock - currentCartQty);
 
-  // Sync / Clamp local selection if it exceeds max available stock
-  useEffect(() => {
-    if (localQty > maxAvailable) {
-      setLocalQty(maxAvailable);
-    }
-  }, [maxAvailable, localQty]);
-
   const handleAddToCart = () => {
     if (localQty > 0 && localQty <= maxAvailable) {
       if (imageRef.current) {
@@ -120,7 +125,8 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   translatedName = translatedName || (t.products as any)?.[product.id]?.name || product.name;
   
   // @ts-ignore
-  const translatedDesc = (t.products as any)?.[product.id]?.desc || product.description;
+  let translatedDesc = (locale === 'zh' && product.descriptionZh) ? product.descriptionZh : (locale === 'ms' && product.descriptionMs) ? product.descriptionMs : null;
+  translatedDesc = translatedDesc || (t.products as any)?.[product.id]?.desc || product.description;
   
   const catKey = product.category ? product.category.toLowerCase().replace(/\s+/g, '') : '';
   // @ts-ignore
@@ -131,7 +137,6 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   const videoId = product.videoUrl?.split('v=')[1]?.split('&')[0] || product.videoUrl?.split('youtu.be/')[1];
   const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : null;
 
-  const [activeImageIdx, setActiveImageIdx] = useState(0);
   const images = product.images || [];
 
   return (
@@ -378,7 +383,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
               <div className="space-y-2">
                 <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest">{t.productDetail.productDetails}</h4>
                 <div className="space-y-1 text-sm text-zinc-600 dark:text-zinc-300 font-medium">
-                  <p>{t.productDetail.code}: {product.id.toUpperCase()}</p>
+                  <p>{t.productDetail.code}: {product.code?.toUpperCase() || product.id.toUpperCase()}</p>
                   <p>{t.productDetail.name}: {translatedName}</p>
                   <p>{t.productDetail.type}: {translatedCategory}</p>
                 </div>
@@ -386,7 +391,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
               <div className="space-y-2">
                 <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest">{t.productDetail.productDescription}</h4>
-                <p className="text-sm text-zinc-600 dark:text-zinc-300 font-medium">
+                <p className="text-sm text-zinc-600 dark:text-zinc-300 font-medium whitespace-pre-wrap">
                   {translatedDesc}
                 </p>
               </div>

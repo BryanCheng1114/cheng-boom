@@ -39,7 +39,7 @@ import { useBusiness } from '../context/BusinessContext';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { settings } = useBusiness();
   const { clearCart } = useCart();
   const [user, setUser] = useState<any>(null);
@@ -50,6 +50,34 @@ export default function ProfilePage() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  const logoutTranslations = {
+    title: { en: 'Log Out', zh: '登出', ms: 'Log Keluar' },
+    message: { en: 'Are you sure you want to log out from your account?', zh: '您确定要退出您的帐户吗？', ms: 'Adakah anda pasti ingin log keluar dari akaun anda?' },
+    confirm: { en: 'Yes, log out', zh: '是的，登出', ms: 'Ya, log keluar' },
+    cancel: { en: 'Cancel', zh: '取消', ms: 'Batal' }
+  };
+
+  const statusTranslations: Record<string, Record<string, string>> = {
+    'All': { en: 'All Status', zh: '所有状态', ms: 'Semua Status' },
+    'Completed': { en: 'Completed', zh: '已完成', ms: 'Selesai' },
+    'Pending': { en: 'Pending', zh: '待处理', ms: 'Menunggu' },
+    'In Process': { en: 'In Process', zh: '处理中', ms: 'Sedang Diproses' },
+    'Cancelled': { en: 'Cancelled', zh: '已取消', ms: 'Dibatalkan' }
+  };
+
+  const searchPlaceholderTranslations: Record<string, string> = {
+    en: 'Search by Order ID or Date...',
+    zh: '按订单 ID 或日期搜索...',
+    ms: 'Cari mengikut ID Pesanan atau Tarikh...'
+  };
+  
+  const noOrdersSearchTranslations: Record<string, string> = {
+    en: 'No orders match your search.',
+    zh: '没有符合您搜索的订单。',
+    ms: 'Tiada pesanan yang sepadan dengan carian anda.'
+  };
 
   // Form States
   const [editForm, setEditForm] = useState({
@@ -239,11 +267,7 @@ export default function ProfilePage() {
       </Head>
 
       <div className="min-h-screen bg-background relative overflow-hidden dark:bg-zinc-950 pb-20 text-left text-foreground">
-        {/* Background Gradients */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-orange-500/10 rounded-full blur-[120px]" />
-        </div>
+
 
         <div className="max-w-6xl mx-auto px-4 py-12 relative z-10">
           
@@ -341,7 +365,7 @@ export default function ProfilePage() {
                     {activeTab !== 'all_orders' && <ChevronRight size={16} />}
                   </button>
                   <button 
-                    onClick={handleLogout}
+                    onClick={() => setIsLogoutModalOpen(true)}
                     className="w-full flex items-center gap-3 p-4 rounded-2xl bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-all font-bold text-sm mt-4 border border-red-500/10"
                   >
                     <LogOut size={18} />
@@ -642,7 +666,7 @@ export default function ProfilePage() {
                                     <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tight ${
                                       order.status === 'Completed' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
                                     }`}>
-                                      {order.status}
+                                      {statusTranslations[order.status as string]?.[locale as string] || order.status}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-2 mt-1">
@@ -758,11 +782,11 @@ export default function ProfilePage() {
                             onChange={(e) => setStatusFilter(e.target.value)}
                             className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-zinc-500/5 dark:bg-zinc-900 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold text-sm text-foreground dark:text-white cursor-pointer appearance-none"
                           >
-                            <option value="All" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">All Status</option>
-                            <option value="Completed" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Completed</option>
-                            <option value="Pending" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Pending</option>
-                            <option value="In Process" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">In Process</option>
-                            <option value="Cancelled" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">Cancelled</option>
+                            <option value="All" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">{statusTranslations['All']?.[locale as string] || statusTranslations['All'].en}</option>
+                            <option value="Completed" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">{statusTranslations['Completed']?.[locale as string] || statusTranslations['Completed'].en}</option>
+                            <option value="Pending" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">{statusTranslations['Pending']?.[locale as string] || statusTranslations['Pending'].en}</option>
+                            <option value="In Process" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">{statusTranslations['In Process']?.[locale as string] || statusTranslations['In Process'].en}</option>
+                            <option value="Cancelled" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">{statusTranslations['Cancelled']?.[locale as string] || statusTranslations['Cancelled'].en}</option>
                           </select>
 
                           <div className="relative w-full sm:w-auto">
@@ -771,7 +795,7 @@ export default function ProfilePage() {
                             </div>
                             <input
                               type="text"
-                              placeholder={t.profilePage?.searchOrders || 'Search by Order ID or Date...'}
+                              placeholder={searchPlaceholderTranslations[locale as string] || searchPlaceholderTranslations.en}
                               className="w-full sm:w-64 pl-10 pr-10 py-3 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold text-sm text-foreground dark:text-white"
                               value={searchQuery}
                               onChange={(e) => setSearchQuery(e.target.value)}
@@ -794,7 +818,7 @@ export default function ProfilePage() {
                             {searchQuery ? <Search size={32} /> : <Package size={32} />}
                           </div>
                           <p className="text-sm font-bold text-zinc-400">
-                            {searchQuery ? 'No orders match your search.' : (t.profilePage?.noOrdersYet || "You haven't placed any orders yet.")}
+                            {searchQuery ? (noOrdersSearchTranslations[locale as string] || noOrdersSearchTranslations.en) : (t.profilePage?.noOrdersYet || "You haven't placed any orders yet.")}
                           </p>
                         </div>
                       ) : (
@@ -815,7 +839,7 @@ export default function ProfilePage() {
                                     <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tight ${
                                       order.status === 'Completed' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
                                     }`}>
-                                      {order.status}
+                                      {statusTranslations[order.status as string]?.[locale as string] || order.status}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-2 mt-1">
@@ -887,7 +911,7 @@ export default function ProfilePage() {
                         selectedOrder.status === 'Completed' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
                       }`}>
                         <div className={`w-1.5 h-1.5 rounded-full ${selectedOrder.status === 'Completed' ? 'bg-green-500' : 'bg-orange-500'} animate-pulse`} />
-                        {selectedOrder.status}
+                        {statusTranslations[selectedOrder.status as string]?.[locale as string] || selectedOrder.status}
                       </div>
                     </div>
 
@@ -989,6 +1013,57 @@ export default function ProfilePage() {
           )}
         </AnimatePresence>
 
+        {/* Logout Confirmation Modal */}
+        <AnimatePresence>
+          {isLogoutModalOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden relative"
+              >
+                <div className="flex justify-between items-center p-6 border-b border-zinc-100 dark:border-zinc-800/50">
+                  <h3 className="text-lg font-black text-foreground">
+                    {logoutTranslations.title[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.title.en}
+                  </h3>
+                  <button 
+                    onClick={() => setIsLogoutModalOpen(false)}
+                    className="text-zinc-400 hover:text-foreground transition-colors p-1"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                <div className="p-6">
+                  <p className="text-zinc-600 dark:text-zinc-300 font-medium">
+                    {logoutTranslations.message[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.message.en}
+                  </p>
+                  
+                  <div className="mt-8 flex gap-3">
+                    <button
+                      onClick={() => setIsLogoutModalOpen(false)}
+                      className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white transition-colors"
+                    >
+                      {logoutTranslations.cancel[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.cancel.en}
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/20"
+                    >
+                      {logoutTranslations.confirm[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.confirm.en}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </>
   );

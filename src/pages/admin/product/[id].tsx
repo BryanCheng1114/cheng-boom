@@ -19,14 +19,38 @@ import {
 } from 'lucide-react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import Link from 'next/link';
+import { useLanguage } from '../../../context/LanguageContext';
 
 const AdminProductDetail = () => {
   const router = useRouter();
   const { id } = router.query;
   const [product, setProduct] = useState<any>(null);
+  const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { language, t } = useLanguage();
+
+  const getTranslatedText = (en: string, zh?: string, ms?: string) => {
+    if (language === 'zh' && zh) return zh;
+    if (language === 'ms' && ms) return ms;
+    return en;
+  };
+
+  const getTranslatedCategory = (categoryId: string) => {
+    if (!categoryId) return '-';
+    const category = categories.find(c => c.id === categoryId || c.name === categoryId);
+    if (!category) return categoryId;
+    return getTranslatedText(category.name, category.nameZh, category.nameMs);
+  };
+
+  const getTranslatedStatus = (status: string) => {
+    if (status === 'Live') return t('live_products');
+    if (status === 'Hold') return t('hold');
+    if (status === 'Deactive') return t('deactive');
+    return status || '-';
+  };
 
   // Close lightbox on Escape key
   useEffect(() => {
@@ -38,15 +62,25 @@ const AdminProductDetail = () => {
   useEffect(() => {
     if (!id) return;
 
-    const fetchProduct = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`/api/products/${id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setProduct(data);
+        const [prodRes, catRes] = await Promise.all([
+          fetch(`/api/products/${id}`),
+          fetch('/api/categories')
+        ]);
+
+        if (prodRes.ok) {
+          const prodData = await prodRes.json();
+          setProduct(prodData);
         } else {
-          alert('Product not found');
+          alert(t('product_not_found'));
           router.push('/admin/product');
+          return;
+        }
+
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          setCategories(catData);
         }
       } catch (err) {
         console.error(err);
@@ -55,12 +89,10 @@ const AdminProductDetail = () => {
       }
     };
 
-    fetchProduct();
-  }, [id]);
+    fetchData();
+  }, [id, t]);
 
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-    
+  const confirmDelete = async () => {
     try {
       const response = await fetch(`/api/products/${id}`, {
         method: 'DELETE',
@@ -68,18 +100,21 @@ const AdminProductDetail = () => {
       if (response.ok) {
         router.push('/admin/product');
       } else {
-        alert('Failed to delete product');
+        alert(t('failed_delete_product'));
       }
     } catch (error) {
       console.error(error);
+      alert(t('failed_delete_product'));
+    } finally {
+      setShowDeleteModal(false);
     }
   };
 
   if (isLoading) {
     return (
-      <AdminLayout title="Loading...">
+      <AdminLayout title={t('loading')}>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <p className="text-zinc-500 font-black uppercase tracking-[0.3em] animate-pulse">Fetching Product Details...</p>
+          <p className="text-zinc-500 font-black uppercase tracking-[0.3em] animate-pulse">{t('fetching_product_details')}</p>
         </div>
       </AdminLayout>
     );
@@ -92,8 +127,17 @@ const AdminProductDetail = () => {
   const videoId = product.videoUrl?.split('v=')[1]?.split('&')[0] || product.videoUrl?.split('youtu.be/')[1];
   const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : null;
 
+  // Localized Product Name
+  const localizedName = language === 'zh' && product.nameZh ? product.nameZh : language === 'ms' && product.nameMs ? product.nameMs : product.name;
+
+  // Localized Category Name
+  const activeCategoryObj = categories.find(c => c.name === product.category);
+  const localizedCategory = language === 'zh' && activeCategoryObj?.nameZh ? activeCategoryObj.nameZh : language === 'ms' && activeCategoryObj?.nameMs ? activeCategoryObj.nameMs : product.category;
+
+
+
   return (
-    <AdminLayout title={product.name}>
+    <AdminLayout title={getTranslatedText(product.name, product.nameZh, product.nameMs)}>
       <div className="max-w-7xl mx-auto pb-20">
 
         {/* Top Bar: Back + Actions */}
@@ -105,7 +149,7 @@ const AdminProductDetail = () => {
             <div className="p-2.5 bg-zinc-500/10 rounded-xl group-hover:bg-zinc-500/20 transition-all">
               <ChevronLeft size={18} />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest">Back to Inventory</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">{t('back_to_inventory')}</span>
           </Link>
 
           <div className="flex flex-wrap gap-2">
@@ -114,19 +158,19 @@ const AdminProductDetail = () => {
               target="_blank"
               className="flex items-center gap-2 px-5 py-2.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-600 dark:text-yellow-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500/20 transition-all"
             >
-              <ExternalLink size={14} /> View Live Store
+              <ExternalLink size={14} /> {t('view_live_store')}
             </Link>
             <Link
               href={`/admin/product/edit/${product.id}`}
               className="flex items-center gap-2 px-5 py-2.5 bg-zinc-500/10 border border-zinc-500/20 text-zinc-600 dark:text-zinc-300 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-500/20 transition-all"
             >
-              <Edit size={14} /> Edit Product
+              <Edit size={14} /> {t('edit_product')}
             </Link>
             <button
-              onClick={handleDelete}
+              onClick={() => setShowDeleteModal(true)}
               className="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/20 transition-all"
             >
-              <Trash2 size={14} /> Delete
+              <Trash2 size={14} /> {t('delete')}
             </button>
           </div>
         </div>
@@ -183,19 +227,16 @@ const AdminProductDetail = () => {
                 <Package size={140} className="dark:text-white text-zinc-900" />
               </div>
               <div className="relative z-10">
-                <div className="flex flex-wrap items-center gap-2 mb-4">
-                  <span className="px-3 py-1 bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 rounded-lg text-[9px] font-black tracking-widest uppercase border border-yellow-500/20">
-                    {product.category}
-                  </span>
-                  {product.code && (
-                    <span className="px-3 py-1 bg-zinc-500/10 text-zinc-500 rounded-lg text-[9px] font-black tracking-widest uppercase border border-zinc-500/20">
-                      {product.code}
-                    </span>
-                  )}
+                <div className="flex flex-wrap items-center gap-4 mt-8">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 rounded-2xl border border-yellow-500/20 shadow-sm">
+                    <Tag size={16} className="text-yellow-500" />
+                    <span className="font-semibold">{getTranslatedCategory(product.category)}</span>
+                  </div>
                 </div>
-                <h1 className="text-4xl font-black italic uppercase tracking-tight dark:text-white text-zinc-900 leading-tight">
-                  {product.name}
+                <h1 className="text-4xl font-black italic uppercase tracking-tight dark:text-white text-zinc-900 leading-tight mt-4">
+                  {getTranslatedText(product.name, product.nameZh, product.nameMs)}
                 </h1>
+                <p className="text-zinc-500 font-medium text-lg mt-2 font-mono">#{product.code}</p>
               </div>
             </div>
 
@@ -203,57 +244,67 @@ const AdminProductDetail = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="dark:bg-zinc-900/40 bg-zinc-50 p-6 rounded-[24px] border dark:border-white/5 border-zinc-200">
                 <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                  <Package size={11} className="text-blue-500" /> Stock Level
+                  <Package size={11} className="text-blue-500" /> {t('stock_level')}
                 </p>
                 <p className="text-3xl font-black italic dark:text-white text-zinc-900">
                   {product.stock}
-                  <span className="text-xs not-italic font-bold text-zinc-500 uppercase ml-1.5">units</span>
+                  <span className="text-xs not-italic font-bold text-zinc-500 uppercase ml-1.5">{t('units')}</span>
                 </p>
               </div>
               <div className="dark:bg-zinc-900/40 bg-zinc-50 p-6 rounded-[24px] border dark:border-white/5 border-zinc-200">
-                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                  <CheckCircle size={11} className="text-green-500" /> Visibility
-                </p>
-                <p className={`text-3xl font-black italic ${
-                  product.status === 'Live' ? 'text-green-500' :
-                  product.status === 'Hold' ? 'text-yellow-500' : 'text-red-500'
-                }`}>
-                  {product.status}
-                </p>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className={`p-2 rounded-xl ${
+                    product.status === 'Live' ? 'bg-emerald-500/10 text-emerald-500' :
+                    product.status === 'Hold' ? 'bg-orange-500/10 text-orange-500' :
+                    'bg-red-500/10 text-red-500'
+                  }`}>
+                    <CheckCircle size={16} />
+                  </div>
+                  <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('col_status')}</h4>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className={`text-2xl font-black tracking-tight ${
+                    product.status === 'Live' ? 'text-emerald-500' :
+                    product.status === 'Hold' ? 'text-orange-500' :
+                    'text-red-500'
+                  }`}>
+                    {getTranslatedStatus(product.status)}
+                  </span>
+                </div>
               </div>
             </div>
 
             {/* Pricing */}
             <div className="dark:bg-zinc-900/40 bg-zinc-50 p-8 rounded-[32px] border dark:border-white/5 border-zinc-200 shadow-xl">
               <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-5 flex items-center gap-1.5">
-                <DollarSign size={11} className="text-yellow-500" /> Pricing Structure
+                <DollarSign size={11} className="text-yellow-500" /> {t('pricing_structure')}
               </p>
               <div className="mb-5 pb-5 border-b dark:border-white/5 border-zinc-200 flex items-end justify-between">
                 <div>
-                  <p className="text-[9px] text-zinc-400 font-black uppercase tracking-widest mb-1">Active Price</p>
+                  <p className="text-[9px] text-zinc-400 font-black uppercase tracking-widest mb-1">{t('active_price')}</p>
                   <h2 className="text-5xl font-black italic text-yellow-500 tracking-tighter">RM {activePrice.toFixed(2)}</h2>
                 </div>
                 {hasPromotion && (
                   <div className="text-right">
-                    <p className="text-[9px] font-black text-green-500 uppercase tracking-widest mb-1">You Save</p>
+                    <p className="text-[9px] font-black text-green-500 uppercase tracking-widest mb-1">{t('you_save')}</p>
                     <span className="text-xl font-black text-green-500">- RM {(product.price - product.promotion).toFixed(2)}</span>
                   </div>
                 )}
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                  <span className="text-zinc-500">Base Price</span>
+                  <span className="text-zinc-500">{t('original_price').replace(' (RM)', '')}</span>
                   <span className={hasPromotion ? 'line-through text-zinc-400 dark:text-zinc-600' : 'dark:text-zinc-300 text-zinc-700'}>RM {product.price.toFixed(2)}</span>
                 </div>
                 {product.sellerPrice !== null && product.sellerPrice !== undefined && (
                   <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                    <span className="text-zinc-500">Seller Price</span>
+                    <span className="text-zinc-500">{t('seller_price').replace(' (RM)', '')}</span>
                     <span className="text-blue-500">RM {product.sellerPrice.toFixed(2)}</span>
                   </div>
                 )}
                 {hasPromotion && (
                   <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                    <span className="text-zinc-500">Promo Price</span>
+                    <span className="text-zinc-500">{t('promo_price')}</span>
                     <span className="text-yellow-500">RM {product.promotion.toFixed(2)}</span>
                   </div>
                 )}
@@ -267,14 +318,14 @@ const AdminProductDetail = () => {
           <div className="dark:bg-zinc-900/40 bg-zinc-50 p-10 rounded-[40px] border dark:border-white/5 border-zinc-200 shadow-xl">
             <div className="flex items-center gap-3 mb-5">
               <div className="p-2 bg-yellow-500/10 text-yellow-500 rounded-xl"><Info size={16} /></div>
-              <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Description</h4>
+              <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('item_description')}</h4>
             </div>
-            <p className="dark:text-zinc-400 text-zinc-600 font-medium leading-relaxed text-sm">
-              {product.description}
+            <p className="dark:text-zinc-400 text-zinc-600 font-medium leading-relaxed text-sm whitespace-pre-wrap">
+              {getTranslatedText(product.description, product.descriptionZh, product.descriptionMs) || t('no_description')}
             </p>
             <div className="mt-8 pt-6 border-t dark:border-white/5 border-zinc-200 flex items-center gap-3 text-[9px] font-black uppercase tracking-widest text-zinc-500">
               <Clock size={12} />
-              <span>Last Updated: {new Date().toLocaleDateString()}</span>
+              <span>{t('last_updated')}: {new Date().toLocaleDateString()}</span>
             </div>
           </div>
 
@@ -282,14 +333,14 @@ const AdminProductDetail = () => {
             <div className="dark:bg-zinc-900/40 bg-zinc-50 rounded-[40px] overflow-hidden border dark:border-white/5 border-zinc-200 shadow-xl">
               <div className="px-10 py-6 border-b dark:border-white/5 border-zinc-200 flex items-center gap-3">
                 <div className="p-2 bg-red-500/10 text-red-500 rounded-xl"><VideoIcon size={16} /></div>
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Live Demonstration</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('live_demonstration')}</h3>
               </div>
               <div className="aspect-video w-full">
                 <iframe
                   src={embedUrl}
                   className="w-full h-full border-0"
                   allowFullScreen
-                  title="Product Demo"
+                  title={t('product_demo')}
                 />
               </div>
             </div>
@@ -369,6 +420,60 @@ const AdminProductDetail = () => {
                 ))}
               </div>
             )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Center Screen Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowDeleteModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center p-6 border-b border-zinc-100 dark:border-zinc-800/50">
+                <h3 className="text-lg font-black text-zinc-900 dark:text-white">
+                  {t('delete')}
+                </h3>
+                <button 
+                  onClick={() => setShowDeleteModal(false)}
+                  className="text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors p-1"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="p-6 text-left">
+                <p className="text-zinc-600 dark:text-zinc-300 font-medium">
+                  {t('confirm_delete_product')}
+                </p>
+                
+                <div className="mt-8 flex gap-3">
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white transition-colors"
+                  >
+                    {t('cancel')}
+                  </button>
+                  <button
+                    onClick={confirmDelete}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/20"
+                  >
+                    {t('delete')}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

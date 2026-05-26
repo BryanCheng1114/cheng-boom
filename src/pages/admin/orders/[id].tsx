@@ -126,7 +126,7 @@ const OrderDetailsPage = () => {
             className="flex items-center gap-2 text-zinc-500 hover:text-yellow-500 transition-colors font-black uppercase text-[10px] tracking-widest group"
           >
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-            {viewOnly ? 'BACK TO CUSTOMER' : t('back_to_orders')}
+            {viewOnly ? t('back_to_customer') : t('back_to_orders')}
           </button>
 
           <div className="flex items-center gap-4">

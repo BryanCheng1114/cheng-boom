@@ -14,9 +14,11 @@ import {
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useLanguage } from '../../context/LanguageContext';
 
 const DashboardPage = () => {
+  const router = useRouter();
   const { t } = useLanguage();
   const [stats, setStats] = useState({
     totalRevenue: 0,
@@ -66,10 +68,10 @@ const DashboardPage = () => {
   }, []);
 
   const kpis = [
-    { label: t('total_revenue'), value: `RM ${stats.totalRevenue.toLocaleString()}`, sub: t('completed_sales'), icon: TrendingUp, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
-    { label: t('live_inventory'), value: stats.liveProducts, sub: t('active_products'), icon: Package, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { label: t('total_orders'), value: stats.totalOrders, sub: t('all_transactions'), icon: ShoppingBag, color: 'text-orange-500', bg: 'bg-orange-500/10' },
-    { label: t('registered_customers'), value: stats.totalCustomers, sub: t('growth_members'), icon: Users, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+    { label: t('total_revenue'), value: `RM ${stats.totalRevenue.toLocaleString()}`, sub: t('completed_sales'), icon: TrendingUp, color: 'text-yellow-500', bg: 'bg-yellow-500/10', href: '/admin/revenue' },
+    { label: t('live_inventory'), value: stats.liveProducts, sub: t('active_products'), icon: Package, color: 'text-blue-500', bg: 'bg-blue-500/10', href: '/admin/product' },
+    { label: t('total_orders'), value: stats.totalOrders, sub: t('all_transactions'), icon: ShoppingBag, color: 'text-orange-500', bg: 'bg-orange-500/10', href: '/admin/orders' },
+    { label: t('registered_customers'), value: stats.totalCustomers, sub: t('growth_members'), icon: Users, color: 'text-emerald-500', bg: 'bg-emerald-500/10', href: '/admin/customer' },
   ];
 
   return (
@@ -84,13 +86,14 @@ const DashboardPage = () => {
               initial={{ opacity: 0, y: 20 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ delay: i * 0.1 }} 
-              className="dark:bg-zinc-900/40 bg-white border dark:border-white/5 border-zinc-100 rounded-[32px] p-7 transition-all duration-500 group shadow-lg hover:shadow-xl hover:-translate-y-1"
+              onClick={() => stat.href && router.push(stat.href)}
+              className="dark:bg-zinc-900/40 bg-white border dark:border-white/5 border-zinc-100 rounded-[32px] p-7 transition-all duration-500 group shadow-lg hover:shadow-xl hover:-translate-y-1 cursor-pointer"
             >
               <div className="flex items-center justify-between mb-6">
                 <div className={`p-4 rounded-[20px] ${stat.bg} ${stat.color}`}>
                   <stat.icon size={24} strokeWidth={2.5} />
                 </div>
-                <ArrowUpRight size={20} className="text-zinc-500 opacity-0 group-hover:opacity-100 transition-all" />
+                <ArrowUpRight size={20} className="text-zinc-500 opacity-0 group-hover:opacity-100 transition-all group-hover:-translate-y-1 group-hover:translate-x-1" />
               </div>
               <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">{stat.label}</p>
               <h3 className="text-3xl font-black italic tracking-tight mb-2 dark:text-white text-zinc-900">{isLoading ? '---' : stat.value}</h3>
@@ -109,7 +112,7 @@ const DashboardPage = () => {
               <Clock size={16} /> {t('recent_transactions')}
             </h3>
             <Link href="/admin/orders" className="text-[10px] font-black uppercase tracking-widest text-yellow-500 hover:gap-2 flex items-center gap-1 transition-all">
-              {t('View More') || 'More Orders'} <ChevronRight size={14} />
+              {t('view_more') || 'More Orders'} <ChevronRight size={14} />
             </Link>
           </div>
           
@@ -128,7 +131,7 @@ const DashboardPage = () => {
                   {stats.recentOrders.length === 0 ? (
                     <tr><td colSpan={4} className="p-10 text-center text-zinc-500 font-bold uppercase text-[10px]">No recent orders found.</td></tr>
                   ) : stats.recentOrders.map((order: any) => (
-                    <tr key={order.id} className="group hover:bg-zinc-500/5 transition-colors cursor-pointer" onClick={() => (window.location.href = `/admin/orders/${order.id}`)}>
+                    <tr key={order.id} className="group hover:bg-zinc-500/5 transition-colors cursor-pointer" onClick={() => router.push(`/admin/orders/${order.id}`)}>
                       <td className="p-6">
                         <span className="text-xs font-black dark:text-white text-zinc-900 font-mono">#{order.id.slice(-6).toUpperCase()}</span>
                       </td>

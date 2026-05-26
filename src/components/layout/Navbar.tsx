@@ -22,6 +22,14 @@ export function Navbar() {
   const [isWiggling, setIsWiggling] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  const logoutTranslations = {
+    title: { en: 'Log Out', zh: '登出', ms: 'Log Keluar' },
+    message: { en: 'Are you sure you want to log out from your account?', zh: '您确定要退出您的帐户吗？', ms: 'Adakah anda pasti ingin log keluar dari akaun anda?' },
+    confirm: { en: 'Yes, log out', zh: '是的，登出', ms: 'Ya, log keluar' },
+    cancel: { en: 'Cancel', zh: '取消', ms: 'Batal' }
+  };
 
   useEffect(() => {
     const checkUser = () => {
@@ -82,7 +90,8 @@ export function Navbar() {
   const fontFamily = FONT_MAP[selectedFont] || FONT_MAP['Impact'];
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white/70 dark:bg-zinc-950/70 backdrop-blur-2xl border-b border-black/5 dark:border-white/5 transition-colors duration-300">
+    <>
+      <nav className="sticky top-0 z-50 w-full bg-white/70 dark:bg-zinc-950/70 backdrop-blur-2xl border-b border-black/5 dark:border-white/5 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center gap-4">
 
@@ -320,7 +329,7 @@ export function Navbar() {
                       </Link>
                       <div className="h-px bg-zinc-100 dark:bg-zinc-800 mx-3 my-2" />
                       <button 
-                        onClick={handleLogout}
+                        onClick={() => setIsLogoutModalOpen(true)}
                         className="w-full flex items-center gap-3 px-5 py-3 text-sm text-red-500 hover:bg-red-500/5 transition-colors"
                       >
                         <X size={16} /> {t.nav?.profile?.logout || 'Logout'}
@@ -389,5 +398,61 @@ export function Navbar() {
         )}
       </div>
     </nav>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {isLogoutModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden relative"
+            >
+              <div className="flex justify-between items-center p-6 border-b border-zinc-100 dark:border-zinc-800/50">
+                <h3 className="text-lg font-black text-foreground">
+                  {logoutTranslations.title[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.title.en}
+                </h3>
+                <button 
+                  onClick={() => setIsLogoutModalOpen(false)}
+                  className="text-zinc-400 hover:text-foreground transition-colors p-1"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <p className="text-zinc-600 dark:text-zinc-300 font-medium whitespace-normal">
+                  {logoutTranslations.message[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.message.en}
+                </p>
+                
+                <div className="mt-8 flex gap-3">
+                  <button
+                    onClick={() => setIsLogoutModalOpen(false)}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white transition-colors"
+                  >
+                    {logoutTranslations.cancel[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.cancel.en}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsLogoutModalOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/20"
+                  >
+                    {logoutTranslations.confirm[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.confirm.en}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

@@ -22,8 +22,10 @@ model Product {
   code        String?  @unique // Unique product code
   nameZh      String?  // Chinese name translation
   nameMs      String?  // Malay name translation
-  description String
-  videoUrl    String?
+  description   String
+  descriptionZh String?  // Chinese description translation
+  descriptionMs String?  // Malay description translation
+  videoUrl      String?
   stock       Int      @default(0)
   price       Float
   sellerPrice Float?   // Seller special price

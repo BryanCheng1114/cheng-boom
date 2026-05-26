@@ -198,11 +198,11 @@ const CustomerPage = () => {
               <tbody className="divide-y divide-zinc-500/5">
                 {isLoading ? (
                    <tr>
-                    <td colSpan={5} className="p-32 text-center text-zinc-500 font-black uppercase tracking-widest text-xs animate-pulse">Synchronizing Profiles...</td>
+                    <td colSpan={5} className="p-32 text-center text-zinc-500 font-black uppercase tracking-widest text-xs animate-pulse">{t('syncing_profiles')}</td>
                   </tr>
                 ) : paginatedCustomers.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-32 text-center text-zinc-500 font-black uppercase tracking-widest text-xs">No matching customer profiles found.</td>
+                    <td colSpan={5} className="p-32 text-center text-zinc-500 font-black uppercase tracking-widest text-xs">{t('no_customer_profiles_found')}</td>
                   </tr>
                 ) : paginatedCustomers.map((c) => (
                   <tr 

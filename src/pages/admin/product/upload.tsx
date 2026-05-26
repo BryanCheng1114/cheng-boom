@@ -4,9 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Image as ImageIcon, Video, Package, Tag, Info, DollarSign, X, Upload, Plus as PlusIcon, HelpCircle } from 'lucide-react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import Link from 'next/link';
+import { useLanguage } from '../../../context/LanguageContext';
 
 const UploadProductPage = () => {
   const router = useRouter();
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
@@ -20,6 +22,8 @@ const UploadProductPage = () => {
     nameZh: '',
     nameMs: '',
     description: '',
+    descriptionZh: '',
+    descriptionMs: '',
     category: '',
     videoUrl: '',
     stock: '',
@@ -160,13 +164,13 @@ const UploadProductPage = () => {
   };
 
   return (
-    <AdminLayout title="Upload Product">
+    <AdminLayout title={t('upload_new_item')}>
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-10">
           <Link href="/admin/product" className="p-3 hover:bg-zinc-500/10 text-zinc-500 rounded-full transition-all">
             <ChevronLeft size={24} />
           </Link>
-          <h1 className="text-3xl font-black italic uppercase tracking-tight dark:text-white text-zinc-900">Upload New Item</h1>
+          <h1 className="text-3xl font-black italic uppercase tracking-tight dark:text-white text-zinc-900">{t('upload_new_item')}</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -174,7 +178,7 @@ const UploadProductPage = () => {
           <div className="bg-white dark:bg-zinc-900/40 p-8 rounded-[48px] border dark:border-white/10 border-zinc-100 shadow-xl">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-yellow-500/10 text-yellow-500 rounded-lg"><ImageIcon size={18} /></div>
-              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Visual Assets</h2>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t('visual_assets')}</h2>
             </div>
             
             <div className="space-y-6">
@@ -186,7 +190,7 @@ const UploadProductPage = () => {
                   <Upload size={32} />
                 </div>
                 <div className="text-center">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Click to Select Multiple Images</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('click_select_images')}</p>
                   <p className="text-[9px] text-zinc-500 mt-1 font-medium italic">Max 10MB per file. PNG, JPG supported.</p>
                 </div>
                 <input 
@@ -225,7 +229,7 @@ const UploadProductPage = () => {
                       className="aspect-square rounded-2xl border-2 border-dashed dark:border-white/5 flex flex-col items-center justify-center text-zinc-500 hover:text-yellow-500 hover:border-yellow-500/50 transition-all"
                     >
                       <PlusIcon size={20} />
-                      <span className="text-[8px] font-black uppercase tracking-widest mt-2">Add More</span>
+                      <span className="text-[8px] font-black uppercase tracking-widest mt-2">{t('add_more')}</span>
                     </button>
                   </motion.div>
                 )}
@@ -235,7 +239,7 @@ const UploadProductPage = () => {
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
                     <Video size={14} className="text-zinc-500" />
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">YouTube Video Link</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('youtube_link')}</label>
                     <button 
                       type="button"
                       onMouseEnter={() => setShowYoutubeGuide(true)}
@@ -251,7 +255,7 @@ const UploadProductPage = () => {
                     rel="noreferrer"
                     className="text-[10px] font-black uppercase tracking-widest text-yellow-500 hover:text-yellow-600 dark:hover:text-yellow-400 transition-all flex items-center gap-1 hover:gap-2 group"
                   >
-                    Open YouTube <ChevronRight size={12} strokeWidth={3} className="opacity-70 group-hover:opacity-100 transition-opacity" />
+                    {t('open_youtube')} <ChevronRight size={12} strokeWidth={3} className="opacity-70 group-hover:opacity-100 transition-opacity" />
                   </a>
                 </div>
 
@@ -263,23 +267,23 @@ const UploadProductPage = () => {
                       exit={{ opacity: 0, y: 10 }}
                       className="absolute z-50 bottom-full left-0 mb-2 w-[600px] bg-zinc-900 border border-white/10 rounded-[32px] p-8 shadow-2xl pointer-events-none"
                     >
-                      <h4 className="text-sm font-black text-white uppercase tracking-widest mb-4 border-b border-white/10 pb-3">How to Add Video</h4>
+                      <h4 className="text-sm font-black text-white uppercase tracking-widest mb-4 border-b border-white/10 pb-3">{t('how_to_add_video')}</h4>
                       <div className="space-y-4">
                         <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
                           <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">1</span>
-                          <p>Click "Open YouTube" to visit youtube.com</p>
+                          <p>{t('yt_step_1')}</p>
                         </div>
                         <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
                           <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">2</span>
-                          <p>Find and open the video you want to display</p>
+                          <p>{t('yt_step_2')}</p>
                         </div>
                         <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
                           <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">3</span>
-                          <p>Copy the URL from the browser address bar</p>
+                          <p>{t('yt_step_3')}</p>
                         </div>
                         <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
                           <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">4</span>
-                          <p>Paste the copied link into this input box</p>
+                          <p>{t('yt_step_4')}</p>
                         </div>
                       </div>
                       <div className="mt-6 bg-zinc-800/50 rounded-2xl overflow-hidden border border-white/5 p-2">
@@ -305,13 +309,13 @@ const UploadProductPage = () => {
           <div className="bg-white dark:bg-zinc-900/40 p-8 rounded-[48px] border dark:border-white/10 border-zinc-100 shadow-xl">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg"><Info size={18} /></div>
-              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Product Identity</h2>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t('product_identity')}</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Product English Name */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Product Name (English) *</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('product_name_en')} *</label>
                 <input 
                   type="text" 
                   name="name"
@@ -325,7 +329,7 @@ const UploadProductPage = () => {
 
               {/* Category Select */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Category *</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('categories')} *</label>
                 <select 
                   name="category"
                   value={formData.category}
@@ -333,7 +337,7 @@ const UploadProductPage = () => {
                   className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm cursor-pointer"
                   required
                 >
-                  <option value="">-- Choose Category --</option>
+                  <option value="">{t('choose_category')}</option>
                   {categories.map(cat => (
                     <option key={cat.id} value={cat.name}>{cat.name}</option>
                   ))}
@@ -342,7 +346,7 @@ const UploadProductPage = () => {
 
               {/* Product Code */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Product Code (Unique) *</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('category_code')} *</label>
                 <div className="flex gap-2">
                   <input 
                     type="text" 
@@ -358,14 +362,14 @@ const UploadProductPage = () => {
                     onClick={handleAutoGenerateCode}
                     className="px-6 py-4 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white hover:text-yellow-500 dark:hover:text-yellow-500 font-bold text-[10px] uppercase tracking-wider rounded-2xl transition-all border border-zinc-300/50 dark:border-zinc-700/50 cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
                   >
-                    <span>Auto-Gen</span>
+                    <span>{t('auto_gen')}</span>
                   </button>
                 </div>
               </div>
 
               {/* Chinese Translation */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Chinese Translation (optional)</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('chinese_translation')}</label>
                 <input 
                   type="text" 
                   name="nameZh"
@@ -377,8 +381,8 @@ const UploadProductPage = () => {
               </div>
 
               {/* Malay Translation */}
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Malay Translation (optional)</label>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('malay_translation')}</label>
                 <input 
                   type="text" 
                   name="nameMs"
@@ -389,16 +393,40 @@ const UploadProductPage = () => {
                 />
               </div>
 
-              <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Item Description</label>
-                <textarea 
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold min-h-[120px] dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
-                  placeholder="Detail information..."
-                  required
-                />
+              <div className="md:col-span-2 space-y-8 mt-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('item_description')} (EN)</label>
+                  <textarea 
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    className="w-full px-6 py-4 rounded-2xl border outline-none font-medium leading-relaxed min-h-[140px] dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                    placeholder="Detailed English description..."
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('item_description')} (ZH)</label>
+                  <textarea 
+                    name="descriptionZh"
+                    value={formData.descriptionZh || ''}
+                    onChange={handleChange}
+                    className="w-full px-6 py-4 rounded-2xl border outline-none font-medium leading-relaxed min-h-[140px] dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                    placeholder="中文描述..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('item_description')} (MS)</label>
+                  <textarea 
+                    name="descriptionMs"
+                    value={formData.descriptionMs || ''}
+                    onChange={handleChange}
+                    className="w-full px-6 py-4 rounded-2xl border outline-none font-medium leading-relaxed min-h-[140px] dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                    placeholder="Penerangan dalam Bahasa Melayu..."
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -407,7 +435,7 @@ const UploadProductPage = () => {
           <div className="bg-white dark:bg-zinc-900/40 p-8 rounded-[48px] border dark:border-white/10 border-zinc-100 shadow-xl">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-lg"><DollarSign size={18} /></div>
-              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Inventory & Commerce</h2>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t('inventory_commerce')}</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -415,7 +443,7 @@ const UploadProductPage = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
                   <Package size={14} className="text-zinc-500" />
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Quantity Stock</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{t('quantity_stock')}</label>
                 </div>
                 <input 
                   type="number" 
@@ -432,7 +460,7 @@ const UploadProductPage = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
                   <Tag size={14} className="text-zinc-500" />
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Original Price (RM)</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{t('original_price')}</label>
                 </div>
                 <input 
                   type="text" 
@@ -449,7 +477,7 @@ const UploadProductPage = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
                   <DollarSign size={14} className="text-zinc-500" />
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Seller Price (RM)</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{t('seller_price')}</label>
                 </div>
                 <input 
                   type="text" 
@@ -465,7 +493,7 @@ const UploadProductPage = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-3.5 h-3.5 rounded-full bg-red-500 animate-pulse" />
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Sale Price (RM)</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{t('sale_price')}</label>
                 </div>
                 <input 
                   type="text" 
@@ -486,7 +514,7 @@ const UploadProductPage = () => {
               disabled={isLoading}
               className="w-1/3 py-4 bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-[24px] font-bold text-sm hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer"
             >
-              CANCEL
+              {t('cancel')}
             </button>
             <button 
               type="submit" 
@@ -496,7 +524,7 @@ const UploadProductPage = () => {
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-zinc-950/20 border-t-zinc-950 rounded-full animate-spin" />
               ) : (
-                'CONFIRM UPLOAD'
+                t('confirm_upload')
               )}
             </button>
           </div>

@@ -4,9 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Image as ImageIcon, Package, Info, X, Upload, Trash2, CheckCircle, AlertTriangle } from 'lucide-react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import Link from 'next/link';
+import { useLanguage } from '../../../context/LanguageContext';
 
 const UploadCategoryPage = () => {
   const router = useRouter();
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -144,13 +146,13 @@ const UploadCategoryPage = () => {
   };
 
   return (
-    <AdminLayout title="Upload Category">
+    <AdminLayout title={t('upload_new_category')}>
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-10">
           <Link href="/admin/product" className="p-3 hover:bg-zinc-500/10 text-zinc-500 rounded-full transition-all">
             <ChevronLeft size={24} />
           </Link>
-          <h1 className="text-3xl font-black italic uppercase tracking-tight dark:text-white text-zinc-900">Upload New Category</h1>
+          <h1 className="text-3xl font-black italic uppercase tracking-tight dark:text-white text-zinc-900">{t('upload_new_category')}</h1>
         </div>
 
         {success ? (
@@ -163,16 +165,16 @@ const UploadCategoryPage = () => {
               <CheckCircle size={40} />
             </div>
             <div className="space-y-2">
-              <h4 className="text-2xl font-black italic uppercase tracking-tight dark:text-white text-zinc-900">Category Created Successfully!</h4>
+              <h4 className="text-2xl font-black italic uppercase tracking-tight dark:text-white text-zinc-900">{t('category_created')}</h4>
               <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-md mx-auto">
-                Dynamic category "{formData.name}" has been registered inside the database and is ready to filter products.
+                {formData.name}
               </p>
             </div>
             <button
               onClick={() => router.push('/admin/product')}
               className="px-10 py-4 bg-yellow-500 text-zinc-950 font-black text-[11px] uppercase tracking-widest rounded-2xl hover:brightness-110 transition-all shadow-xl shadow-yellow-500/10"
             >
-              Done & Return to Inventory
+              {t('done_return')}
             </button>
           </motion.div>
         ) : (
@@ -190,7 +192,7 @@ const UploadCategoryPage = () => {
                 <div className="p-2 bg-yellow-500/10 text-yellow-500 rounded-lg">
                   <ImageIcon size={18} />
                 </div>
-                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Visual Assets</h2>
+                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t('visual_assets')}</h2>
               </div>
               
               <div className="space-y-6">
@@ -202,7 +204,7 @@ const UploadCategoryPage = () => {
                     <Upload size={32} />
                   </div>
                   <div className="text-center">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Upload Category Banner Image</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('upload_banner')}</p>
                     <p className="text-[9px] text-zinc-500 mt-1 font-medium italic">Max 10MB file. PNG, JPG supported.</p>
                   </div>
                   <input 
@@ -234,7 +236,7 @@ const UploadCategoryPage = () => {
                         </button>
                       </div>
                       <div>
-                        <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400">Selected Banner Asset</h4>
+                        <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400">{t('selected_banner')}</h4>
                         <p className="text-[10px] text-zinc-500 mt-1">This will display as the custom header image on the shop categories section.</p>
                       </div>
                     </motion.div>
@@ -249,14 +251,14 @@ const UploadCategoryPage = () => {
                 <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg">
                   <Info size={18} />
                 </div>
-                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Category Identity</h2>
+                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t('category_identity')}</h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 {/* Category English Name */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Category Name (English) *</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('category_name_en')} *</label>
                   <input 
                     type="text" 
                     name="name"
@@ -271,7 +273,7 @@ const UploadCategoryPage = () => {
 
                 {/* Category URL Code */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Category Code (URL Key) *</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('category_code')} *</label>
                   <div className="flex gap-2">
                     <input 
                       type="text" 
@@ -288,14 +290,14 @@ const UploadCategoryPage = () => {
                       onClick={handleAutoGenerateCode}
                       className="px-6 py-4 bg-zinc-800 hover:bg-zinc-750 text-white hover:text-yellow-500 font-bold text-[10px] uppercase tracking-wider rounded-2xl transition-all border border-zinc-700/50 cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
                     >
-                      <span>Auto-Gen</span>
+                      <span>{t('auto_gen')}</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Chinese Name */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Chinese Translation (optional)</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('chinese_translation')}</label>
                   <input 
                     type="text" 
                     name="nameZh"
@@ -309,7 +311,7 @@ const UploadCategoryPage = () => {
 
                 {/* Malay Name */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Malay Translation (optional)</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('malay_translation')}</label>
                   <input 
                     type="text" 
                     name="nameMs"
@@ -331,7 +333,7 @@ const UploadCategoryPage = () => {
                 disabled={isLoading}
                 className="w-1/3 py-4 bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-[24px] font-bold text-sm hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer"
               >
-                CANCEL
+                {t('cancel')}
               </button>
               <button 
                 type="submit" 
@@ -341,7 +343,7 @@ const UploadCategoryPage = () => {
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-zinc-950/20 border-t-zinc-950 rounded-full animate-spin" />
                 ) : (
-                  'CONFIRM UPLOAD'
+                  t('confirm_upload')
                 )}
               </button>
             </div>

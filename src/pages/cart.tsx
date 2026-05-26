@@ -7,7 +7,7 @@ import { Trash2, Plus, Minus, ArrowRight, MessageCircle, Shield, X, MapPin, Cred
 import { useEffect, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { cn } from '../utils/cn';
-import { motion, useAnimation } from 'framer-motion';
+import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 
 const paymentMethodLabels: Record<string, Record<string, string>> = {
   'TNG e-wallet': { en: 'TNG eWallet', zh: 'TNG电子钱包', ms: 'e-Dompet TNG' },
@@ -43,7 +43,23 @@ export default function Cart() {
   const [shakeTerms, setShakeTerms] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [isClearCartModalOpen, setIsClearCartModalOpen] = useState(false);
+  const [itemToRemove, setItemToRemove] = useState<string | null>(null);
   const shakeControls = useAnimation();
+
+  const clearCartTranslations = {
+    title: { en: 'Clear Cart', zh: '清空购物车', ms: 'Kosongkan Troli' },
+    message: { en: 'Are you sure you want to clear all items in the cart?', zh: '您确定要清空购物车中的所有商品吗？', ms: 'Adakah anda pasti ingin mengosongkan semua item di dalam troli?' },
+    confirm: { en: 'Yes, clear it', zh: '是的，清空', ms: 'Ya, kosongkan' },
+    cancel: { en: 'Cancel', zh: '取消', ms: 'Batal' }
+  };
+
+  const removeItemTranslations = {
+    title: { en: 'Remove Item', zh: '移除商品', ms: 'Buang Item' },
+    message: { en: 'Are you sure you want to remove this item from your cart?', zh: '您确定要从购物车中移除此商品吗？', ms: 'Adakah anda pasti ingin membuang item ini dari troli anda?' },
+    confirm: { en: 'Yes, remove it', zh: '是的，移除', ms: 'Ya, buang' },
+    cancel: { en: 'Cancel', zh: '取消', ms: 'Batal' }
+  };
 
   const isSeller = typeof window !== 'undefined' && (
     localStorage.getItem('user_role') === 'Seller' || 
@@ -235,9 +251,9 @@ export default function Cart() {
           {t.cart.title} <span className="text-primary italic">{t.cart.selection}</span> ({totalItems} {t.cart.items})
         </h1>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
           {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-3 space-y-6">
             {items.map((item) => (
               <div key={item.id} className="group relative flex flex-col sm:flex-row items-center gap-6 p-6 bg-white dark:bg-zinc-900 border border-border rounded-[32px] shadow-sm hover:shadow-xl transition-all duration-300">
                 {/* Product Image */}
@@ -288,7 +304,7 @@ export default function Cart() {
                   </div>
 
                   <button 
-                    onClick={() => removeItem(item.id)}
+                    onClick={() => setItemToRemove(item.id)}
                     className="p-3 text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all"
                   >
                     <Trash2 size={22} />
@@ -302,7 +318,7 @@ export default function Cart() {
                  ← {t.cart.continueShopping}
                </Link>
               <button 
-                onClick={clearCart}
+                onClick={() => setIsClearCartModalOpen(true)}
                 className="text-red-500 hover:text-red-600 text-sm font-black uppercase tracking-widest transition-colors flex items-center gap-2"
               >
                 <Trash2 size={16} /> {t.cart.clear}
@@ -311,41 +327,41 @@ export default function Cart() {
           </div>
 
           {/* Order Summary Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-zinc-900 text-white dark:bg-zinc-900 border border-zinc-800 rounded-[40px] p-8 sticky top-24 shadow-2xl relative overflow-hidden">
+          <div className="lg:col-span-2">
+            <div className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white border border-border rounded-[40px] p-8 sticky top-24 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
               
-              <h2 className="text-3xl font-black text-white mb-8 tracking-tight">{t.cart.summary}</h2>
+              <h2 className="text-3xl font-black text-zinc-900 dark:text-white mb-8 tracking-tight">{t.cart.summary}</h2>
               
               <div className="space-y-4 mb-8">
-                <div className="flex justify-between text-zinc-400 font-medium">
+                <div className="flex justify-between text-zinc-500 dark:text-zinc-400 font-medium gap-4">
                   <span>{t.cart.subtotal}</span>
-                  <span>RM {totalOriginalPrice.toFixed(2)}</span>
+                  <span className="text-zinc-900 dark:text-white whitespace-nowrap">RM {totalOriginalPrice.toFixed(2)}</span>
                 </div>
                 {totalItemSavings > 0 && (
-                  <div className="flex justify-between text-green-400 font-bold">
+                  <div className="flex justify-between text-green-400 font-bold gap-4">
                     <span>{t.cart.savings || 'Promo Savings'}</span>
-                    <span>- RM {totalItemSavings.toFixed(2)}</span>
+                    <span className="whitespace-nowrap">- RM {totalItemSavings.toFixed(2)}</span>
                   </div>
                 )}
                 {totalDiscount > 0 && (
-                  <div className="flex justify-between text-yellow-500 font-bold">
+                  <div className="flex justify-between text-yellow-500 font-bold gap-4">
                     <span>{locale === 'zh' ? `${sellerLevelName || '卖家'}折扣` : locale === 'ms' ? `Diskaun ${sellerLevelName || 'Penjual'}` : `${sellerLevelName || 'Seller'} Discount (${discountPercent}%)`}</span>
-                    <span>- RM {totalDiscount.toFixed(2)}</span>
+                    <span className="whitespace-nowrap">- RM {totalDiscount.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-zinc-400 font-medium">
+                <div className="flex justify-between text-zinc-500 dark:text-zinc-400 font-medium gap-4">
                   <span>{t.cart.shipping}</span>
-                  <span className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded-md ${isFreeShipping ? 'bg-blue-500/20 text-blue-400 font-black' : 'bg-white/10'}`}>
+                  <span className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded-md whitespace-nowrap ${isFreeShipping ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400 font-black' : 'bg-zinc-100 dark:bg-white/10'}`}>
                     {isFreeShipping ? 'FREE' : t.cart.calculatedNext}
                   </span>
                 </div>
                 
-                <div className="pt-6 border-t border-white/10 flex justify-between items-center">
+                <div className="pt-6 border-t border-border flex justify-between items-end gap-4">
                   <div>
                     <span className="text-sm font-bold text-zinc-500 uppercase tracking-widest block mb-1">{t.cart.totalPayable}</span>
-                    <span className="text-4xl font-black text-primary">RM {totalPrice.toFixed(2)}</span>
                   </div>
+                  <span className="text-4xl font-black text-primary whitespace-nowrap">RM {totalPrice.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -488,9 +504,9 @@ export default function Cart() {
                     {/* Special Notes */}
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">{t.cart.checkout.notes}</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold"
+                      <textarea 
+                        rows={3}
+                        className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold resize-none"
                         placeholder={t.cart.checkout.notesPlaceholder}
                         value={orderDetails.notes}
                         onChange={(e) => setOrderDetails({ ...orderDetails, notes: e.target.value })}
@@ -499,6 +515,17 @@ export default function Cart() {
                   </div>
 
                   <div className="mt-12 flex flex-col gap-4">
+                     <div className="flex justify-end mb-2">
+                       <button
+                         type="button"
+                         onClick={() => setIsGuideOpen(true)}
+                         className="flex items-center gap-1.5 text-zinc-500 hover:text-primary transition-colors text-xs font-black uppercase tracking-widest"
+                       >
+                         <HelpCircle size={14} strokeWidth={3} />
+                         {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}
+                       </button>
+                     </div>
+
                      <button 
                         type="submit"
                         disabled={isSubmitting}
@@ -516,7 +543,7 @@ export default function Cart() {
                           }
                         }}
                         className={cn(
-                          "w-full py-5 px-4 bg-primary text-zinc-900 rounded-[20px] font-black text-lg transition-all flex justify-center items-center gap-2",
+                          "w-full py-5 px-4 mb-2 bg-primary text-zinc-900 rounded-[20px] font-black text-lg transition-all flex justify-center items-center gap-2",
                           (!isWhatsAppTermsAgreed || isSubmitting) ? "opacity-40 cursor-not-allowed grayscale shadow-none" : "hover:brightness-110 shadow-xl hover:shadow-primary/20 active:scale-[0.98]"
                         )}
                      >
@@ -529,17 +556,6 @@ export default function Cart() {
                           {isSubmitting ? 'Processing...' : t.cart.checkout.confirmBtn}
                         </span>
                      </button>
-
-                     <div className="flex justify-end my-2">
-                       <button
-                         type="button"
-                         onClick={() => setIsGuideOpen(true)}
-                         className="flex items-center gap-1.5 text-white hover:text-primary transition-colors text-xs font-black uppercase tracking-widest drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
-                       >
-                         <HelpCircle size={14} strokeWidth={3} />
-                         {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}
-                       </button>
-                     </div>
 
                      {/* Premium custom robot verification checkbox */}
                      <motion.div 
@@ -680,12 +696,12 @@ export default function Cart() {
                    </div>
                  </div>
 
-                 <button 
-                   onClick={() => setIsGuideOpen(false)}
-                   className="w-full mt-10 py-5 bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 rounded-[20px] font-black text-lg transition-all active:scale-[0.98] shadow-xl hover:shadow-black/20"
-                 >
-                   {locale === 'zh' ? '知道了！' : locale === 'ms' ? 'Faham!' : 'Got it!'}
-                 </button>
+                  <button 
+                    onClick={() => setIsGuideOpen(false)}
+                    className="w-full mt-10 py-5 bg-primary text-zinc-900 rounded-[20px] font-black text-lg transition-all shadow-xl hover:shadow-primary/20 hover:brightness-110 active:scale-[0.98]"
+                  >
+                    {locale === 'zh' ? '知道了！' : locale === 'ms' ? 'Faham!' : 'Got it!'}
+                  </button>
               </div>
             </div>
           </div>
@@ -717,6 +733,117 @@ export default function Cart() {
         )}
 
       </div>
+
+      {/* Remove Item Confirmation Modal */}
+      <AnimatePresence>
+        {itemToRemove && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden relative"
+            >
+              <div className="flex justify-between items-center p-6 border-b border-zinc-100 dark:border-zinc-800/50">
+                <h3 className="text-lg font-black text-foreground">
+                  {removeItemTranslations.title[locale as 'en' | 'zh' | 'ms'] || removeItemTranslations.title.en}
+                </h3>
+                <button 
+                  onClick={() => setItemToRemove(null)}
+                  className="text-zinc-400 hover:text-foreground transition-colors p-1"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <p className="text-zinc-600 dark:text-zinc-300 font-medium">
+                  {removeItemTranslations.message[locale as 'en' | 'zh' | 'ms'] || removeItemTranslations.message.en}
+                </p>
+                
+                <div className="mt-8 flex gap-3">
+                  <button
+                    onClick={() => setItemToRemove(null)}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white transition-colors"
+                  >
+                    {removeItemTranslations.cancel[locale as 'en' | 'zh' | 'ms'] || removeItemTranslations.cancel.en}
+                  </button>
+                  <button
+                    onClick={() => {
+                      removeItem(itemToRemove);
+                      setItemToRemove(null);
+                    }}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/20"
+                  >
+                    {removeItemTranslations.confirm[locale as 'en' | 'zh' | 'ms'] || removeItemTranslations.confirm.en}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Clear Cart Confirmation Modal */}
+      <AnimatePresence>
+        {isClearCartModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden relative"
+            >
+              {/* Top bar with X */}
+              <div className="flex justify-between items-center p-6 border-b border-zinc-100 dark:border-zinc-800/50">
+                <h3 className="text-lg font-black text-foreground">
+                  {clearCartTranslations.title[locale as 'en' | 'zh' | 'ms'] || clearCartTranslations.title.en}
+                </h3>
+                <button 
+                  onClick={() => setIsClearCartModalOpen(false)}
+                  className="text-zinc-400 hover:text-foreground transition-colors p-1"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <p className="text-zinc-600 dark:text-zinc-300 font-medium">
+                  {clearCartTranslations.message[locale as 'en' | 'zh' | 'ms'] || clearCartTranslations.message.en}
+                </p>
+                
+                <div className="mt-8 flex gap-3">
+                  <button
+                    onClick={() => setIsClearCartModalOpen(false)}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white transition-colors"
+                  >
+                    {clearCartTranslations.cancel[locale as 'en' | 'zh' | 'ms'] || clearCartTranslations.cancel.en}
+                  </button>
+                  <button
+                    onClick={() => {
+                      clearCart();
+                      setIsClearCartModalOpen(false);
+                    }}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/20"
+                  >
+                    {clearCartTranslations.confirm[locale as 'en' | 'zh' | 'ms'] || clearCartTranslations.confirm.en}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

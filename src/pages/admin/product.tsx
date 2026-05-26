@@ -26,7 +26,8 @@ import {
   Download,
   FileSpreadsheet,
   FileText,
-  Table
+  Table,
+  HelpCircle
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import Link from 'next/link';
@@ -34,7 +35,7 @@ import { useLanguage } from '../../context/LanguageContext';
 
 const ProductPage = () => {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,8 +61,22 @@ const ProductPage = () => {
   const [isSavingFastAction, setIsSavingFastAction] = useState(false);
   const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [showPdfTooltip, setShowPdfTooltip] = useState(false);
 
   // ── Download helpers ──────────────────────────────────────────────
+  const getLocalizedName = (p: any) => {
+    if (language === 'zh' && p.nameZh) return p.nameZh;
+    if (language === 'ms' && p.nameMs) return p.nameMs;
+    return p.name || '-';
+  };
+
+  const getTranslatedStatus = (status: string) => {
+    if (status === 'Live') return t('live_products');
+    if (status === 'Hold') return t('hold');
+    if (status === 'Deactive') return t('deactive');
+    return status || '-';
+  };
+
   const buildRows = () => {
     // Sort products by category first, then by code ascending (e.g., PO0001, PO0002)
     const sortedProducts = [...products].sort((a, b) => {
@@ -71,15 +86,15 @@ const ProductPage = () => {
     });
 
     return sortedProducts.map((p, i) => ({
-      'No.': i + 1,
-      'Code': p.code || '-',
-      'Name': p.name || '-',
-      'Category': p.category || '-',
-      'Stock': p.stock ?? '-',
-      'Original Price (RM)': p.price != null ? Number(p.price).toFixed(2) : '-',
-      'Promotion Price (RM)': p.promotion != null && p.promotion !== '' ? Number(p.promotion).toFixed(2) : '-',
-      'Seller Price (RM)': p.sellerPrice != null && p.sellerPrice !== '' ? Number(p.sellerPrice).toFixed(2) : '-',
-      'Status': p.status || '-',
+      [t('col_no')]: i + 1,
+      [t('col_code')]: p.code || '-',
+      [t('col_name')]: getLocalizedName(p),
+      [t('col_category')]: p.category || '-',
+      [t('col_stock')]: p.stock ?? '-',
+      [t('col_original_price')]: p.price != null ? Number(p.price).toFixed(2) : '-',
+      [t('col_promotion_price')]: p.promotion != null && p.promotion !== '' ? Number(p.promotion).toFixed(2) : '-',
+      [t('col_seller_price')]: p.sellerPrice != null && p.sellerPrice !== '' ? Number(p.sellerPrice).toFixed(2) : '-',
+      [t('col_status')]: getTranslatedStatus(p.status),
     }));
   };
 
@@ -108,7 +123,27 @@ const ProductPage = () => {
   const downloadPDF = async () => {
     const { default: jsPDF } = await import('jspdf');
     const { default: autoTable } = await import('jspdf-autotable');
-    const rows = buildRows();
+
+    // PDF always exports in English — jsPDF's built-in fonts do not support
+    // CJK characters, which causes garbled symbols. CSV/Excel support Unicode fine.
+    const pdfRows = [...products]
+      .sort((a, b) => {
+        const catCompare = (a.category || '').localeCompare(b.category || '');
+        if (catCompare !== 0) return catCompare;
+        return (a.code || '').localeCompare(b.code || '');
+      })
+      .map((p, i) => ({
+        'No.': i + 1,
+        'Code': p.code || '-',
+        'Name': p.name || '-',
+        'Category': p.category || '-',
+        'Stock': p.stock ?? '-',
+        'Original Price (RM)': p.price != null ? Number(p.price).toFixed(2) : '-',
+        'Promotion Price (RM)': p.promotion != null && p.promotion !== '' ? Number(p.promotion).toFixed(2) : '-',
+        'Seller Price (RM)': p.sellerPrice != null && p.sellerPrice !== '' ? Number(p.sellerPrice).toFixed(2) : '-',
+        'Status': p.status || '-',
+      }));
+
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -116,19 +151,18 @@ const ProductPage = () => {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.text(`Generated: ${new Date().toLocaleString()}  |  Total Products: ${products.length}`, 14, 22);
-    const headers = Object.keys(rows[0] || {});
-    
+
+    const headers = Object.keys(pdfRows[0] || {});
     autoTable(doc, {
       startY: 28,
       head: [headers],
-      body: rows.map(r => headers.map(h => (r as any)[h])),
+      body: pdfRows.map(r => headers.map(h => (r as any)[h])),
       styles: { fontSize: 7, cellPadding: 2, textColor: 0, lineColor: 0, lineWidth: 0.1 },
       headStyles: { fillColor: [240, 240, 240], textColor: 0, fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [255, 255, 255] },
       margin: { left: 10, right: 10 },
     });
     doc.save('inventory.pdf');
-
     setShowDownloadMenu(false);
   };
   // ─────────────────────────────────────────────────────────────────
@@ -314,19 +348,19 @@ const ProductPage = () => {
         <div className="flex flex-col xl:flex-row gap-6 items-start xl:items-center justify-between">
           <div className="flex flex-wrap gap-8">
             <div>
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Live Products</p>
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('live_products')}</p>
               <h4 className="text-3xl font-black italic text-green-500">
                 {products.filter(p => p.status === 'Live').length}
               </h4>
             </div>
             <div className="pl-8 border-l border-zinc-500/10">
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Hold</p>
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('hold')}</p>
               <h4 className="text-3xl font-black italic text-orange-500">
                 {products.filter(p => p.status === 'Hold').length}
               </h4>
             </div>
             <div className="pl-8 border-l border-zinc-500/10">
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Deactive</p>
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('deactive')}</p>
               <h4 className="text-3xl font-black italic text-zinc-500">
                 {products.filter(p => p.status === 'Deactive').length}
               </h4>
@@ -335,7 +369,7 @@ const ProductPage = () => {
               onClick={() => setShowCategoryModal(true)} 
               className="pl-8 border-l border-zinc-500/10 text-left hover:opacity-70 transition-opacity group cursor-pointer outline-none"
             >
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1 group-hover:text-yellow-500 transition-colors">Categories</p>
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1 group-hover:text-yellow-500 transition-colors">{t('categories')}</p>
               <h4 className="text-3xl font-black italic text-yellow-500 group-hover:scale-105 transition-transform origin-left">
                 {categories.length}
               </h4>
@@ -362,7 +396,7 @@ const ProductPage = () => {
               className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:brightness-110 shadow-xl transition-all border border-zinc-200 dark:border-zinc-700/60"
             >
               <Plus size={18} strokeWidth={3} />
-              Add New Category
+              {t('add_new_category')}
             </Link>
 
             <Link href="/admin/product/upload" className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-yellow-500 text-zinc-950 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:brightness-110 shadow-xl shadow-yellow-500/20 transition-all">
@@ -390,16 +424,32 @@ const ProductPage = () => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.95 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-20"
+                      className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-2xl shadow-2xl z-20"
                     >
-                      <button onClick={downloadCSV} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
-                        <FileText size={15} className="text-blue-500" /> Export CSV
+                      <button onClick={downloadCSV} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors rounded-t-2xl">
+                        <FileText size={15} className="text-blue-500" /> {t('export_csv')}
                       </button>
                       <button onClick={downloadExcel} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors border-t border-zinc-100 dark:border-white/5">
-                        <Table size={15} className="text-green-500" /> Export Excel
+                        <Table size={15} className="text-green-500" /> {t('export_excel')}
                       </button>
-                      <button onClick={downloadPDF} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors border-t border-zinc-100 dark:border-white/5">
-                        <FileSpreadsheet size={15} className="text-red-500" /> Export PDF
+                      <button onClick={downloadPDF} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors border-t border-zinc-100 dark:border-white/5 rounded-b-2xl">
+                        <FileSpreadsheet size={15} className="text-red-500" /> 
+                        <span className="flex-1 text-left">{t('export_pdf')}</span>
+                        <div 
+                          className="relative"
+                          onMouseEnter={() => setShowPdfTooltip(true)}
+                          onMouseLeave={() => setShowPdfTooltip(false)}
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <HelpCircle size={14} className="text-zinc-400 hover:text-yellow-500 transition-colors" />
+                          {showPdfTooltip && (
+                            <div className="absolute bottom-full right-0 mb-2 w-56 bg-zinc-900 dark:bg-zinc-950 border border-white/10 rounded-2xl p-4 shadow-2xl z-50 pointer-events-none">
+                              <p className="text-[10px] font-bold text-zinc-300 leading-relaxed">
+                                {t('pdf_english_only')}
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </button>
                     </motion.div>
                   </>
@@ -603,7 +653,9 @@ const ProductPage = () => {
                             'bg-zinc-500/10 text-zinc-500'
                           }`}>
                             <div className={`w-1 h-1 rounded-full ${p.status === 'Live' ? 'bg-green-500' : p.status === 'Hold' ? 'bg-yellow-500' : 'bg-zinc-500'}`} />
-                            {p.stock <= 0 ? 'Out of Stock' : p.stock < 10 ? 'Low Stock' : p.status}
+                            {p.stock <= 0 ? t('out_of_stock') : p.stock < 10 ? t('low_stock') : 
+                              p.status === 'Live' ? t('live_products') : p.status === 'Hold' ? t('hold') : t('deactive')
+                            }
                           </div>
                         )}
                       </td>
@@ -614,7 +666,7 @@ const ProductPage = () => {
                               onClick={(e) => { e.stopPropagation(); setEditingProduct(null); }}
                               className="px-4 py-2 bg-zinc-500/10 text-zinc-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-500/20 transition-all"
                             >
-                              Cancel
+                              {t('cancel')}
                             </button>
                             <button 
                               onClick={(e) => handleFastActionSave(p, e)}
@@ -626,7 +678,7 @@ const ProductPage = () => {
                               ) : (
                                 <Check size={14} strokeWidth={4} />
                               )}
-                              Confirm
+                              {t('confirm')}
                             </button>
                           </div>
                         ) : null}
@@ -728,7 +780,7 @@ const ProductPage = () => {
                   onClick={() => setShowBulkDeleteModal(false)}
                   className="flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-white/5 border border-white/10 text-zinc-500 hover:bg-white/10 transition-all"
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button 
                   disabled={isBulkDeleting}
@@ -738,7 +790,7 @@ const ProductPage = () => {
                   {isBulkDeleting ? (
                     <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                   ) : (
-                    <>Confirm Delete</>
+                    <>{t('confirm')}</>
                   )}
                 </button>
               </div>
@@ -766,8 +818,8 @@ const ProductPage = () => {
               <div className="flex items-center justify-between p-8 border-b border-yellow-600/30 bg-yellow-500 shrink-0">
                 <div className="flex items-center gap-4">
                   <div>
-                    <h3 className="text-2xl font-black uppercase tracking-tight text-black">Category Overview</h3>
-                    <p className="text-[10px] font-bold text-black/60 uppercase tracking-widest mt-1">Total {categories.length} Categories Active</p>
+                    <h3 className="text-2xl font-black uppercase tracking-tight text-black">{t('category_overview')}</h3>
+                    <p className="text-[10px] font-bold text-black/60 uppercase tracking-widest mt-1">{t('total')} {categories.length} {t('categories')}</p>
                   </div>
                 </div>
                 <button 
@@ -798,7 +850,7 @@ const ProductPage = () => {
                           <h4 className="text-sm font-bold text-white mb-2 group-hover:text-yellow-400 transition-colors drop-shadow-xl truncate w-full">{cat.name}</h4>
                           <div className="inline-flex items-end gap-1 mt-auto pt-1">
                             <span className="text-2xl font-black text-yellow-500 leading-none">{count}</span>
-                            <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest pb-0.5">Items</span>
+                            <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest pb-0.5">{t('items')}</span>
                           </div>
                         </div>
                       </div>
@@ -808,7 +860,7 @@ const ProductPage = () => {
                     <div className="w-16 h-16 rounded-full bg-zinc-200 dark:bg-zinc-800 group-hover:bg-yellow-500 group-hover:text-zinc-900 flex items-center justify-center text-zinc-400 dark:text-zinc-500 transition-all shadow-sm">
                       <Plus size={24} strokeWidth={3} />
                     </div>
-                    <p className="mt-4 text-xs font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 group-hover:text-yellow-600 dark:group-hover:text-yellow-500">Add Category</p>
+                    <p className="mt-4 text-xs font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 group-hover:text-yellow-600 dark:group-hover:text-yellow-500">{t('add_new_category')}</p>
                   </Link>
                 </div>
               </div>

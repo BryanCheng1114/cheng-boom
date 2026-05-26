@@ -131,7 +131,7 @@ export default function Home() {
           <div className="space-y-4" style={{ animation: 'fade-in-up 0.9s 0.15s ease both' }}>
             <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-snug drop-shadow-xl">
               {t.home.heroTitle1}&nbsp;
-              <span className="bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500 bg-clip-text text-transparent font-extrabold">
+              <span className="text-white font-extrabold">
                 {t.home.heroTitle2}
               </span>
             </h1>
