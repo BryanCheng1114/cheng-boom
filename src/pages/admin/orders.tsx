@@ -189,7 +189,7 @@ const OrdersPage = () => {
                       <div className="relative group/tooltip">
                         <HelpCircle size={12} className="text-zinc-400 hover:text-yellow-500 transition-colors" />
                         <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-48 p-2 bg-zinc-900 text-white text-[9px] font-medium rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all text-center z-[50] pointer-events-none before:content-[''] before:absolute before:left-1/2 before:-translate-x-1/2 before:bottom-full before:border-4 before:border-transparent before:border-b-zinc-900">
-                          This ID represents the last 8 alphanumeric characters of the unique order identifier.
+                          {t('order_id_tooltip')}
                         </div>
                       </div>
                     </div>

@@ -63,11 +63,17 @@ const ProductPage = () => {
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const [showPdfTooltip, setShowPdfTooltip] = useState(false);
 
-  // ── Download helpers ──────────────────────────────────────────────
+  // ── Localization helpers ──────────────────────────────────────────
   const getLocalizedName = (p: any) => {
     if (language === 'zh' && p.nameZh) return p.nameZh;
     if (language === 'ms' && p.nameMs) return p.nameMs;
     return p.name || '-';
+  };
+
+  const getLocalizedCategoryName = (cat: any) => {
+    if (language === 'zh' && cat.nameZh) return cat.nameZh;
+    if (language === 'ms' && cat.nameMs) return cat.nameMs;
+    return cat.name || '-';
   };
 
   const getTranslatedStatus = (status: string) => {
@@ -481,7 +487,7 @@ const ProductPage = () => {
               <option value="All" className="dark:bg-zinc-900 bg-white">{t('all_categories')}</option>
               {categories.map(cat => (
                 <option key={cat.id} value={cat.name} className="dark:bg-zinc-900 bg-white">
-                  {cat.name}
+                  {getLocalizedCategoryName(cat)}
                 </option>
               ))}
             </select>
@@ -588,7 +594,7 @@ const ProductPage = () => {
                       </td>
                       <td className="p-6">
                         <span className="px-3 py-1 bg-zinc-500/10 rounded-full text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                          {p.category}
+                          {getLocalizedCategoryName(categories.find(c => c.name === p.category) ?? { name: p.category })}
                         </span>
                       </td>
                       <td className="p-6 text-center text-xs font-black text-zinc-400" onDoubleClick={(e) => { e.stopPropagation(); handleEditStart(p); }} onClick={(e) => e.stopPropagation()}>
@@ -847,7 +853,7 @@ const ProductPage = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90 group-hover:opacity-100 transition-opacity" />
                         
                         <div className="absolute inset-x-0 bottom-0 p-5 flex flex-col items-start translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                          <h4 className="text-sm font-bold text-white mb-2 group-hover:text-yellow-400 transition-colors drop-shadow-xl truncate w-full">{cat.name}</h4>
+                          <h4 className="text-sm font-bold text-white mb-2 group-hover:text-yellow-400 transition-colors drop-shadow-xl truncate w-full">{getLocalizedCategoryName(cat)}</h4>
                           <div className="inline-flex items-end gap-1 mt-auto pt-1">
                             <span className="text-2xl font-black text-yellow-500 leading-none">{count}</span>
                             <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest pb-0.5">{t('items')}</span>
