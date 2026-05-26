@@ -83,7 +83,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Cheng-BOOM - Premium Fireworks</title>
+        <title>{settings?.businessName || 'Cheng-BOOM'} - Premium Fireworks</title>
         <meta name="description" content="Buy premium fireworks online." />
       </Head>
 
