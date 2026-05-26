@@ -55,7 +55,7 @@ export default function Contact() {
             </motion.h1>
 
             {/* ── TWO CHANNEL CARDS ─────────────────────────── */}
-            <div className="grid grid-cols-2 gap-6 w-full" style={{ maxWidth: '1400px' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full max-w-md md:max-w-none mx-auto md:mx-0" style={{ maxWidth: '1400px' }}>
 
               {/* WhatsApp */}
               <motion.button
@@ -85,7 +85,7 @@ export default function Contact() {
                   </div>
                   <div className="flex-1">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 mb-2">{t.contact.whatsappLabel}</p>
-                    <p className="text-xl xl:text-2xl font-black text-white tracking-tight mb-3 group-hover:text-[#25D366] transition-colors duration-300">{DISPLAY_NUMBER}</p>
+                    <p className="text-xl xl:text-2xl font-black text-white tracking-tight mb-3 group-hover:text-[#25D366] transition-colors duration-300 break-words">{DISPLAY_NUMBER}</p>
                     <div className="flex items-center gap-2 text-white/60 text-xs">
                       <Zap size={12} className="text-[#25D366]" />
                       <span>{t.contact.whatsappSpeed}</span>
@@ -118,7 +118,7 @@ export default function Contact() {
                   </div>
                   <div className="flex-1">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 mb-2">{t.contact.emailLabel}</p>
-                    <p className="text-base xl:text-lg font-black text-white tracking-tight mb-3 group-hover:text-[#FACC15] transition-colors duration-300 break-all">{COMPANY_EMAIL}</p>
+                    <p className="text-base xl:text-lg font-black text-white tracking-tight mb-3 group-hover:text-[#FACC15] transition-colors duration-300 break-words">{COMPANY_EMAIL}</p>
                     <div className="flex items-center gap-2 text-white/60 text-xs">
                       <Clock size={12} className="text-primary" />
                       <span>{t.contact.emailSpeed}</span>
