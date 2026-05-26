@@ -93,19 +93,19 @@ export function Navbar() {
     <>
       <nav className="sticky top-0 z-50 w-full bg-white/70 dark:bg-zinc-950/70 backdrop-blur-2xl border-b border-black/5 dark:border-white/5 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20 items-center gap-4">
+        <div className="flex justify-between h-20 items-center gap-2 sm:gap-4">
 
           {/* ---- Brand ---- */}
-          <Link href="/" className="flex items-center gap-2 shrink-0 group">
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-2 min-w-0 group">
             <img
               src={settings?.watermarkUrl || "/transparent-Background.png"}
               alt={`${settings?.businessName || 'Cheng-BOOM'} Logo`}
               width={42}
               height={42}
-              className="drop-shadow-[0_0_12px_rgba(245,158,11,0.6)] group-hover:scale-110 transition-transform duration-300 object-contain"
+              className="w-8 h-8 sm:w-[42px] sm:h-[42px] shrink-0 drop-shadow-[0_0_12px_rgba(245,158,11,0.6)] group-hover:scale-110 transition-transform duration-300 object-contain"
             />
             <span
-              className="text-2xl font-black italic tracking-wider bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent group-hover:scale-110 group-hover:-rotate-2 transition-transform duration-300 origin-left inline-block pr-2"
+              className="text-lg sm:text-2xl font-black italic tracking-wider bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent group-hover:scale-110 group-hover:-rotate-2 transition-transform duration-300 origin-left inline-block truncate pr-1 sm:pr-2"
               style={{ fontFamily }}
             >
               {settings?.businessName || 'Cheng-BOOM'}
@@ -236,7 +236,7 @@ export function Navbar() {
           </div>
 
           {/* ---- Right Actions ---- */}
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
             <LanguageSwitcher />
             <ThemeToggle />
 
@@ -244,7 +244,7 @@ export function Navbar() {
             <Link
               id="navbar-cart-btn"
               href="/cart"
-              className="relative w-10 h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md hover:shadow-primary/10 transition-all duration-300"
+              className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md hover:shadow-primary/10 transition-all duration-300"
             >
               <motion.div
                 animate={isWiggling ? {
@@ -307,8 +307,8 @@ export function Navbar() {
                   </div>
                   
                   {/* Icon Frame */}
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 group-hover/profile:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 group-hover/profile:border-primary/30 group-hover/profile:bg-white dark:group-hover/profile:bg-zinc-900 shadow-sm group-hover/profile:shadow-md group-hover/profile:shadow-primary/10 transition-all duration-300">
-                    <User strokeWidth={1.5} size={20} />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 group-hover/profile:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 group-hover/profile:border-primary/30 group-hover/profile:bg-white dark:group-hover/profile:bg-zinc-900 shadow-sm group-hover/profile:shadow-md group-hover/profile:shadow-primary/10 transition-all duration-300">
+                    <User strokeWidth={1.5} size={20} className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
                   </div>
 
                   {/* Invisible Bridge to prevent hover gap */}
@@ -340,10 +340,10 @@ export function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md hover:shadow-primary/10 transition-all duration-300 group"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md hover:shadow-primary/10 transition-all duration-300 group"
                   title="Sign In"
                 >
-                  <User strokeWidth={1.5} size={20} className="group-hover:scale-110 transition-transform" />
+                  <User strokeWidth={1.5} className="w-[18px] h-[18px] sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
                 </Link>
               )}
             </div>
@@ -351,9 +351,9 @@ export function Navbar() {
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden w-10 h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md transition-all duration-300 ml-1"
+              className="md:hidden w-8 h-8 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md transition-all duration-300 ml-0.5"
             >
-              {mobileOpen ? <X strokeWidth={1.5} size={20} /> : <Menu strokeWidth={1.5} size={20} />}
+              {mobileOpen ? <X strokeWidth={1.5} className="w-[18px] h-[18px]" /> : <Menu strokeWidth={1.5} className="w-[18px] h-[18px]" />}
             </button>
           </div>
         </div>
