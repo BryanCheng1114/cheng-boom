@@ -220,7 +220,7 @@ export default function Cart() {
         locale as 'en' | 'zh' | 'ms', 
         isSeller,
         settings?.businessName,
-        settings?.whatsapp,
+        settings?.whatsapp ?? undefined,
         sellerLevelName,
         discountPercent,
         isFreeShipping
