@@ -4,6 +4,7 @@ interface BusinessSettings {
   id?: string;
   businessName: string;
   logoUrl?: string | null;
+  watermarkUrl?: string | null;
   faviconUrl?: string | null;
   primaryColor?: string | null;
   accentColor?: string | null;
