@@ -105,13 +105,13 @@ const OrderDetailsPage = () => {
 
   if (isLoading) return (
     <AdminLayout title={t('order_contents')}>
-      <div className="p-32 text-center text-zinc-500 font-black uppercase tracking-widest text-xs animate-pulse">Accessing Secure Records...</div>
+      <div className="p-32 text-center text-zinc-500 font-black uppercase tracking-widest text-xs animate-pulse">{t('scanning_order_records')}</div>
     </AdminLayout>
   );
 
   if (!order) return (
     <AdminLayout title={t('order_contents')}>
-      <div className="p-32 text-center text-zinc-500 font-black uppercase tracking-widest text-xs">Order Record Not Found.</div>
+      <div className="p-32 text-center text-zinc-500 font-black uppercase tracking-widest text-xs">{t('order_record_not_found')}</div>
     </AdminLayout>
   );
 

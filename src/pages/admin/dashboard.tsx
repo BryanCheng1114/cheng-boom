@@ -129,7 +129,7 @@ const DashboardPage = () => {
                 </thead>
                 <tbody className="divide-y divide-zinc-500/5">
                   {stats.recentOrders.length === 0 ? (
-                    <tr><td colSpan={4} className="p-10 text-center text-zinc-500 font-bold uppercase text-[10px]">No recent orders found.</td></tr>
+                    <tr><td colSpan={4} className="p-10 text-center text-zinc-500 font-bold uppercase text-[10px]">{t('no_recent_orders_found')}</td></tr>
                   ) : stats.recentOrders.map((order: any) => (
                     <tr key={order.id} className="group hover:bg-zinc-500/5 transition-colors cursor-pointer" onClick={() => router.push(`/admin/orders/${order.id}`)}>
                       <td className="p-6">

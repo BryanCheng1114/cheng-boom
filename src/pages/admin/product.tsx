@@ -540,11 +540,11 @@ const ProductPage = () => {
               <tbody className="divide-y divide-zinc-500/5">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={7} className="p-20 text-center text-zinc-500 font-bold uppercase tracking-widest text-xs animate-pulse">Loading Inventory...</td>
+                    <td colSpan={7} className="p-20 text-center text-zinc-500 font-bold uppercase tracking-widest text-xs animate-pulse">{t('loading_inventory')}</td>
                   </tr>
                 ) : paginatedProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-20 text-center text-zinc-500 font-bold uppercase tracking-widest text-xs">No products match your filters.</td>
+                    <td colSpan={7} className="p-20 text-center text-zinc-500 font-bold uppercase tracking-widest text-xs">{t('no_products_found')}</td>
                   </tr>
                 ) : paginatedProducts.map((p) => {
                   const hasPromotion = p.promotion !== null && p.promotion !== undefined && p.promotion < p.price;

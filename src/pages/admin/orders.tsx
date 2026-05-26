@@ -209,11 +209,11 @@ const OrdersPage = () => {
               <tbody className="divide-y divide-zinc-500/5">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={5} className="p-32 text-center text-zinc-500 font-black uppercase tracking-widest text-xs animate-pulse">Scanning Order Records...</td>
+                    <td colSpan={5} className="p-32 text-center text-zinc-500 font-black uppercase tracking-widest text-xs animate-pulse">{t('scanning_order_records')}</td>
                   </tr>
                 ) : paginatedOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-32 text-center text-zinc-500 font-black uppercase tracking-widest text-xs">No order records found.</td>
+                    <td colSpan={5} className="p-32 text-center text-zinc-500 font-black uppercase tracking-widest text-xs">{t('no_order_records_found')}</td>
                   </tr>
                 ) : paginatedOrders.map((order) => (
                   <tr 
