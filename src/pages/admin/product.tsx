@@ -138,17 +138,28 @@ const ProductPage = () => {
         if (catCompare !== 0) return catCompare;
         return (a.code || '').localeCompare(b.code || '');
       })
-      .map((p, i) => ({
-        'No.': i + 1,
-        'Code': p.code || '-',
-        'Name': p.name || '-',
-        'Category': p.category || '-',
-        'Stock': p.stock ?? '-',
-        'Original Price (RM)': p.price != null ? Number(p.price).toFixed(2) : '-',
-        'Promotion Price (RM)': p.promotion != null && p.promotion !== '' ? Number(p.promotion).toFixed(2) : '-',
-        'Seller Price (RM)': p.sellerPrice != null && p.sellerPrice !== '' ? Number(p.sellerPrice).toFixed(2) : '-',
-        'Status': p.status || '-',
-      }));
+      .map((p, i) => {
+        const cleanText = (str: any) => {
+          if (!str) return '-';
+          return String(str)
+            .normalize('NFKC')
+            .replace(/[^\x20-\x7E]/g, '') // Strip ALL non-ASCII characters (including Chinese) since jsPDF helvetica only supports standard ASCII
+            .replace(/\s+/g, ' ') // Convert all spaces (including NBSP) to a regular space to allow autoTable to wrap
+            .trim() || '-';
+        };
+        
+        return {
+          'No.': i + 1,
+          'Code': cleanText(p.code),
+          'Name': cleanText(p.name),
+          'Category': cleanText(p.category),
+          'Stock': p.stock ?? '-',
+          'Original Price (RM)': p.price != null ? Number(p.price).toFixed(2) : '-',
+          'Promotion Price (RM)': p.promotion != null && p.promotion !== '' ? Number(p.promotion).toFixed(2) : '-',
+          'Seller Price (RM)': p.sellerPrice != null && p.sellerPrice !== '' ? Number(p.sellerPrice).toFixed(2) : '-',
+          'Status': p.status || '-',
+        };
+      });
 
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     doc.setFontSize(14);
@@ -163,9 +174,14 @@ const ProductPage = () => {
       startY: 28,
       head: [headers],
       body: pdfRows.map(r => headers.map(h => (r as any)[h])),
-      styles: { fontSize: 7, cellPadding: 2, textColor: 0, lineColor: 0, lineWidth: 0.1 },
-      headStyles: { fillColor: [240, 240, 240], textColor: 0, fontStyle: 'bold' },
+      styles: { fontSize: 7, cellPadding: 2, textColor: 0, lineColor: 0, lineWidth: 0.1, valign: 'middle' },
+      headStyles: { fillColor: [240, 240, 240], textColor: 0, fontStyle: 'bold', valign: 'middle' },
       alternateRowStyles: { fillColor: [255, 255, 255] },
+      columnStyles: {
+        0: { cellWidth: 10 },
+        1: { cellWidth: 25 },
+        2: { cellWidth: 80 }, // Force Name column to wrap if too long
+      },
       margin: { left: 10, right: 10 },
     });
     doc.save('inventory.pdf');
@@ -350,9 +366,9 @@ const ProductPage = () => {
   return (
     <AdminLayout title={t('inventory')}>
       <div className="space-y-6">
-        {/* Header Actions */}
+        {/* Header Stats */}
         <div className="flex flex-col xl:flex-row gap-6 items-start xl:items-center justify-between">
-          <div className="flex flex-wrap gap-8">
+          <div className="flex flex-wrap gap-8 items-center">
             <div>
               <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('live_products')}</p>
               <h4 className="text-3xl font-black italic text-green-500">
@@ -371,7 +387,7 @@ const ProductPage = () => {
                 {products.filter(p => p.status === 'Deactive').length}
               </h4>
             </div>
-            <button 
+            <button
               onClick={() => setShowCategoryModal(true)} 
               className="pl-8 border-l border-zinc-500/10 text-left hover:opacity-70 transition-opacity group cursor-pointer outline-none"
             >
@@ -380,6 +396,7 @@ const ProductPage = () => {
                 {categories.length}
               </h4>
             </button>
+
           </div>
           
           <div className="flex items-center gap-4 w-full md:w-auto">
@@ -648,9 +665,9 @@ const ProductPage = () => {
                             onClick={e => e.stopPropagation()}
                             className="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white px-2 py-1 rounded border border-zinc-300 dark:border-zinc-600 outline-none text-[10px] font-black uppercase tracking-widest cursor-pointer"
                           >
-                            <option value="Live">Live</option>
-                            <option value="Hold">Hold</option>
-                            <option value="Deactive">Deactive</option>
+                            <option value="Live">{t('status_live')}</option>
+                            <option value="Hold">{t('status_hold')}</option>
+                            <option value="Deactive">{t('status_deactive')}</option>
                           </select>
                         ) : (
                           <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
@@ -804,6 +821,7 @@ const ProductPage = () => {
           </div>
         )}
       </AnimatePresence>
+
 
       {/* Category Overview Modal */}
       <AnimatePresence>

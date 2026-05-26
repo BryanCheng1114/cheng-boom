@@ -10,11 +10,18 @@ const UploadProductPage = () => {
   const router = useRouter();
   const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageRef = useRef<HTMLDivElement>(null);
+  const nameRef = useRef<HTMLDivElement>(null);
+  const categoryRef = useRef<HTMLDivElement>(null);
+  const codeRef = useRef<HTMLDivElement>(null);
+  const stockRef = useRef<HTMLDivElement>(null);
+  const priceRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [showYoutubeGuide, setShowYoutubeGuide] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
     name: '',
@@ -114,31 +121,40 @@ const UploadProductPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (uploadedImages.length === 0) {
-      alert('Please upload at least one image');
-      return;
-    }
-    if (!formData.category) {
-      alert('Please select a category');
-      return;
-    }
-    if (!formData.code || !formData.code.trim()) {
-      alert('Product code is required');
+
+    // Build field-level errors
+    const errors: Record<string, string> = {};
+    if (uploadedImages.length === 0) errors.image = t('err_image_required');
+    if (!formData.name.trim()) errors.name = t('err_name_required');
+    if (!formData.category) errors.category = t('err_category_required');
+    if (!formData.code.trim()) errors.code = t('err_code_required');
+    if (!formData.stock) errors.stock = t('err_stock_required');
+    if (!formData.price) errors.price = t('err_price_required');
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      // Scroll to the first error field
+      const firstKey = Object.keys(errors)[0];
+      const refMap: Record<string, React.RefObject<HTMLDivElement | null>> = {
+        image: imageRef,
+        name: nameRef,
+        category: categoryRef,
+        code: codeRef,
+        stock: stockRef,
+        price: priceRef,
+      };
+      refMap[firstKey]?.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
     setIsLoading(true);
-
     try {
       const response = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          images: uploadedImages,
-        }),
+        body: JSON.stringify({ ...formData, images: uploadedImages }),
       });
-
       if (response.ok) {
         router.push('/admin/product');
       } else {
@@ -182,25 +198,32 @@ const UploadProductPage = () => {
             </div>
             
             <div className="space-y-6">
-              <div 
-                onClick={() => fileInputRef.current?.click()}
-                className="h-48 border-2 border-dashed rounded-[32px] flex flex-col items-center justify-center gap-4 dark:bg-black/20 bg-zinc-50 dark:border-white/10 border-zinc-200 cursor-pointer hover:border-yellow-500/50 transition-all group"
-              >
-                <div className="p-4 bg-zinc-950 rounded-2xl text-zinc-500 group-hover:text-yellow-500 transition-colors">
-                  <Upload size={32} />
+              <div ref={imageRef}>
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`h-48 border-2 border-dashed rounded-[32px] flex flex-col items-center justify-center gap-4 dark:bg-black/20 bg-zinc-50 cursor-pointer hover:border-yellow-500/50 transition-all group ${
+                    fieldErrors.image ? 'border-red-500 dark:border-red-500 animate-pulse' : 'dark:border-white/10 border-zinc-200'
+                  }`}
+                >
+                  <div className="p-4 bg-zinc-950 rounded-2xl text-zinc-500 group-hover:text-yellow-500 transition-colors">
+                    <Upload size={32} />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('click_select_images')}</p>
+                    <p className="text-[9px] text-zinc-500 mt-1 font-medium italic">Max 10MB per file. PNG, JPG supported.</p>
+                  </div>
+                  <input 
+                    type="file" 
+                    multiple 
+                    accept="image/*"
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                    className="hidden" 
+                  />
                 </div>
-                <div className="text-center">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('click_select_images')}</p>
-                  <p className="text-[9px] text-zinc-500 mt-1 font-medium italic">Max 10MB per file. PNG, JPG supported.</p>
-                </div>
-                <input 
-                  type="file" 
-                  multiple 
-                  accept="image/*"
-                  ref={fileInputRef}
-                  onChange={handleFileSelect}
-                  className="hidden" 
-                />
+                {fieldErrors.image && (
+                  <p className="text-red-500 text-xs font-bold mt-2 ml-2 flex items-center gap-1">⚠ {fieldErrors.image}</p>
+                )}
               </div>
 
               {/* Previews */}
@@ -314,48 +337,53 @@ const UploadProductPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Product English Name */}
-              <div className="space-y-2">
+              <div ref={nameRef} className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('product_name_en')} *</label>
                 <input 
                   type="text" 
                   name="name"
                   value={formData.name}
-                  onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                  onChange={(e) => { handleChange(e); if (fieldErrors.name) setFieldErrors(p => ({ ...p, name: '' })); }}
+                  className={`w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm ${
+                    fieldErrors.name ? 'border-red-500 dark:border-red-500' : 'dark:border-white/5 border-zinc-200'
+                  }`}
                   placeholder="e.g. Thunder Clap"
-                  required
                 />
+                {fieldErrors.name && <p className="text-red-500 text-xs font-bold ml-2 flex items-center gap-1">⚠ {fieldErrors.name}</p>}
               </div>
 
               {/* Category Select */}
-              <div className="space-y-2">
+              <div ref={categoryRef} className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('categories')} *</label>
                 <select 
                   name="category"
                   value={formData.category}
-                  onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm cursor-pointer"
-                  required
+                  onChange={(e) => { handleChange(e); if (fieldErrors.category) setFieldErrors(p => ({ ...p, category: '' })); }}
+                  className={`w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm cursor-pointer ${
+                    fieldErrors.category ? 'border-red-500 dark:border-red-500' : 'dark:border-white/5 border-zinc-200'
+                  }`}
                 >
                   <option value="">{t('choose_category')}</option>
                   {categories.map(cat => (
                     <option key={cat.id} value={cat.name}>{cat.name}</option>
                   ))}
                 </select>
+                {fieldErrors.category && <p className="text-red-500 text-xs font-bold ml-2 flex items-center gap-1">⚠ {fieldErrors.category}</p>}
               </div>
 
               {/* Product Code */}
-              <div className="space-y-2">
+              <div ref={codeRef} className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('category_code')} *</label>
                 <div className="flex gap-2">
                   <input 
                     type="text" 
                     name="code"
                     value={formData.code}
-                    onChange={handleChange}
-                    className="flex-1 px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                    onChange={(e) => { handleChange(e); if (fieldErrors.code) setFieldErrors(p => ({ ...p, code: '' })); }}
+                    className={`flex-1 px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm ${
+                      fieldErrors.code ? 'border-red-500 dark:border-red-500' : 'dark:border-white/5 border-zinc-200'
+                    }`}
                     placeholder="e.g. TC00001"
-                    required
                   />
                   <button
                     type="button"
@@ -365,6 +393,7 @@ const UploadProductPage = () => {
                     <span>{t('auto_gen')}</span>
                   </button>
                 </div>
+                {fieldErrors.code && <p className="text-red-500 text-xs font-bold ml-2 flex items-center gap-1">⚠ {fieldErrors.code}</p>}
               </div>
 
               {/* Chinese Translation */}
@@ -440,7 +469,7 @@ const UploadProductPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {/* Quantity Stock */}
-              <div className="space-y-2">
+              <div ref={stockRef} className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
                   <Package size={14} className="text-zinc-500" />
                   <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{t('quantity_stock')}</label>
@@ -449,15 +478,17 @@ const UploadProductPage = () => {
                   type="number" 
                   name="stock"
                   value={formData.stock}
-                  onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm" 
+                  onChange={(e) => { handleChange(e); if (fieldErrors.stock) setFieldErrors(p => ({ ...p, stock: '' })); }}
+                  className={`w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm ${
+                    fieldErrors.stock ? 'border-red-500 dark:border-red-500' : 'dark:border-white/5 border-zinc-200'
+                  }`}
                   placeholder="0"
-                  required
                 />
+                {fieldErrors.stock && <p className="text-red-500 text-xs font-bold ml-2 flex items-center gap-1">⚠ {fieldErrors.stock}</p>}
               </div>
 
               {/* Original Price */}
-              <div className="space-y-2">
+              <div ref={priceRef} className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
                   <Tag size={14} className="text-zinc-500" />
                   <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{t('original_price')}</label>
@@ -466,11 +497,13 @@ const UploadProductPage = () => {
                   type="text" 
                   name="price"
                   value={formData.price}
-                  onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm" 
+                  onChange={(e) => { handleChange(e); if (fieldErrors.price) setFieldErrors(p => ({ ...p, price: '' })); }}
+                  className={`w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm ${
+                    fieldErrors.price ? 'border-red-500 dark:border-red-500' : 'dark:border-white/5 border-zinc-200'
+                  }`}
                   placeholder="0.00"
-                  required
                 />
+                {fieldErrors.price && <p className="text-red-500 text-xs font-bold ml-2 flex items-center gap-1">⚠ {fieldErrors.price}</p>}
               </div>
 
               {/* Seller Price */}
@@ -518,7 +551,7 @@ const UploadProductPage = () => {
             </button>
             <button 
               type="submit" 
-              disabled={isLoading || !formData.name.trim() || !formData.code.trim() || !formData.category || !formData.stock || !formData.price || uploadedImages.length === 0}
+              disabled={isLoading}
               className="w-2/3 py-5 bg-yellow-500 text-zinc-950 rounded-[24px] font-bold text-sm hover:brightness-110 transition-all shadow-2xl shadow-yellow-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
               {isLoading ? (

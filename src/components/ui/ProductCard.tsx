@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '../cart/CartProvider';
-import { ShoppingCart, Plus, Minus, AlertTriangle, Package } from 'lucide-react';
+import { ShoppingCart, Plus, Minus } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useFlyToCart } from './FlyToCartProvider';
 import { useBusiness } from '../../context/BusinessContext';
@@ -112,56 +112,35 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
             style={{ backgroundImage: `url(${displayImage})` }}
           />
           
-          {/* Top Right: Discount */}
-          {hasDiscount && !isOutOfStock && (
-            <div className="absolute top-3 right-3">
-              <div className="bg-primary text-zinc-900 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-tight shadow-[0_0_15px_rgba(245,158,11,0.5)] flex items-center gap-1 animate-bounce-subtle">
-                🔥 {t.productCard.save} {discountPercent}%
-              </div>
-            </div>
-          )}
+          {/* Discount badge removed per user request */}
 
-          {/* Bottom Right: Stock Status & Watermark Stack */}
-          <div className="absolute bottom-3 right-3 flex flex-col items-end gap-2 z-20">
-            {/* Dynamic Small Watermark */}
-            <div className="pointer-events-none w-12 h-12 opacity-80 mr-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
-              <img 
-                src={settings?.watermarkUrl || "/transparent-Background.png"} 
-                className="w-full h-full object-contain select-none" 
-                alt="" 
-                draggable={false}
-              />
-            </div>
-            {isOutOfStock ? (
-              <div className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-tighter shadow-lg flex items-center gap-1.5 border border-red-500/50">
-                <AlertTriangle size={12} className="animate-pulse" />
-                {t.productCard.outOfStock}
-              </div>
-            ) : (
-              <div className="bg-zinc-900/70 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-[10px] font-bold text-white flex items-center gap-2 border border-white/10 shadow-lg">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                {stock} {t.productCard.inStock}
-              </div>
-            )}
+          {/* Bottom Right: Watermark (Stock status badge removed per user request) */}
+          <div className="absolute bottom-3 right-3 pointer-events-none w-12 h-12 opacity-80 z-20 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+            <img 
+              src={settings?.watermarkUrl || "/transparent-Background.png"} 
+              className="w-full h-full object-contain select-none" 
+              alt="" 
+              draggable={false}
+            />
           </div>
         </div>
         
         <div className="p-5 flex flex-col flex-1 justify-between gap-4">
-          <div>
-            <h3 className="font-extrabold text-lg text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+          <div className="min-h-[3.25rem] flex flex-col justify-start">
+            <h3 className="font-extrabold text-base md:text-lg text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
               {translatedName}
             </h3>
           </div>
           
           <div className="mt-auto pt-3 border-t border-border/50">
-            <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-2">
-              <div className="flex flex-col min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-col min-w-0 flex-1">
                 {hasDiscount && (
-                  <span className="text-xs text-muted-foreground line-through decoration-red-500/50">
+                  <span className="text-[10px] sm:text-xs text-muted-foreground line-through decoration-red-500/50 mb-0.5 truncate">
                     RM {strikeThroughPrice?.toFixed(2)}
                   </span>
                 )}
-                <span className="text-lg font-black text-foreground tracking-tighter break-words">
+                <span className="text-[15px] sm:text-base font-black text-foreground tracking-tighter truncate">
                   RM {activePrice.toFixed(2)}
                 </span>
               </div>

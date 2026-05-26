@@ -348,6 +348,7 @@ export default function Shop() {
                     delay: index * 0.03,
                     ease: "easeOut"
                   }}
+                  className="h-full flex flex-col"
                 >
                   <ProductCard {...product} categoryZh={catObj?.nameZh} categoryMs={catObj?.nameMs} />
                 </motion.div>

@@ -295,7 +295,16 @@ const translations: Record<Language, Record<string, string>> = {
     please_input_name_auto_gen: 'Please input Product Name first to auto-generate code.',
     failed_auto_gen_code: 'Failed to auto-generate product code.',
     category: 'Category',
-    product_code: 'Product Code'
+    product_code: 'Product Code',
+    status_live: 'Live',
+    status_hold: 'Hold',
+    status_deactive: 'Deactive',
+    err_image_required: 'Please upload at least one product image.',
+    err_category_required: 'Please select a category.',
+    err_code_required: 'Product code is required.',
+    err_name_required: 'Product name is required.',
+    err_stock_required: 'Stock quantity is required.',
+    err_price_required: 'Original price is required.',
   },
   zh: {
     dashboard: '仪表盘',
@@ -583,7 +592,16 @@ const translations: Record<Language, Record<string, string>> = {
     please_input_name_auto_gen: '请先输入产品名称以自动生成代码。',
     failed_auto_gen_code: '自动生成产品代码失败。',
     category: '分类',
-    product_code: '产品代码'
+    product_code: '产品代码',
+    status_live: '上架',
+    status_hold: '暂停',
+    status_deactive: '下架',
+    err_image_required: '请上传至少一张产品图片。',
+    err_category_required: '请选择分类。',
+    err_code_required: '产品代码为必填项。',
+    err_name_required: '产品名称为必填项。',
+    err_stock_required: '库存数量为必填项。',
+    err_price_required: '原价为必填项。',
   },
   ms: {
     dashboard: 'Papan Pemuka',
@@ -871,7 +889,16 @@ const translations: Record<Language, Record<string, string>> = {
     please_input_name_auto_gen: 'Sila masukkan Nama Produk terlebih dahulu untuk menjana kod secara automatik.',
     failed_auto_gen_code: 'Gagal menjana kod produk secara automatik.',
     category: 'Kategori',
-    product_code: 'Kod Produk'
+    product_code: 'Kod Produk',
+    status_live: 'Aktif',
+    status_hold: 'Tahan',
+    status_deactive: 'Nyahaktif',
+    err_image_required: 'Sila muat naik sekurang-kurangnya satu gambar produk.',
+    err_category_required: 'Sila pilih kategori.',
+    err_code_required: 'Kod produk diperlukan.',
+    err_name_required: 'Nama produk diperlukan.',
+    err_stock_required: 'Kuantiti stok diperlukan.',
+    err_price_required: 'Harga asal diperlukan.',
   }
 };
 
