@@ -44,6 +44,7 @@ export default function Home() {
   const mapImageSrc = locale === 'zh' ? '/mapzh.png' : locale === 'ms' ? '/mapms.png' : '/map.png';
 
   const [categories, setCategories] = useState<any[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [mapOpen, setMapOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -75,6 +76,8 @@ export default function Home() {
         }
       } catch (err) {
         setCategories(mockCategories);
+      } finally {
+        setIsLoadingCategories(false);
       }
     };
     fetchCategories();
@@ -201,6 +204,19 @@ export default function Home() {
           </div>
 
           {(() => {
+            if (isLoadingCategories) {
+              return (
+                <div className="flex flex-wrap justify-center max-w-6xl mx-auto gap-y-12 gap-x-6 lg:gap-x-8 w-full">
+                  {[...Array(10)].map((_, i) => (
+                    <div key={i} className="flex flex-col items-center gap-4">
+                      <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full bg-zinc-800/50 animate-pulse border-4 border-white/5" />
+                      <div className="h-4 w-24 bg-zinc-800/50 rounded-full animate-pulse mt-1" />
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+
             // Sort categories from A to Z alphabetically based on translation or name
             const sortedCategories = [...categories].sort((a, b) => {
               const keyA = a.key || a.name.toLowerCase().replace(/\s+/g, '');

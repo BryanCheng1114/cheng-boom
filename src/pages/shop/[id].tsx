@@ -304,11 +304,11 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
     
     let msg = '';
     if (locale === 'zh') {
-      msg = `您好，我想了解更多关于这个产品的信息：\n\n*${translatedName}*\n产品编号: \`${product.code || product.id}\`\n\n图片: ${imageUrl}\n链接: ${url}\n\n请问还有库存吗？`;
+      msg = `${url}\n\n您好，我想了解关于以下产品的信息：\n\n*产品名称:* ${translatedName}\n*产品编号:* ${product.code || product.id}\n*图片链接:* ${imageUrl}\n\n我需要更多关于这个产品的信息，请问可以提供更多详细资料或确认是否有库存吗？`;
     } else if (locale === 'ms') {
-      msg = `Hai, saya ingin bertanya tentang produk ini:\n\n*${translatedName}*\nKod Produk: \`${product.code || product.id}\`\n\nGambar: ${imageUrl}\nPautan: ${url}\n\nAdakah stok masih ada?`;
+      msg = `${url}\n\nHai, saya ingin bertanya tentang produk ini:\n\n*Nama Produk:* ${translatedName}\n*Kod Produk:* ${product.code || product.id}\n*Pautan Gambar:* ${imageUrl}\n\nSaya perlukan maklumat lanjut tentang item ini, bolehkah anda bantu saya atau sahkan stok?`;
     } else {
-      msg = `Hi, I would like to inquire about this product:\n\n*${translatedName}*\nProduct Code: \`${product.code || product.id}\`\n\nImage: ${imageUrl}\nLink: ${url}\n\nIs this still in stock?`;
+      msg = `${url}\n\nHi, I would like to inquire about this item:\n\n*Product Name:* ${translatedName}\n*Product Code:* ${product.code || product.id}\n*Image Link:* ${imageUrl}\n\nI need more information about this item. Could you please provide more details or let me know if it's available?`;
     }
     
     window.open(`https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`, '_blank');
@@ -328,9 +328,9 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
         {/* Breadcrumb */}
-        <Link href="/shop" className="inline-flex items-center gap-2 text-zinc-500 hover:text-primary transition-colors mb-10 group text-sm font-medium">
+        <Link href={router.query.from === 'cart' ? '/cart' : '/shop'} className="inline-flex items-center gap-2 text-zinc-500 hover:text-primary transition-colors mb-10 group text-sm font-medium">
           <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> 
-          {t.productDetail.backToCollection}
+          {router.query.from === 'cart' ? (locale === 'zh' ? '返回购物车' : locale === 'ms' ? 'Kembali ke Troli' : 'Back to Cart') : t.productDetail.backToCollection}
         </Link>
         
         <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 mb-20 items-start">
@@ -731,12 +731,22 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">
+                        <label className="relative flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1 group w-max">
                           <Phone size={12} className="text-primary" /> {t.cart.checkout.formPhone}
+                          <span className="cursor-help flex items-center justify-center w-4 h-4 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-500 hover:text-primary transition-colors">
+                            <HelpCircle size={10} strokeWidth={3} />
+                          </span>
+                          {/* Instant Custom Tooltip */}
+                          <div className="absolute bottom-full mb-1.5 left-0 hidden group-hover:block w-[220px] p-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] leading-relaxed font-bold rounded-lg shadow-2xl z-[110] normal-case tracking-normal">
+                            {(t.cart.checkout as any).phoneFormatHint || "Only Malaysia mobile numbers (+60 or 01) are allowed."}
+                            <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-zinc-900 dark:bg-white rotate-45 rounded-sm" />
+                          </div>
                         </label>
                         <input 
                           type="tel" 
                           required
+                          pattern="^(\+?601|01)[0-9]{8,9}$"
+                          title={(t.cart.checkout as any).phoneFormatHint || "Only Malaysia mobile numbers (+60 or 01) are allowed."}
                           className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold"
                           placeholder={t.cart.checkout.formPhonePlaceholder}
                           value={orderDetails.customerPhone}
@@ -823,48 +833,6 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                   </div>
 
                   <div className="mt-12 flex flex-col gap-4">
-                     <div className="flex justify-end mb-2">
-                       <button
-                         type="button"
-                         onClick={() => setIsGuideOpen(true)}
-                         className="flex items-center gap-1.5 text-zinc-500 hover:text-primary transition-colors text-xs font-black uppercase tracking-widest"
-                       >
-                         <HelpCircle size={14} strokeWidth={3} />
-                         {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}
-                       </button>
-                     </div>
-
-                     <button 
-                        type="submit"
-                        disabled={isSubmitting}
-                        onClick={(e) => {
-                          if (!isWhatsAppTermsAgreed) {
-                            e.preventDefault();
-                            shakeControls.start({
-                              x: [0, -15, 15, -12, 12, -8, 8, -4, 4, 0],
-                              y: [0, 8, -8, 6, -6, 4, -4, 2, -2, 0],
-                              rotate: [0, -3, 3, -2, 2, -1, 1, 0],
-                              transition: { duration: 0.5, ease: "easeInOut" }
-                            });
-                            setShakeTerms(true);
-                            setTimeout(() => setShakeTerms(false), 500);
-                          }
-                        }}
-                        className={cn(
-                          "w-full py-5 px-4 mb-2 bg-primary text-zinc-900 rounded-[20px] font-black text-lg transition-all flex justify-center items-center gap-2",
-                          (!isWhatsAppTermsAgreed || isSubmitting) ? "opacity-40 cursor-not-allowed grayscale shadow-none" : "hover:brightness-110 shadow-xl hover:shadow-primary/20 active:scale-[0.98]"
-                        )}
-                     >
-                        {isSubmitting ? (
-                          <div className="w-6 h-6 border-4 border-zinc-900/20 border-t-zinc-900 rounded-full animate-spin" />
-                        ) : (
-                          <MessageCircle size={22} strokeWidth={3} className="shrink-0" />
-                        )}
-                        <span className="leading-tight">
-                          {isSubmitting ? 'Processing...' : t.cart.checkout.confirmBtn}
-                        </span>
-                     </button>
-
                      {/* Premium custom robot verification checkbox */}
                      <motion.div 
                        animate={shakeControls}
@@ -907,9 +875,47 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                        </div>
                      </motion.div>
 
-                     <p className="text-[10px] text-center text-zinc-500 font-bold uppercase tracking-widest">
-                       {t.cart.checkout.total}: RM {finalTotalPrice.toFixed(2)}
-                     </p>
+                     <button 
+                        type="submit"
+                        disabled={isSubmitting}
+                        onClick={(e) => {
+                          if (!isWhatsAppTermsAgreed) {
+                            e.preventDefault();
+                            shakeControls.start({
+                              x: [0, -15, 15, -12, 12, -8, 8, -4, 4, 0],
+                              y: [0, 8, -8, 6, -6, 4, -4, 2, -2, 0],
+                              rotate: [0, -3, 3, -2, 2, -1, 1, 0],
+                              transition: { duration: 0.5, ease: "easeInOut" }
+                            });
+                            setShakeTerms(true);
+                            setTimeout(() => setShakeTerms(false), 500);
+                          }
+                        }}
+                        className={cn(
+                          "w-full py-5 px-4 mb-2 bg-primary text-zinc-900 rounded-[20px] font-black text-lg transition-all flex justify-center items-center gap-2",
+                          (!isWhatsAppTermsAgreed || isSubmitting) ? "opacity-40 cursor-not-allowed grayscale shadow-none" : "hover:brightness-110 shadow-xl hover:shadow-primary/20 active:scale-[0.98]"
+                        )}
+                     >
+                        {isSubmitting ? (
+                          <div className="w-6 h-6 border-4 border-zinc-900/20 border-t-zinc-900 rounded-full animate-spin" />
+                        ) : (
+                          <MessageCircle size={22} strokeWidth={3} className="shrink-0" />
+                        )}
+                        <span className="leading-tight">
+                          {isSubmitting ? 'Processing...' : t.cart.checkout.confirmBtn}
+                        </span>
+                     </button>
+
+                     <div className="flex justify-end mt-2">
+                       <button
+                         type="button"
+                         onClick={() => setIsGuideOpen(true)}
+                         className="flex items-center gap-1.5 text-zinc-500 hover:text-primary transition-colors text-xs font-black uppercase tracking-widest"
+                       >
+                         <HelpCircle size={14} strokeWidth={3} />
+                         {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}
+                       </button>
+                     </div>
                   </div>
                 </div>
               </form>

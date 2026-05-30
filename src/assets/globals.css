@@ -80,6 +80,20 @@
     transition: background-color 0.3s ease, color 0.3s ease;
     overflow-x: clip;
   }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 20px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-primary);
+  }
 }
 
 @keyframes fade-in-up {
@@ -143,4 +157,21 @@
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;             /* Chrome/Safari/Webkit */
+}
+
+/* Custom Thin Scrollbar for UI/UX improvements */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(150, 150, 150, 0.25) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  height: 3px;
+  width: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(150, 150, 150, 0.25);
+  border-radius: 10px;
 }

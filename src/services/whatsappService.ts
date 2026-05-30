@@ -170,7 +170,24 @@ export const generateWhatsAppLink = (
 
   // --- Closing ---
   msg += `${divider}\n`;
-  msg += `${l.closing}`;
+  
+  let dynamicClosing = l.closing;
+  
+  if (details.paymentMethod === 'TNG eWallet') {
+    if (locale === 'zh') dynamicClosing = '烦请确认我的订单并提供您的 TNG 二维码或账户信息，谢谢。';
+    else if (locale === 'ms') dynamicClosing = 'Sila sahkan pesanan saya dan berikan kod QR TNG atau butiran akaun anda. Terima kasih.';
+    else dynamicClosing = 'Please confirm my order and provide your TNG QR code or account details. Thank you.';
+  } else if (details.paymentMethod === 'Bank Transfer') {
+    if (locale === 'zh') dynamicClosing = '烦请确认我的订单并提供您的银行账户信息，谢谢。';
+    else if (locale === 'ms') dynamicClosing = 'Sila sahkan pesanan saya dan berikan maklumat akaun bank anda. Terima kasih.';
+    else dynamicClosing = 'Please confirm my order and provide your bank account information. Thank you.';
+  } else if (details.paymentMethod === 'DuitNow QR') {
+    if (locale === 'zh') dynamicClosing = '烦请确认我的订单并提供您的 DuitNow 二维码，谢谢。';
+    else if (locale === 'ms') dynamicClosing = 'Sila sahkan pesanan saya dan berikan kod QR DuitNow anda. Terima kasih.';
+    else dynamicClosing = 'Please confirm my order and provide your DuitNow QR. Thank you.';
+  }
+
+  msg += `${dynamicClosing}`;
 
   const cleanNumber = whatsappNumber.replace(/\D/g, '');
   return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`;

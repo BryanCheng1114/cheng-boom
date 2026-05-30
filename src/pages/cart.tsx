@@ -256,27 +256,29 @@ export default function Cart() {
           <div className="lg:col-span-3 space-y-6">
             {items.map((item) => (
               <div key={item.id} className="group relative flex flex-col sm:flex-row items-center gap-6 p-6 bg-white dark:bg-zinc-900 border border-border rounded-[32px] shadow-sm hover:shadow-xl transition-all duration-300">
-                {/* Product Image */}
-                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-muted shrink-0 border border-border">
-                  <img src={item.image || '/transparent-Background.png'} alt={item.name} className="w-full h-full object-cover" />
-                </div>
+                <Link href={`/shop/${item.id}?from=cart`} className="flex-1 flex flex-col sm:flex-row items-center gap-6 group/link cursor-pointer">
+                  {/* Product Image */}
+                  <div className="w-24 h-24 rounded-2xl overflow-hidden bg-muted shrink-0 border border-border group-hover/link:opacity-80 transition-opacity">
+                    <img src={item.image || '/transparent-Background.png'} alt={item.name} className="w-full h-full object-cover" />
+                  </div>
 
-                <div className="flex-1 text-center sm:text-left">
-                  <h3 className="text-xl font-bold text-foreground mb-1">
-                    {t.products?.[item.id]?.name || item.name}
-                  </h3>
-                  <div className="flex items-center justify-center sm:justify-start gap-3">
-                    <p className="text-primary font-black text-lg">RM {item.price.toFixed(2)}</p>
-                    {item.originalPrice && item.originalPrice > item.price && (
-                      <p className="text-zinc-400 line-through text-sm font-bold">RM {item.originalPrice.toFixed(2)}</p>
+                  <div className="flex-1 text-center sm:text-left">
+                    <h3 className="text-xl font-bold text-foreground mb-1 group-hover/link:text-primary transition-colors">
+                      {t.products?.[item.id]?.name || item.name}
+                    </h3>
+                    <div className="flex items-center justify-center sm:justify-start gap-3">
+                      <p className="text-primary font-black text-lg">RM {item.price.toFixed(2)}</p>
+                      {item.originalPrice && item.originalPrice > item.price && (
+                        <p className="text-zinc-400 line-through text-sm font-bold">RM {item.originalPrice.toFixed(2)}</p>
+                      )}
+                    </div>
+                    {item.quantity >= (productsStock[item.id] !== undefined ? productsStock[item.id] : (item.stock ?? Infinity)) && (
+                      <p className="text-red-500 text-[10px] font-black uppercase tracking-wider mt-1.5 flex items-center justify-center sm:justify-start gap-1">
+                        ⚠️ Max Stock Reached
+                      </p>
                     )}
                   </div>
-                  {item.quantity >= (productsStock[item.id] !== undefined ? productsStock[item.id] : (item.stock ?? Infinity)) && (
-                    <p className="text-red-500 text-[10px] font-black uppercase tracking-wider mt-1.5 flex items-center justify-center sm:justify-start gap-1">
-                      ⚠️ Max Stock Reached
-                    </p>
-                  )}
-                </div>
+                </Link>
                 
                 <div className="flex flex-col sm:flex-row items-center gap-6 w-full sm:w-auto border-t sm:border-t-0 pt-6 sm:pt-0 border-border">
                   <div className="flex items-center gap-4 bg-zinc-100 dark:bg-white/5 px-4 py-2 rounded-2xl border border-border">
@@ -423,12 +425,22 @@ export default function Cart() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">
+                        <label className="relative flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1 group w-max">
                           <Phone size={12} className="text-primary" /> {t.cart.checkout.formPhone}
+                          <span className="cursor-help flex items-center justify-center w-4 h-4 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-500 hover:text-primary transition-colors">
+                            <HelpCircle size={10} strokeWidth={3} />
+                          </span>
+                          {/* Instant Custom Tooltip */}
+                          <div className="absolute bottom-full mb-1.5 left-0 hidden group-hover:block w-[220px] p-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] leading-relaxed font-bold rounded-lg shadow-2xl z-[110] normal-case tracking-normal">
+                            {(t.cart.checkout as any).phoneFormatHint || "Only Malaysia mobile numbers (+60 or 01) are allowed."}
+                            <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-zinc-900 dark:bg-white rotate-45 rounded-sm" />
+                          </div>
                         </label>
                         <input 
                           type="tel" 
                           required
+                          pattern="^(\+?601|01)[0-9]{8,9}$"
+                          title={(t.cart.checkout as any).phoneFormatHint || "Only Malaysia mobile numbers (+60 or 01) are allowed."}
                           className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold"
                           placeholder={t.cart.checkout.formPhonePlaceholder}
                           value={orderDetails.customerPhone}
@@ -515,48 +527,6 @@ export default function Cart() {
                   </div>
 
                   <div className="mt-12 flex flex-col gap-4">
-                     <div className="flex justify-end mb-2">
-                       <button
-                         type="button"
-                         onClick={() => setIsGuideOpen(true)}
-                         className="flex items-center gap-1.5 text-zinc-500 hover:text-primary transition-colors text-xs font-black uppercase tracking-widest"
-                       >
-                         <HelpCircle size={14} strokeWidth={3} />
-                         {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}
-                       </button>
-                     </div>
-
-                     <button 
-                        type="submit"
-                        disabled={isSubmitting}
-                        onClick={(e) => {
-                          if (!isWhatsAppTermsAgreed) {
-                            e.preventDefault();
-                            shakeControls.start({
-                              x: [0, -15, 15, -12, 12, -8, 8, -4, 4, 0],
-                              y: [0, 8, -8, 6, -6, 4, -4, 2, -2, 0],
-                              rotate: [0, -3, 3, -2, 2, -1, 1, 0],
-                              transition: { duration: 0.5, ease: "easeInOut" }
-                            });
-                            setShakeTerms(true);
-                            setTimeout(() => setShakeTerms(false), 500);
-                          }
-                        }}
-                        className={cn(
-                          "w-full py-5 px-4 mb-2 bg-primary text-zinc-900 rounded-[20px] font-black text-lg transition-all flex justify-center items-center gap-2",
-                          (!isWhatsAppTermsAgreed || isSubmitting) ? "opacity-40 cursor-not-allowed grayscale shadow-none" : "hover:brightness-110 shadow-xl hover:shadow-primary/20 active:scale-[0.98]"
-                        )}
-                     >
-                        {isSubmitting ? (
-                          <div className="w-6 h-6 border-4 border-zinc-900/20 border-t-zinc-900 rounded-full animate-spin" />
-                        ) : (
-                          <MessageCircle size={22} strokeWidth={3} className="shrink-0" />
-                        )}
-                        <span className="leading-tight">
-                          {isSubmitting ? 'Processing...' : t.cart.checkout.confirmBtn}
-                        </span>
-                     </button>
-
                      {/* Premium custom robot verification checkbox */}
                      <motion.div 
                        animate={shakeControls}
@@ -599,9 +569,48 @@ export default function Cart() {
                        </div>
                      </motion.div>
 
-                     <p className="text-[10px] text-center text-zinc-500 font-bold uppercase tracking-widest">
-                       {t.cart.checkout.total}: RM {totalPrice.toFixed(2)}
-                     </p>
+                     <button 
+                        type="submit"
+                        disabled={isSubmitting}
+                        onClick={(e) => {
+                          if (!isWhatsAppTermsAgreed) {
+                            e.preventDefault();
+                            shakeControls.start({
+                              x: [0, -15, 15, -12, 12, -8, 8, -4, 4, 0],
+                              y: [0, 8, -8, 6, -6, 4, -4, 2, -2, 0],
+                              rotate: [0, -3, 3, -2, 2, -1, 1, 0],
+                              transition: { duration: 0.5, ease: "easeInOut" }
+                            });
+                            setShakeTerms(true);
+                            setTimeout(() => setShakeTerms(false), 500);
+                          }
+                        }}
+                        className={cn(
+                          "w-full py-5 px-4 mb-2 bg-primary text-zinc-900 rounded-[20px] font-black text-lg transition-all flex justify-center items-center gap-2",
+                          (!isWhatsAppTermsAgreed || isSubmitting) ? "opacity-40 cursor-not-allowed grayscale shadow-none" : "hover:brightness-110 shadow-xl hover:shadow-primary/20 active:scale-[0.98]"
+                        )}
+                     >
+                        {isSubmitting ? (
+                          <div className="w-6 h-6 border-4 border-zinc-900/20 border-t-zinc-900 rounded-full animate-spin" />
+                        ) : (
+                          <MessageCircle size={22} strokeWidth={3} className="shrink-0" />
+                        )}
+                        <span className="leading-tight">
+                          {isSubmitting ? 'Processing...' : t.cart.checkout.confirmBtn}
+                        </span>
+                     </button>
+
+                     <div className="flex justify-end mt-2">
+                       <button
+                         type="button"
+                         onClick={() => setIsGuideOpen(true)}
+                         className="flex items-center gap-1.5 text-zinc-500 hover:text-primary transition-colors text-xs font-black uppercase tracking-widest"
+                       >
+                         <HelpCircle size={14} strokeWidth={3} />
+                         {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}
+                       </button>
+                     </div>
+
                   </div>
                 </div>
               </form>

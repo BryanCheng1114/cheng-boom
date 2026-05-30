@@ -219,6 +219,7 @@
       "formNamePlaceholder": "您的姓名",
       "formPhone": "电话号码",
       "formPhonePlaceholder": "012-345 6789",
+      "phoneFormatHint": "仅允许马来西亚手机号码（+60 或 01）。示例：0123456789",
       "paymentTitle": "首选支付方式",
       "deliveryTitle": "订购模式",
       "address": "送货地址",

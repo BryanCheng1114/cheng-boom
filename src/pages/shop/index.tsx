@@ -149,7 +149,7 @@ export default function Shop() {
 
           {/* ── Category Tab Bar ─────────────────────────────────────────── */}
           <div className="relative">
-            <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+            <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-thin">
               {/* "All" tab */}
               <button
                 onClick={() => handleCategoryClick('all')}

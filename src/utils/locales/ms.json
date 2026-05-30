@@ -219,6 +219,7 @@
       "formNamePlaceholder": "Nama Anda",
       "formPhone": "Nombor Telefon",
       "formPhonePlaceholder": "012-345 6789",
+      "phoneFormatHint": "Hanya nombor telefon bimbit Malaysia (+60 atau 01) dibenarkan. Contoh: 0123456789",
       "paymentTitle": "Pembayaran Pilihan",
       "deliveryTitle": "Mod Pesanan",
       "address": "Alamat Penghantaran",

@@ -287,7 +287,7 @@ export default function ProfilePage() {
               <motion.div 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/5 rounded-[40px] p-8 shadow-2xl overflow-hidden relative"
+                className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/5 rounded-[40px] p-8 shadow-2xl relative lg:h-[700px] overflow-y-auto overflow-x-hidden custom-scrollbar"
               >
                 <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
                 
@@ -388,9 +388,9 @@ export default function ProfilePage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 md:p-10 shadow-2xl"
+                    className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-6 md:p-8 shadow-2xl lg:h-[700px] overflow-hidden flex flex-col"
                   >
-                    <div className="flex items-center gap-3 mb-8">
+                    <div className="flex items-center gap-3 mb-6 shrink-0">
                       <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
                         <ArrowLeft size={18} />
                       </button>
@@ -400,14 +400,14 @@ export default function ProfilePage() {
                       </h3>
                     </div>
 
-                    <form onSubmit={handleUpdateProfile} className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <form onSubmit={handleUpdateProfile} className="space-y-4 flex-1 flex flex-col justify-between">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.fullName || 'Full Name'}</label>
                           <input 
                             type="text"
                             required
-                            className="w-full px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold text-foreground dark:text-white"
+                            className="w-full px-5 py-3 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold text-foreground dark:text-white"
                             value={editForm.name}
                             onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                           />
@@ -422,18 +422,18 @@ export default function ProfilePage() {
                           <input 
                             type="tel"
                             disabled
-                            className="w-full px-5 py-4 rounded-2xl bg-zinc-500/10 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 outline-none transition-all font-bold text-zinc-400 cursor-not-allowed"
+                            className="w-full px-5 py-3 rounded-2xl bg-zinc-500/10 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 outline-none transition-all font-bold text-zinc-400 cursor-not-allowed"
                             value={editForm.phone}
                           />
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.preferredPayment || 'Preferred Payment'}</label>
                           <select 
                             required
-                            className="w-full px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-zinc-800 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold appearance-none cursor-pointer text-foreground dark:text-white"
+                            className="w-full px-5 py-3 rounded-2xl bg-zinc-500/5 dark:bg-zinc-800 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold appearance-none cursor-pointer text-foreground dark:text-white"
                             value={editForm.preferredPayment}
                             onChange={(e) => setEditForm({ ...editForm, preferredPayment: e.target.value })}
                           >
@@ -447,7 +447,7 @@ export default function ProfilePage() {
                           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.orderMode || 'Order Mode'}</label>
                           <select 
                             required
-                            className="w-full px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-zinc-800 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold appearance-none cursor-pointer text-foreground dark:text-white"
+                            className="w-full px-5 py-3 rounded-2xl bg-zinc-500/5 dark:bg-zinc-800 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold appearance-none cursor-pointer text-foreground dark:text-white"
                             value={editForm.orderMode}
                             onChange={(e) => setEditForm({ ...editForm, orderMode: e.target.value })}
                           >
@@ -462,8 +462,8 @@ export default function ProfilePage() {
                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.addressLabel || 'Delivery / Collection Address'}</label>
                         <textarea 
                           required
-                          className="w-full px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold resize-none text-foreground dark:text-white"
-                          rows={3}
+                          className="w-full px-5 py-3 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold resize-none text-foreground dark:text-white"
+                          rows={2}
                           value={editForm.address}
                           onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
                         />
@@ -473,13 +473,13 @@ export default function ProfilePage() {
                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.notesLabel || 'Default Order Notes (Optional)'}</label>
                         <input 
                           type="text"
-                          className="w-full px-5 py-4 rounded-2xl bg-zinc-500/5 border border-zinc-500/10 focus:border-primary outline-none transition-all font-bold text-foreground dark:text-white"
+                          className="w-full px-5 py-3 rounded-2xl bg-zinc-500/5 border border-zinc-500/10 focus:border-primary outline-none transition-all font-bold text-foreground dark:text-white"
                           value={editForm.notes}
                           onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
                         />
                       </div>
 
-                      <div className="flex items-center gap-4 pt-4">
+                      <div className="flex items-center gap-4 pt-2 shrink-0">
                         <button 
                           type="submit"
                           disabled={isSaving || !hasEditChanges}
@@ -495,7 +495,7 @@ export default function ProfilePage() {
                         <button 
                           type="button"
                           onClick={() => setActiveTab('')}
-                          className="px-8 py-4 bg-zinc-500/10 text-zinc-500 rounded-2xl font-bold hover:bg-zinc-500/20 transition-all"
+                          className="px-8 py-3 bg-zinc-500/10 text-zinc-500 rounded-2xl font-bold hover:bg-zinc-500/20 transition-all"
                         >
                           {t.profilePage?.cancel || 'Cancel'}
                         </button>
@@ -511,7 +511,7 @@ export default function ProfilePage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 md:p-12 shadow-2xl"
+                    className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 md:p-12 shadow-2xl lg:h-[700px] overflow-y-auto overflow-x-hidden custom-scrollbar"
                   >
                     <div className="flex items-center gap-3 mb-10">
                       <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
@@ -580,11 +580,11 @@ export default function ProfilePage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="space-y-8"
+                    className="flex flex-col gap-6 lg:h-[700px] overflow-y-auto overflow-x-hidden custom-scrollbar pr-2"
                   >
 
                     {/* Top Stats Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0">
                       {/* Total Orders Card */}
                       <div className="group relative bg-white dark:bg-zinc-900 border border-border rounded-[32px] p-6 shadow-sm overflow-hidden transition-all hover:shadow-xl hover:border-primary/20">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
@@ -623,7 +623,7 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Recent Orders List */}
-                    <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 shadow-sm mt-8">
+                    <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 shadow-sm flex-1 flex flex-col min-h-0">
                       <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
                           <Package size={20} className="text-zinc-400" />
@@ -642,14 +642,14 @@ export default function ProfilePage() {
                       </div>
 
                       {orders.length === 0 ? (
-                        <div className="py-12 text-center">
+                        <div className="py-12 text-center flex-1 flex flex-col items-center justify-center">
                           <div className="w-16 h-16 bg-zinc-500/5 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-300">
                             <Package size={32} />
                           </div>
                           <p className="text-sm font-bold text-zinc-400">{t.profilePage?.noOrdersYet || "You haven't placed any orders yet."}</p>
                         </div>
                       ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-4 overflow-y-auto custom-scrollbar flex-1 pr-2">
                           {orders.slice(0, 3).map((order: any) => (
                             <button 
                               key={order.id}
@@ -701,7 +701,7 @@ export default function ProfilePage() {
                     exit={{ opacity: 0, y: -20 }}
                     className="space-y-6"
                   >
-                    <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 md:p-10 shadow-2xl">
+                    <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 md:p-10 shadow-2xl lg:h-[700px] overflow-y-auto overflow-x-hidden custom-scrollbar">
                       <div className="flex items-center gap-3 mb-8">
                         <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
                           <ArrowLeft size={18} />
@@ -765,8 +765,8 @@ export default function ProfilePage() {
                     className="space-y-8"
                   >
                     {/* All Orders List */}
-                    <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 shadow-sm">
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+                    <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 shadow-sm lg:h-[700px] flex flex-col">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 shrink-0">
                         <div className="flex items-center gap-3">
                           <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
                             <ArrowLeft size={18} />
@@ -813,7 +813,7 @@ export default function ProfilePage() {
                       </div>
 
                       {filteredOrders.length === 0 ? (
-                        <div className="py-20 text-center">
+                        <div className="flex-1 flex flex-col items-center justify-center text-center">
                           <div className="w-16 h-16 bg-zinc-500/5 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-300">
                             {searchQuery ? <Search size={32} /> : <Package size={32} />}
                           </div>
@@ -822,7 +822,7 @@ export default function ProfilePage() {
                           </p>
                         </div>
                       ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-4 flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 min-h-0">
                           {filteredOrders.map((order: any) => (
                             <button 
                               key={order.id}
