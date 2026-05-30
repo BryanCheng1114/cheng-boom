@@ -106,19 +106,19 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
       <div className={`h-full flex flex-col bg-card border border-border rounded-2xl overflow-hidden transition-all duration-300 shadow-sm hover:shadow-[0_8px_30px_rgba(245,158,11,0.15)] hover:-translate-y-1 ${isOutOfStock ? 'opacity-75' : 'hover:border-primary/50'}`}>
         
         {/* Image Container */}
-        <div ref={imageRef} className="relative h-56 w-full overflow-hidden bg-muted shrink-0">
+        <div ref={imageRef} className="relative h-56 w-full overflow-hidden bg-white dark:bg-zinc-900 shrink-0 flex items-center justify-center group/img">
+
+          {/* Product Image */}
           <div
-            className={`absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out ${!isOutOfStock && 'group-hover:scale-110'}`}
+            className={`absolute inset-0 z-10 w-full h-full bg-contain bg-no-repeat bg-center transition-transform duration-700 ease-out ${!isOutOfStock && 'group-hover/img:scale-110'}`}
             style={{ backgroundImage: `url(${displayImage})` }}
           />
           
-          {/* Discount badge removed per user request */}
-
-          {/* Bottom Right: Watermark (Stock status badge removed per user request) */}
-          <div className="absolute bottom-3 right-3 pointer-events-none w-12 h-12 opacity-80 z-20 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+          {/* Centered Watermark Overlay */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
             <img 
               src={settings?.watermarkUrl || "/transparent-Background.png"} 
-              className="w-full h-full object-contain select-none" 
+              className="w-[85%] h-[85%] object-contain opacity-30 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700" 
               alt="" 
               draggable={false}
             />

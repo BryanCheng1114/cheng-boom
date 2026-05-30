@@ -8,15 +8,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         orderBy: { name: 'asc' },
       });
 
-      // Enhance categories with a real product image
+      // Enhance categories with a real product image and product count
       const categoriesWithImages = await Promise.all(categories.map(async (cat) => {
         const sampleProduct = await prisma.product.findFirst({
           where: { category: cat.name },
           select: { images: true }
         });
         
+        const productCount = await prisma.product.count({
+          where: { category: cat.name, status: 'Live' }
+        });
+        
         return {
           ...cat,
+          count: productCount,
           image: sampleProduct?.images?.[0] || cat.image || '/example.png'
         };
       }));

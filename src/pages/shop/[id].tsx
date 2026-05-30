@@ -347,15 +347,15 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                   <img
                     src={images[activeImageIdx]}
                     alt={translatedName}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="absolute inset-0 z-10 w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
                     onContextMenu={(e) => e.preventDefault()}
                     draggable="false"
                   />
-                  {/* Dynamic Watermark Overlay - Bottom Right */}
-                  <div className="absolute bottom-4 right-4 z-10 pointer-events-none w-16 h-16 opacity-85 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+                  {/* Centered Watermark Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                     <img 
                       src={settings?.watermarkUrl || "/transparent-Background.png"} 
-                      className="w-full h-full object-contain select-none" 
+                      className="w-[70%] h-[70%] object-contain opacity-30 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700" 
                       alt="" 
                       draggable={false}
                     />
@@ -668,11 +668,11 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                     onContextMenu={(e) => e.preventDefault()}
                     draggable="false"
                   />
-                  {/* Dynamic Watermark Overlay - Bottom Right */}
-                  <div className="absolute bottom-6 right-6 z-20 pointer-events-none w-24 h-24 opacity-80 drop-shadow-[0_3px_6px_rgba(0,0,0,0.5)]">
+                  {/* Centered Watermark Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                     <img 
                       src={settings?.watermarkUrl || "/transparent-Background.png"} 
-                      className="w-full h-full object-contain select-none" 
+                      className="w-[70%] h-[70%] max-h-[70vh] object-contain opacity-30 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700" 
                       alt="" 
                       draggable={false}
                     />
@@ -1034,8 +1034,17 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
               <img
                 src={zoomedImage}
                 alt="Zoomed Preview"
-                className="w-auto h-auto max-w-full max-h-[85vh] object-contain"
+                className="w-auto h-auto max-w-full max-h-[85vh] object-contain z-10"
               />
+              {/* Centered Watermark Overlay */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                <img 
+                  src={settings?.watermarkUrl || "/transparent-Background.png"} 
+                  className="w-[70%] h-[70%] max-h-[70vh] object-contain opacity-30 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700" 
+                  alt="" 
+                  draggable={false}
+                />
+              </div>
             </div>
           </div>
         )}

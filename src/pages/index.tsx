@@ -219,14 +219,11 @@ export default function Home() {
               return titleA.toLowerCase().localeCompare(titleB.toLowerCase());
             });
 
-            const hasMoreThan11 = sortedCategories.length > 11;
-            const displayedCategories = hasMoreThan11 ? sortedCategories.slice(0, 11) : sortedCategories;
+            const hasMoreThan9 = sortedCategories.length > 9;
+            const displayedCategories = hasMoreThan9 ? sortedCategories.slice(0, 9) : sortedCategories;
 
             return (
-              <div className={hasMoreThan11 
-                ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 justify-items-center max-w-5xl mx-auto gap-y-12 gap-x-6 md:gap-x-12 w-full"
-                : "flex flex-wrap justify-center max-w-5xl mx-auto gap-10 md:gap-14 w-full"
-              }>
+              <div className="flex flex-wrap justify-center max-w-6xl mx-auto gap-y-12 gap-x-6 lg:gap-x-8 w-full">
                 {displayedCategories.map((category) => {
                   const key = category.key || category.name.toLowerCase().replace(/\s+/g, '');
                   const image = category.image || '/example.png';
@@ -242,16 +239,16 @@ export default function Home() {
                       href={`/shop?category=${key}`}
                       className="group flex flex-col items-center gap-4 cursor-pointer transition-all duration-300 hover:scale-[1.15] hover:-translate-y-3 z-0 hover:z-10"
                     >
-                      <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full overflow-hidden bg-black/50 backdrop-blur-sm border-4 border-white/10 group-hover:border-primary transition-all duration-300 shadow-xl group-hover:shadow-[0_10px_40px_rgba(245,158,11,0.7)]">
+                      <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden bg-black/50 backdrop-blur-sm border-4 border-white/10 group-hover:border-primary transition-all duration-300 shadow-xl group-hover:shadow-[0_10px_40px_rgba(245,158,11,0.7)]">
                         <div
                           className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700 ease-out"
                           style={{ backgroundImage: `url(${image})` }}
                         />
-                        {/* Dynamic Watermark Overlay - Bottom Right */}
-                        <div className="absolute bottom-1.5 right-1.5 z-10 pointer-events-none w-7 h-7 sm:w-8 sm:h-8 opacity-85 drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.5)]">
+                        {/* Centered Watermark Overlay */}
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                           <img 
                             src={settings?.watermarkUrl || "/transparent-Background.png"} 
-                            className="w-full h-full object-contain select-none" 
+                            className="w-[70%] h-[70%] object-contain opacity-30 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700" 
                             alt="" 
                             draggable={false}
                           />
@@ -265,13 +262,13 @@ export default function Home() {
                   );
                 })}
 
-                {/* View More Card - Only appears if strictly > 11 categories */}
-                {hasMoreThan11 && (
+                {/* View More Card - Only appears if strictly > 9 categories */}
+                {hasMoreThan9 && (
                   <Link
                     href="/shop"
                     className="group flex flex-col items-center gap-4 cursor-pointer transition-all duration-300 hover:scale-[1.15] hover:-translate-y-3 z-0 hover:z-10"
                   >
-                    <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full overflow-hidden bg-zinc-900 border-4 border-white/10 group-hover:border-primary flex items-center justify-center transition-all duration-300 shadow-xl group-hover:shadow-[0_10px_40px_rgba(245,158,11,0.7)]">
+                    <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden bg-zinc-900 border-4 border-white/10 group-hover:border-primary flex items-center justify-center transition-all duration-300 shadow-xl group-hover:shadow-[0_10px_40px_rgba(245,158,11,0.7)]">
                       <div className="flex flex-col items-center justify-center text-zinc-400 group-hover:text-primary transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <circle cx="12" cy="12" r="10" />
@@ -342,11 +339,11 @@ export default function Home() {
               priority
             />
 
-            {/* Dynamic Watermark Overlay - Bottom Right */}
-            <div className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 z-10 pointer-events-none w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 opacity-90 drop-shadow-md">
+            {/* Centered Watermark Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
               <img 
                 src={settings?.watermarkUrl || "/transparent-Background.png"} 
-                className="w-full h-full object-contain select-none" 
+                className="w-[30%] h-[30%] object-contain opacity-30 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700" 
                 alt="" 
                 draggable={false}
               />
@@ -393,11 +390,11 @@ export default function Home() {
               priority
             />
 
-            {/* Dynamic Watermark Overlay - Bottom Right */}
-            <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 md:bottom-4 md:right-4 z-10 pointer-events-none w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32 opacity-90 drop-shadow-xl">
+            {/* Centered Watermark Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
               <img 
                 src={settings?.watermarkUrl || "/transparent-Background.png"} 
-                className="w-full h-full object-contain select-none" 
+                className="w-[30%] h-[30%] object-contain opacity-30 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700" 
                 alt="" 
                 draggable={false}
               />

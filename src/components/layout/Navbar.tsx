@@ -182,19 +182,29 @@ export function Navbar() {
                       <Link
                         key={category.id}
                         href={`/shop?category=${key}`}
-                        className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:text-primary hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors"
+                        className="flex items-center justify-between px-3 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:text-primary hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors group/cat"
                       >
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary/50 shrink-0" />
-                        {label}
+                        <div className="flex items-center gap-1.5">
+                          <ChevronRight size={14} className="text-zinc-400 group-hover/cat:text-primary group-hover/cat:translate-x-0.5 transition-all" />
+                          <span>{label}</span>
+                        </div>
+                        {category.count !== undefined && (
+                          <span className="text-[11px] min-w-[20px] text-center bg-zinc-200/60 dark:bg-zinc-700/60 group-hover/cat:bg-primary group-hover/cat:text-white px-1.5 py-0.5 rounded-md text-zinc-600 dark:text-zinc-300 font-bold transition-all shadow-sm">
+                            {category.count}
+                          </span>
+                        )}
                       </Link>
                     );
                   })}
                   <div className="border-t border-zinc-100 dark:border-zinc-800 mx-3 my-1" />
                   <Link
                     href="/shop"
-                    className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors"
+                    className="flex items-center justify-between px-3 py-2 text-sm font-bold text-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors group/all"
                   >
-                    ✨ {t.shopCategories.all}
+                    <span>{t.shopCategories.all}</span>
+                    <span className="text-[11px] min-w-[20px] text-center bg-primary px-1.5 py-0.5 rounded-md text-white font-black shadow-sm group-hover/all:scale-110 transition-transform">
+                      {categories.reduce((acc, cat) => acc + (cat.count || 0), 0)}
+                    </span>
                   </Link>
                 </div>
               </div>
@@ -236,125 +246,135 @@ export function Navbar() {
           </div>
 
           {/* ---- Right Actions ---- */}
-          <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
-            <LanguageSwitcher />
-            <ThemeToggle />
+          <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
 
-            {/* Cart */}
-            <Link
-              id="navbar-cart-btn"
-              href="/cart"
-              className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md hover:shadow-primary/10 transition-all duration-300"
-            >
-              <motion.div
-                animate={isWiggling ? {
-                  x: [0, -5, 5, -5, 5, 0],
-                  rotate: [0, -10, 10, -10, 10, 0],
-                } : {}}
-                transition={{ duration: 0.4 }}
-              >
-                <ShoppingCart strokeWidth={1.5} size={20} className={cn(isWiggling && "text-primary")} />
-              </motion.div>
-
-              {/* Confetti Burst */}
-              <AnimatePresence>
-                {showConfetti && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    {[...Array(12)].map((_, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 1, scale: 0, x: 0, y: 0 }}
-                        animate={{ 
-                          opacity: 0, 
-                          scale: [0, 1.5, 0.5],
-                          x: (Math.random() - 0.5) * 100, 
-                          y: (Math.random() - 0.5) * 100,
-                          rotate: Math.random() * 360
-                        }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 1.2, ease: "easeOut" }}
-                        className={cn(
-                          "absolute w-1.5 h-1.5 rounded-full",
-                          ["bg-primary", "bg-yellow-400", "bg-orange-500", "bg-red-500"][i % 4]
-                        )}
-                      />
-                    ))}
-                  </div>
-                )}
-              </AnimatePresence>
-
-              <AnimatePresence>
-                {totalItems > 0 && (
-                  <motion.span
-                    key="cart-badge"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: isWiggling ? [1, 1.5, 1] : 1 }}
-                    className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center w-5 h-5 text-[11px] font-black text-zinc-900 bg-primary rounded-full shadow-[0_0_8px_rgba(245,158,11,0.5)]"
-                  >
-                    {totalItems}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </Link>
-            
-            {/* Profile Dropdown */}
-            <div className="relative group/profile ml-4 flex items-center">
-              {user ? (
-                <div className="flex items-center gap-3 cursor-pointer relative">
-                  <div className="flex flex-col items-end hidden sm:flex">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 leading-none mb-1">{t.nav?.profile?.activeMember || 'Active Member'}</span>
-                    <span className="text-sm font-bold text-foreground leading-none">{user.name}</span>
-                  </div>
-                  
-                  {/* Icon Frame */}
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 group-hover/profile:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 group-hover/profile:border-primary/30 group-hover/profile:bg-white dark:group-hover/profile:bg-zinc-900 shadow-sm group-hover/profile:shadow-md group-hover/profile:shadow-primary/10 transition-all duration-300">
-                    <User strokeWidth={1.5} size={20} className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
-                  </div>
-
-                  {/* Invisible Bridge to prevent hover gap */}
-                  <div className="absolute -bottom-4 left-0 w-full h-4 z-10" />
-                  
-                  {/* Dropdown */}
-                  <div className="absolute top-[calc(100%+8px)] right-0 w-56 opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible translate-y-2 scale-95 group-hover/profile:translate-y-0 group-hover/profile:scale-100 transition-all duration-300 ease-out origin-top-right z-50">
-                    <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-700/60 rounded-[24px] shadow-2xl shadow-black/10 dark:shadow-black/40 py-3 overflow-hidden">
-                      <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 mb-2">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">{t.nav?.profile?.account || 'Account'}</p>
-                        <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
-                      </div>
-                      <Link 
-                        href="/profile" 
-                        className="flex items-center gap-3 px-5 py-3 text-sm text-zinc-600 dark:text-zinc-300 hover:text-primary hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors"
-                      >
-                        <User size={16} /> {t.nav?.profile?.myProfile || 'My Profile'}
-                      </Link>
-                      <div className="h-px bg-zinc-100 dark:bg-zinc-800 mx-3 my-2" />
-                      <button 
-                        onClick={() => setIsLogoutModalOpen(true)}
-                        className="w-full flex items-center gap-3 px-5 py-3 text-sm text-red-500 hover:bg-red-500/5 transition-colors"
-                      >
-                        <X size={16} /> {t.nav?.profile?.logout || 'Logout'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <Link
-                  href="/login"
-                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md hover:shadow-primary/10 transition-all duration-300 group"
-                  title="Sign In"
-                >
-                  <User strokeWidth={1.5} className="w-[18px] h-[18px] sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
-                </Link>
-              )}
+            {/* Site Settings: Language + Theme */}
+            <div className="hidden sm:flex items-center gap-1">
+              <LanguageSwitcher />
+              <ThemeToggle />
             </div>
 
-            {/* Mobile hamburger */}
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden w-8 h-8 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md transition-all duration-300 ml-0.5"
-            >
-              {mobileOpen ? <X strokeWidth={1.5} className="w-[18px] h-[18px]" /> : <Menu strokeWidth={1.5} className="w-[18px] h-[18px]" />}
-            </button>
+            {/* Divider */}
+            <div className="hidden sm:block w-[1px] h-5 bg-zinc-200 dark:bg-zinc-800 mx-2 sm:mx-3" />
+
+            {/* User Actions: Cart + Profile */}
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              {/* Cart */}
+              <Link
+                id="navbar-cart-btn"
+                href="/cart"
+                className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md hover:shadow-primary/10 transition-all duration-300"
+              >
+                <motion.div
+                  animate={isWiggling ? {
+                    x: [0, -5, 5, -5, 5, 0],
+                    rotate: [0, -10, 10, -10, 10, 0],
+                  } : {}}
+                  transition={{ duration: 0.4 }}
+                >
+                  <ShoppingCart strokeWidth={1.5} size={20} className={cn(isWiggling && "text-primary")} />
+                </motion.div>
+
+                {/* Confetti Burst */}
+                <AnimatePresence>
+                  {showConfetti && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      {[...Array(12)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 1, scale: 0, x: 0, y: 0 }}
+                          animate={{ 
+                            opacity: 0, 
+                            scale: [0, 1.5, 0.5],
+                            x: (Math.random() - 0.5) * 100, 
+                            y: (Math.random() - 0.5) * 100,
+                            rotate: Math.random() * 360
+                          }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 1.2, ease: "easeOut" }}
+                          className={cn(
+                            "absolute w-1.5 h-1.5 rounded-full",
+                            ["bg-primary", "bg-yellow-400", "bg-orange-500", "bg-red-500"][i % 4]
+                          )}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </AnimatePresence>
+
+                <AnimatePresence>
+                  {totalItems > 0 && (
+                    <motion.span
+                      key="cart-badge"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: isWiggling ? [1, 1.5, 1] : 1 }}
+                      className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center w-5 h-5 text-[11px] font-black text-zinc-900 bg-primary rounded-full shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+                    >
+                      {totalItems}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </Link>
+              
+              {/* Profile Dropdown */}
+              <div className="relative group/profile flex items-center">
+                {user ? (
+                  <div className="flex items-center gap-2 cursor-pointer relative">
+                    {/* Icon Frame */}
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 group-hover/profile:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 group-hover/profile:border-primary/30 group-hover/profile:bg-white dark:group-hover/profile:bg-zinc-900 shadow-sm group-hover/profile:shadow-md group-hover/profile:shadow-primary/10 transition-all duration-300">
+                      <User strokeWidth={1.5} size={20} className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
+                    </div>
+
+                    <div className="flex flex-col items-start hidden sm:flex">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 leading-none mb-1">{t.nav?.profile?.activeMember || 'Active Member'}</span>
+                      <span className="text-sm font-bold text-foreground leading-none">{user.name}</span>
+                    </div>
+
+                    {/* Invisible Bridge to prevent hover gap */}
+                    <div className="absolute -bottom-4 left-0 w-full h-4 z-10" />
+                    
+                    {/* Dropdown */}
+                    <div className="absolute top-[calc(100%+8px)] right-0 w-56 opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible translate-y-2 scale-95 group-hover/profile:translate-y-0 group-hover/profile:scale-100 transition-all duration-300 ease-out origin-top-right z-50">
+                      <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-700/60 rounded-[24px] shadow-2xl shadow-black/10 dark:shadow-black/40 py-3 overflow-hidden">
+                        <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 mb-2">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">{t.nav?.profile?.account || 'Account'}</p>
+                          <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
+                        </div>
+                        <Link 
+                          href="/profile" 
+                          className="flex items-center gap-3 px-5 py-3 text-sm text-zinc-600 dark:text-zinc-300 hover:text-primary hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors"
+                        >
+                          <User size={16} /> {t.nav?.profile?.myProfile || 'My Profile'}
+                        </Link>
+                        <div className="h-px bg-zinc-100 dark:bg-zinc-800 mx-3 my-2" />
+                        <button 
+                          onClick={() => setIsLogoutModalOpen(true)}
+                          className="w-full flex items-center gap-3 px-5 py-3 text-sm text-red-500 hover:bg-red-500/5 transition-colors"
+                        >
+                          <X size={16} /> {t.nav?.profile?.logout || 'Logout'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md hover:shadow-primary/10 transition-all duration-300 group"
+                    title="Sign In"
+                  >
+                    <User strokeWidth={1.5} className="w-[18px] h-[18px] sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                  </Link>
+                )}
+              </div>
+
+              {/* Mobile hamburger */}
+              <button
+                onClick={() => setMobileOpen(!mobileOpen)}
+                className="md:hidden w-8 h-8 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md transition-all duration-300 ml-0.5"
+              >
+                {mobileOpen ? <X strokeWidth={1.5} className="w-[18px] h-[18px]" /> : <Menu strokeWidth={1.5} className="w-[18px] h-[18px]" />}
+              </button>
+            </div>
           </div>
         </div>
 

@@ -105,15 +105,10 @@ export function Footer() {
                 <li key={`${href}-${label}`}>
                   <Link
                     href={href}
-                    className="flex items-center gap-1.5 text-sm transition-colors group
+                    className="flex items-center text-sm transition-colors group
                       text-zinc-500 hover:text-primary
                       dark:text-zinc-400 dark:hover:text-primary"
                   >
-                    <ChevronRight
-                      size={14}
-                      className="text-zinc-300 group-hover:text-primary group-hover:translate-x-0.5 transition-all
-                        dark:text-zinc-600 dark:group-hover:text-primary"
-                    />
                     {label}
                   </Link>
                 </li>
@@ -149,15 +144,10 @@ export function Footer() {
                   <li key={cat.id}>
                     <Link
                       href={`/shop?category=${key}`}
-                      className="flex items-center gap-1.5 text-sm transition-colors group
+                      className="flex items-center text-sm transition-colors group
                         text-zinc-500 hover:text-primary
                         dark:text-zinc-400 dark:hover:text-primary"
                     >
-                      <ChevronRight
-                        size={14}
-                        className="text-zinc-300 group-hover:text-primary group-hover:translate-x-0.5 transition-all
-                          dark:text-zinc-600 dark:group-hover:text-primary"
-                      />
                       {label}
                     </Link>
                   </li>
