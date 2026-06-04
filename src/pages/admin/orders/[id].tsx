@@ -16,7 +16,8 @@ import {
   Activity,
   MessageSquare,
   Save,
-  Zap
+  Zap,
+  ExternalLink
 } from 'lucide-react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { useLanguage } from '../../../context/LanguageContext';
@@ -245,9 +246,22 @@ const OrderDetailsPage = () => {
                   <div>
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('fulfillment_mode')}</p>
                     <p className="font-bold text-zinc-900 dark:text-white flex items-center gap-2 capitalize">
-                      <Package size={14} className="text-primary" /> {order.fulfillmentMode || order.customer?.orderMode || 'Delivery'}
+                      <Package size={14} className="text-primary" /> {order.fulfillmentMode || order.deliveryMode || order.customer?.orderMode || 'Delivery'}
                     </p>
                   </div>
+                  
+                  {order.paymentReceiptUrl && (
+                    <div>
+                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('payment_receipt') || 'Payment Receipt'}</p>
+                      <button 
+                        onClick={() => window.open(order.paymentReceiptUrl, '_blank')}
+                        className="font-bold text-yellow-500 hover:text-yellow-600 dark:text-yellow-400 dark:hover:text-yellow-500 flex items-center gap-2 transition-colors focus:outline-none"
+                      >
+                        <ExternalLink size={14} /> 
+                        <span className="underline decoration-2 underline-offset-4">{t('view_receipt') || 'View Receipt'}</span>
+                      </button>
+                    </div>
+                  )}
                   {order.notes && (
                     <div>
                       <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('order_notes')}</p>

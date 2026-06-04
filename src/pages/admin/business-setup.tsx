@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { Save, Upload, Image as ImageIcon, Building, Phone, Mail, Clock, MapPin, Loader2, CheckCircle2, X, HelpCircle, Share2, Globe, Smartphone, Camera, Undo2 } from 'lucide-react';
+import { Save, Upload, Image as ImageIcon, Building, Phone, Mail, Clock, MapPin, Loader2, CheckCircle2, X, HelpCircle, Share2, Globe, Smartphone, Camera, Undo2, Copy, Download, ExternalLink, QrCode, RefreshCw, Send, CreditCard } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 import { useBusiness } from '../../context/BusinessContext';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -13,6 +14,50 @@ const BusinessSetupPage = () => {
   const [errors, setErrors] = useState<{phone?: string, whatsapp?: string, email?: string}>({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [websiteUrl, setWebsiteUrl] = useState('');
+  const [isRefreshingQR, setIsRefreshingQR] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setWebsiteUrl(window.location.origin);
+    }
+  }, []);
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(websiteUrl);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: formData.businessName || 'Cheng-BOOM',
+        text: 'Check out our amazing fireworks!',
+        url: websiteUrl,
+      }).catch(console.error);
+    } else {
+      handleCopyLink();
+    }
+  };
+
+  const handleDownloadQR = () => {
+    const canvas = document.getElementById('business-qr-code') as HTMLCanvasElement;
+    if (canvas) {
+      const url = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(formData.businessName || 'Cheng-BOOM').replace(/\s+/g, '-')}-QR.png`;
+      a.click();
+    }
+  };
+
+  const handleRefreshQR = () => {
+    setIsRefreshingQR(true);
+    // Simulate refreshing by a short delay
+    setTimeout(() => setIsRefreshingQR(false), 800);
+  };
 
   useEffect(() => {
     if (settings) {
@@ -34,6 +79,8 @@ const BusinessSetupPage = () => {
         tiktok: formData.tiktok || '',
         instagram: formData.instagram || '',
         businessFont: formData.businessFont || 'Impact',
+        bankTransferImage: formData.bankTransferImage || '',
+        tngDuitnowImage: formData.tngDuitnowImage || '',
       };
       const original = {
         businessName: settings.businessName || '',
@@ -47,6 +94,8 @@ const BusinessSetupPage = () => {
         tiktok: settings.tiktok || '',
         instagram: settings.instagram || '',
         businessFont: settings.businessFont || 'Impact',
+        bankTransferImage: settings.bankTransferImage || '',
+        tngDuitnowImage: settings.tngDuitnowImage || '',
       };
       setIsDirty(JSON.stringify(current) !== JSON.stringify(original));
     }
@@ -268,6 +317,88 @@ const BusinessSetupPage = () => {
           </div>
         </div>
 
+        {/* Payment Settings Section */}
+        <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] p-8 shadow-xl">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
+              <CreditCard size={20} />
+            </div>
+            <h2 className="text-xl font-black italic uppercase dark:text-white text-zinc-900">{t('payment_settings') || 'Payment Settings'}</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Bank Transfer Image */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-2 group">
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">{t('bank_transfer_image') || 'Bank Transfer Details / QR'}</label>
+                <div className="relative">
+                  <HelpCircle size={12} className="text-zinc-400 cursor-help" />
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 p-3 bg-zinc-800 dark:bg-zinc-700 text-white text-xs font-medium rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-center shadow-xl">
+                    {t('bank_transfer_tooltip') || 'Upload a clear image of your bank account details or bank QR code for customers.'}
+                  </div>
+                </div>
+              </div>
+              <div className="relative aspect-square md:aspect-video bg-zinc-500/5 border-2 border-dashed border-zinc-500/20 rounded-3xl flex flex-col items-center justify-center hover:bg-zinc-500/10 transition-colors overflow-hidden group">
+                {formData.bankTransferImage ? (
+                  <>
+                    <img src={formData.bankTransferImage} alt="Bank Transfer Details" className="h-full w-full object-contain p-4" />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <span className="text-white font-bold text-xs">{t('change_image') || 'Change Image'}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {isUploading['bankTransferImage'] ? <Loader2 className="animate-spin text-zinc-400 mb-2" size={24} /> : <Upload className="text-zinc-400 mb-2" size={24} />}
+                    <span className="text-xs font-bold text-zinc-500">{isUploading['bankTransferImage'] ? (t('uploading') || 'Uploading...') : (t('upload_image') || 'Upload Image')}</span>
+                  </>
+                )}
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={(e) => handleFileUpload(e, 'bankTransferImage')}
+                  disabled={isUploading['bankTransferImage']}
+                  className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            {/* TNG Duitnow Image */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-2 group">
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">{t('tng_duitnow_image') || 'TNG DuitNow QR'}</label>
+                <div className="relative">
+                  <HelpCircle size={12} className="text-zinc-400 cursor-help" />
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 p-3 bg-zinc-800 dark:bg-zinc-700 text-white text-xs font-medium rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-center shadow-xl">
+                    {t('tng_duitnow_tooltip') || 'Upload your TNG DuitNow QR Code. Customers will scan this to pay.'}
+                  </div>
+                </div>
+              </div>
+              <div className="relative aspect-square md:aspect-video bg-zinc-500/5 border-2 border-dashed border-zinc-500/20 rounded-3xl flex flex-col items-center justify-center hover:bg-zinc-500/10 transition-colors overflow-hidden group">
+                {formData.tngDuitnowImage ? (
+                  <>
+                    <img src={formData.tngDuitnowImage} alt="TNG DuitNow Details" className="h-full w-full object-contain p-4" />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <span className="text-white font-bold text-xs">{t('change_image') || 'Change Image'}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {isUploading['tngDuitnowImage'] ? <Loader2 className="animate-spin text-zinc-400 mb-2" size={24} /> : <Upload className="text-zinc-400 mb-2" size={24} />}
+                    <span className="text-xs font-bold text-zinc-500">{isUploading['tngDuitnowImage'] ? (t('uploading') || 'Uploading...') : (t('upload_image') || 'Upload Image')}</span>
+                  </>
+                )}
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={(e) => handleFileUpload(e, 'tngDuitnowImage')}
+                  disabled={isUploading['tngDuitnowImage']}
+                  className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Business Information Section */}
         <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] p-8 shadow-xl">
           <div className="flex items-center gap-3 mb-6">
@@ -378,6 +509,112 @@ const BusinessSetupPage = () => {
           </div>
         </div>
 
+        {/* Promote Us Section */}
+        <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] p-8 shadow-xl">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+              <QrCode size={20} />
+            </div>
+            <h2 className="text-xl font-black italic uppercase dark:text-white text-zinc-900">{t('promote_business') || 'Promote Your Business'}</h2>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Website Link Details */}
+            <div className="space-y-6">
+              <div>
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">{t('website_link') || 'Website Link'}</label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-4 text-sm font-bold text-zinc-600 dark:text-zinc-300 truncate">
+                    {websiteUrl}
+                  </div>
+                  <button 
+                    onClick={() => window.open(websiteUrl, '_blank')}
+                    className="w-14 h-14 bg-zinc-500/5 hover:bg-zinc-500/10 border border-zinc-500/20 rounded-2xl flex items-center justify-center text-zinc-600 dark:text-zinc-300 transition-colors"
+                    title={t('open_website') || 'Open Website'}
+                  >
+                    <ExternalLink size={20} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <button 
+                  onClick={handleCopyLink}
+                  className="w-full sm:flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                >
+                  {copySuccess ? <CheckCircle2 size={16} className="text-green-500" /> : <Copy size={16} />}
+                  {copySuccess ? (t('copied') || 'Copied!') : (t('copy_link') || 'Copy Link')}
+                </button>
+                <button 
+                  onClick={handleShare}
+                  className="w-full sm:flex-1 py-4 bg-purple-500 hover:bg-purple-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20"
+                >
+                  <Send size={16} />
+                  {t('share_forward') || 'Share / Forward'}
+                </button>
+              </div>
+
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 flex items-start gap-3">
+                <HelpCircle size={16} className="text-blue-500 mt-0.5 shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-blue-600 dark:text-blue-400">QR Code Tip</p>
+                  <p className="text-[10px] font-medium text-blue-600/80 dark:text-blue-400/80 leading-relaxed">
+                    This QR Code links directly to your storefront. It <strong>never expires</strong> and you can freely print it, share it on social media, or show it to customers in person.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* QR Code Section */}
+            <div className="flex flex-col items-center justify-center bg-zinc-500/5 border border-zinc-500/10 rounded-3xl p-6 relative group overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+              
+              <div className="relative bg-white p-4 rounded-3xl shadow-sm border border-zinc-100 mb-6">
+                {isRefreshingQR ? (
+                  <div className="w-[180px] h-[180px] flex items-center justify-center bg-zinc-50 rounded-2xl">
+                    <Loader2 className="animate-spin text-purple-500" size={32} />
+                  </div>
+                ) : (
+                  <QRCodeCanvas 
+                    id="business-qr-code"
+                    value={websiteUrl}
+                    size={180}
+                    level="H"
+                    includeMargin={false}
+                    imageSettings={formData.logoUrl ? {
+                      src: formData.logoUrl,
+                      x: undefined,
+                      y: undefined,
+                      height: 40,
+                      width: 40,
+                      excavate: true,
+                      crossOrigin: "anonymous",
+                    } : undefined}
+                    className="rounded-2xl"
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 w-full max-w-[250px] relative z-10">
+                <button 
+                  onClick={handleDownloadQR}
+                  className="flex-1 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Download size={16} />
+                  {t('download_qr') || 'Download QR'}
+                </button>
+                <button 
+                  onClick={handleRefreshQR}
+                  disabled={isRefreshingQR}
+                  className="w-12 h-12 flex-shrink-0 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:text-purple-500 dark:hover:text-purple-400 rounded-xl flex items-center justify-center transition-colors disabled:opacity-50"
+                  title="Refresh QR"
+                >
+                  <RefreshCw size={16} className={isRefreshingQR ? "animate-spin" : ""} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Sticky Bottom Action Bar */}

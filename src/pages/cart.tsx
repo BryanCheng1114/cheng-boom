@@ -3,16 +3,16 @@ import Link from 'next/link';
 import { useCart } from '../components/cart/CartProvider';
 import { generateWhatsAppLink, OrderDetails } from '../services/whatsappService';
 import { useBusiness } from '../context/BusinessContext';
-import { Trash2, Plus, Minus, ArrowRight, MessageCircle, Shield, X, MapPin, CreditCard, User, Phone, Check, Zap, HelpCircle } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, MessageCircle, Shield, X, MapPin, CreditCard, User, Phone, Check, Zap, HelpCircle, Upload, ExternalLink, AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { cn } from '../utils/cn';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 
 const paymentMethodLabels: Record<string, Record<string, string>> = {
-  'TNG e-wallet': { en: 'TNG eWallet', zh: 'TNG电子钱包', ms: 'e-Dompet TNG' },
-  'bank transfer': { en: 'Bank Transfer', zh: '银行转账', ms: 'Pindahan Bank' },
-  'DuitNow qr': { en: 'DuitNow QR', zh: 'DuitNow二维码', ms: 'DuitNow QR' }
+  'Cash on Delivery': { en: 'Cash on Delivery', zh: '货到付款', ms: 'Tunai Semasa' },
+  'Bank Transfer': { en: 'Bank Transfer', zh: '银行转账', ms: 'Pindahan Bank' },
+  'TNG DuitNow': { en: 'TNG DuitNow', zh: 'TNG二维码', ms: 'DuitNow QR' }
 };
 
 const deliveryModeLabels: Record<string, Record<string, string>> = {
@@ -31,13 +31,15 @@ export default function Cart() {
   const [orderDetails, setOrderDetails] = useState<OrderDetails>({
     customerName: '',
     customerPhone: '',
-    paymentMethod: 'TNG e-wallet',
+    paymentMethod: 'Cash on Delivery',
     deliveryMode: 'Self Collect',
     address: '',
-    notes: ''
+    notes: '',
+    paymentReceiptUrl: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
   const [productsStock, setProductsStock] = useState<Record<string, number>>({});
   const [isWhatsAppTermsAgreed, setIsWhatsAppTermsAgreed] = useState(false);
   const [shakeTerms, setShakeTerms] = useState(false);
@@ -45,6 +47,9 @@ export default function Cart() {
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [isClearCartModalOpen, setIsClearCartModalOpen] = useState(false);
   const [itemToRemove, setItemToRemove] = useState<string | null>(null);
+  const [stockErrorModalOpen, setStockErrorModalOpen] = useState(false);
+  const [stockErrorProductName, setStockErrorProductName] = useState('');
+  const [pdfErrorModalOpen, setPdfErrorModalOpen] = useState(false);
   const shakeControls = useAnimation();
 
   const clearCartTranslations = {
@@ -83,11 +88,11 @@ export default function Cart() {
             const fullProfile = await res.json();
             
             const mapPayment = (val: string | null | undefined) => {
-              if (!val) return 'TNG e-wallet';
+              if (!val) return 'Cash on Delivery';
               const lower = val.toLowerCase();
-              if (lower.includes('bank')) return 'bank transfer';
-              if (lower.includes('duit')) return 'DuitNow qr';
-              return 'TNG e-wallet';
+              if (lower.includes('bank')) return 'Bank Transfer';
+              if (lower.includes('tng') || lower.includes('duit')) return 'TNG DuitNow';
+              return 'Cash on Delivery';
             };
             const mapDelivery = (val: string | null | undefined) => {
               if (!val) return 'Self Collect';
@@ -140,6 +145,41 @@ export default function Cart() {
     fetchStocks();
   }, []);
 
+  const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0]) return;
+    
+    const file = e.target.files[0];
+    if (file.type === 'application/pdf') {
+      setPdfErrorModalOpen(true);
+      e.target.value = '';
+      return;
+    }
+    
+    setIsUploadingReceipt(true);
+    try {
+      const file = e.target.files[0];
+      const formDataObj = new FormData();
+      formDataObj.append('files', file);
+      
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formDataObj,
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setOrderDetails(prev => ({ ...prev, paymentReceiptUrl: data.urls[0] }));
+      } else {
+        alert('Upload failed');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Upload error');
+    } finally {
+      setIsUploadingReceipt(false);
+    }
+  };
+
   // Monitor stock and auto-clamp quantities if database stock levels decrease
   useEffect(() => {
     if (Object.keys(productsStock).length > 0) {
@@ -154,18 +194,118 @@ export default function Cart() {
 
   if (!mounted) return null; // Prevent hydration mismatch
 
+  const ErrorModals = (
+    <AnimatePresence>
+      {/* PDF Error Modal */}
+      {pdfErrorModalOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6"
+        >
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setPdfErrorModalOpen(false)}
+          />
+          <motion.div
+            initial={{ scale: 0.95, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.95, y: 20 }}
+            className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-800"
+          >
+            <div className="p-8 flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mb-6">
+                <Shield size={32} />
+              </div>
+              <h3 className="text-xl font-black text-foreground mb-3">
+                {locale === 'zh' ? '不支持 PDF' : locale === 'ms' ? 'PDF Tidak Dibenarkan' : 'PDF Not Allowed'}
+              </h3>
+              <p className="text-zinc-500 dark:text-zinc-400 font-medium mb-8 text-sm leading-relaxed">
+                {locale === 'zh' ? '请仅上传图片文件（如 JPG、PNG）作为您的付款收据。' : locale === 'ms' ? 'Sila muat naik fail imej (seperti JPG, PNG) sahaja untuk resit pembayaran anda.' : 'Please upload only image files (like JPG, PNG) for your payment receipt.'}
+              </p>
+              <button
+                onClick={() => setPdfErrorModalOpen(false)}
+                className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black uppercase tracking-widest transition-colors shadow-lg shadow-amber-500/20"
+              >
+                {locale === 'zh' ? '确定' : locale === 'ms' ? 'OK' : 'OK'}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Insufficient Stock Modal */}
+      {stockErrorModalOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6"
+        >
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setStockErrorModalOpen(false)}
+          />
+          <motion.div
+            initial={{ scale: 0.95, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.95, y: 20 }}
+            className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-800"
+          >
+            <div className="p-8 flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mb-6">
+                <AlertTriangle size={32} />
+              </div>
+              <h3 className="text-xl font-black text-foreground mb-3">
+                {locale === 'zh' ? '商品已售罄' : locale === 'ms' ? 'Item Habis Dijual' : 'Item Sold Out'}
+              </h3>
+              <p className="text-zinc-500 dark:text-zinc-400 font-medium mb-4 text-sm leading-relaxed">
+                {locale === 'zh' 
+                  ? '抱歉，您抢购的以下商品刚刚已售罄。您的购物车已自动更新。' 
+                  : locale === 'ms' 
+                  ? 'Maaf, item berikut telah habis dijual. Troli anda telah dikemas kini.' 
+                  : 'Sorry, the following items just sold out. Your cart has been updated.'}
+              </p>
+
+              <div className="w-full bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 mb-8 text-left max-h-32 overflow-y-auto">
+                <ul className="space-y-2">
+                  {stockErrorProductName.split(',').filter(Boolean).map((name, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+                      <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{name.trim()}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <button
+                onClick={() => setStockErrorModalOpen(false)}
+                className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black uppercase tracking-widest transition-colors shadow-lg shadow-amber-500/20"
+              >
+                {locale === 'zh' ? '确定' : locale === 'ms' ? 'OK' : 'OK'}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
   if (items.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center min-h-[60vh] flex flex-col justify-center items-center">
-        <h1 className="text-3xl font-bold mb-4 text-foreground">{t.cart.emptyTitle}</h1>
-        <p className="text-muted-foreground mb-8 text-lg">{t.cart.emptyDesc}</p>
-        <Link 
-          href="/shop" 
-          className="px-8 py-3 bg-primary text-zinc-900 rounded-full font-bold hover:brightness-110 transition-all inline-flex items-center gap-2"
-        >
-          {t.cart.startShopping} <ArrowRight size={20} />
-        </Link>
-      </div>
+      <>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center min-h-[60vh] flex flex-col justify-center items-center">
+          <h1 className="text-3xl font-bold mb-4 text-foreground">{t.cart.emptyTitle}</h1>
+          <p className="text-muted-foreground mb-8 text-lg">{t.cart.emptyDesc}</p>
+          <Link 
+            href="/shop" 
+            className="px-8 py-3 bg-primary text-zinc-900 rounded-full font-bold hover:brightness-110 transition-all inline-flex items-center gap-2"
+          >
+            {t.cart.startShopping} <ArrowRight size={20} />
+          </Link>
+        </div>
+        {ErrorModals}
+      </>
     );
   }
 
@@ -186,7 +326,8 @@ export default function Cart() {
             paymentMethod: orderDetails.paymentMethod,
             deliveryMode: orderDetails.deliveryMode,
             notes: orderDetails.notes,
-            role: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}').role : 'Guest'
+            role: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}').role : 'Guest',
+            paymentReceiptUrl: orderDetails.paymentReceiptUrl
           },
           items: items.map(item => ({
             productId: item.id,
@@ -206,6 +347,24 @@ export default function Cart() {
       });
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        
+        if (errorData.code === 'INSUFFICIENT_STOCK') {
+          setStockErrorProductName(errorData.productName);
+          setStockErrorModalOpen(true);
+          
+          // Trigger a refresh of the stocks, which will auto-clamp the cart because of the useEffect
+          const res = await fetch('/api/products');
+          if (res.ok) {
+            const data = await res.json();
+            const stockMap: Record<string, number> = {};
+            data.forEach((p: any) => stockMap[p.id] = p.stock || 0);
+            setProductsStock(stockMap);
+          }
+          setIsSubmitting(false);
+          return; // Do not proceed to WhatsApp
+        }
+
         throw new Error('Failed to save order');
       }
 
@@ -405,6 +564,19 @@ export default function Cart() {
                   <div className="mb-10">
                     <h2 className="text-3xl font-black text-foreground mb-2">{t.cart.checkout.title} <span className="text-primary">{t.cart.checkout.titleAccent}</span></h2>
                     <p className="text-muted-foreground font-medium">{t.cart.checkout.desc}</p>
+                    
+                    {/* Total Amount Banner */}
+                    <div className="mt-6 bg-primary/10 border-2 border-primary/20 rounded-2xl p-6 flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-black uppercase tracking-widest text-primary mb-1">
+                          {locale === 'zh' ? '应付总额' : locale === 'ms' ? 'Jumlah Perlu Dibayar' : 'Total Payable'}
+                        </span>
+                        <span className="text-[10px] text-zinc-500 font-bold dark:text-zinc-400">
+                          {locale === 'zh' ? '请准备此确切金额' : locale === 'ms' ? 'Sila sediakan jumlah tepat ini' : 'Please prepare this exact amount'}
+                        </span>
+                      </div>
+                      <span className="text-3xl font-black text-primary tracking-tight">RM {totalPrice.toFixed(2)}</span>
+                    </div>
                   </div>
 
                   <div className="space-y-8">
@@ -455,7 +627,7 @@ export default function Cart() {
                         <CreditCard size={12} className="text-primary" /> {t.cart.checkout.paymentTitle}
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {['TNG e-wallet', 'bank transfer', 'DuitNow qr'].map((method) => (
+                        {['Cash on Delivery', 'Bank Transfer', 'TNG DuitNow'].map((method) => (
                           <button
                             key={method}
                             type="button"
@@ -473,6 +645,92 @@ export default function Cart() {
                         ))}
                       </div>
                     </div>
+
+                    {/* Upload Receipt Section (Conditional) */}
+                    <AnimatePresence mode="popLayout">
+                      {(orderDetails.paymentMethod === 'Bank Transfer' || orderDetails.paymentMethod === 'TNG DuitNow') && (
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="space-y-4 overflow-hidden"
+                        >
+                          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800">
+                            <h4 className="text-sm font-black mb-4 text-center">
+                              {orderDetails.paymentMethod === 'Bank Transfer' ? 'Bank Transfer Details' : 'TNG DuitNow QR'}
+                            </h4>
+                            
+                            {orderDetails.paymentMethod === 'Bank Transfer' && settings?.bankTransferImage && (
+                              <div className="mb-4">
+                                <img src={settings.bankTransferImage} alt="Bank Details" className="w-full max-w-xs mx-auto rounded-xl shadow-md border border-zinc-200 dark:border-zinc-700" />
+                              </div>
+                            )}
+                            {orderDetails.paymentMethod === 'TNG DuitNow' && settings?.tngDuitnowImage && (
+                              <div className="mb-4">
+                                <img src={settings.tngDuitnowImage} alt="TNG DuitNow QR" className="w-full max-w-xs mx-auto rounded-xl shadow-md border border-zinc-200 dark:border-zinc-700" />
+                              </div>
+                            )}
+                            
+                            <p className="text-[11px] font-bold text-zinc-500 mb-6 text-center leading-relaxed">
+                              {orderDetails.paymentMethod === 'Bank Transfer' 
+                                ? (locale === 'zh' ? '请将款项转至上方银行账户并上传转账收据。' : locale === 'ms' ? 'Sila pindahkan jumlah keseluruhan ke akaun bank di atas dan muat naik resit.' : 'Please transfer the total amount to the bank account above and upload the receipt.')
+                                : (locale === 'zh' ? '请扫描上方二维码进行支付并上传付款收据。' : locale === 'ms' ? 'Sila imbas kod QR di atas untuk membuat pembayaran dan muat naik resit.' : 'Please scan the QR code above to pay the total amount and upload the receipt.')}
+                            </p>
+
+                            <div className="space-y-3">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Upload Receipt Image</label>
+                              <div className="relative border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-2xl p-6 flex flex-col items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer group bg-white dark:bg-zinc-900 overflow-hidden min-h-[140px]">
+                                {orderDetails.paymentReceiptUrl ? (
+                                  <div className="flex flex-col items-center gap-4 z-20 w-full">
+                                    <div className="flex flex-col items-center gap-2">
+                                      <div className="w-12 h-12 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center mb-1">
+                                        <Check size={24} />
+                                      </div>
+                                      <span className="text-xs font-bold text-green-600 text-center">
+                                        {locale === 'zh' ? '收据已成功上传' : locale === 'ms' ? 'Resit Berjaya Dimuat Naik' : 'Receipt Uploaded Successfully'}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                      <button 
+                                        type="button"
+                                        onClick={() => window.open(orderDetails.paymentReceiptUrl, '_blank')}
+                                        className="flex items-center gap-1.5 px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors"
+                                      >
+                                        <ExternalLink size={14} /> {locale === 'zh' ? '查看' : locale === 'ms' ? 'Lihat' : 'View'}
+                                      </button>
+                                      <button 
+                                        type="button"
+                                        onClick={() => document.getElementById('receipt-upload')?.click()}
+                                        className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors"
+                                      >
+                                        <Upload size={14} /> {locale === 'zh' ? '更改' : locale === 'ms' ? 'Tukar' : 'Change'}
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col items-center gap-2">
+                                    {isUploadingReceipt ? (
+                                      <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                                    ) : (
+                                      <Upload size={24} className="text-zinc-400 group-hover:text-primary transition-colors" />
+                                    )}
+                                    <span className="text-xs font-bold text-zinc-500">{isUploadingReceipt ? 'Uploading...' : 'Click to Upload Receipt'}</span>
+                                  </div>
+                                )}
+                                <input 
+                                  id="receipt-upload"
+                                  type="file" 
+                                  accept="image/*"
+                                  onChange={handleReceiptUpload}
+                                  disabled={isUploadingReceipt}
+                                  className={cn("absolute inset-0 opacity-0 disabled:cursor-not-allowed", orderDetails.paymentReceiptUrl ? "hidden" : "cursor-pointer z-10")}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     {/* Delivery Mode */}
                     <div className="space-y-3">
@@ -571,7 +829,7 @@ export default function Cart() {
 
                      <button 
                         type="submit"
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || (!orderDetails.paymentReceiptUrl && (orderDetails.paymentMethod === 'Bank Transfer' || orderDetails.paymentMethod === 'TNG DuitNow'))}
                         onClick={(e) => {
                           if (!isWhatsAppTermsAgreed) {
                             e.preventDefault();
@@ -583,11 +841,14 @@ export default function Cart() {
                             });
                             setShakeTerms(true);
                             setTimeout(() => setShakeTerms(false), 500);
+                          } else if (!orderDetails.paymentReceiptUrl && (orderDetails.paymentMethod === 'Bank Transfer' || orderDetails.paymentMethod === 'TNG DuitNow')) {
+                            e.preventDefault();
+                            alert(locale === 'zh' ? '请先上传付款收据。' : locale === 'ms' ? 'Sila muat naik resit pembayaran terlebih dahulu.' : 'Please upload your payment receipt first.');
                           }
                         }}
                         className={cn(
                           "w-full py-5 px-4 mb-2 bg-primary text-zinc-900 rounded-[20px] font-black text-lg transition-all flex justify-center items-center gap-2",
-                          (!isWhatsAppTermsAgreed || isSubmitting) ? "opacity-40 cursor-not-allowed grayscale shadow-none" : "hover:brightness-110 shadow-xl hover:shadow-primary/20 active:scale-[0.98]"
+                          (!isWhatsAppTermsAgreed || isSubmitting || (!orderDetails.paymentReceiptUrl && (orderDetails.paymentMethod === 'Bank Transfer' || orderDetails.paymentMethod === 'TNG DuitNow'))) ? "opacity-40 cursor-not-allowed grayscale shadow-none" : "hover:brightness-110 shadow-xl hover:shadow-primary/20 active:scale-[0.98]"
                         )}
                      >
                         {isSubmitting ? (
@@ -853,6 +1114,7 @@ export default function Cart() {
           </motion.div>
         )}
       </AnimatePresence>
+      {ErrorModals}
     </>
   );
 }

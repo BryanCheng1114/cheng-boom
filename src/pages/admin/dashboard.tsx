@@ -10,7 +10,11 @@ import {
   Activity,
   ArrowUpRight,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Calendar,
+  X,
+  PackageOpen,
+  AlertTriangle
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import Link from 'next/link';
@@ -19,7 +23,10 @@ import { useLanguage } from '../../context/LanguageContext';
 
 const DashboardPage = () => {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [lowStockItems, setLowStockItems] = useState<any[]>([]);
+  const [soldOutItems, setSoldOutItems] = useState<any[]>([]);
   const [stats, setStats] = useState({
     totalRevenue: 0,
     liveProducts: 0,
@@ -57,6 +64,18 @@ const DashboardPage = () => {
           sellerCount: customers.filter((c: any) => c.role === 'Seller').length,
           recentOrders: orders.slice(0, 5)
         });
+
+        // Setup Welcome Modal
+        const lowStock = products.filter((p: any) => p.stock > 0 && p.stock < 5);
+        const soldOut = products.filter((p: any) => p.stock === 0);
+        
+        setLowStockItems(lowStock);
+        setSoldOutItems(soldOut);
+
+        if (!sessionStorage.getItem('admin_welcome_shown') && (lowStock.length > 0 || soldOut.length > 0)) {
+          setShowWelcomeModal(true);
+          sessionStorage.setItem('admin_welcome_shown', 'true');
+        }
       } catch (err) {
         console.error('Dashboard fetch error:', err);
       } finally {
@@ -158,6 +177,109 @@ const DashboardPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Admin Welcome Info Modal */}
+      <AnimatePresence>
+        {showWelcomeModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden"
+            >
+              {/* Header */}
+              <div className="flex justify-between items-center p-6 border-b border-zinc-100 dark:border-zinc-800/50">
+                <div className="flex items-center gap-3 text-yellow-500">
+                  <h3 className="text-xl font-black text-foreground uppercase tracking-wider">
+                    {locale === 'zh' ? '欢迎回来' : locale === 'ms' ? 'Selamat Kembali' : 'Welcome Back'}
+                  </h3>
+                </div>
+                <button 
+                  onClick={() => setShowWelcomeModal(false)}
+                  className="text-zinc-400 hover:text-foreground transition-colors p-1"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
+                {/* Date */}
+                <div className="flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl">
+                  <div className="p-3 bg-blue-500/10 text-blue-500 rounded-xl">
+                    <Calendar size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">{locale === 'zh' ? '今天的日期' : locale === 'ms' ? 'Tarikh Hari Ini' : 'Today\'s Date'}</p>
+                    <p className="text-lg font-black text-foreground">
+                      {new Intl.DateTimeFormat(locale === 'ms' ? 'ms-MY' : locale === 'zh' ? 'zh-CN' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(new Date())}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Sold Out */}
+                {soldOutItems.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-black text-red-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                      <AlertTriangle size={16} /> {locale === 'zh' ? '已售罄商品' : locale === 'ms' ? 'Item Habis Dijual' : 'Sold Out Items'} ({soldOutItems.length})
+                    </h4>
+                    <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-4">
+                      <ul className="space-y-2">
+                        {soldOutItems.map(p => (
+                          <li key={p.id} className="flex items-start gap-2">
+                            <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-500 shrink-0 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                            <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{p.name}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                {/* Low Stock */}
+                {lowStockItems.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-black text-amber-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                      <PackageOpen size={16} /> {locale === 'zh' ? '库存紧张 (< 5)' : locale === 'ms' ? 'Stok Rendah (< 5)' : 'Low Stock (< 5)'} ({lowStockItems.length})
+                    </h4>
+                    <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4">
+                      <ul className="space-y-2">
+                        {lowStockItems.map(p => (
+                          <li key={p.id} className="flex items-start justify-between gap-2">
+                            <div className="flex items-start gap-2">
+                              <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+                              <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{p.name}</span>
+                            </div>
+                            <span className="text-xs font-black text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-lg shrink-0">
+                              {p.stock} left
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-zinc-100 dark:border-zinc-800/50">
+                <button
+                  onClick={() => setShowWelcomeModal(false)}
+                  className="w-full py-4 bg-yellow-500 hover:bg-yellow-600 text-white rounded-2xl font-black uppercase tracking-widest transition-colors shadow-lg shadow-yellow-500/20"
+                >
+                  {locale === 'zh' ? '继续' : locale === 'ms' ? 'Teruskan' : 'Continue'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AdminLayout>
   );
 };

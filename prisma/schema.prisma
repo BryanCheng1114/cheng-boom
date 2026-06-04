@@ -67,6 +67,8 @@ model BusinessSettings {
   instagram         String?
   tiktok            String?
   businessFont      String?  @default("Inter")
+  bankTransferImage String?
+  tngDuitnowImage   String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
@@ -109,6 +111,7 @@ model Order {
   address       String?
   notes         String?
   status        String      @default("Pending") // "Pending", "Processing", "Completed", "Cancelled"
+  paymentReceiptUrl String? // Image URL of the payment receipt
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   items         OrderItem[]

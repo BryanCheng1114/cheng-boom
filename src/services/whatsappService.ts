@@ -10,6 +10,7 @@ export interface OrderDetails {
   address?: string;
   notes?: string;
   role?: string;
+  paymentReceiptUrl?: string;
 }
 
 type Locale = 'en' | 'zh' | 'ms';
@@ -36,7 +37,8 @@ const labels = {
     originalTotal:'Total (Before Discount)',
     savings:      'Total Savings',
     total:        'TOTAL PAYABLE',
-    closing:      'Kindly confirm my order and provide the payment details or QR code at your earliest convenience. Thank you.',
+    receipt:      'Payment Receipt',
+    closing:      'Kindly confirm my order at your earliest convenience. Thank you.',
   },
   zh: {
     header:       '新订单请求 — {BUSINESS}',
@@ -59,7 +61,8 @@ const labels = {
     originalTotal:'折扣前总额',
     savings:      '总节省',
     total:        '应付总额',
-    closing:      '烦请确认我的订单并提供付款详情或二维码，谢谢。',
+    receipt:      '付款收据',
+    closing:      '烦请确认我的订单，谢谢。',
   },
   ms: {
     header:       'PERMINTAAN PESANAN BARU — {BUSINESS}',
@@ -82,7 +85,8 @@ const labels = {
     originalTotal:'Jumlah (Sebelum Diskaun)',
     savings:      'Jumlah Penjimatan',
     total:        'JUMLAH PERLU DIBAYAR',
-    closing:      'Sila sahkan pesanan saya dan berikan butiran pembayaran atau kod QR. Terima kasih.',
+    receipt:      'Resit Pembayaran',
+    closing:      'Sila sahkan pesanan saya. Terima kasih.',
   },
 };
 
@@ -116,6 +120,9 @@ export const generateWhatsAppLink = (
   msg += `${l.name}: ${details.customerName}\n`;
   msg += `${l.phone}: ${details.customerPhone}\n`;
   msg += `${l.payment}: ${details.paymentMethod}\n`;
+  if (details.paymentReceiptUrl) {
+    msg += `${l.receipt}: ${details.paymentReceiptUrl}\n`;
+  }
   msg += `${l.mode}: ${details.deliveryMode}\n`;
   if (details.deliveryMode === 'Delivery' && details.address) {
     msg += `${l.address}: ${details.address}\n`;

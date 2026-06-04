@@ -23,28 +23,55 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      // 2. Create the order with historical snapshot of delivery/payment details
-      const order = await prisma.order.create({
-        data: {
-          customerId: customer.id,
-          totalAmount: parseFloat(totalAmount),
-          status: 'Pending',
-          paymentMethod: customerInfo.paymentMethod,
-          deliveryMode: customerInfo.deliveryMode,
-          address: customerInfo.address,
-          notes: customerInfo.notes,
-          items: {
-            create: items.map((item: any) => ({
-              productId: item.productId || item.id,
-              name: item.name,
-              price: parseFloat(item.price),
-              quantity: parseInt(item.quantity),
-            })),
+      // 2. Wrap stock deduction and order creation in an interactive transaction
+      const order = await prisma.$transaction(async (tx) => {
+        // 2a. Deduct stock atomically for each item
+        for (const item of items) {
+          const qty = parseInt(item.quantity);
+          const updateResult = await tx.product.updateMany({
+            where: {
+              id: item.productId || item.id,
+              stock: {
+                gte: qty // ONLY update if stock is sufficient
+              }
+            },
+            data: {
+              stock: {
+                decrement: qty
+              }
+            }
+          });
+
+          // If count is 0, it means the product doesn't exist OR stock is insufficient
+          if (updateResult.count === 0) {
+            throw new Error(`INSUFFICIENT_STOCK:${item.name}`);
+          }
+        }
+
+        // 2b. Create the order
+        return await tx.order.create({
+          data: {
+            customerId: customer.id,
+            totalAmount: parseFloat(totalAmount),
+            status: 'Pending',
+            paymentMethod: customerInfo.paymentMethod,
+            deliveryMode: customerInfo.deliveryMode,
+            address: customerInfo.address,
+            notes: customerInfo.notes,
+            paymentReceiptUrl: customerInfo.paymentReceiptUrl,
+            items: {
+              create: items.map((item: any) => ({
+                productId: item.productId || item.id,
+                name: item.name,
+                price: parseFloat(item.price),
+                quantity: parseInt(item.quantity),
+              })),
+            },
           },
-        },
-        include: {
-          items: true,
-        },
+          include: {
+            items: true,
+          },
+        });
       });
 
       sendOrderReceiptEmail(
@@ -60,8 +87,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ).catch(console.error);
 
       return res.status(201).json(order);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating order:', error);
+      
+      // Check if it's our custom insufficient stock error
+      if (error.message && error.message.startsWith('INSUFFICIENT_STOCK:')) {
+        const productName = error.message.split(':')[1];
+        return res.status(400).json({ 
+          code: 'INSUFFICIENT_STOCK', 
+          productName,
+          error: `Insufficient stock for ${productName}` 
+        });
+      }
+      
       return res.status(500).json({ error: 'Failed to create order' });
     }
   }

@@ -35,7 +35,12 @@ export default function Shop() {
           catRes.json()
         ]);
         
-        const activeProducts = prodData.filter((p: any) => p.status !== 'Hold' && p.status !== 'Deactive' && p.status !== 'Inactive');
+        const activeProducts = prodData.filter((p: any) => 
+          p.status !== 'Hold' && 
+          p.status !== 'Deactive' && 
+          p.status !== 'Inactive' &&
+          (p.stock !== undefined && p.stock > 0)
+        );
         setAllProducts(activeProducts);
         setCategories(catData);
       } catch (err) {

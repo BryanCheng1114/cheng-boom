@@ -94,6 +94,7 @@ export const sendOrderReceiptEmail = async (
           <tr><td style="padding: 4px 0; color: #666;">Mode:</td><td>${customerInfo.deliveryMode}</td></tr>
           ${customerInfo.deliveryMode === 'Delivery' ? `<tr><td style="padding: 4px 0; color: #666;">Address:</td><td>${customerInfo.address}</td></tr>` : ''}
           ${customerInfo.notes ? `<tr><td style="padding: 4px 0; color: #666;">Notes:</td><td style="color: #dc2626;">${customerInfo.notes}</td></tr>` : ''}
+          ${customerInfo.paymentReceiptUrl ? `<tr><td style="padding: 4px 0; color: #666;">Receipt:</td><td><a href="${customerInfo.paymentReceiptUrl}" target="_blank" style="display: inline-block; padding: 6px 12px; background-color: #f59e0b; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 12px; margin-top: 4px;">🔗 View Receipt</a></td></tr>` : ''}
         </table>
 
         <h2 style="font-size: 18px; border-bottom: 2px solid #f59e0b; padding-bottom: 5px; display: inline-block;">Order Items</h2>
@@ -144,7 +145,7 @@ export const sendOrderReceiptEmail = async (
         </table>
         
         <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin-top: 30px; font-size: 14px;">
-          <strong>Action Required:</strong> Check WhatsApp to follow up with the customer at <strong>${customerInfo.phone}</strong> to confirm payment and arrangements.
+          <strong>Action Required:</strong> Check WhatsApp to follow up with the customer at <strong>${customerInfo.phone}</strong> to confirm payment and arrangements.${customerInfo.paymentReceiptUrl ? '<br/><br/><strong>⚠️ Please click the "View Receipt" link above to verify the payment transfer.</strong>' : ''}
         </div>
       </div>
     </div>
