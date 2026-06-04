@@ -23,7 +23,8 @@ import { useLanguage } from '../../context/LanguageContext';
 
 const DashboardPage = () => {
   const router = useRouter();
-  const { t, locale } = useLanguage();
+  const { t } = useLanguage();
+  const locale = router.locale || 'en';
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [lowStockItems, setLowStockItems] = useState<any[]>([]);
   const [soldOutItems, setSoldOutItems] = useState<any[]>([]);

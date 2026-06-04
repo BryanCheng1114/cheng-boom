@@ -20,6 +20,8 @@ interface BusinessSettings {
   instagram?: string | null;
   tiktok?: string | null;
   businessFont?: string | null;
+  bankTransferImage?: string | null;
+  tngDuitnowImage?: string | null;
 }
 
 interface BusinessContextType {
