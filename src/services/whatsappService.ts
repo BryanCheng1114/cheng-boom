@@ -121,7 +121,7 @@ export const generateWhatsAppLink = (
   msg += `${l.phone}: ${details.customerPhone}\n`;
   msg += `${l.payment}: ${details.paymentMethod}\n`;
   if (details.paymentReceiptUrl) {
-    msg += `${l.receipt}: ${details.paymentReceiptUrl}\n`;
+    msg += `${l.receipt}:\n${details.paymentReceiptUrl}\n`;
   }
   msg += `${l.mode}: ${details.deliveryMode}\n`;
   if (details.deliveryMode === 'Delivery' && details.address) {
@@ -180,18 +180,30 @@ export const generateWhatsAppLink = (
   
   let dynamicClosing = l.closing;
   
-  if (details.paymentMethod === 'TNG eWallet') {
-    if (locale === 'zh') dynamicClosing = '烦请确认我的订单并提供您的 TNG 二维码或账户信息，谢谢。';
-    else if (locale === 'ms') dynamicClosing = 'Sila sahkan pesanan saya dan berikan kod QR TNG atau butiran akaun anda. Terima kasih.';
-    else dynamicClosing = 'Please confirm my order and provide your TNG QR code or account details. Thank you.';
+  if (details.paymentMethod === 'Cash on Delivery') {
+    if (locale === 'zh') dynamicClosing = '烦请确认我的订单并安排发货，谢谢。';
+    else if (locale === 'ms') dynamicClosing = 'Sila sahkan pesanan saya dan uruskan penghantaran. Terima kasih.';
+    else dynamicClosing = 'Please confirm my order and arrange the delivery. Thank you.';
+  } else if (details.paymentMethod === 'TNG eWallet' || details.paymentMethod === 'TNG DuitNow') {
+    if (details.paymentReceiptUrl) {
+      if (locale === 'zh') dynamicClosing = '烦请确认我的订单，我已附上 TNG 付款收据，请查收并处理我的订单，谢谢。';
+      else if (locale === 'ms') dynamicClosing = 'Sila sahkan pesanan saya, saya telah melampirkan resit pembayaran TNG, sila semak dan proses pesanan saya. Terima kasih.';
+      else dynamicClosing = 'Please confirm my order, I have attached the TNG payment receipt, kindly check and process my order. Thank you.';
+    } else {
+      if (locale === 'zh') dynamicClosing = '烦请确认我的订单并提供您的 TNG 二维码或账户信息，谢谢。';
+      else if (locale === 'ms') dynamicClosing = 'Sila sahkan pesanan saya dan berikan kod QR TNG atau butiran akaun anda. Terima kasih.';
+      else dynamicClosing = 'Please confirm my order and provide your TNG QR code or account details. Thank you.';
+    }
   } else if (details.paymentMethod === 'Bank Transfer') {
-    if (locale === 'zh') dynamicClosing = '烦请确认我的订单并提供您的银行账户信息，谢谢。';
-    else if (locale === 'ms') dynamicClosing = 'Sila sahkan pesanan saya dan berikan maklumat akaun bank anda. Terima kasih.';
-    else dynamicClosing = 'Please confirm my order and provide your bank account information. Thank you.';
-  } else if (details.paymentMethod === 'DuitNow QR') {
-    if (locale === 'zh') dynamicClosing = '烦请确认我的订单并提供您的 DuitNow 二维码，谢谢。';
-    else if (locale === 'ms') dynamicClosing = 'Sila sahkan pesanan saya dan berikan kod QR DuitNow anda. Terima kasih.';
-    else dynamicClosing = 'Please confirm my order and provide your DuitNow QR. Thank you.';
+    if (details.paymentReceiptUrl) {
+      if (locale === 'zh') dynamicClosing = '烦请确认我的订单，我已附上付款收据，请查收并处理我的订单，谢谢。';
+      else if (locale === 'ms') dynamicClosing = 'Sila sahkan pesanan saya, saya telah melampirkan resit pembayaran, sila semak dan proses pesanan saya. Terima kasih.';
+      else dynamicClosing = 'Please confirm my order, I have attached the payment receipt, kindly check and process my order. Thank you.';
+    } else {
+      if (locale === 'zh') dynamicClosing = '烦请确认我的订单并提供您的银行账户信息，谢谢。';
+      else if (locale === 'ms') dynamicClosing = 'Sila sahkan pesanan saya dan berikan maklumat akaun bank anda. Terima kasih.';
+      else dynamicClosing = 'Please confirm my order and provide your bank account information. Thank you.';
+    }
   }
 
   msg += `${dynamicClosing}`;

@@ -424,6 +424,12 @@
     "itemsPurchased": "Items Purchased",
     "netTotal": "Net Total",
     "serviceFee": "Service Fee",
-    "totalAmountPaid": "Total Amount Paid"
+    "totalAmountPaid": "Total Amount Paid",
+    "orderId": "Order ID",
+    "deliveryFee": "Delivery Fee",
+    "discount": "Discount",
+    "subtotalLabel": "Subtotal",
+    "orderItems": "Order Items",
+    "orderInfo": "Order Info"
   }
 }

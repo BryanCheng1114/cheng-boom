@@ -43,6 +43,7 @@ const ProductPage = () => {
   // Management States
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: '', direction: null });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -227,9 +228,21 @@ const ProductPage = () => {
                             p.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             (p.code && p.code.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter;
-      return matchesSearch && matchesCategory;
+      
+      let matchesStatus = true;
+      if (statusFilter !== 'All') {
+        if (statusFilter === 'Out of Stock') {
+          matchesStatus = p.stock <= 0;
+        } else if (statusFilter === 'Low Stock') {
+          matchesStatus = p.stock > 0 && p.stock < 10;
+        } else {
+          matchesStatus = p.status === statusFilter && p.stock >= 10;
+        }
+      }
+
+      return matchesSearch && matchesCategory && matchesStatus;
     });
-  }, [products, searchTerm, categoryFilter]);
+  }, [products, searchTerm, categoryFilter, statusFilter]);
 
   // Sorting Logic
   const sortedProducts = useMemo(() => {
@@ -494,22 +507,43 @@ const ProductPage = () => {
               className="w-full pl-12 pr-4 py-3 bg-zinc-500/5 border border-zinc-500/10 rounded-2xl outline-none focus:border-yellow-500/50 transition-all dark:text-white font-bold text-sm"
             />
           </div>
-          <div className="flex items-center gap-2 px-4 py-3 bg-zinc-500/5 border border-zinc-500/10 rounded-2xl relative">
-            <Filter size={16} className="text-zinc-500" />
-            <select 
-              value={categoryFilter}
-              onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1); }}
-              className="bg-transparent outline-none dark:text-white text-zinc-900 font-bold text-sm pr-8 appearance-none cursor-pointer"
-            >
-              <option value="All" className="dark:bg-zinc-900 bg-white">{t('all_categories')}</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.name} className="dark:bg-zinc-900 bg-white">
-                  {getLocalizedCategoryName(cat)}
-                </option>
-              ))}
-            </select>
-            <div className="absolute right-4 pointer-events-none text-zinc-500">
-              <ChevronRight size={14} className="rotate-90" />
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2 px-4 py-3 bg-zinc-500/5 border border-zinc-500/10 rounded-2xl relative">
+              <Filter size={16} className="text-zinc-500" />
+              <select 
+                value={categoryFilter}
+                onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1); }}
+                className="bg-transparent outline-none dark:text-white text-zinc-900 font-bold text-sm pr-8 appearance-none cursor-pointer"
+              >
+                <option value="All" className="dark:bg-zinc-900 bg-white">{t('all_categories')}</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.name} className="dark:bg-zinc-900 bg-white">
+                    {getLocalizedCategoryName(cat)}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-4 pointer-events-none text-zinc-500">
+                <ChevronRight size={14} className="rotate-90" />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 px-4 py-3 bg-zinc-500/5 border border-zinc-500/10 rounded-2xl relative">
+              <Filter size={16} className="text-zinc-500" />
+              <select 
+                value={statusFilter}
+                onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+                className="bg-transparent outline-none dark:text-white text-zinc-900 font-bold text-sm pr-8 appearance-none cursor-pointer"
+              >
+                <option value="All" className="dark:bg-zinc-900 bg-white">{t('all_status') || 'All Status'}</option>
+                <option value="Live" className="dark:bg-zinc-900 bg-white">{t('status_live') || 'Live'}</option>
+                <option value="Hold" className="dark:bg-zinc-900 bg-white">{t('status_hold') || 'Hold'}</option>
+                <option value="Deactive" className="dark:bg-zinc-900 bg-white">{t('status_deactive') || 'Deactive'}</option>
+                <option value="Low Stock" className="dark:bg-zinc-900 bg-white">{t('low_stock')}</option>
+                <option value="Out of Stock" className="dark:bg-zinc-900 bg-white">{t('out_of_stock')}</option>
+              </select>
+              <div className="absolute right-4 pointer-events-none text-zinc-500">
+                <ChevronRight size={14} className="rotate-90" />
+              </div>
             </div>
           </div>
         </div>
@@ -556,7 +590,12 @@ const ProductPage = () => {
                   >
                     <div className="flex items-center gap-2">{t('price')} <SortIndicator column="price_active" /></div>
                   </th>
-                  <th className="p-6 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('status')}</th>
+                  <th 
+                    onClick={() => handleSort('status')}
+                    className="p-6 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">{t('status')} <SortIndicator column="status" /></div>
+                  </th>
                   <th className="p-6"></th>
                 </tr>
               </thead>
@@ -670,12 +709,26 @@ const ProductPage = () => {
                             <option value="Deactive">{t('status_deactive')}</option>
                           </select>
                         ) : (
-                          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
-                            p.status === 'Live' ? 'bg-green-500/10 text-green-500' :
-                            p.status === 'Hold' ? 'bg-yellow-500/10 text-yellow-500' :
-                            'bg-zinc-500/10 text-zinc-500'
+                          <div 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setStatusFilter(p.stock <= 0 ? 'Out of Stock' : p.stock < 10 ? 'Low Stock' : p.status);
+                              setCurrentPage(1);
+                            }}
+                            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer hover:scale-105 hover:brightness-110 ${
+                            p.stock <= 0 ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20' :
+                            p.stock < 10 ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20' :
+                            p.status === 'Live' ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20' :
+                            p.status === 'Hold' ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20' :
+                            'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'
                           }`}>
-                            <div className={`w-1 h-1 rounded-full ${p.status === 'Live' ? 'bg-green-500' : p.status === 'Hold' ? 'bg-yellow-500' : 'bg-zinc-500'}`} />
+                            <div className={`w-1.5 h-1.5 rounded-full shadow-sm ${
+                              p.stock <= 0 ? 'bg-red-500 shadow-red-500/50' :
+                              p.stock < 10 ? 'bg-yellow-500 shadow-yellow-500/50' :
+                              p.status === 'Live' ? 'bg-green-500 shadow-green-500/50' :
+                              p.status === 'Hold' ? 'bg-orange-500 shadow-orange-500/50' :
+                              'bg-zinc-500 shadow-zinc-500/50'
+                            }`} />
                             {p.stock <= 0 ? t('out_of_stock') : p.stock < 10 ? t('low_stock') : 
                               p.status === 'Live' ? t('live_products') : p.status === 'Hold' ? t('hold') : t('deactive')
                             }

@@ -16,6 +16,8 @@ import {
   Package,
   Edit3,
   Check,
+  ChevronDown,
+  Copy,
   X,
   CreditCard,
   Truck,
@@ -431,37 +433,47 @@ export default function ProfilePage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.preferredPayment || 'Preferred Payment'}</label>
-                          <select 
-                            required
-                            className="w-full px-5 py-3 rounded-2xl bg-zinc-500/5 dark:bg-zinc-800 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold appearance-none cursor-pointer text-foreground dark:text-white"
-                            value={editForm.preferredPayment}
-                            onChange={(e) => setEditForm({ ...editForm, preferredPayment: e.target.value })}
-                          >
-                            <option value="" className="dark:bg-zinc-900">{t.profilePage?.selectMethod || 'Select Method'}</option>
-                            <option value="TNG e-wallet" className="dark:bg-zinc-900">TNG e-wallet</option>
-                            <option value="bank transfer" className="dark:bg-zinc-900">Bank Transfer</option>
-                            <option value="DuitNow qr" className="dark:bg-zinc-900">DuitNow QR</option>
-                          </select>
+                          <div className="relative">
+                            <select 
+                              required
+                              className="w-full px-5 py-3 rounded-2xl bg-zinc-500/5 dark:bg-zinc-800 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold appearance-none cursor-pointer text-foreground dark:text-white"
+                              value={editForm.preferredPayment}
+                              onChange={(e) => setEditForm({ ...editForm, preferredPayment: e.target.value })}
+                            >
+                              <option value="" className="dark:bg-zinc-900">{t.profilePage?.selectMethod || 'Select Method'}</option>
+                              <option value="TNG e-wallet" className="dark:bg-zinc-900">TNG e-wallet</option>
+                              <option value="bank transfer" className="dark:bg-zinc-900">Bank Transfer</option>
+                              <option value="DuitNow qr" className="dark:bg-zinc-900">DuitNow QR</option>
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
+                              <ChevronDown size={16} />
+                            </div>
+                          </div>
                         </div>
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.orderMode || 'Order Mode'}</label>
-                          <select 
-                            required
-                            className="w-full px-5 py-3 rounded-2xl bg-zinc-500/5 dark:bg-zinc-800 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold appearance-none cursor-pointer text-foreground dark:text-white"
-                            value={editForm.orderMode}
-                            onChange={(e) => setEditForm({ ...editForm, orderMode: e.target.value })}
-                          >
-                            <option value="" className="dark:bg-zinc-900">{t.profilePage?.selectMode || 'Select Mode'}</option>
-                            <option value="Self Collect" className="dark:bg-zinc-900">Self Collect</option>
-                            <option value="Delivery" className="dark:bg-zinc-900">Delivery</option>
-                          </select>
+                          <div className="relative">
+                            <select 
+                              required
+                              className="w-full px-5 py-3 rounded-2xl bg-zinc-500/5 dark:bg-zinc-800 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold appearance-none cursor-pointer text-foreground dark:text-white"
+                              value={editForm.orderMode}
+                              onChange={(e) => setEditForm({ ...editForm, orderMode: e.target.value })}
+                            >
+                              <option value="" className="dark:bg-zinc-900">{t.profilePage?.selectMode || 'Select Mode'}</option>
+                              <option value="Self Collect" className="dark:bg-zinc-900">Self Collect</option>
+                              <option value="Delivery" className="dark:bg-zinc-900">Delivery</option>
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
+                              <ChevronDown size={16} />
+                            </div>
+                          </div>
                         </div>
                       </div>
 
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.addressLabel || 'Delivery / Collection Address'}</label>
                         <textarea 
-                          required
+                          required={editForm.orderMode === 'Delivery'}
                           className="w-full px-5 py-3 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold resize-none text-foreground dark:text-white"
                           rows={2}
                           value={editForm.address}
@@ -489,15 +501,28 @@ export default function ProfilePage() {
                               : 'bg-primary text-zinc-900 hover:brightness-110 shadow-lg shadow-primary/20'
                           }`}
                         >
-                          {isSaving ? <Loader2 className="animate-spin" /> : <Check size={20} strokeWidth={3} />}
+                          {isSaving ? <Loader2 className="animate-spin" /> : null}
                           {t.profilePage?.saveChanges || 'Save Changes'}
                         </button>
                         <button 
                           type="button"
-                          onClick={() => setActiveTab('')}
-                          className="px-8 py-3 bg-zinc-500/10 text-zinc-500 rounded-2xl font-bold hover:bg-zinc-500/20 transition-all"
+                          onClick={() => {
+                            if (user) {
+                              setEditForm({
+                                name: user.name || '',
+                                phone: user.phone || '',
+                                address: user.address || '',
+                                preferredPayment: user.preferredPayment || '',
+                                orderMode: user.orderMode || '',
+                                deliveryDetails: user.deliveryDetails || '',
+                                notes: user.notes || ''
+                              });
+                            }
+                            setActiveTab('');
+                          }}
+                          className="px-8 py-4 bg-zinc-500/10 text-zinc-500 rounded-2xl font-black text-lg hover:bg-zinc-500/20 transition-all flex items-center justify-center shrink-0"
                         >
-                          {t.profilePage?.cancel || 'Cancel'}
+                          Discard Changes
                         </button>
                       </div>
                     </form>
@@ -558,15 +583,18 @@ export default function ProfilePage() {
                               : 'bg-primary text-zinc-900 hover:brightness-110 shadow-lg shadow-primary/20'
                           }`}
                         >
-                          {isSaving ? <Loader2 className="animate-spin" /> : <Sparkles size={20} strokeWidth={3} />}
+                          {isSaving ? <Loader2 className="animate-spin" /> : null}
                           {t.profilePage?.updatePassword || 'Update Password'}
                         </button>
                         <button 
                           type="button"
-                          onClick={() => setActiveTab('')}
-                          className="px-8 py-4 bg-zinc-500/10 text-zinc-500 rounded-2xl font-bold hover:bg-zinc-500/20 transition-all"
+                          onClick={() => {
+                            setPasswordForm({ newPassword: '', confirmPassword: '' });
+                            setActiveTab('');
+                          }}
+                          className="px-8 py-4 bg-zinc-500/10 text-zinc-500 rounded-2xl font-black text-lg hover:bg-zinc-500/20 transition-all flex items-center justify-center shrink-0"
                         >
-                          {t.profilePage?.cancel || 'Cancel'}
+                          Discard Changes
                         </button>
                       </div>
                     </form>
@@ -873,140 +901,239 @@ export default function ProfilePage() {
         {/* ── ENHANCED ORDER DETAILS MODAL ────────────────────────────── */}
         <AnimatePresence>
           {selectedOrder && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-8">
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedOrder(null)} className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
               
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95, y: 20 }} 
                 animate={{ opacity: 1, scale: 1, y: 0 }} 
                 exit={{ opacity: 0, scale: 0.95, y: 20 }} 
-                className="relative w-full max-w-3xl bg-zinc-50 dark:bg-zinc-900/50 rounded-[48px] shadow-2xl overflow-hidden border border-white/10 flex flex-col md:flex-row max-h-[90vh]"
+                className="relative w-full max-w-5xl bg-zinc-50 dark:bg-zinc-950 rounded-[32px] sm:rounded-[48px] shadow-2xl overflow-hidden border border-zinc-200 dark:border-white/10 flex flex-col md:flex-row max-h-[90vh] lg:max-h-[85vh]"
               >
                 {/* Close Button */}
-                <button data-html2canvas-ignore="true" onClick={() => setSelectedOrder(null)} className="absolute top-8 right-8 p-3 rounded-full bg-zinc-900/5 hover:bg-zinc-900/10 dark:bg-white/10 dark:hover:bg-white/20 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-all z-30 backdrop-blur-md">
+                <button data-html2canvas-ignore="true" onClick={() => setSelectedOrder(null)} className="absolute top-6 right-6 md:top-8 md:right-8 p-3 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-all z-30 backdrop-blur-md">
                   <X size={20} strokeWidth={3} />
                 </button>
 
-                {/* Left Side: Receipt Styling */}
-                <div className="w-full md:w-5/12 bg-white dark:bg-black p-8 sm:p-12 flex flex-col border-r border-border/50">
-                  <div className="flex items-center gap-4 mb-10">
-                    <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-zinc-900 shadow-lg shadow-primary/20">
-                      <Receipt size={28} strokeWidth={2.5} />
+                {/* Left Side: Order Info */}
+                <div className="w-full md:w-1/2 lg:w-[55%] bg-zinc-100/50 dark:bg-zinc-900/50 p-6 sm:p-10 lg:p-12 flex flex-col border-b md:border-b-0 md:border-r border-zinc-200 dark:border-white/10 overflow-y-auto custom-scrollbar relative">
+                  
+                  {/* Order ID & Tag */}
+                  <div className="space-y-4 mb-10 mt-6 md:mt-0 w-full min-w-0">
+                    <p className="text-xs font-black text-zinc-500 uppercase tracking-widest">{t.profilePage?.orderId || 'Order ID'}</p>
+                    <div className="flex items-center gap-3 w-full min-w-0">
+                      <h2 className="text-xl sm:text-2xl font-black text-foreground dark:text-white tracking-tight truncate flex-1" title={selectedOrder.id.toUpperCase()}>#{selectedOrder.id.toUpperCase()}</h2>
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(selectedOrder.id.toUpperCase());
+                          alert('Order ID copied!');
+                        }} 
+                        className="text-zinc-400 hover:text-foreground dark:hover:text-white transition-colors shrink-0 mt-1"
+                      >
+                        <Copy size={20} />
+                      </button>
                     </div>
-                    <div className="text-left">
-                      <h2 className="text-2xl font-black italic uppercase tracking-tighter text-foreground leading-none">{t.profilePage?.receiptTitle || 'Receipt'}</h2>
-                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-1">{t.profilePage?.officialRecord || 'Official Record'}</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-8 flex-1 text-left">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">{t.profilePage?.transactionId || 'Transaction ID'}</p>
-                      <p className="text-sm font-bold text-foreground font-mono">#{selectedOrder.id.toUpperCase()}</p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">{t.profilePage?.orderStatus || 'Order Status'}</p>
-                      <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase ${
-                        selectedOrder.status === 'Completed' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
+                    {/* Status Badge */}
+                    <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold ${
+                        selectedOrder.status === 'Completed' ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20' 
+                        : selectedOrder.status === 'Cancelled' ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
+                        : 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20'
                       }`}>
-                        <div className={`w-1.5 h-1.5 rounded-full ${selectedOrder.status === 'Completed' ? 'bg-green-500' : 'bg-orange-500'} animate-pulse`} />
+                        {selectedOrder.status === 'Completed' ? <Check size={14} /> : selectedOrder.status === 'Cancelled' ? <X size={14} /> : <Clock size={14} />}
                         {statusTranslations[selectedOrder.status as string]?.[locale as string] || selectedOrder.status}
-                      </div>
                     </div>
+                  </div>
 
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">{t.profilePage?.placedOn || 'Placed On'}</p>
-                      <div className="flex items-center gap-2 text-sm font-bold text-foreground">
-                        <Clock size={14} className="text-primary" />
+                  {/* Progress Tracker */}
+                  <div className="mb-10 w-full relative">
+                    {(() => {
+                      const stages = [
+                        { key: 'Pending', icon: <Clock size={14} /> },
+                        { key: 'In Process', icon: <Package size={14} /> },
+                        { key: 'Delivering', icon: <Truck size={14} /> },
+                        { key: 'Completed', icon: <Check size={14} /> }
+                      ];
+                      
+                      const getStageIndex = (s: string) => {
+                        switch (s) {
+                          case 'Pending': return 0;
+                          case 'In Process': return 1;
+                          case 'Delivering': return 2;
+                          case 'Completed': return 3;
+                          default: return -1;
+                        }
+                      };
+                      
+                      const currentStageIdx = getStageIndex(selectedOrder.status);
+                      const isCancelled = selectedOrder.status === 'Cancelled';
+                      
+                      if (isCancelled) {
+                        return (
+                          <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/20 flex flex-col items-center justify-center text-center">
+                            <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center text-red-500 mb-3">
+                              <X size={24} />
+                            </div>
+                            <p className="text-red-600 dark:text-red-400 font-bold">{statusTranslations['Cancelled']?.[locale as string] || 'Cancelled'}</p>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="relative flex justify-between items-start w-full px-2">
+                          {/* Connecting Line background */}
+                          <div className="absolute top-[18px] left-6 right-6 h-0.5 bg-zinc-200 dark:bg-zinc-800 -z-10" />
+                          
+                          {/* Active Line foreground */}
+                          <div 
+                            className="absolute top-[18px] left-6 h-0.5 bg-orange-500 transition-all duration-500 -z-10" 
+                            style={{ width: `calc(${currentStageIdx >= 0 ? (currentStageIdx / (stages.length - 1)) * 100 : 0}% - 48px)` }}
+                          />
+
+                          {stages.map((stage, idx) => {
+                            const isPast = currentStageIdx >= idx;
+                            const isCurrent = currentStageIdx === idx;
+                            return (
+                              <div key={idx} className="flex flex-col items-center gap-2 z-10 relative w-12">
+                                <div className={`w-9 h-9 rounded-full flex items-center justify-center border-[3px] transition-all duration-300 ${
+                                  isPast 
+                                    ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/30' 
+                                    : 'bg-zinc-100 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-400'
+                                }`}>
+                                  {stage.icon}
+                                </div>
+                                <div className="text-center absolute top-11 whitespace-nowrap">
+                                  <p className={`text-[10px] font-bold ${isCurrent ? 'text-orange-600 dark:text-orange-400' : isPast ? 'text-foreground dark:text-white' : 'text-zinc-400'}`}>
+                                    {statusTranslations[stage.key]?.[locale as string] || stage.key}
+                                  </p>
+                                  {isCurrent && (
+                                    <p className="text-[8px] text-zinc-500 mt-0.5">
+                                      {new Date(selectedOrder.updatedAt || selectedOrder.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Order Info List */}
+                  <div className="space-y-6 mt-16 pt-8 border-t border-zinc-200 dark:border-white/10 text-left flex-1">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-3 text-zinc-500 dark:text-zinc-400">
+                        <Calendar size={16} />
+                        <span className="text-xs font-bold">{t.profilePage?.placedOn || 'Order Placed'}</span>
+                      </div>
+                      <span className="text-sm font-black text-foreground dark:text-white">
                         {new Date(selectedOrder.createdAt).toLocaleString('en-MY', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </div>
+                      </span>
                     </div>
 
-                    <div className="pt-8 border-t border-dashed border-border/50 space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{t.profilePage?.payment || 'Payment'}</span>
-                        <span className="text-xs font-black text-foreground">{selectedOrder.paymentMethod || 'TNG e-wallet'}</span>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-3 text-zinc-500 dark:text-zinc-400">
+                        <CreditCard size={16} />
+                        <span className="text-xs font-bold">{t.profilePage?.payment || 'Payment Method'}</span>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{t.profilePage?.fulfillment || 'Fulfillment'}</span>
-                        <span className="text-xs font-black text-foreground">{selectedOrder.deliveryMode || 'Delivery'}</span>
+                      <span className="text-sm font-black text-foreground dark:text-white">{selectedOrder.paymentMethod || '-'}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-3 text-zinc-500 dark:text-zinc-400">
+                        <MapPin size={16} />
+                        <span className="text-xs font-bold">{t.profilePage?.fulfillment || 'Fulfillment Method'}</span>
                       </div>
+                      <span className="text-sm font-black text-foreground dark:text-white">{selectedOrder.deliveryMode || '-'}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-3 text-zinc-500 dark:text-zinc-400">
+                        <Info size={16} />
+                        <span className="text-xs font-bold">{t.profilePage?.orderStatus || 'Order Status'}</span>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-black ${
+                        selectedOrder.status === 'Completed' ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20' 
+                        : selectedOrder.status === 'Cancelled' ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20' 
+                        : 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20'
+                      }`}>
+                        {statusTranslations[selectedOrder.status as string]?.[locale as string] || selectedOrder.status}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="mt-auto pt-8">
-                     <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4">
-                        <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1 flex items-center gap-1">
-                          <Info size={10} /> {t.profilePage?.needHelp || 'Need Help?'}
-                        </p>
-                        <p className="text-[10px] font-medium text-zinc-400">{t.profilePage?.receiptHelpText || 'Screenshot this receipt and contact our WhatsApp support.'}</p>
-                     </div>
-                  </div>
                 </div>
 
-                {/* Right Side: Order Items & Totals */}
-                <div className="flex-1 p-8 sm:p-12 overflow-y-auto bg-zinc-50 dark:bg-zinc-900/30">
-                  <div className="space-y-8 text-left">
-                    {/* Delivery Section */}
-                    <div className="space-y-3">
-                      <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                        <MapPin size={12} className="text-primary" /> {t.profilePage?.deliveryInfo || 'Delivery Info'}
-                      </h4>
-                      <div className="p-5 bg-white dark:bg-black/40 rounded-3xl border border-border shadow-sm">
-                        <p className="text-sm font-bold text-foreground leading-relaxed">
-                          {selectedOrder.address || (t.profilePage?.selfCollectHQ || 'Self Collect at HQ')}
-                        </p>
-                        {selectedOrder.notes && (
-                          <div className="mt-4 pt-4 border-t border-border/50">
-                            <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">{t.profilePage?.customerNote || 'Customer Note'}</p>
-                            <p className="text-xs font-medium italic text-zinc-500">"{selectedOrder.notes}"</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                {/* Right Side: Order Items */}
+                <div className="w-full md:w-1/2 lg:w-[45%] bg-white dark:bg-zinc-900 p-6 sm:p-10 lg:p-12 flex flex-col h-full overflow-y-auto custom-scrollbar">
+                  
+                  <h3 className="text-sm font-black text-foreground dark:text-white uppercase tracking-widest flex items-center gap-2 mb-8">
+                    <ShoppingBag size={18} className="text-primary" /> {t.profilePage?.orderItems || 'Order Items'}
+                  </h3>
 
-                    {/* Items Section */}
-                    <div className="space-y-4">
-                      <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                        <Package size={12} className="text-primary" /> {t.profilePage?.itemsPurchased || 'Items Purchased'}
-                      </h4>
-                      <div className="space-y-2">
-                        {selectedOrder.items?.map((item: any, idx: number) => (
-                          <div key={idx} className="flex items-center gap-4 p-4 bg-white dark:bg-black/20 rounded-3xl border border-border group hover:border-primary/30 transition-all">
-                            <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                              <Flame size={20} strokeWidth={2.5} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-black text-foreground truncate">{item.name}</p>
-                              <p className="text-[10px] font-bold text-zinc-500">RM{item.price.toFixed(2)} × {item.quantity}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-black text-foreground">RM{(item.price * item.quantity).toFixed(2)}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Final Billing */}
-                    <div className="mt-20 space-y-4">
-                      <div className="flex justify-between items-center px-4">
-                        <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">{t.profilePage?.netTotal || 'Net Total'}</span>
-                        <span className="text-sm font-black text-foreground">RM {selectedOrder.totalAmount.toFixed(2)}</span>
-                      </div>
-
-                      <div className="bg-zinc-900 dark:bg-primary p-8 rounded-[32px] flex justify-between items-center shadow-2xl">
-                        <div>
-                          <p className="text-[10px] font-black text-primary dark:text-zinc-900 uppercase tracking-[0.2em] mb-1">{t.profilePage?.totalAmountPaid || 'Total Amount Paid'}</p>
-                          <p className="text-4xl font-black italic text-white dark:text-zinc-900 tracking-tighter">RM {selectedOrder.totalAmount.toFixed(2)}</p>
+                  {/* Items List */}
+                  <div className="space-y-4 flex-1">
+                    {selectedOrder.items?.map((item: any, idx: number) => (
+                      <div key={idx} className="flex items-center gap-4 py-4 border-b border-zinc-100 dark:border-zinc-800 last:border-0 group">
+                        <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-950 flex items-center justify-center text-zinc-400 border border-zinc-200 dark:border-zinc-800 overflow-hidden shrink-0 shadow-sm group-hover:border-primary/30 transition-all">
+                          {item.image ? (
+                             <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                          ) : (
+                             <Flame size={24} className="text-primary opacity-50" />
+                          )}
                         </div>
-                        <div className="w-16 h-16 rounded-full bg-white/10 dark:bg-zinc-900/10 flex items-center justify-center">
-                          <Check size={32} className="text-primary dark:text-zinc-900" strokeWidth={3} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-black text-foreground dark:text-white truncate">{item.name}</p>
+                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1 flex items-center gap-1">
+                            <Flame size={10} className="text-orange-500" /> Premium Firework
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-black text-foreground dark:text-white">RM {item.price.toFixed(2)}</p>
+                          <p className="text-xs font-bold text-zinc-500 mt-1">Qty: {item.quantity}</p>
                         </div>
                       </div>
+                    ))}
+                  </div>
+
+                  {/* Billing Summary */}
+                  <div className="mt-8 pt-8 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-bold text-zinc-500">{t.profilePage?.subtotalLabel || 'Subtotal'}</span>
+                      <span className="text-sm font-bold text-foreground dark:text-white">RM {
+                        selectedOrder.items?.reduce((sum: number, i: any) => sum + (i.originalPrice || i.price) * i.quantity, 0).toFixed(2)
+                      }</span>
+                    </div>
+                    
+                    {/* Discount Calculation */}
+                    {(() => {
+                      const originalTotal = selectedOrder.items?.reduce((sum: number, i: any) => sum + (i.originalPrice || i.price) * i.quantity, 0) || 0;
+                      const actualTotal = selectedOrder.items?.reduce((sum: number, i: any) => sum + i.price * i.quantity, 0) || 0;
+                      const discount = originalTotal - actualTotal;
+                      const extraDiscount = actualTotal - selectedOrder.totalAmount;
+                      const totalDiscount = discount + (extraDiscount > 0 ? extraDiscount : 0);
+                      
+                      return totalDiscount > 0 ? (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-bold text-zinc-500">{t.profilePage?.discount || 'Discount'}</span>
+                          <span className="text-sm font-bold text-green-500">-RM {totalDiscount.toFixed(2)}</span>
+                        </div>
+                      ) : null;
+                    })()}
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-bold text-zinc-500">{t.profilePage?.deliveryFee || 'Delivery Fee'}</span>
+                      <span className="text-sm font-bold text-foreground dark:text-white">RM 0.00</span>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-6 mt-4 border-t border-dashed border-zinc-200 dark:border-zinc-800">
+                      <span className="text-base font-black text-foreground dark:text-white">{t.profilePage?.totalAmountPaid || 'Total Amount Paid'}</span>
+                      <span className="text-2xl sm:text-3xl font-black text-orange-500 tracking-tighter">
+                        RM {selectedOrder.totalAmount.toFixed(2)}
+                      </span>
                     </div>
                   </div>
+
                 </div>
               </motion.div>
             </div>

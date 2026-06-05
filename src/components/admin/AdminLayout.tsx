@@ -13,7 +13,8 @@ import {
   ShoppingBag,
   Building,
   Award,
-  TrendingUp
+  TrendingUp,
+  Sidebar
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -90,8 +91,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
         }`}
       >
         <div className={`h-24 flex items-center px-7 overflow-hidden border-b transition-colors duration-500 ${theme === 'dark' ? 'border-white/5' : 'border-zinc-100'}`}>
-          <div className="flex items-center min-w-max w-full">
-            {!isCollapsed ? (
+          <div className="flex items-center justify-between min-w-max w-full">
+            {!isCollapsed && (
               <motion.div 
                 initial={{ opacity: 0, x: -10 }} 
                 animate={{ opacity: 1, x: 0 }} 
@@ -101,21 +102,16 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
                   {t('management') || 'MANAGEMENT'}
                 </span>
               </motion.div>
-            ) : (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.8 }} 
-                animate={{ opacity: 1, scale: 1 }} 
-                className="w-11 h-11 rounded-xl border flex items-center justify-center transition-colors duration-500 bg-zinc-950/20 border-white/5"
-              >
-                <span className="font-black text-lg italic text-yellow-500">M</span>
-              </motion.div>
             )}
+            <button 
+              title={isCollapsed ? "Open sidebar" : "Close sidebar"}
+              onClick={() => setIsCollapsed(!isCollapsed)} 
+              className={`p-2 rounded-xl transition-all ${theme === 'dark' ? 'hover:bg-white/10 text-zinc-400 hover:text-white' : 'hover:bg-black/5 text-zinc-500 hover:text-zinc-900'} ${isCollapsed ? 'mx-auto' : ''}`}
+            >
+              <Sidebar size={22} strokeWidth={2} />
+            </button>
           </div>
         </div>
-
-        <button onClick={() => setIsCollapsed(!isCollapsed)} className={`absolute -right-3.5 top-28 w-7 h-7 rounded-full flex items-center justify-center border shadow-xl hover:scale-110 hover:border-yellow-500 transition-all z-[60] ${theme === 'dark' ? 'bg-[#0f1117] border-white/10 text-zinc-400' : 'bg-white border-zinc-200 text-zinc-500'}`}>
-          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-        </button>
 
         <nav className="flex-1 py-8 px-4 space-y-3">
           <LayoutGroup>
@@ -123,13 +119,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
               const isActive = router.pathname === item.path;
               return (
                 <Link key={item.key} href={item.path}>
-                  <div className={`w-full flex items-center gap-4 px-4 py-4 rounded-[22px] transition-all relative group overflow-hidden cursor-pointer ${isActive ? (theme === 'dark' ? 'text-white' : 'text-zinc-900') : 'text-zinc-500 hover:text-zinc-400'}`}>
+                  <div className={`w-full flex items-center gap-4 px-4 py-4 rounded-[22px] transition-all relative group overflow-hidden cursor-pointer ${isActive ? 'text-yellow-500 font-bold' : 'text-zinc-500 hover:text-zinc-400'}`}>
                     {isActive && (
-                      <motion.div layoutId="activeNav" className={`absolute inset-0 border ${theme === 'dark' ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-yellow-500/10 border-yellow-500/30'}`} style={{ borderRadius: '22px' }} transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />
+                      <motion.div layoutId="activeNav" className="absolute inset-0 bg-yellow-500/10 border border-yellow-500/30" style={{ borderRadius: '22px' }} transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />
                     )}
-                    <div className={`relative z-10 transition-transform duration-300 ${isActive ? 'scale-110 text-yellow-500' : 'group-hover:scale-110'}`}><item.icon size={22} strokeWidth={isActive ? 2.5 : 2} /></div>
+                    <div className={`relative z-10 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}><item.icon size={22} strokeWidth={isActive ? 2.5 : 2} /></div>
                     {!isCollapsed && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative z-10 font-bold text-sm tracking-wide whitespace-nowrap">{item.name}</motion.span>}
-                    {isActive && <motion.div layoutId="activeIndicator" className="absolute left-0 w-1.5 h-6 bg-yellow-500 rounded-r-full shadow-[4px_0_15px_rgba(234,179,8,0.5)]" />}
                   </div>
                 </Link>
               );
@@ -139,15 +134,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
 
         <div className={`p-4 border-t transition-colors duration-500 space-y-2 ${theme === 'dark' ? 'border-white/5 bg-[#05060a]/50' : 'border-zinc-100 bg-zinc-50/50'}`}>
           <Link href="/admin/settings">
-            <div className={`w-full flex items-center gap-4 px-4 py-4 rounded-[22px] transition-all relative group overflow-hidden cursor-pointer ${router.pathname === '/admin/settings' ? (theme === 'dark' ? 'text-white' : 'text-zinc-900') : 'text-zinc-500 hover:text-zinc-400'}`}>
+            <div className={`w-full flex items-center gap-4 px-4 py-4 rounded-[22px] transition-all relative group overflow-hidden cursor-pointer ${router.pathname === '/admin/settings' ? 'text-yellow-500 font-bold' : 'text-zinc-500 hover:text-zinc-400'}`}>
               {router.pathname === '/admin/settings' && (
-                <div className={`absolute inset-0 border ${theme === 'dark' ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-yellow-500/10 border-yellow-500/30'}`} style={{ borderRadius: '22px' }} />
+                <div className="absolute inset-0 bg-yellow-500/10 border border-yellow-500/30" style={{ borderRadius: '22px' }} />
               )}
-              <div className={`relative z-10 transition-transform duration-300 ${router.pathname === '/admin/settings' ? 'scale-110 text-yellow-500' : 'group-hover:scale-110'}`}>
+              <div className={`relative z-10 transition-transform duration-300 ${router.pathname === '/admin/settings' ? 'scale-110' : 'group-hover:scale-110'}`}>
                 <SettingsIcon size={22} strokeWidth={router.pathname === '/admin/settings' ? 2.5 : 2} />
               </div>
               {!isCollapsed && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative z-10 font-bold text-sm tracking-wide whitespace-nowrap">{t('settings')}</motion.span>}
-              {router.pathname === '/admin/settings' && <div className="absolute left-0 w-1.5 h-6 bg-yellow-500 rounded-r-full shadow-[4px_0_15px_rgba(234,179,8,0.5)]" />}
             </div>
           </Link>
 

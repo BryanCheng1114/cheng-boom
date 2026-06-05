@@ -425,6 +425,12 @@
     "itemsPurchased": "购买的商品",
     "netTotal": "净总额",
     "serviceFee": "服务费",
-    "totalAmountPaid": "实付总额"
+    "totalAmountPaid": "实付总额",
+    "orderId": "订单 ID",
+    "deliveryFee": "运费",
+    "discount": "折扣",
+    "subtotalLabel": "小计",
+    "orderItems": "订单详情",
+    "orderInfo": "订单信息"
   }
 }

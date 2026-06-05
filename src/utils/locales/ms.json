@@ -425,6 +425,12 @@
     "itemsPurchased": "Barangan Dibeli",
     "netTotal": "Jumlah Bersih",
     "serviceFee": "Caj Perkhidmatan",
-    "totalAmountPaid": "Jumlah Bayaran"
+    "totalAmountPaid": "Jumlah Bayaran",
+    "orderId": "ID Pesanan",
+    "deliveryFee": "Caj Penghantaran",
+    "discount": "Diskaun",
+    "subtotalLabel": "Subjumlah",
+    "orderItems": "Butiran Pesanan",
+    "orderInfo": "Maklumat Pesanan"
   }
 }

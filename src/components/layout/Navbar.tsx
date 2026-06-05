@@ -202,7 +202,7 @@ export function Navbar() {
                     className="flex items-center justify-between px-3 py-2 text-sm font-bold text-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors group/all"
                   >
                     <span>{t.shopCategories.all}</span>
-                    <span className="text-[11px] min-w-[20px] text-center bg-primary px-1.5 py-0.5 rounded-md text-white font-black shadow-sm group-hover/all:scale-110 transition-transform">
+                    <span className="text-[11px] min-w-[20px] text-center bg-zinc-200/60 dark:bg-zinc-700/60 group-hover/all:bg-primary group-hover/all:text-white px-1.5 py-0.5 rounded-md text-zinc-600 dark:text-zinc-300 font-bold transition-all shadow-sm group-hover/all:scale-110">
                       {categories.reduce((acc, cat) => acc + (cat.count || 0), 0)}
                     </span>
                   </Link>

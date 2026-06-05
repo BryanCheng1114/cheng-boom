@@ -149,7 +149,7 @@ export default function Home() {
             {/* Primary — Shop All */}
             <Link
               href="/shop"
-              className="group relative inline-flex items-center gap-2.5 px-8 py-3 rounded-2xl font-bold text-sm text-zinc-900 overflow-hidden transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-[0_4px_24px_rgba(245,158,11,0.45)] hover:shadow-[0_6px_32px_rgba(245,158,11,0.65)]"
+              className="group relative inline-flex justify-center items-center gap-2.5 w-44 py-3 rounded-2xl font-bold text-sm text-zinc-900 overflow-hidden transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-[0_4px_24px_rgba(245,158,11,0.45)] hover:shadow-[0_6px_32px_rgba(245,158,11,0.65)]"
               style={{ background: 'linear-gradient(135deg, #facc15 0%, #f97316 60%, #ef4444 100%)' }}
             >
               {/* Shine sweep */}
@@ -164,7 +164,7 @@ export default function Home() {
             {/* Secondary — Contact Us */}
             <Link
               href="/contact"
-              className="group inline-flex items-center gap-2.5 px-8 py-3 rounded-2xl font-bold text-sm text-white transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 border border-white/20 hover:border-white/40 hover:bg-white/10"
+              className="group inline-flex justify-center items-center gap-2.5 w-44 py-3 rounded-2xl font-bold text-sm text-white transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 border border-white/20 hover:border-white/40 hover:bg-white/10"
               style={{ backdropFilter: 'blur(12px)', background: 'rgba(255,255,255,0.07)' }}
             >
               <Phone size={17} className="shrink-0 group-hover:rotate-12 transition-transform duration-300" />
