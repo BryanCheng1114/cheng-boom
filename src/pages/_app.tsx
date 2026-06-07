@@ -1,6 +1,5 @@
 import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
-import { ThemeProvider } from 'next-themes';
 import '../assets/globals.css';
 import { CartProvider } from '../components/cart/CartProvider';
 import { FlyToCartProvider } from '../components/ui/FlyToCartProvider';
@@ -23,23 +22,21 @@ export default function App({ Component, pageProps }: AppProps) {
   const isAdminPath = router.pathname.startsWith('/admin');
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-      <BusinessProvider>
-        <LanguageProvider>
-          <AppHead />
-          <CartProvider>
-            <FlyToCartProvider>
-              {isAdminPath ? (
+    <BusinessProvider>
+      <LanguageProvider>
+        <AppHead />
+        <CartProvider>
+          <FlyToCartProvider>
+            {isAdminPath ? (
+              <Component {...pageProps} />
+            ) : (
+              <Layout>
                 <Component {...pageProps} />
-              ) : (
-                <Layout>
-                  <Component {...pageProps} />
-                </Layout>
-              )}
-            </FlyToCartProvider>
-          </CartProvider>
-        </LanguageProvider>
-      </BusinessProvider>
-    </ThemeProvider>
+              </Layout>
+            )}
+          </FlyToCartProvider>
+        </CartProvider>
+      </LanguageProvider>
+    </BusinessProvider>
   );
 }

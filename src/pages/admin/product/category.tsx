@@ -309,19 +309,7 @@ const UploadCategoryPage = () => {
                   />
                 </div>
 
-                {/* Malay Name */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('malay_translation')}</label>
-                  <input 
-                    type="text" 
-                    name="nameMs"
-                    disabled={isLoading}
-                    value={formData.nameMs}
-                    onChange={handleChange}
-                    placeholder="e.g. Percikan Langit"
-                    className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm"
-                  />
-                </div>
+
 
               </div>
             </div>

@@ -20,8 +20,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '../../context/LanguageContext';
 
-import { useTheme } from 'next-themes';
-
 interface AdminLayoutProps {
   children: React.ReactNode;
   title: string;
@@ -30,7 +28,7 @@ interface AdminLayoutProps {
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
   const router = useRouter();
   const { t, language, setLanguage } = useLanguage();
-  const { theme, setTheme } = useTheme();
+  const theme = 'dark';
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -43,7 +41,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
         const res = await fetch('/api/admin/profile');
         if (res.ok) {
           const data = await res.json();
-          if (data.theme && theme !== data.theme) setTheme(data.theme);
           if (data.language && language !== data.language) setLanguage(data.language);
         }
       } catch (err) {}

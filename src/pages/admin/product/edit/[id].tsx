@@ -460,18 +460,7 @@ const EditProductPage = () => {
                 />
               </div>
 
-              {/* Malay Translation */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('malay_translation')}</label>
-                <input 
-                  type="text" 
-                  name="nameMs"
-                  value={formData.nameMs || ''}
-                  onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
-                  placeholder="e.g. Tepukan Petir"
-                />
-              </div>
+
 
               <div className="md:col-span-2 space-y-8 mt-4">
                 <div className="space-y-2">
@@ -497,16 +486,7 @@ const EditProductPage = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('item_description')} (MS)</label>
-                  <textarea 
-                    name="descriptionMs"
-                    value={formData.descriptionMs || ''}
-                    onChange={handleChange}
-                    className="w-full px-6 py-4 rounded-2xl border outline-none font-medium leading-relaxed min-h-[140px] dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
-                    placeholder="Penerangan dalam Bahasa Melayu..."
-                  />
-                </div>
+
               </div>
             </div>
           </div>

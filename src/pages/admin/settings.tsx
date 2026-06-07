@@ -123,15 +123,14 @@ const SettingsPage = () => {
             <div 
               className="absolute top-1.5 bottom-1.5 rounded-full bg-white dark:bg-zinc-800 shadow-sm transition-all duration-300 ease-out border border-zinc-200 dark:border-zinc-700/50"
               style={{
-                width: 'calc(33.333% - 4px)',
-                left: language === 'en' ? '6px' : language === 'zh' ? 'calc(33.333% + 2px)' : 'calc(66.666% - 2px)'
+                width: 'calc(50% - 6px)',
+                left: language === 'en' ? '6px' : 'calc(50%)'
               }}
             />
             
             {[
               { id: 'en', label: t('english'), sub: 'EN' },
               { id: 'zh', label: t('chinese'), sub: 'ZH' },
-              { id: 'ms', label: t('malay'), sub: 'MS' },
             ].map((lang) => {
               const isSelected = language === lang.id;
               return (

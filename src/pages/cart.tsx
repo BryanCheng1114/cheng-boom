@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useCart } from '../components/cart/CartProvider';
 import { generateWhatsAppLink, OrderDetails } from '../services/whatsappService';
 import { useBusiness } from '../context/BusinessContext';
-import { Trash2, Plus, Minus, ArrowRight, MessageCircle, Shield, X, MapPin, CreditCard, User, Phone, Check, Zap, HelpCircle, Upload, ExternalLink, AlertTriangle } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, MessageCircle, Shield, X, MapPin, CreditCard, User, Phone, Check, Zap, HelpCircle, Upload, ExternalLink, AlertTriangle, ShoppingCart } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { cn } from '../utils/cn';
@@ -23,6 +23,7 @@ const deliveryModeLabels: Record<string, Record<string, string>> = {
 export default function Cart() {
   const { items, updateQuantity, removeItem, clearCart, totalPrice, totalOriginalPrice, totalItems, totalDiscount, discountPercent, isFreeShipping } = useCart();
   const [mounted, setMounted] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const { t, locale } = useTranslation();
   const { settings } = useBusiness();
@@ -81,6 +82,7 @@ export default function Cart() {
     const fetchUserProfile = async () => {
       const savedUser = localStorage.getItem('user');
       if (savedUser) {
+        setIsLoggedIn(true);
         const user = JSON.parse(savedUser);
         try {
           const res = await fetch(`/api/customers/${user.id}`);
@@ -295,14 +297,46 @@ export default function Cart() {
     return (
       <>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center min-h-[60vh] flex flex-col justify-center items-center">
-          <h1 className="text-3xl font-bold mb-4 text-foreground">{t.cart.emptyTitle}</h1>
-          <p className="text-muted-foreground mb-8 text-lg">{t.cart.emptyDesc}</p>
-          <Link 
-            href="/shop" 
-            className="px-8 py-3 bg-primary text-zinc-900 rounded-full font-bold hover:brightness-110 transition-all inline-flex items-center gap-2"
-          >
-            {t.cart.startShopping} <ArrowRight size={20} />
-          </Link>
+          <div className="mb-6 text-foreground">
+            <ShoppingCart size={64} strokeWidth={1.5} />
+          </div>
+          <h1 className="text-3xl font-bold mb-4 text-foreground">{t.cart.emptyTitle || 'Your cart is empty'}</h1>
+          
+          {!isLoggedIn ? (
+            <>
+              <p className="text-muted-foreground mb-8 text-sm max-w-md leading-relaxed">
+                {locale === 'zh' 
+                  ? `登录您的 ${settings?.businessName || 'Cheng-BOOM'} 帐户以查看您保存的商品或继续购物` 
+                  : locale === 'ms'
+                  ? `Log masuk ke akaun ${settings?.businessName || 'Cheng-BOOM'} anda untuk melihat item anda yang disimpan atau teruskan membeli-belah`
+                  : `Sign in to your ${settings?.businessName || 'Cheng-BOOM'} account to view your saved items or continue shopping`}
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
+                <Link 
+                  href="/shop" 
+                  className="w-full sm:w-auto px-8 py-3 bg-white text-zinc-900 rounded-full font-bold hover:bg-zinc-200 transition-all inline-flex items-center justify-center gap-2 shadow-lg"
+                >
+                  {locale === 'zh' ? '继续购物' : locale === 'ms' ? 'Teruskan Membeli-belah' : 'Continue shopping'} <ArrowRight size={20} />
+                </Link>
+                <Link 
+                  href="/login" 
+                  className="w-full sm:w-auto px-8 py-3 bg-primary border-2 border-primary text-zinc-900 rounded-full font-bold hover:brightness-110 transition-all text-center shadow-lg shadow-primary/20"
+                >
+                  {locale === 'zh' ? '登录' : locale === 'ms' ? 'Log Masuk' : 'Sign in'}
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-muted-foreground mb-8 text-lg">{t.cart.emptyDesc}</p>
+              <Link 
+                href="/shop" 
+                className="px-8 py-3 bg-white text-zinc-900 rounded-full font-bold hover:bg-zinc-200 transition-all inline-flex items-center gap-2 shadow-lg"
+              >
+                {t.cart.startShopping || 'Continue shopping'} <ArrowRight size={20} />
+              </Link>
+            </>
+          )}
         </div>
         {ErrorModals}
       </>

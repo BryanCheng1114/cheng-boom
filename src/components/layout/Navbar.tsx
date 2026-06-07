@@ -1,16 +1,51 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { useCart } from '../cart/CartProvider';
-import { ThemeToggle } from '../ui/ThemeToggle';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import { ShoppingCart, ChevronDown, Flame, Menu, X, User, Sparkles, ChevronRight } from 'lucide-react';
+import { ShoppingBag, ChevronDown, Menu, X, User, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { cn } from '../../utils/cn';
 import { useTranslation } from '../../hooks/useTranslation';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useFlyToCart } from '../ui/FlyToCartProvider';
 import { useBusiness } from '../../context/BusinessContext';
+
+type NavbarUser = {
+  name: string;
+};
+
+type NavbarCategory = {
+  id: string | number;
+  name: string;
+  nameZh?: string;
+  nameMs?: string;
+  code?: string;
+  key?: string;
+  count?: number;
+};
+
+const CONFETTI_BURST = [
+  { x: -46, y: -54, rotate: 40 },
+  { x: -12, y: -66, rotate: 95 },
+  { x: 34, y: -58, rotate: 150 },
+  { x: 58, y: -22, rotate: 210 },
+  { x: 44, y: 28, rotate: 275 },
+  { x: 12, y: 62, rotate: 330 },
+  { x: -34, y: 50, rotate: 25 },
+  { x: -58, y: 14, rotate: 120 },
+  { x: -38, y: -18, rotate: 185 },
+  { x: 8, y: -36, rotate: 245 },
+  { x: 52, y: 8, rotate: 305 },
+  { x: -8, y: 36, rotate: 355 },
+];
+
+const FONT_MAP: Record<string, string> = {
+  'Impact': "Impact, 'Arial Black', sans-serif",
+  'Playfair Display': "Georgia, 'Times New Roman', serif",
+  'Bebas Neue': "'Arial Black', 'Arial Bold', sans-serif",
+  'Pacifico': "'Comic Sans MS', 'Bradley Hand', cursive",
+  'Montserrat': "'Trebuchet MS', 'Lucida Grande', sans-serif",
+};
 
 export function Navbar() {
   const { settings } = useBusiness();
@@ -21,8 +56,9 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isWiggling, setIsWiggling] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<NavbarUser | null>(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const logoutTranslations = {
     title: { en: 'Log Out', zh: '登出', ms: 'Log Keluar' },
@@ -35,7 +71,7 @@ export function Navbar() {
     const checkUser = () => {
       const savedUser = localStorage.getItem('user');
       if (savedUser) {
-        setUser(JSON.parse(savedUser));
+        setUser(JSON.parse(savedUser) as NavbarUser);
       } else {
         setUser(null);
       }
@@ -64,11 +100,20 @@ export function Navbar() {
     });
   }, [registerCelebrationTrigger]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const isActive = (path: string) => router.pathname === path;
   const isActivePrefix = (prefix: string, exclude?: string) =>
     router.pathname.startsWith(prefix) && router.pathname !== exclude;
 
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<NavbarCategory[]>([]);
 
   useEffect(() => {
     fetch('/api/categories')
@@ -79,57 +124,53 @@ export function Navbar() {
       .catch(() => {});
   }, []);
 
-  const FONT_MAP: Record<string, string> = {
-    'Impact': "Impact, 'Arial Black', sans-serif",
-    'Playfair Display': "Georgia, 'Times New Roman', serif",
-    'Bebas Neue': "'Arial Black', 'Arial Bold', sans-serif",
-    'Pacifico': "'Comic Sans MS', 'Bradley Hand', cursive",
-    'Montserrat': "'Trebuchet MS', 'Lucida Grande', sans-serif",
-  };
   const selectedFont = settings?.businessFont || 'Impact';
   const fontFamily = FONT_MAP[selectedFont] || FONT_MAP['Impact'];
+  const businessName = settings?.businessName || 'Cheng-BOOM';
+  const profileInitial = user?.name?.trim().charAt(0).toUpperCase() || 'U';
+
+  const isHomePage = router.pathname === '/';
+  const isTransparent = isHomePage && !isScrolled && !mobileOpen;
 
   return (
     <>
-      <nav className="sticky top-0 z-50 w-full bg-white/70 dark:bg-zinc-950/70 backdrop-blur-2xl border-b border-black/5 dark:border-white/5 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20 items-center gap-2 sm:gap-4">
+      <nav 
+        className={cn(
+          "top-0 z-50 w-full transition-all duration-300",
+          isHomePage ? "fixed" : "sticky",
+          isTransparent
+            ? "bg-transparent text-white border-b border-transparent shadow-none"
+            : "bg-[#071011]/90 text-white backdrop-blur-2xl border-b border-white/10 shadow-[0_1px_0_rgba(255,255,255,0.04)]"
+        )}
+      >
+      <div className="mx-auto w-full max-w-[1180px] px-3 sm:px-5 lg:px-6">
+        <div className="flex h-12 items-center justify-between gap-2 sm:gap-4">
 
           {/* ---- Brand ---- */}
-          <Link href="/" className="flex items-center gap-1.5 sm:gap-2 min-w-0 group">
-            <img
-              src={settings?.watermarkUrl || "/transparent-Background.png"}
-              alt={`${settings?.businessName || 'Cheng-BOOM'} Logo`}
-              width={42}
-              height={42}
-              className="w-8 h-8 sm:w-[42px] sm:h-[42px] shrink-0 drop-shadow-[0_0_12px_rgba(245,158,11,0.6)] group-hover:scale-110 transition-transform duration-300 object-contain"
-            />
+          <Link href="/" className="group flex shrink-0 items-center" aria-label={`${businessName} home`}>
             <span
-              className="text-lg sm:text-2xl font-black italic tracking-wider bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent group-hover:scale-110 group-hover:-rotate-2 transition-transform duration-300 origin-left inline-block truncate pr-1 sm:pr-2"
+              className="block whitespace-nowrap text-[19px] sm:text-[22px] font-black italic leading-none tracking-wider bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent transition-transform duration-300 group-hover:scale-105 origin-left py-1 pr-1"
               style={{ fontFamily }}
+              title={businessName}
             >
-              {settings?.businessName || 'Cheng-BOOM'}
+              {businessName}
             </span>
           </Link>
 
           {/* ---- Desktop Nav ---- */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex flex-1 items-center justify-center gap-1 lg:gap-2">
 
             {/* Home Page */}
             <Link
               href="/"
               className={cn(
-                'relative px-4 py-2 text-sm font-semibold transition-all duration-300 group/link',
+                'hidden',
                 isActive('/') 
-                  ? 'text-primary' 
-                  : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white'
+                  ? 'bg-white/10 text-white' 
+                  : ''
               )}
             >
               {t.nav.home}
-              <span className={cn(
-                "absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full bg-primary transition-all duration-300",
-                isActive('/') ? "w-1/2" : "w-0 group-hover/link:w-1/3"
-              )} />
             </Link>
 
             {/* Shop — with dropdown */}
@@ -137,23 +178,18 @@ export function Navbar() {
               <Link
                 href="/shop"
                 className={cn(
-                  'relative flex items-center gap-1 px-4 py-2 text-sm font-semibold transition-all duration-300 group/link',
+                  'relative flex items-center gap-1 rounded-full px-3 py-2 text-sm font-semibold text-white/82 transition-all duration-300 group/link hover:bg-white/8 hover:text-white lg:px-4',
                   isActivePrefix('/shop') 
-                    ? 'text-primary' 
-                    : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white'
+                    ? 'bg-white/10 text-white' 
+                    : ''
                 )}
               >
                 {t.nav.shop}
-                <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300 opacity-70" />
-                <span className={cn(
-                  "absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full bg-primary transition-all duration-300",
-                  isActivePrefix('/shop') ? "w-1/2" : "w-0 group-hover/link:w-1/3"
-                )} />
               </Link>
               {/* Dropdown */}
-              <div className="absolute top-full left-0 pt-3 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-2 scale-95 group-hover:translate-y-0 group-hover:scale-100 transition-all duration-300 ease-out origin-top-left z-50">
-                <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-700/60 rounded-2xl shadow-2xl shadow-black/10 dark:shadow-black/40 py-2 overflow-hidden">
-                  <div className="px-4 py-2 text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+              <div className="absolute top-full left-0 z-50 w-60 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-2 scale-95 group-hover:translate-y-0 group-hover:scale-100 transition-all duration-300 ease-out origin-top-left">
+                <div className="overflow-hidden rounded-lg border border-white/10 bg-[#101819]/95 py-2 shadow-2xl shadow-black/35 backdrop-blur-xl">
+                  <div className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white/45">
                     Categories
                   </div>
                   {(categories.length > 0 ? categories : [
@@ -175,34 +211,34 @@ export function Navbar() {
                     } else if (locale === 'ms' && category.nameMs) {
                       label = category.nameMs;
                     } else {
-                      label = (t.shopCategories as any)[key] || category.name;
+                      label = (t.shopCategories as Record<string, string>)[key] || category.name;
                     }
 
                     return (
                       <Link
                         key={category.id}
                         href={`/shop?category=${key}`}
-                        className="flex items-center justify-between px-3 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:text-primary hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors group/cat"
+                        className="flex items-center justify-between px-3 py-2 text-sm text-white/72 hover:text-white hover:bg-white/8 transition-colors group/cat"
                       >
                         <div className="flex items-center gap-1.5">
-                          <ChevronRight size={14} className="text-zinc-400 group-hover/cat:text-primary group-hover/cat:translate-x-0.5 transition-all" />
+                          <ChevronRight size={14} className="text-white/35 group-hover/cat:text-white group-hover/cat:translate-x-0.5 transition-all" />
                           <span>{label}</span>
                         </div>
                         {category.count !== undefined && (
-                          <span className="text-[11px] min-w-[20px] text-center bg-zinc-200/60 dark:bg-zinc-700/60 group-hover/cat:bg-primary group-hover/cat:text-white px-1.5 py-0.5 rounded-md text-zinc-600 dark:text-zinc-300 font-bold transition-all shadow-sm">
+                          <span className="min-w-[20px] rounded bg-white/10 px-1.5 py-0.5 text-center text-[11px] font-bold text-white/70 shadow-sm transition-all group-hover/cat:bg-white group-hover/cat:text-zinc-950">
                             {category.count}
                           </span>
                         )}
                       </Link>
                     );
                   })}
-                  <div className="border-t border-zinc-100 dark:border-zinc-800 mx-3 my-1" />
+                  <div className="mx-3 my-1 border-t border-white/10" />
                   <Link
                     href="/shop"
-                    className="flex items-center justify-between px-3 py-2 text-sm font-bold text-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors group/all"
+                    className="flex items-center justify-between px-3 py-2 text-sm font-bold text-white hover:bg-white/8 transition-colors group/all"
                   >
                     <span>{t.shopCategories.all}</span>
-                    <span className="text-[11px] min-w-[20px] text-center bg-zinc-200/60 dark:bg-zinc-700/60 group-hover/all:bg-primary group-hover/all:text-white px-1.5 py-0.5 rounded-md text-zinc-600 dark:text-zinc-300 font-bold transition-all shadow-sm group-hover/all:scale-110">
+                    <span className="min-w-[20px] rounded bg-white/10 px-1.5 py-0.5 text-center text-[11px] font-bold text-white/70 shadow-sm transition-all group-hover/all:scale-110 group-hover/all:bg-white group-hover/all:text-zinc-950">
                       {categories.reduce((acc, cat) => acc + (cat.count || 0), 0)}
                     </span>
                   </Link>
@@ -214,56 +250,92 @@ export function Navbar() {
             <Link
               href="/about"
               className={cn(
-                'relative px-4 py-2 text-sm font-semibold transition-all duration-300 group/link',
+                'relative rounded-full px-3 py-2 text-sm font-semibold text-white/82 transition-all duration-300 hover:bg-white/8 hover:text-white lg:px-4',
                 isActive('/about') 
-                  ? 'text-primary' 
-                  : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white'
+                  ? 'bg-white/10 text-white' 
+                  : ''
               )}
             >
               {t.nav.aboutUs}
-              <span className={cn(
-                "absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full bg-primary transition-all duration-300",
-                isActive('/about') ? "w-1/2" : "w-0 group-hover/link:w-1/3"
-              )} />
             </Link>
 
             {/* Contact Us */}
             <Link
               href="/contact"
               className={cn(
-                'relative px-4 py-2 text-sm font-semibold transition-all duration-300 group/link',
+                'relative rounded-full px-3 py-2 text-sm font-semibold text-white/82 transition-all duration-300 hover:bg-white/8 hover:text-white lg:px-4',
                 isActive('/contact') 
-                  ? 'text-primary' 
-                  : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white'
+                  ? 'bg-white/10 text-white' 
+                  : ''
               )}
             >
               {t.nav.contact}
-              <span className={cn(
-                "absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full bg-primary transition-all duration-300",
-                isActive('/contact') ? "w-1/2" : "w-0 group-hover/link:w-1/3"
-              )} />
             </Link>
           </div>
 
           {/* ---- Right Actions ---- */}
-          <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+          <div className="flex shrink-0 items-center gap-1.5">
+            {/* Profile Dropdown */}
+              <div className="relative group/profile flex items-center">
+                {user ? (
+                  <div className="flex items-center gap-2 cursor-pointer relative">
+                    {/* Icon Frame */}
+                    <div
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sm font-black text-zinc-950 shadow-[0_8px_24px_rgba(255,255,255,0.16)] ring-1 ring-white/70 transition-all duration-300 group-hover/profile:-translate-y-0.5 group-hover/profile:bg-yellow-300 group-hover/profile:shadow-[0_10px_28px_rgba(250,204,21,0.28)]"
+                      aria-label={`${user.name} profile`}
+                      title={user.name}
+                    >
+                      {profileInitial}
+                    </div>
 
-            {/* Site Settings: Language + Theme */}
+                    {/* Invisible Bridge to prevent hover gap */}
+                    <div className="absolute -bottom-4 left-0 w-full h-4 z-10" />
+                    
+                    {/* Dropdown */}
+                    <div className="absolute top-[calc(100%+8px)] right-0 w-56 opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible translate-y-2 scale-95 group-hover/profile:translate-y-0 group-hover/profile:scale-100 transition-all duration-300 ease-out origin-top-right z-50">
+                      <div className="overflow-hidden rounded-lg border border-white/10 bg-[#101819]/95 py-3 shadow-2xl shadow-black/35 backdrop-blur-xl">
+                        <div className="mb-2 border-b border-white/10 px-5 py-3">
+                          <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-white/45">{t.nav?.profile?.account || 'Account'}</p>
+                          <p className="truncate text-sm font-bold text-white">{user.name}</p>
+                        </div>
+                        <Link 
+                          href="/profile" 
+                          className="flex items-center gap-3 px-5 py-3 text-sm text-white/72 hover:text-white hover:bg-white/8 transition-colors"
+                        >
+                          <User size={16} /> {t.nav?.profile?.myProfile || 'My Profile'}
+                        </Link>
+                        <div className="mx-3 my-2 h-px bg-white/10" />
+                        <button 
+                          onClick={() => setIsLogoutModalOpen(true)}
+                          className="w-full flex items-center gap-3 px-5 py-3 text-sm text-red-500 hover:bg-red-500/5 transition-colors"
+                        >
+                          <X size={16} /> {t.nav?.profile?.logout || 'Logout'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white group"
+                    title="Sign In"
+                  >
+                    <User strokeWidth={1.5} className="w-[18px] h-[18px] sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                  </Link>
+                )}
+              </div>
+
+            {/* Site Settings: Language */}
             <div className="hidden sm:flex items-center gap-1">
               <LanguageSwitcher />
-              <ThemeToggle />
             </div>
 
-            {/* Divider */}
-            <div className="hidden sm:block w-[1px] h-5 bg-zinc-200 dark:bg-zinc-800 mx-2 sm:mx-3" />
-
-            {/* User Actions: Cart + Profile */}
-            <div className="flex items-center gap-0.5 sm:gap-1">
-              {/* Cart */}
+            {/* Cart */}
               <Link
                 id="navbar-cart-btn"
                 href="/cart"
-                className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md hover:shadow-primary/10 transition-all duration-300"
+                className="relative flex h-9 w-9 items-center justify-center rounded-full bg-yellow-400 text-zinc-950 shadow-[0_8px_24px_rgba(250,204,21,0.28)] ring-1 ring-yellow-200/50 transition-all duration-300 hover:bg-yellow-300 hover:shadow-[0_10px_28px_rgba(250,204,21,0.38)] hover:-translate-y-0.5"
+                aria-label="Cart"
               >
                 <motion.div
                   animate={isWiggling ? {
@@ -272,23 +344,23 @@ export function Navbar() {
                   } : {}}
                   transition={{ duration: 0.4 }}
                 >
-                  <ShoppingCart strokeWidth={1.5} size={20} className={cn(isWiggling && "text-primary")} />
+                  <ShoppingBag strokeWidth={1.7} size={16} />
                 </motion.div>
 
                 {/* Confetti Burst */}
                 <AnimatePresence>
                   {showConfetti && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      {[...Array(12)].map((_, i) => (
+                      {CONFETTI_BURST.map((burst, i) => (
                         <motion.div
                           key={i}
                           initial={{ opacity: 1, scale: 0, x: 0, y: 0 }}
                           animate={{ 
                             opacity: 0, 
                             scale: [0, 1.5, 0.5],
-                            x: (Math.random() - 0.5) * 100, 
-                            y: (Math.random() - 0.5) * 100,
-                            rotate: Math.random() * 360
+                            x: burst.x,
+                            y: burst.y,
+                            rotate: burst.rotate
                           }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 1.2, ease: "easeOut" }}
@@ -308,87 +380,35 @@ export function Navbar() {
                       key="cart-badge"
                       initial={{ scale: 0 }}
                       animate={{ scale: isWiggling ? [1, 1.5, 1] : 1 }}
-                      className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center w-5 h-5 text-[11px] font-black text-zinc-900 bg-primary rounded-full shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+                      className="absolute -top-1 -right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-[11px] font-black text-zinc-950 shadow-[0_4px_10px_rgba(0,0,0,0.24)]"
                     >
                       {totalItems}
                     </motion.span>
                   )}
                 </AnimatePresence>
               </Link>
-              
-              {/* Profile Dropdown */}
-              <div className="relative group/profile flex items-center">
-                {user ? (
-                  <div className="flex items-center gap-2 cursor-pointer relative">
-                    {/* Icon Frame */}
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 group-hover/profile:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 group-hover/profile:border-primary/30 group-hover/profile:bg-white dark:group-hover/profile:bg-zinc-900 shadow-sm group-hover/profile:shadow-md group-hover/profile:shadow-primary/10 transition-all duration-300">
-                      <User strokeWidth={1.5} size={20} className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
-                    </div>
 
-                    <div className="flex flex-col items-start hidden sm:flex">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 leading-none mb-1">{t.nav?.profile?.activeMember || 'Active Member'}</span>
-                      <span className="text-sm font-bold text-foreground leading-none">{user.name}</span>
-                    </div>
-
-                    {/* Invisible Bridge to prevent hover gap */}
-                    <div className="absolute -bottom-4 left-0 w-full h-4 z-10" />
-                    
-                    {/* Dropdown */}
-                    <div className="absolute top-[calc(100%+8px)] right-0 w-56 opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible translate-y-2 scale-95 group-hover/profile:translate-y-0 group-hover/profile:scale-100 transition-all duration-300 ease-out origin-top-right z-50">
-                      <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-700/60 rounded-[24px] shadow-2xl shadow-black/10 dark:shadow-black/40 py-3 overflow-hidden">
-                        <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 mb-2">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">{t.nav?.profile?.account || 'Account'}</p>
-                          <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
-                        </div>
-                        <Link 
-                          href="/profile" 
-                          className="flex items-center gap-3 px-5 py-3 text-sm text-zinc-600 dark:text-zinc-300 hover:text-primary hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors"
-                        >
-                          <User size={16} /> {t.nav?.profile?.myProfile || 'My Profile'}
-                        </Link>
-                        <div className="h-px bg-zinc-100 dark:bg-zinc-800 mx-3 my-2" />
-                        <button 
-                          onClick={() => setIsLogoutModalOpen(true)}
-                          className="w-full flex items-center gap-3 px-5 py-3 text-sm text-red-500 hover:bg-red-500/5 transition-colors"
-                        >
-                          <X size={16} /> {t.nav?.profile?.logout || 'Logout'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md hover:shadow-primary/10 transition-all duration-300 group"
-                    title="Sign In"
-                  >
-                    <User strokeWidth={1.5} className="w-[18px] h-[18px] sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
-                  </Link>
-                )}
-              </div>
-
-              {/* Mobile hamburger */}
+            {/* Mobile hamburger */}
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="md:hidden w-8 h-8 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-primary bg-zinc-50 dark:bg-white/5 border border-zinc-200/50 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-zinc-900 shadow-sm hover:shadow-md transition-all duration-300 ml-0.5"
+                className="ml-0.5 flex h-9 w-9 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white md:hidden"
               >
                 {mobileOpen ? <X strokeWidth={1.5} className="w-[18px] h-[18px]" /> : <Menu strokeWidth={1.5} className="w-[18px] h-[18px]" />}
               </button>
-            </div>
           </div>
         </div>
 
         {/* ---- Mobile Menu ---- */}
         {mobileOpen && (
-          <div className="md:hidden border-t border-zinc-100 dark:border-zinc-800 py-4 space-y-1">
+          <div className="space-y-1 border-t border-white/10 py-4 md:hidden">
             {user && (
-              <div className="px-4 py-4 mb-2 bg-primary/5 rounded-2xl mx-2 border border-primary/10">
-                <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">{t.nav?.profile?.welcomeBack || 'Welcome Back'}</p>
-                <p className="text-lg font-black italic text-foreground">{user.name}</p>
+              <div className="mx-2 mb-2 rounded-lg border border-white/10 bg-white/6 px-4 py-4">
+                <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-white/48">{t.nav?.profile?.welcomeBack || 'Welcome Back'}</p>
+                <p className="text-lg font-black italic text-white">{user.name}</p>
                 <Link 
                   href="/profile" 
                   onClick={() => setMobileOpen(false)}
-                  className="mt-3 flex items-center justify-between p-3 bg-white dark:bg-zinc-900 rounded-xl text-sm font-bold text-foreground border border-zinc-200 dark:border-white/5"
+                  className="mt-3 flex items-center justify-between rounded-lg border border-white/10 bg-white/8 p-3 text-sm font-bold text-white"
                 >
                   {t.nav?.profile?.viewProfile || 'View Profile'} <ChevronRight size={14} />
                 </Link>
@@ -405,10 +425,10 @@ export function Navbar() {
                 href={href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  'block px-4 py-3 rounded-xl text-sm font-semibold transition-colors',
+                  'block rounded-lg px-4 py-3 text-sm font-semibold transition-colors',
                   router.pathname === href
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/5'
+                    ? 'bg-white/12 text-white'
+                    : 'text-white/72 hover:bg-white/8 hover:text-white'
                 )}
               >
                 {label}

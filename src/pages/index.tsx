@@ -91,7 +91,7 @@ export default function Home() {
       </Head>
 
       {/* ===== SECTION 1: Full-Screen Hero — ALWAYS DARK, no theme toggle ===== */}
-      <section className="relative min-h-[calc(100vh-64px)] flex flex-col items-center justify-center overflow-hidden bg-black px-4">
+      <section className="relative min-h-screen flex flex-col items-center justify-end overflow-hidden bg-black px-4 pb-24 md:pb-32">
 
         {/* New Year background video */}
         <video
@@ -131,46 +131,26 @@ export default function Home() {
 
 
           {/* Headline */}
-          <div className="space-y-4" style={{ animation: 'fade-in-up 0.9s 0.15s ease both' }}>
-            <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-snug drop-shadow-xl">
-              {t.home.heroTitle1}&nbsp;
-              <span className="text-white font-extrabold">
+          <div className="space-y-4 md:space-y-5" style={{ animation: 'fade-in-up 0.9s 0.15s ease both' }}>
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter leading-none uppercase drop-shadow-lg">
+              {t.home.heroTitle1} <br className="hidden sm:block" />
+              <span className="text-white">
                 {t.home.heroTitle2}
               </span>
             </h1>
-            <p className="text-sm md:text-base text-zinc-300/90 max-w-lg mx-auto leading-relaxed font-normal">
+            <p className="text-sm md:text-base text-zinc-300 max-w-lg mx-auto leading-relaxed font-medium drop-shadow-md">
               {t.home.heroDesc}
             </p>
           </div>
 
           {/* CTA Buttons */}
-          <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center items-center" style={{ animation: 'fade-in-up 0.9s 0.3s ease both' }}>
-
-            {/* Primary — Shop All */}
+          <div className="mt-8 md:mt-10 flex justify-center items-center" style={{ animation: 'fade-in-up 0.9s 0.3s ease both' }}>
             <Link
               href="/shop"
-              className="group relative inline-flex justify-center items-center gap-2.5 w-44 py-3 rounded-2xl font-bold text-sm text-zinc-900 overflow-hidden transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-[0_4px_24px_rgba(245,158,11,0.45)] hover:shadow-[0_6px_32px_rgba(245,158,11,0.65)]"
-              style={{ background: 'linear-gradient(135deg, #facc15 0%, #f97316 60%, #ef4444 100%)' }}
+              className="group inline-flex justify-center items-center px-6 py-2.5 rounded-full font-bold text-sm text-black bg-white hover:bg-zinc-200 transition-all duration-300 shadow-lg"
             >
-              {/* Shine sweep */}
-              <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-in-out" />
-              <ShoppingBag size={17} className="relative z-10 shrink-0" />
-              <span className="relative z-10 tracking-wide">{t.nav.shopAll}</span>
+              <span className="tracking-wide">{t.nav.shop || 'Shop'}</span>
             </Link>
-
-            {/* Divider dot */}
-            <span className="hidden sm:block w-1 h-1 rounded-full bg-white/30" />
-
-            {/* Secondary — Contact Us */}
-            <Link
-              href="/contact"
-              className="group inline-flex justify-center items-center gap-2.5 w-44 py-3 rounded-2xl font-bold text-sm text-white transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 border border-white/20 hover:border-white/40 hover:bg-white/10"
-              style={{ backdropFilter: 'blur(12px)', background: 'rgba(255,255,255,0.07)' }}
-            >
-              <Phone size={17} className="shrink-0 group-hover:rotate-12 transition-transform duration-300" />
-              <span className="tracking-wide">{t.nav.contact}</span>
-            </Link>
-
           </div>
         </div>
       </section>

@@ -1,12 +1,10 @@
 import { useRouter } from 'next/router';
 import en from '../utils/locales/en.json';
 import zh from '../utils/locales/zh.json';
-import ms from '../utils/locales/ms.json';
 
 const dictionaries: Record<string, any> = {
   en,
   zh,
-  ms,
 };
 
 export function useTranslation() {
