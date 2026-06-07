@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type Language = 'en' | 'zh';
+type Language = 'en' | 'zh' | 'ms';
 
 interface LanguageContextType {
   language: Language;
@@ -602,7 +602,8 @@ const translations: Record<Language, Record<string, string>> = {
     err_name_required: '产品名称为必填项。',
     err_stock_required: '库存数量为必填项。',
     err_price_required: '原价为必填项。',
-  }
+  },
+  ms: {}
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -614,7 +615,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedLang = localStorage.getItem('admin_selected_language');
-      if (savedLang && ['en', 'zh'].includes(savedLang)) {
+      if (savedLang && ['en', 'zh', 'ms'].includes(savedLang)) {
         setLanguageState(savedLang as Language);
       }
     }
@@ -645,7 +646,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   const t = (key: string) => {
-    return translations[language][key] || key;
+    return translations[language]?.[key] || translations['en'][key] || key;
   };
 
   return (
