@@ -64,6 +64,9 @@ const ProductPage = () => {
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const [showPdfTooltip, setShowPdfTooltip] = useState(false);
 
+  // Success Modal State
+  const [showUpdateSuccessModal, setShowUpdateSuccessModal] = useState(false);
+
   // ── Localization helpers ──────────────────────────────────────────
   const getLocalizedName = (p: any) => {
     if (language === 'zh' && p.nameZh) return p.nameZh;
@@ -220,6 +223,14 @@ const ProductPage = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentPage]);
+
+  // Check for successful updates
+  useEffect(() => {
+    if (router.query.updated === 'category') {
+      setShowUpdateSuccessModal(true);
+      router.replace('/admin/product', undefined, { shallow: true });
+    }
+  }, [router.query.updated, router]);
 
   // Filtering Logic
   const filteredProducts = useMemo(() => {
@@ -913,7 +924,11 @@ const ProductPage = () => {
                   {categories.map(cat => {
                     const count = products.filter(p => p.category === cat.name).length;
                     return (
-                      <div key={cat.id} className="relative aspect-[4/5] rounded-3xl overflow-hidden group cursor-pointer border border-zinc-200 dark:border-white/5 shadow-xl">
+                      <div 
+                        key={cat.id} 
+                        onClick={() => router.push(`/admin/product/category/edit/${cat.id}`)}
+                        className="relative aspect-[4/5] rounded-3xl overflow-hidden group cursor-pointer border border-zinc-200 dark:border-white/5 shadow-xl"
+                      >
                         <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-900">
                           {cat.image ? (
                             <img src={cat.image} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" />
@@ -941,6 +956,39 @@ const ProductPage = () => {
                   </Link>
                 </div>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Success Modal */}
+      <AnimatePresence>
+        {showUpdateSuccessModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowUpdateSuccessModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm bg-white dark:bg-zinc-900 border dark:border-white/10 border-zinc-200 rounded-[48px] p-12 text-center shadow-2xl"
+            >
+              <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-[28px] flex items-center justify-center mx-auto mb-8 border border-green-500/20">
+                <CheckCircle size={40} />
+              </div>
+              <h3 className="text-3xl font-black italic uppercase tracking-tight mb-4 dark:text-white text-black">Success</h3>
+              <p className="text-zinc-500 dark:text-zinc-400 font-medium mb-10 leading-relaxed">
+                You have successfully updated the info.
+              </p>
+              <button 
+                onClick={() => setShowUpdateSuccessModal(false)}
+                className="w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-yellow-500 text-zinc-950 hover:bg-yellow-400 shadow-xl shadow-yellow-500/20 transition-all"
+              >
+                OK
+              </button>
             </motion.div>
           </div>
         )}

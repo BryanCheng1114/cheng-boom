@@ -352,6 +352,19 @@ const UploadProductPage = () => {
                 {fieldErrors.name && <p className="text-red-500 text-xs font-bold ml-2 flex items-center gap-1">⚠ {fieldErrors.name}</p>}
               </div>
 
+              {/* Chinese Translation */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('chinese_translation')}</label>
+                <input 
+                  type="text" 
+                  name="nameZh"
+                  value={formData.nameZh || ''}
+                  onChange={handleChange}
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                  placeholder="e.g. 雷霆万钧"
+                />
+              </div>
+
               {/* Category Select */}
               <div ref={categoryRef} className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('categories')} *</label>
@@ -394,19 +407,6 @@ const UploadProductPage = () => {
                   </button>
                 </div>
                 {fieldErrors.code && <p className="text-red-500 text-xs font-bold ml-2 flex items-center gap-1">⚠ {fieldErrors.code}</p>}
-              </div>
-
-              {/* Chinese Translation */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('chinese_translation')}</label>
-                <input 
-                  type="text" 
-                  name="nameZh"
-                  value={formData.nameZh || ''}
-                  onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
-                  placeholder="e.g. 雷霆万钧"
-                />
               </div>
 
 

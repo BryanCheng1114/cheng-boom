@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router';
-import { Globe } from 'lucide-react';
 
 export function LanguageSwitcher() {
   const router = useRouter();
@@ -15,11 +14,10 @@ export function LanguageSwitcher() {
   return (
     <button
       onClick={toggleLanguage}
-      className="flex h-9 min-w-[74px] items-center justify-center gap-1.5 rounded-full bg-white/10 px-3 text-xs font-bold text-white/88 ring-1 ring-white/8 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/16 hover:text-white hover:shadow-[0_8px_22px_rgba(255,255,255,0.08)]"
+      className="flex h-9 items-center justify-center rounded-full bg-white/10 px-4 text-xs font-bold text-white/88 ring-1 ring-white/8 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/16 hover:text-white hover:shadow-[0_8px_22px_rgba(255,255,255,0.08)]"
       aria-label={`Switch language to ${nextLabel}`}
       title={`Switch language to ${nextLabel}`}
     >
-      <Globe size={14} className="opacity-85" />
       <span>{label}</span>
     </button>
   );

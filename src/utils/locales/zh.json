@@ -361,6 +361,19 @@
     "offline": "您当前处于离线状态。请检查您的互联网连接。",
     "backOnline": "您已恢复在线！"
   },
+  "safety": {
+    "title": "安全第一，始终如一",
+    "desc": "我们传递欢乐，但安全是我们的承诺。我们所有的烟花均经过严格的测试和批准，确保您可以享受一场壮观且安全的庆祝活动。"
+  },
+  "features": {
+    "licensed": "完全授权",
+    "licensedDesc": "100%合法认证",
+    "safety": "安全认证",
+    "safetyDesc": "经过测试安全可靠",
+    "support": "专业客服",
+    "supportDesc": "随时为您服务",
+    "learnMore": "了解更多 >"
+  },
   "profilePage": {
     "roles": {
       "Seller": "卖家",

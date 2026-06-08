@@ -38,13 +38,14 @@ model Product {
 }
 
 model Category {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  code      String?  @unique
-  nameZh    String?  // Chinese name translation
-  nameMs    String?  // Malay name translation
-  image     String?  // Image for homepage display
-  createdAt DateTime @default(now())
+  id               String   @id @default(cuid())
+  name             String   @unique
+  code             String?  @unique
+  nameZh           String?  // Chinese name translation
+  nameMs           String?  // Malay name translation
+  image            String?  // Image for homepage display
+  transparentImage String?  // Image with transparent background for app bar
+  createdAt        DateTime @default(now())
 }
 
 model BusinessSettings {

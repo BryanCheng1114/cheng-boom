@@ -354,11 +354,24 @@
   },
   "coverage": {
     "title": "Our Delivery Coverage",
-    "desc": "Cheng-BOOM exclusively serves customers across Sabah and Sarawak. We bring premium fireworks directly to your local celebrations with reliable, safe delivery.",
+    "desc": "We exclusively serves customers only in Bintulu. We bring premium fireworks directly to your local celebrations with reliable, safe delivery.",
     "clickExpand": "Click to expand",
     "offline": "You're currently offline. Please check your internet connection.",
     "backOnline": "You're back online!",
     "backToTop": "Back to Top"
+  },
+  "safety": {
+    "title": "Safety First, Always",
+    "desc": "We deliver joy, but safety is our promise. All our fireworks are strictly tested and approved, ensuring you can enjoy a spectacular and secure celebration."
+  },
+  "features": {
+    "licensed": "Fully Licensed",
+    "licensedDesc": "100% legal & certified",
+    "safety": "Safety Approved",
+    "safetyDesc": "Tested & secure",
+    "support": "Expert Support",
+    "supportDesc": "Always here to help",
+    "learnMore": "Learn More >"
   },
   "profilePage": {
     "roles": {

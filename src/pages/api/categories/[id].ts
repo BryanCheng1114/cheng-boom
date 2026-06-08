@@ -2,39 +2,13 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'GET') {
-    try {
-      const categories = await prisma.category.findMany({
-        orderBy: { name: 'asc' },
-      });
+  const { id } = req.query;
 
-      // Enhance categories with a real product image and product count
-      const categoriesWithImages = await Promise.all(categories.map(async (cat) => {
-        const sampleProduct = await prisma.product.findFirst({
-          where: { category: cat.name },
-          select: { images: true }
-        });
-        
-        const productCount = await prisma.product.count({
-          where: { category: cat.name, status: 'Live' }
-        });
-        
-        return {
-          ...cat,
-          count: productCount,
-          originalImage: cat.image, // Keep the raw db image for the admin editor
-          image: cat.image || sampleProduct?.images?.[0] || '/example.png'
-        };
-      }));
-
-      return res.status(200).json(categoriesWithImages);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      return res.status(500).json({ error: 'Failed to fetch categories' });
-    }
+  if (typeof id !== 'string') {
+    return res.status(400).json({ error: 'Invalid ID' });
   }
 
-  if (req.method === 'POST') {
+  if (req.method === 'PUT') {
     try {
       const { name, code, nameZh, nameMs, image, transparentImage } = req.body;
       if (!name || !name.trim()) return res.status(400).json({ error: 'Category Name is required' });
@@ -43,9 +17,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const cleanCode = code.trim().replace(/[^a-zA-Z0-9-_]/g, '');
       if (!cleanCode) return res.status(400).json({ error: 'Category Code must contain alphanumeric characters' });
 
-      // Check unique constraints for name and code
+      // Check unique constraints for name and code (excluding current category)
       const existing = await prisma.category.findFirst({
         where: {
+          id: { not: id },
           OR: [
             { name: { equals: name.trim(), mode: 'insensitive' } },
             { code: { equals: cleanCode, mode: 'insensitive' } }
@@ -60,7 +35,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'Category with this Code already exists.' });
       }
 
-      const category = await prisma.category.create({
+      const updatedCategory = await prisma.category.update({
+        where: { id },
         data: {
           name: name.trim(),
           code: cleanCode,
@@ -71,13 +47,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      return res.status(201).json(category);
+      return res.status(200).json(updatedCategory);
     } catch (error) {
-      console.error('Error creating category:', error);
-      return res.status(500).json({ error: 'Failed to create category' });
+      console.error('Error updating category:', error);
+      return res.status(500).json({ error: 'Failed to update category' });
     }
   }
 
-  res.setHeader('Allow', ['GET', 'POST']);
+  if (req.method === 'DELETE') {
+    try {
+      // Find the category to get its name (since products are linked by category name)
+      const category = await prisma.category.findUnique({
+        where: { id }
+      });
+
+      if (!category) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+
+      // Hide all products under this category by setting status to 'Hold'
+      await prisma.product.updateMany({
+        where: { category: category.name },
+        data: { status: 'Hold' }
+      });
+
+      // Delete the category
+      await prisma.category.delete({
+        where: { id }
+      });
+
+      return res.status(200).json({ message: 'Category deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      return res.status(500).json({ error: 'Failed to delete category' });
+    }
+  }
+
+  res.setHeader('Allow', ['PUT', 'DELETE']);
   return res.status(405).end(`Method ${req.method} Not Allowed`);
 }

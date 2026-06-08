@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Phone, BookOpen, ShoppingBag, ArrowUp } from 'lucide-react';
-import { getProducts, categoriesData as mockCategories } from '../utils/mockData';
-import { ProductCard } from '../components/ui/ProductCard';
+import { ArrowRight, ArrowUp, ChevronLeft, ChevronRight, FileCheck, ShieldCheck, Headphones } from 'lucide-react';
+import { categoriesData as mockCategories } from '../utils/mockData';
 import { useTranslation } from '../hooks/useTranslation';
 import { useBusiness } from '../context/BusinessContext';
 
@@ -31,22 +30,40 @@ function Spark({ bottom, left, animationDelay, animationDuration }: {
   );
 }
 
+type Category = {
+  id?: string;
+  key?: string;
+  code?: string;
+  name?: string;
+  nameZh?: string | null;
+  nameMs?: string | null;
+  image?: string | null;
+  count?: number | null;
+};
+
 const tickerItems = [
   '🎆 Child Fireworks', '🎇 Fountains', '✨ Sparklers', '🚀 Skyline',
   '🔥 Dragon Pili', '💥 Firecrackers', '🌟 Spinning', '🎉 Huge Displays',
 ];
 
 export default function Home() {
-  const featuredProducts = getProducts().slice(0, 3);
   const { t, locale } = useTranslation();
   const { settings } = useBusiness();
 
   const mapImageSrc = locale === 'zh' ? '/mapzh.png' : locale === 'ms' ? '/mapms.png' : '/map.png';
 
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
-  const [mapOpen, setMapOpen] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [catPage, setCatPage] = useState(0);
+  const [catAtStart, setCatAtStart] = useState(true);
+  const [catAtEnd, setCatAtEnd] = useState(false);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const dragStartX = useRef(0);
+  const scrollStartLeft = useRef(0);
+  const VISIBLE = 4; // full cards visible (4 + half peek)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -74,13 +91,82 @@ export default function Home() {
         } else {
           setCategories(mockCategories);
         }
-      } catch (err) {
+      } catch {
         setCategories(mockCategories);
       } finally {
         setIsLoadingCategories(false);
       }
     };
     fetchCategories();
+  }, []);
+
+  // Measure card width from the first rendered card
+  const getCardW = useCallback(() => {
+    const el = carouselRef.current;
+    if (!el) return 220;
+    const card = el.querySelector('[data-cat-card]') as HTMLElement | null;
+    return card ? card.offsetWidth + 12 : 200; // 12 = gap-3
+  }, []);
+
+  // Advance / retreat by exactly VISIBLE cards
+  const slideNext = useCallback(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    el.scrollBy({ left: getCardW() * VISIBLE, behavior: 'smooth' });
+  }, [getCardW]);
+
+  const slidePrev = useCallback(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    el.scrollBy({ left: -getCardW() * VISIBLE, behavior: 'smooth' });
+  }, [getCardW]);
+
+  const handleCarouselScroll = useCallback(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const cw = getCardW();
+    const page = Math.round(el.scrollLeft / (cw * VISIBLE));
+    setCatPage(page);
+    setCatAtStart(el.scrollLeft < 10);
+    setCatAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 10);
+  }, [getCardW]);
+
+  const getCategoryLabel = useCallback((category: Category) => {
+    const fallback = category.name || category.key || category.code || category.id || 'Category';
+    const key = category.key || category.code || fallback.toLowerCase().replace(/\s+/g, '');
+
+    if (locale === 'zh' && category.nameZh) return category.nameZh;
+    if (locale === 'ms' && category.nameMs) return category.nameMs;
+    return (t.shopCategories as Record<string, string>)[key] || fallback;
+  }, [locale, t.shopCategories]);
+
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) =>
+      getCategoryLabel(a).toLowerCase().localeCompare(getCategoryLabel(b).toLowerCase())
+    );
+  }, [categories, getCategoryLabel]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedCategories.length / VISIBLE));
+
+  // Mouse-drag handlers
+  const onMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = carouselRef.current;
+    if (!el) return;
+    isDragging.current = true;
+    dragStartX.current = e.pageX;
+    scrollStartLeft.current = el.scrollLeft;
+    el.style.cursor = 'grabbing';
+  }, []);
+  const onMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging.current) return;
+    const el = carouselRef.current;
+    if (!el) return;
+    el.scrollLeft = scrollStartLeft.current - (e.pageX - dragStartX.current);
+  }, []);
+  const onMouseUp = useCallback(() => {
+    isDragging.current = false;
+    const el = carouselRef.current;
+    if (el) el.style.cursor = 'grab';
   }, []);
 
   return (
@@ -155,149 +241,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== SECTION 2: Shop All Categories (Full Screen Video) ===== */}
-      <section id="shop-categories" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-black px-4 py-20">
-        
-        {/* Background video */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 z-0 w-full h-full object-cover scale-105"
-          style={{ filter: 'brightness(0.3) saturate(1.2)' }}
-        >
-          <source src="/video/firework2.mp4" type="video/mp4" />
-        </video>
-
-        {/* Dark gradient overlay */}
-        <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/80 via-black/40 to-black/80" />
-
-        <div className="relative z-10 max-w-7xl mx-auto w-full">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight drop-shadow-lg">
-              {t.shop.categoriesDesc}
-            </h2>
-            <p className="mt-4 text-zinc-400 max-w-2xl mx-auto text-lg leading-relaxed font-medium">
-              {t.shop.categoriesInfo}
-            </p>
-          </div>
-
-          {(() => {
-            if (isLoadingCategories) {
-              return (
-                <div className="flex flex-wrap justify-center max-w-6xl mx-auto gap-y-12 gap-x-6 lg:gap-x-8 w-full">
-                  {[...Array(10)].map((_, i) => (
-                    <div key={i} className="flex flex-col items-center gap-4">
-                      <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full bg-zinc-800/50 animate-pulse border-4 border-white/5" />
-                      <div className="h-4 w-24 bg-zinc-800/50 rounded-full animate-pulse mt-1" />
-                    </div>
-                  ))}
-                </div>
-              );
-            }
-
-            // Sort categories from A to Z alphabetically based on translation or name
-            const sortedCategories = [...categories].sort((a, b) => {
-              const keyA = a.key || a.name.toLowerCase().replace(/\s+/g, '');
-              const keyB = b.key || b.name.toLowerCase().replace(/\s+/g, '');
-              
-              let titleA = a.name;
-              if (locale === 'zh' && a.nameZh) titleA = a.nameZh;
-              else if (locale === 'ms' && a.nameMs) titleA = a.nameMs;
-              else titleA = (t.shopCategories as any)[keyA] || a.name;
-              
-              let titleB = b.name;
-              if (locale === 'zh' && b.nameZh) titleB = b.nameZh;
-              else if (locale === 'ms' && b.nameMs) titleB = b.nameMs;
-              else titleB = (t.shopCategories as any)[keyB] || b.name;
-
-              return titleA.toLowerCase().localeCompare(titleB.toLowerCase());
-            });
-
-            const hasMoreThan9 = sortedCategories.length > 9;
-            const displayedCategories = hasMoreThan9 ? sortedCategories.slice(0, 9) : sortedCategories;
-
-            return (
-              <div className="flex flex-wrap justify-center max-w-6xl mx-auto gap-y-12 gap-x-6 lg:gap-x-8 w-full">
-                {displayedCategories.map((category) => {
-                  const key = category.key || category.name.toLowerCase().replace(/\s+/g, '');
-                  const image = category.image || '/example.png';
-                  
-                  let title = category.name;
-                  if (locale === 'zh' && category.nameZh) title = category.nameZh;
-                  else if (locale === 'ms' && category.nameMs) title = category.nameMs;
-                  else title = (t.shopCategories as any)[key] || category.name;
-
-                  return (
-                    <Link
-                      key={category.id}
-                      href={`/shop?category=${key}`}
-                      className="group flex flex-col items-center gap-4 cursor-pointer transition-all duration-300 hover:scale-[1.15] hover:-translate-y-3 z-0 hover:z-10"
-                    >
-                      <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden bg-black/50 backdrop-blur-sm border-4 border-white/10 group-hover:border-primary transition-all duration-300 shadow-xl group-hover:shadow-[0_10px_40px_rgba(245,158,11,0.7)]">
-                        <div
-                          className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700 ease-out"
-                          style={{ backgroundImage: `url(${image})` }}
-                        />
-                        {/* Centered Watermark Overlay */}
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                          <img 
-                            src={settings?.watermarkUrl || "/transparent-Background.png"} 
-                            className="w-[70%] h-[70%] object-contain opacity-30 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700" 
-                            alt="" 
-                            draggable={false}
-                          />
-                        </div>
-                        <div className="absolute inset-0 rounded-full border border-white/20 z-10 pointer-events-none" />
-                      </div>
-                      <span className="font-extrabold text-sm sm:text-base text-white/90 group-hover:text-primary transition-colors text-center uppercase tracking-widest leading-tight drop-shadow-md group-hover:drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]">
-                        {title}
-                      </span>
-                    </Link>
-                  );
-                })}
-
-                {/* View More Card - Only appears if strictly > 9 categories */}
-                {hasMoreThan9 && (
-                  <Link
-                    href="/shop"
-                    className="group flex flex-col items-center gap-4 cursor-pointer transition-all duration-300 hover:scale-[1.15] hover:-translate-y-3 z-0 hover:z-10"
-                  >
-                    <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden bg-zinc-900 border-4 border-white/10 group-hover:border-primary flex items-center justify-center transition-all duration-300 shadow-xl group-hover:shadow-[0_10px_40px_rgba(245,158,11,0.7)]">
-                      <div className="flex flex-col items-center justify-center text-zinc-400 group-hover:text-primary transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="10" />
-                          <polyline points="12 16 16 12 12 8" />
-                          <line x1="8" y1="12" x2="16" y2="12" />
-                        </svg>
-                      </div>
-                      <div className="absolute inset-0 rounded-full border border-white/20 z-10 pointer-events-none" />
-                    </div>
-                    <span className="font-extrabold text-sm sm:text-base text-white/90 group-hover:text-primary transition-colors text-center uppercase tracking-widest leading-tight drop-shadow-md group-hover:drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]">
-                      {t.nav.shopAll || 'View More'}
-                    </span>
-                  </Link>
-                )}
-              </div>
-            );
-          })()}
-        </div>
-      </section>
-
-      {/* ===== SECTION 3: Our Delivery Coverage — East Malaysia ===== */}
-      <section id="coverage" className="relative min-h-screen bg-white dark:bg-black overflow-hidden flex flex-col items-center justify-between pt-20 pb-0 transition-colors duration-500">
-
-        {/* Sunrise Background Image */}
-        <div className="absolute inset-0 pointer-events-none">
-          <Image
-            src="/sunrise.jpg"
-            alt="Sunrise background"
-            fill
-            className="object-cover object-center opacity-100 transition-opacity duration-500"
-            priority
-          />
-        </div>
+        {/* ===== SECTION 2: Category Row ===== */}
+      <section id="shop-categories" className="relative bg-black py-12 md:py-16 group/section overflow-hidden">
 
         {/* Subtle noise/texture background overlay */}
         <div 
@@ -307,31 +252,177 @@ export default function Home() {
 
         {/* Radial glow */}
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-          <div className="w-[600px] h-[600px] rounded-full bg-blue-500/5 blur-[120px]" />
+          <div className="w-[600px] h-[600px] rounded-full bg-blue-500/10 blur-[120px]" />
         </div>
 
-        {/* Supporting text above image */}
-        <div className="relative z-10 text-center max-w-3xl mx-auto mb-4 space-y-4 px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
-            {t.coverage?.title || 'Our Delivery Coverage'}
-          </h2>
-          <p className="text-sm md:text-base text-white/90 max-w-xl mx-auto leading-relaxed font-normal drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
-            {t.coverage?.desc || 'Cheng-BOOM exclusively serves customers across Sabah and Sarawak. We bring premium fireworks directly to your local celebrations with reliable, safe delivery.'}
-          </p>
+        {/* ── Section title ── */}
+        <div className="px-[12%] mb-5 md:mb-7 flex items-end justify-between gap-4 relative z-20">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/35 mb-1.5">
+              {t.home.explore || 'Browse'}
+            </p>
+            <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-none">
+              {t.home.categories || 'Categories'}
+            </h2>
+          </div>
+          {/* Progress pills */}
+          {!isLoadingCategories && totalPages > 1 && (
+            <div className="hidden sm:flex items-center gap-[5px] pb-1">
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-[2px] rounded-full transition-all duration-300 ${
+                    i === catPage ? 'w-8 bg-white' : 'w-4 bg-white/20'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Map Container */}
-        <div className="relative z-10 w-full flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-10 mt-auto">
+        {/* ── Carousel area ── */}
+        <div className="relative">
+
+          {/* ── LEFT WALL (Solid Black) ── */}
+          <div className="absolute inset-y-0 left-0 w-[12%] z-40 bg-black pointer-events-none" />
+          
+          {/* ── LEFT BUTTON ── */}
+          <div 
+            onClick={slidePrev}
+            className={`absolute inset-y-0 left-0 w-[12%] z-50 flex items-center justify-center cursor-pointer transition-all duration-300 ${
+              catAtStart ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto hover:bg-white/5'
+            }`}
+          >
+            <ChevronLeft className="w-8 h-8 text-white md:w-12 md:h-12 drop-shadow-lg" strokeWidth={2.5} />
+          </div>
+
+          {/* ── RIGHT WALL (Solid Black) ── */}
+          <div className="absolute inset-y-0 right-0 w-[12%] z-40 bg-black pointer-events-none" />
+
+          {/* ── RIGHT BUTTON ── */}
+          <div 
+            onClick={slideNext}
+            className={`absolute inset-y-0 right-0 w-[12%] z-50 flex items-center justify-center cursor-pointer transition-all duration-300 ${
+              catAtEnd ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto hover:bg-white/5'
+            }`}
+          >
+            <ChevronRight className="w-8 h-8 text-white md:w-12 md:h-12 drop-shadow-lg" strokeWidth={2.5} />
+          </div>
+
+          {/* ── Scroll track ── */}
+          {/* relative z-10 isolates the stacking context, so nothing inside here can EVER overlap the z-40 walls */}
           <div
-            onClick={() => setMapOpen(true)}
-            className="relative cursor-zoom-in group flex items-center justify-center max-w-4xl w-full"
+            ref={carouselRef}
+            onScroll={handleCarouselScroll}
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseUp}
+            className="relative z-10 flex gap-8 overflow-x-auto scrollbar-hide py-8 pl-[16%] pr-[12%]"
+            style={{ cursor: 'grab', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
+          >
+            {isLoadingCategories ? (
+              /* Skeleton */
+              [...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex-shrink-0 rounded-lg bg-white/[0.07] animate-pulse"
+                  style={{ width: 'calc((72vw - 3.5 * 32px) / 4.5)', aspectRatio: '2/3' }}
+                />
+              ))
+            ) : (
+              sortedCategories.map((category, index) => {
+                const fallback = category.name || category.key || category.code || category.id || 'category';
+                const key = category.key || category.code || fallback.toLowerCase().replace(/\s+/g, '');
+                const image = category.image || '/example.png';
+                const title = getCategoryLabel(category);
+
+                return (
+                  <div
+                    key={category.id || key}
+                    data-cat-card
+                    className="relative flex-shrink-0"
+                    style={{
+                      // 72vw available (100vw - 16vw left pad - 12vw right pad), minus 3.5 gaps of 32px
+                      width: 'calc((72vw - 3.5 * 32px) / 4.5)',
+                      minWidth: '80px',
+                    }}
+                  >
+                    {/* The wrapper handles the hover scale for BOTH image and number together */}
+                    <div className="group/card relative w-full h-full transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.04] hover:z-40 cursor-pointer">
+                      
+                      {/* ── Image card ── */}
+                      <Link
+                        href={`/shop?category=${key}`}
+                        draggable={false}
+                        onClick={(e) => { if (isDragging.current) e.preventDefault(); }}
+                        className="relative block overflow-hidden rounded-[20px] sm:rounded-[32px] select-none w-full shadow-lg"
+                        style={{ aspectRatio: '2/3' }}
+                      >
+                        {/* Image */}
+                        <div
+                          className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover/card:scale-110"
+                          style={{ backgroundImage: `url(${image})` }}
+                        />
+                        {/* Top fade */}
+                        <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/35 via-transparent to-transparent" />
+                        {/* Bottom vignette */}
+                        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+
+
+
+                        {/* Hover ring */}
+                        <div className="absolute inset-0 z-30 rounded-[20px] sm:rounded-[32px] ring-1 ring-inset ring-white/0 group-hover/card:ring-white/25 transition-all duration-300 pointer-events-none" />
+                      </Link>
+
+                      {/* ── Rank number (Stacked in front) ── */}
+                      <span
+                        aria-hidden="true"
+                        className="absolute -left-[14%] bottom-[2%] z-50 font-black leading-[0.8] tracking-tighter select-none pointer-events-none drop-shadow-2xl"
+                        style={{
+                          fontSize: 'clamp(60px, 11vw, 140px)',
+                          WebkitTextStroke: '2.5px rgba(255,255,255,0.9)',
+                          color: '#000', // Solid black body with white stroke
+                        }}
+                      >
+                        {index + 1}
+                      </span>
+
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== SECTION 3: Our Delivery Coverage — East Malaysia ===== */}
+      <section id="coverage" className="relative h-auto md:h-[75vh] bg-white dark:bg-black overflow-hidden flex flex-col md:flex-row transition-colors duration-500">
+        
+        {/* Left Side: Text Content */}
+        <div className="w-full md:w-[45%] flex flex-col justify-center px-8 sm:px-12 md:px-16 lg:px-24 py-16 md:py-0">
+          <div className="max-w-xl space-y-6 md:ml-12 lg:ml-24 xl:ml-32">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-zinc-900 dark:text-white leading-tight tracking-tight">
+              {t.coverage?.title || 'Our Delivery Coverage.'}
+            </h2>
+            <p className="text-sm md:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
+              {t.coverage?.desc || 'We exclusively serves customers only in Bintulu. We bring premium fireworks directly to your local celebrations with reliable, safe delivery.'}
+            </p>
+          </div>
+        </div>
+
+        {/* Right Side: Map Image */}
+        <div className="w-full md:w-[55%] h-[50vh] md:h-full relative bg-white dark:bg-black flex items-center justify-center p-8 md:p-16 lg:p-24">
+          <div
+            onClick={() => setLightboxSrc(mapImageSrc)}
+            className="relative w-full h-full cursor-zoom-in group"
           >
             <Image
               src={mapImageSrc}
-              alt={t.coverage?.title || 'East Malaysia Coverage Map — Sabah & Sarawak'}
-              width={1600}
-              height={900}
-              className="w-full h-auto object-contain object-center group-hover:scale-[1.01] transition-transform duration-700 ease-out drop-shadow-2xl"
+              alt={t.coverage?.title || 'Bintulu Map'}
+              fill
+              className="object-contain object-center group-hover:scale-105 transition-transform duration-700 ease-out"
               priority
             />
 
@@ -346,8 +437,45 @@ export default function Home() {
             </div>
 
             {/* Click hint overlay */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/5 pointer-events-none rounded-[2rem]">
-              <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/95 backdrop-blur-sm shadow-xl border border-zinc-200 transition-all duration-500">
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/10 pointer-events-none">
+              <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/95 backdrop-blur-sm shadow-xl border border-zinc-200 transition-all duration-500 scale-95 group-hover:scale-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-800"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                <span className="text-xs font-bold text-zinc-800">{t.coverage?.clickExpand || 'Click to expand'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== SECTION 4: Safety First ===== */}
+      <section id="safety" className="relative h-auto md:h-[75vh] bg-black overflow-hidden flex flex-col md:flex-row transition-colors duration-500">
+        
+        {/* Left Side: Image Content */}
+        <div className="w-full md:w-[55%] h-[50vh] md:h-full relative bg-black flex items-center justify-center p-8 md:p-16 lg:p-24">
+          <div
+            onClick={() => setLightboxSrc(locale === 'zh' ? '/safe_guide_zh.png' : '/safe_guide.png')}
+            className="relative w-full h-full cursor-zoom-in group"
+          >
+            <Image
+              src={locale === 'zh' ? '/safe_guide_zh.png' : '/safe_guide.png'}
+              alt={t.safety?.title || 'Safety First, Always'}
+              fill
+              className="object-contain object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+            />
+
+            {/* Centered Watermark Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+              <img 
+                src={settings?.watermarkUrl || "/transparent-Background.png"} 
+                className="w-[30%] h-[30%] object-contain opacity-30 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700" 
+                alt="" 
+                draggable={false}
+              />
+            </div>
+
+            {/* Click hint overlay */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/10 pointer-events-none">
+              <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/95 backdrop-blur-sm shadow-xl border border-zinc-200 transition-all duration-500 scale-95 group-hover:scale-100">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-800"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
                 <span className="text-xs font-bold text-zinc-800">{t.coverage?.clickExpand || 'Click to expand'}</span>
               </div>
@@ -355,17 +483,76 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Right Side: Text Content */}
+        <div className="w-full md:w-[45%] flex flex-col justify-center px-8 sm:px-12 md:px-16 lg:px-24 py-16 md:py-0">
+          <div className="max-w-xl space-y-6 md:mr-12 lg:mr-24 xl:mr-32">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-white leading-tight tracking-tight">
+              {t.safety?.title || 'Safety First, Always'}
+            </h2>
+            <p className="text-sm md:text-base text-zinc-400 leading-relaxed font-medium">
+              {t.safety?.desc || 'We deliver joy, but safety is our promise. All our fireworks are strictly tested and approved, ensuring you can enjoy a spectacular and secure celebration.'}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== SECTION 5: Feature Highlights ===== */}
+      <section className="bg-black py-16 md:py-32 transition-colors duration-500">
+        <div className="max-w-6xl mx-auto px-8 sm:px-12 md:px-16 lg:px-24">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-20 md:gap-32 text-center">
+            
+            {/* Feature 1 */}
+            <div className="flex flex-col items-center group cursor-pointer" onClick={() => window.location.href = '/about'}>
+              <div className="mb-6 text-zinc-500 group-hover:text-white transition-colors duration-300">
+                <FileCheck size={60} strokeWidth={1.5} />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3 tracking-tight transition-colors duration-300">
+                {t.features?.licensed || 'Fully Licensed'}
+              </h3>
+              <p className="text-sm md:text-base text-zinc-400 leading-relaxed max-w-[250px]">
+                {t.features?.licensedDesc || '100% legal & certified'}
+              </p>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="flex flex-col items-center group cursor-pointer" onClick={() => window.location.href = '/about'}>
+              <div className="mb-6 text-zinc-500 group-hover:text-white transition-colors duration-300">
+                <ShieldCheck size={60} strokeWidth={1.5} />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3 tracking-tight transition-colors duration-300">
+                {t.features?.safety || 'Safety Approved'}
+              </h3>
+              <p className="text-sm md:text-base text-zinc-400 leading-relaxed max-w-[250px]">
+                {t.features?.safetyDesc || 'Tested & secure'}
+              </p>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="flex flex-col items-center group cursor-pointer" onClick={() => window.location.href = '/contact'}>
+              <div className="mb-6 text-zinc-500 group-hover:text-white transition-colors duration-300">
+                <Headphones size={60} strokeWidth={1.5} />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3 tracking-tight transition-colors duration-300">
+                {t.features?.support || 'Expert Support'}
+              </h3>
+              <p className="text-sm md:text-base text-zinc-400 leading-relaxed max-w-[250px]">
+                {t.features?.supportDesc || 'Always here to help'}
+              </p>
+            </div>
+
+          </div>
+        </div>
       </section>
 
       {/* ===== LIGHTBOX MODAL ===== */}
-      {mapOpen && (
+      {lightboxSrc && (
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 sm:p-8"
-          onClick={() => setMapOpen(false)}
+          onClick={() => setLightboxSrc(null)}
         >
           {/* Close button */}
           <button
-            onClick={() => setMapOpen(false)}
+            onClick={() => setLightboxSrc(null)}
             className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-white transition-all duration-200 z-10"
             aria-label="Close"
           >
@@ -378,8 +565,8 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-              src={mapImageSrc}
-              alt={t.coverage?.title || 'East Malaysia Coverage Map — Sabah & Sarawak'}
+              src={lightboxSrc}
+              alt="Expanded view"
               width={1600}
               height={900}
               className="w-full h-auto object-contain"

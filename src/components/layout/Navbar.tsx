@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useCart } from '../cart/CartProvider';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import { ShoppingBag, ChevronDown, Menu, X, User, ChevronRight } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, ChevronDown, Menu, X, User, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { cn } from '../../utils/cn';
@@ -22,6 +22,8 @@ type NavbarCategory = {
   code?: string;
   key?: string;
   count?: number;
+  image?: string | null;
+  transparentImage?: string | null;
 };
 
 const CONFETTI_BURST = [
@@ -140,11 +142,11 @@ export function Navbar() {
           isHomePage ? "fixed" : "sticky",
           isTransparent
             ? "bg-transparent text-white border-b border-transparent shadow-none"
-            : "bg-[#071011]/90 text-white backdrop-blur-2xl border-b border-white/10 shadow-[0_1px_0_rgba(255,255,255,0.04)]"
+            : "bg-[#161617] text-[#f5f5f7] border-b border-white/[0.08] shadow-sm"
         )}
       >
       <div className="mx-auto w-full max-w-[1180px] px-3 sm:px-5 lg:px-6">
-        <div className="flex h-12 items-center justify-between gap-2 sm:gap-4">
+        <div className="flex h-16 items-center justify-between gap-2 sm:gap-4">
 
           {/* ---- Brand ---- */}
           <Link href="/" className="group flex shrink-0 items-center" aria-label={`${businessName} home`}>
@@ -173,12 +175,12 @@ export function Navbar() {
               {t.nav.home}
             </Link>
 
-            {/* Shop — with dropdown */}
-            <div className="relative group">
+            {/* Shop — with mega menu dropdown */}
+            <div className="group/shop h-full flex items-center">
               <Link
                 href="/shop"
                 className={cn(
-                  'relative flex items-center gap-1 rounded-full px-3 py-2 text-sm font-semibold text-white/82 transition-all duration-300 group/link hover:bg-white/8 hover:text-white lg:px-4',
+                  'relative flex items-center gap-1 rounded-full px-3 py-2 font-sans text-[14px] font-medium tracking-wide text-white/82 transition-all duration-300 hover:bg-white/8 hover:text-white group-hover/shop:bg-white/8 group-hover/shop:text-white lg:px-4',
                   isActivePrefix('/shop') 
                     ? 'bg-white/10 text-white' 
                     : ''
@@ -186,62 +188,61 @@ export function Navbar() {
               >
                 {t.nav.shop}
               </Link>
-              {/* Dropdown */}
-              <div className="absolute top-full left-0 z-50 w-60 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-2 scale-95 group-hover:translate-y-0 group-hover:scale-100 transition-all duration-300 ease-out origin-top-left">
-                <div className="overflow-hidden rounded-lg border border-white/10 bg-[#101819]/95 py-2 shadow-2xl shadow-black/35 backdrop-blur-xl">
-                  <div className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white/45">
-                    Categories
-                  </div>
-                  {(categories.length > 0 ? categories : [
-                    { id: '1', name: 'Soundcloud' },
-                    { id: '2', name: 'Fountain' },
-                    { id: '3', name: 'Handheld' },
-                    { id: '4', name: 'Spinning' },
-                    { id: '5', name: 'Pop Pop' },
-                    { id: '6', name: 'Dragon Pili' },
-                    { id: '7', name: 'Fireworks' },
-                    { id: '8', name: 'Firecrackers' },
-                    { id: '9', name: 'Skyline' },
-                  ]).map((category) => {
-                    const key = category.code || category.key || category.name.toLowerCase().replace(/\s+/g, '');
-                    
-                    let label = category.name;
-                    if (locale === 'zh' && category.nameZh) {
-                      label = category.nameZh;
-                    } else if (locale === 'ms' && category.nameMs) {
-                      label = category.nameMs;
-                    } else {
-                      label = (t.shopCategories as Record<string, string>)[key] || category.name;
-                    }
+              
+              {/* Dropdown Mega Menu (Full Width) */}
+              <div className="absolute top-[63px] left-0 w-full invisible opacity-0 group-hover/shop:visible group-hover/shop:opacity-100 transition-all duration-300">
+                <div className={cn(
+                  "w-full pb-4 pt-1 transition-all duration-300",
+                  isTransparent 
+                    ? "bg-transparent border-b border-transparent shadow-none" 
+                    : "bg-[#161617] border-b border-white/[0.08] shadow-2xl"
+                )}>
+                  <div className="mx-auto w-full max-w-[1400px] overflow-x-auto scrollbar-hide px-4 py-6">
+                    <div className="flex items-start justify-center gap-6 sm:gap-8 lg:gap-12 flex-nowrap min-w-max px-2">
+                      {(categories.length > 0 ? categories : [
+                        { id: '1', name: 'Soundcloud', image: '/example.png' },
+                        { id: '2', name: 'Fountain', image: '/example.png' },
+                        { id: '3', name: 'Handheld', image: '/example.png' },
+                        { id: '4', name: 'Spinning', image: '/example.png' },
+                        { id: '5', name: 'Pop Pop', image: '/example.png' },
+                        { id: '6', name: 'Dragon Pili', image: '/example.png' },
+                        { id: '7', name: 'Fireworks', image: '/example.png' },
+                        { id: '8', name: 'Firecrackers', image: '/example.png' },
+                        { id: '9', name: 'Skyline', image: '/example.png' },
+                      ]).map((category) => {
+                        const key = category.code || category.key || category.name.toLowerCase().replace(/\s+/g, '');
+                        
+                        let label = category.name;
+                        if (locale === 'zh' && category.nameZh) {
+                          label = category.nameZh;
+                        } else if (locale === 'ms' && category.nameMs) {
+                          label = category.nameMs;
+                        } else {
+                          label = (t.shopCategories as Record<string, string>)[key] || category.name;
+                        }
 
-                    return (
-                      <Link
-                        key={category.id}
-                        href={`/shop?category=${key}`}
-                        className="flex items-center justify-between px-3 py-2 text-sm text-white/72 hover:text-white hover:bg-white/8 transition-colors group/cat"
-                      >
-                        <div className="flex items-center gap-1.5">
-                          <ChevronRight size={14} className="text-white/35 group-hover/cat:text-white group-hover/cat:translate-x-0.5 transition-all" />
-                          <span>{label}</span>
-                        </div>
-                        {category.count !== undefined && (
-                          <span className="min-w-[20px] rounded bg-white/10 px-1.5 py-0.5 text-center text-[11px] font-bold text-white/70 shadow-sm transition-all group-hover/cat:bg-white group-hover/cat:text-zinc-950">
-                            {category.count}
-                          </span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                  <div className="mx-3 my-1 border-t border-white/10" />
-                  <Link
-                    href="/shop"
-                    className="flex items-center justify-between px-3 py-2 text-sm font-bold text-white hover:bg-white/8 transition-colors group/all"
-                  >
-                    <span>{t.shopCategories.all}</span>
-                    <span className="min-w-[20px] rounded bg-white/10 px-1.5 py-0.5 text-center text-[11px] font-bold text-white/70 shadow-sm transition-all group-hover/all:scale-110 group-hover/all:bg-white group-hover/all:text-zinc-950">
-                      {categories.reduce((acc, cat) => acc + (cat.count || 0), 0)}
-                    </span>
-                  </Link>
+                        return (
+                          <Link
+                            key={category.id}
+                            href={`/shop?category=${key}`}
+                            className="flex flex-col items-center justify-start gap-3 text-center transition-all group/cat hover:-translate-y-1"
+                          >
+                            <div className="flex h-[48px] w-[48px] sm:h-[60px] sm:w-[60px] lg:h-[72px] lg:w-[72px] items-center justify-center">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img 
+                                src={category.transparentImage || category.image || '/example.png'} 
+                                alt={label} 
+                                className="max-h-full max-w-full object-contain opacity-85 transition-all duration-300 group-hover/cat:opacity-100 group-hover/cat:scale-110 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
+                              />
+                            </div>
+                            <span className="text-[12px] lg:text-[13px] font-medium tracking-wide text-white/72 group-hover/cat:text-white transition-colors">
+                              {label}
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -250,7 +251,7 @@ export function Navbar() {
             <Link
               href="/about"
               className={cn(
-                'relative rounded-full px-3 py-2 text-sm font-semibold text-white/82 transition-all duration-300 hover:bg-white/8 hover:text-white lg:px-4',
+                'relative rounded-full px-3 py-2 font-sans text-[14px] font-medium tracking-wide text-white/82 transition-all duration-300 hover:bg-white/8 hover:text-white lg:px-4',
                 isActive('/about') 
                   ? 'bg-white/10 text-white' 
                   : ''
@@ -263,7 +264,7 @@ export function Navbar() {
             <Link
               href="/contact"
               className={cn(
-                'relative rounded-full px-3 py-2 text-sm font-semibold text-white/82 transition-all duration-300 hover:bg-white/8 hover:text-white lg:px-4',
+                'relative rounded-full px-3 py-2 font-sans text-[14px] font-medium tracking-wide text-white/82 transition-all duration-300 hover:bg-white/8 hover:text-white lg:px-4',
                 isActive('/contact') 
                   ? 'bg-white/10 text-white' 
                   : ''
@@ -274,127 +275,128 @@ export function Navbar() {
           </div>
 
           {/* ---- Right Actions ---- */}
-          <div className="flex shrink-0 items-center gap-1.5">
-            {/* Profile Dropdown */}
-              <div className="relative group/profile flex items-center">
-                {user ? (
-                  <div className="flex items-center gap-2 cursor-pointer relative">
-                    {/* Icon Frame */}
-                    <div
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sm font-black text-zinc-950 shadow-[0_8px_24px_rgba(255,255,255,0.16)] ring-1 ring-white/70 transition-all duration-300 group-hover/profile:-translate-y-0.5 group-hover/profile:bg-yellow-300 group-hover/profile:shadow-[0_10px_28px_rgba(250,204,21,0.28)]"
-                      aria-label={`${user.name} profile`}
-                      title={user.name}
-                    >
-                      {profileInitial}
-                    </div>
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            
+            {/* Cart */}
+            <Link
+              id="navbar-cart-btn"
+              href="/cart"
+              className="relative flex h-9 w-9 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white group"
+              aria-label="Cart"
+            >
+              <motion.div
+                animate={isWiggling ? {
+                  x: [0, -5, 5, -5, 5, 0],
+                  rotate: [0, -10, 10, -10, 10, 0],
+                } : {}}
+                transition={{ duration: 0.4 }}
+              >
+                <ShoppingCart strokeWidth={1.5} className="w-[18px] h-[18px] sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+              </motion.div>
 
-                    {/* Invisible Bridge to prevent hover gap */}
-                    <div className="absolute -bottom-4 left-0 w-full h-4 z-10" />
-                    
-                    {/* Dropdown */}
-                    <div className="absolute top-[calc(100%+8px)] right-0 w-56 opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible translate-y-2 scale-95 group-hover/profile:translate-y-0 group-hover/profile:scale-100 transition-all duration-300 ease-out origin-top-right z-50">
-                      <div className="overflow-hidden rounded-lg border border-white/10 bg-[#101819]/95 py-3 shadow-2xl shadow-black/35 backdrop-blur-xl">
-                        <div className="mb-2 border-b border-white/10 px-5 py-3">
-                          <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-white/45">{t.nav?.profile?.account || 'Account'}</p>
-                          <p className="truncate text-sm font-bold text-white">{user.name}</p>
-                        </div>
-                        <Link 
-                          href="/profile" 
-                          className="flex items-center gap-3 px-5 py-3 text-sm text-white/72 hover:text-white hover:bg-white/8 transition-colors"
-                        >
-                          <User size={16} /> {t.nav?.profile?.myProfile || 'My Profile'}
-                        </Link>
-                        <div className="mx-3 my-2 h-px bg-white/10" />
-                        <button 
-                          onClick={() => setIsLogoutModalOpen(true)}
-                          className="w-full flex items-center gap-3 px-5 py-3 text-sm text-red-500 hover:bg-red-500/5 transition-colors"
-                        >
-                          <X size={16} /> {t.nav?.profile?.logout || 'Logout'}
-                        </button>
+              {/* Confetti Burst */}
+              <AnimatePresence>
+                {showConfetti && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    {CONFETTI_BURST.map((burst, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 1, scale: 0, x: 0, y: 0 }}
+                        animate={{ 
+                          opacity: 0, 
+                          scale: [0, 1.5, 0.5],
+                          x: burst.x,
+                          y: burst.y,
+                          rotate: burst.rotate
+                        }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 1.2, ease: "easeOut" }}
+                        className={cn(
+                          "absolute w-1.5 h-1.5 rounded-full",
+                          ["bg-primary", "bg-yellow-400", "bg-orange-500", "bg-red-500"][i % 4]
+                        )}
+                      />
+                    ))}
+                  </div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {totalItems > 0 && (
+                  <motion.span
+                    key="cart-badge"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: isWiggling ? [1, 1.5, 1] : 1 }}
+                    className="absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-black text-zinc-950 shadow-[0_2px_4px_rgba(0,0,0,0.24)]"
+                  >
+                    {totalItems}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </Link>
+
+            {/* Profile Dropdown */}
+            <div className="relative group/profile flex items-center">
+              {user ? (
+                <div className="flex items-center gap-2 cursor-pointer relative">
+                  {/* Icon Frame */}
+                  <div
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-sm font-black text-white ring-1 ring-white/10 transition-all duration-300 group-hover/profile:-translate-y-0.5 group-hover/profile:bg-white/25"
+                    aria-label={`${user.name} profile`}
+                    title={user.name}
+                  >
+                    {profileInitial}
+                  </div>
+
+                  {/* Invisible Bridge to prevent hover gap */}
+                  <div className="absolute -bottom-4 left-0 w-full h-4 z-10" />
+                  
+                  {/* Dropdown */}
+                  <div className="absolute top-[calc(100%+8px)] right-0 w-56 opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible translate-y-2 scale-95 group-hover/profile:translate-y-0 group-hover/profile:scale-100 transition-all duration-300 ease-out origin-top-right z-50">
+                    <div className="overflow-hidden rounded-lg border border-white/10 bg-[#101819]/95 py-3 shadow-2xl shadow-black/35 backdrop-blur-xl">
+                      <div className="mb-2 border-b border-white/10 px-5 py-3">
+                        <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-white/45">{t.nav?.profile?.account || 'Account'}</p>
+                        <p className="truncate text-sm font-bold text-white">{user.name}</p>
                       </div>
+                      <Link 
+                        href="/profile" 
+                        className="flex items-center gap-3 px-5 py-3 text-sm text-white/72 hover:text-white hover:bg-white/8 transition-colors"
+                      >
+                        <User size={16} /> {t.nav?.profile?.myProfile || 'My Profile'}
+                      </Link>
+                      <div className="mx-3 my-2 h-px bg-white/10" />
+                      <button 
+                        onClick={() => setIsLogoutModalOpen(true)}
+                        className="w-full flex items-center gap-3 px-5 py-3 text-sm text-red-500 hover:bg-red-500/5 transition-colors"
+                      >
+                        <X size={16} /> {t.nav?.profile?.logout || 'Logout'}
+                      </button>
                     </div>
                   </div>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white group"
-                    title="Sign In"
-                  >
-                    <User strokeWidth={1.5} className="w-[18px] h-[18px] sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
-                  </Link>
-                )}
-              </div>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white group"
+                  title="Sign In"
+                >
+                  <User strokeWidth={1.5} className="w-[18px] h-[18px] sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                </Link>
+              )}
+            </div>
 
             {/* Site Settings: Language */}
-            <div className="hidden sm:flex items-center gap-1">
+            <div className="hidden sm:flex items-center gap-1 ml-3 sm:ml-4">
               <LanguageSwitcher />
             </div>
 
-            {/* Cart */}
-              <Link
-                id="navbar-cart-btn"
-                href="/cart"
-                className="relative flex h-9 w-9 items-center justify-center rounded-full bg-yellow-400 text-zinc-950 shadow-[0_8px_24px_rgba(250,204,21,0.28)] ring-1 ring-yellow-200/50 transition-all duration-300 hover:bg-yellow-300 hover:shadow-[0_10px_28px_rgba(250,204,21,0.38)] hover:-translate-y-0.5"
-                aria-label="Cart"
-              >
-                <motion.div
-                  animate={isWiggling ? {
-                    x: [0, -5, 5, -5, 5, 0],
-                    rotate: [0, -10, 10, -10, 10, 0],
-                  } : {}}
-                  transition={{ duration: 0.4 }}
-                >
-                  <ShoppingBag strokeWidth={1.7} size={16} />
-                </motion.div>
-
-                {/* Confetti Burst */}
-                <AnimatePresence>
-                  {showConfetti && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      {CONFETTI_BURST.map((burst, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 1, scale: 0, x: 0, y: 0 }}
-                          animate={{ 
-                            opacity: 0, 
-                            scale: [0, 1.5, 0.5],
-                            x: burst.x,
-                            y: burst.y,
-                            rotate: burst.rotate
-                          }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 1.2, ease: "easeOut" }}
-                          className={cn(
-                            "absolute w-1.5 h-1.5 rounded-full",
-                            ["bg-primary", "bg-yellow-400", "bg-orange-500", "bg-red-500"][i % 4]
-                          )}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </AnimatePresence>
-
-                <AnimatePresence>
-                  {totalItems > 0 && (
-                    <motion.span
-                      key="cart-badge"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: isWiggling ? [1, 1.5, 1] : 1 }}
-                      className="absolute -top-1 -right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-[11px] font-black text-zinc-950 shadow-[0_4px_10px_rgba(0,0,0,0.24)]"
-                    >
-                      {totalItems}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </Link>
-
             {/* Mobile hamburger */}
-              <button
-                onClick={() => setMobileOpen(!mobileOpen)}
-                className="ml-0.5 flex h-9 w-9 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white md:hidden"
-              >
-                {mobileOpen ? <X strokeWidth={1.5} className="w-[18px] h-[18px]" /> : <Menu strokeWidth={1.5} className="w-[18px] h-[18px]" />}
-              </button>
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="ml-0.5 flex h-9 w-9 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white md:hidden"
+            >
+              {mobileOpen ? <X strokeWidth={1.5} className="w-[18px] h-[18px]" /> : <Menu strokeWidth={1.5} className="w-[18px] h-[18px]" />}
+            </button>
           </div>
         </div>
 
@@ -425,7 +427,7 @@ export function Navbar() {
                 href={href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  'block rounded-lg px-4 py-3 text-sm font-semibold transition-colors',
+                  'block rounded-lg px-4 py-3 font-sans text-[14px] font-medium tracking-wide transition-colors',
                   router.pathname === href
                     ? 'bg-white/12 text-white'
                     : 'text-white/72 hover:bg-white/8 hover:text-white'
@@ -437,6 +439,8 @@ export function Navbar() {
           </div>
         )}
       </div>
+
+
     </nav>
 
       {/* Logout Confirmation Modal */}
