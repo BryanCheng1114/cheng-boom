@@ -701,7 +701,7 @@ export function Navbar() {
                                 >
                                   {(cat.transparentImage || cat.image) && (
                                     <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center p-1.5 shrink-0">
-                                      <img src={cat.transparentImage || cat.image} alt={cat.name} className="max-w-full max-h-full object-contain drop-shadow-sm" />
+                                      <img src={cat.transparentImage || cat.image || undefined} alt={cat.name} className="max-w-full max-h-full object-contain drop-shadow-sm" />
                                     </div>
                                   )}
                                   <span className="text-[17px] font-medium text-foreground">{cat.name}</span>
