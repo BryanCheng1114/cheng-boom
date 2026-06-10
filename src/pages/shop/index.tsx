@@ -1,13 +1,12 @@
 import Head from 'next/head';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
-import { categoriesData } from '../../utils/mockData';
 import { ProductCard } from '../../components/ui/ProductCard';
 import { useTranslation } from '../../hooks/useTranslation';
-import { Search, SlidersHorizontal, X, ChevronDown, Loader2 } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, X, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-type SortOption = 'default' | 'price-asc' | 'price-desc' | 'name-asc';
+import { SharedCheckoutModal } from '../../components/checkout/SharedCheckoutModal';
 
 export default function Shop() {
   const router = useRouter();
@@ -15,12 +14,39 @@ export default function Shop() {
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const sortTranslations = {
+    sortBy: { en: 'Sort By:', zh: '排序：', ms: 'Susun mengikut:' },
+    newest: { en: 'Newest Arrivals', zh: '最新上架', ms: 'Ketibaan Baru' },
+    priceAsc: { en: 'Price: Low to High', zh: '价格：从低到高', ms: 'Harga: Rendah ke Tinggi' },
+    priceDesc: { en: 'Price: High to Low', zh: '价格：从高到低', ms: 'Harga: Tinggi ke Rendah' },
+    nameAsc: { en: 'Name: A to Z', zh: '名称：A 到 Z', ms: 'Nama: A ke Z' },
+  };
+  const st = (key: keyof typeof sortTranslations) => sortTranslations[key][locale as 'en'|'zh'|'ms'] || sortTranslations[key].en;
+
   // ── State ──────────────────────────────────────────────────────────────────
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [searchQuery, setSearchQuery]       = useState('');
-  const [sortBy, setSortBy]                 = useState<SortOption>('default');
-  const [sortOpen, setSortOpen]             = useState(false);
   const [categories, setCategories]         = useState<any[]>([]);
+  const [sortBy, setSortBy]                 = useState<string>('newest');
+
+  // Read search query from URL (?q=)
+  const searchQuery = (router.query.q as string) || '';
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showLeftScroll, setShowLeftScroll] = useState(false);
+  const [showRightScroll, setShowRightScroll] = useState(false);
+
+  const handleScroll = () => {
+    if (!scrollContainerRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+    setShowLeftScroll(scrollLeft > 0);
+    setShowRightScroll(scrollLeft < scrollWidth - clientWidth - 1);
+  };
+
+  useEffect(() => {
+    setTimeout(handleScroll, 100);
+    window.addEventListener('resize', handleScroll);
+    return () => window.removeEventListener('resize', handleScroll);
+  }, [categories, allProducts]);
 
   // Fetch from DB
   useEffect(() => {
@@ -34,10 +60,10 @@ export default function Shop() {
           prodRes.json(),
           catRes.json()
         ]);
-        
-        const activeProducts = prodData.filter((p: any) => 
-          p.status !== 'Hold' && 
-          p.status !== 'Deactive' && 
+
+        const activeProducts = prodData.filter((p: any) =>
+          p.status !== 'Hold' &&
+          p.status !== 'Deactive' &&
           p.status !== 'Inactive' &&
           (p.stock !== undefined && p.stock > 0)
         );
@@ -79,7 +105,7 @@ export default function Shop() {
       }
     }
 
-    // 2. Search filter (name or category key, case-insensitive)
+    // 2. Search filter from URL ?q= param
     const q = searchQuery.trim().toLowerCase();
     if (q) {
       list = list.filter(p =>
@@ -89,32 +115,40 @@ export default function Shop() {
       );
     }
 
-    // 3. Sort
-    const sorted = [...list];
-    if (sortBy === 'price-asc')  sorted.sort((a, b) => a.price - b.price);
-    if (sortBy === 'price-desc') sorted.sort((a, b) => b.price - a.price);
-    if (sortBy === 'name-asc')   sorted.sort((a, b) => a.name.localeCompare(b.name));
+    // 3. Sorting
+    list = [...list];
+    switch (sortBy) {
+      case 'price-asc':
+        list.sort((a, b) => (a.price || 0) - (b.price || 0));
+        break;
+      case 'price-desc':
+        list.sort((a, b) => (b.price || 0) - (a.price || 0));
+        break;
+      case 'name-asc':
+        list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        break;
+      default: // 'newest'
+        list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+        break;
+    }
 
-    return sorted;
+    return list;
   }, [allProducts, activeCategory, searchQuery, sortBy]);
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   const handleCategoryClick = (key: string) => {
     setActiveCategory(key);
-    setSearchQuery('');
-    // Update URL query param without full navigation
-    router.replace(
-      { pathname: '/shop', query: key === 'all' ? {} : { category: key } },
-      undefined,
-      { shallow: true, scroll: false }
-    );
+    // Preserve ?q= if active, update category
+    const query: any = {};
+    if (searchQuery) query.q = searchQuery;
+    if (key !== 'all') query.category = key;
+    router.replace({ pathname: '/shop', query }, undefined, { shallow: true, scroll: false });
   };
 
-  const sortLabels: Record<SortOption, string> = {
-    'default':    t.shop.sortDefault,
-    'price-asc':  t.shop.sortPriceAsc,
-    'price-desc': t.shop.sortPriceDesc,
-    'name-asc':   t.shop.sortNameAsc,
+  const clearSearch = () => {
+    const query: any = {};
+    if (activeCategory !== 'all') query.category = activeCategory;
+    router.replace({ pathname: '/shop', query }, undefined, { shallow: true, scroll: false });
   };
 
   // @ts-ignore
@@ -135,6 +169,10 @@ export default function Shop() {
     return (t.shopCategories as any)[activeCategory] || activeCategory;
   }, [activeCategory, activeCatObj, locale, t]);
 
+  // Sync checkout modal from URL query (derived state)
+  const checkoutProductId = router.isReady ? (router.query.buy as string) : null;
+  const checkoutProduct = checkoutProductId ? allProducts.find(p => p.id === checkoutProductId) : null;
+
   return (
     <>
       <Head>
@@ -142,19 +180,75 @@ export default function Shop() {
         <meta name="description" content="Browse our entire fireworks collection." />
       </Head>
 
-      {/* ── Page Header ───────────────────────────────────────────────────── */}
-      <div className="bg-background border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">
-              {activeCategoryLabel}
-            </h1>
-            <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">{t.shop.categoriesDesc}</p>
-          </div>
+      {checkoutProduct && (
+        <SharedCheckoutModal
+          mode="single"
+          product={checkoutProduct}
+          onClose={() => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { buy, ...restQuery } = router.query;
+            router.push({ pathname: '/shop', query: restQuery }, undefined, { shallow: true, scroll: false });
+          }}
+        />
+      )}
 
-          {/* ── Category Tab Bar ─────────────────────────────────────────── */}
-          <div className="relative">
-            <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-thin">
+      {/* ── Page Header ───────────────────────────────────────────────────── */}
+      <div className="bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">
+              {searchQuery ? `"${searchQuery}"` : activeCategoryLabel}
+            </h1>
+            {searchQuery && (
+              <p className="mt-4 text-muted-foreground text-sm">
+                {t.shop.showing}&nbsp;
+                <span className="font-bold text-foreground">{filteredProducts.length}</span>&nbsp;
+                {t.shop.products}
+                {' '}
+                <button
+                  onClick={clearSearch}
+                  className="inline-flex items-center gap-1 ml-2 text-xs font-bold text-foreground hover:underline opacity-70 hover:opacity-100"
+                >
+                  <X size={12} /> Clear search
+                </button>
+              </p>
+            )}
+            {!searchQuery && (
+              <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">{t.shop.categoriesDesc}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Category Tab Bar ─────────────────────────────────────────── */}
+      <div className="bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center gap-2 md:gap-4">
+
+            {/* Left Scroll Button */}
+            <div className="hidden md:flex items-center justify-center w-8 shrink-0">
+              <AnimatePresence>
+                {showLeftScroll && (
+                  <motion.button
+                    initial={{ opacity: 0, x: -5 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -5 }}
+                    onClick={() => {
+                      scrollContainerRef.current?.scrollBy({ left: -250, behavior: 'smooth' });
+                    }}
+                    className="text-zinc-400 hover:text-foreground transition-colors focus:outline-none"
+                  >
+                    <ChevronLeft size={32} strokeWidth={1.5} />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div
+              ref={scrollContainerRef}
+              onScroll={handleScroll}
+              className="flex-1 flex gap-2 overflow-x-auto pb-2 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            >
               {/* "All" tab */}
               <button
                 onClick={() => handleCategoryClick('all')}
@@ -186,7 +280,7 @@ export default function Shop() {
               {/* Category tabs */}
               {categories.map(cat => {
                 const key = cat.code || cat.key || cat.name.toLowerCase().replace(/\s+/g, '');
-                
+
                 let label = cat.name;
                 if (locale === 'zh' && cat.nameZh) {
                   label = cat.nameZh;
@@ -229,72 +323,26 @@ export default function Shop() {
                 );
               })}
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* ── Search + Sort Bar ─────────────────────────────────────────────── */}
-      <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex gap-3 items-center">
+            {/* Right Scroll Button */}
+            <div className="hidden md:flex items-center justify-center w-8 shrink-0">
+              <AnimatePresence>
+                {showRightScroll && (
+                  <motion.button
+                    initial={{ opacity: 0, x: 5 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 5 }}
+                    onClick={() => {
+                      scrollContainerRef.current?.scrollBy({ left: 250, behavior: 'smooth' });
+                    }}
+                    className="text-zinc-400 hover:text-foreground transition-colors focus:outline-none"
+                  >
+                    <ChevronRight size={32} strokeWidth={1.5} />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </div>
 
-          {/* Search input */}
-          <div className="relative flex-1">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <input
-              id="shop-search"
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder={t.shop.searchPlaceholder}
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl text-sm bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <X size={15} />
-              </button>
-            )}
-          </div>
-
-          {/* Sort dropdown */}
-          <div className="relative shrink-0">
-            <button
-              id="shop-sort-btn"
-              onClick={() => setSortOpen(o => !o)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-foreground hover:border-primary/50 transition-all"
-            >
-              <SlidersHorizontal size={15} />
-              <span className="hidden sm:inline">{sortLabels[sortBy]}</span>
-              <span className="sm:hidden">{t.shop.sortBy}</span>
-              <ChevronDown size={13} className={`transition-transform duration-200 ${sortOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {sortOpen && (
-              <>
-                {/* backdrop */}
-                <div className="fixed inset-0 z-10" onClick={() => setSortOpen(false)} />
-                <div className="absolute right-0 top-full mt-2 z-20 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/40 py-2 overflow-hidden">
-                  {(Object.entries(sortLabels) as [SortOption, string][]).map(([key, label]) => (
-                    <button
-                      key={key}
-                      onClick={() => { setSortBy(key); setSortOpen(false); }}
-                      className={[
-                        'w-full text-left flex items-center gap-2 px-4 py-2.5 text-sm transition-colors',
-                        sortBy === key
-                          ? 'text-primary font-bold bg-primary/5 dark:bg-primary/10'
-                          : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/5',
-                      ].join(' ')}
-                    >
-                      {sortBy === key && <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />}
-                      {sortBy !== key && <span className="w-1.5 h-1.5 shrink-0" />}
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
           </div>
         </div>
       </div>
@@ -302,21 +350,36 @@ export default function Shop() {
       {/* ── Product Grid ──────────────────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-        {/* Result count */}
-        {filteredProducts.length > 0 && (
-          <p className="text-sm text-muted-foreground mb-6">
-            {t.shop.showing}&nbsp;
-            <span className="font-bold text-foreground">{filteredProducts.length}</span>&nbsp;
-            {t.shop.products}
-            {searchQuery && (
-              <span> {t.shop.for} "<span className="font-semibold text-primary">{searchQuery}</span>"</span>
-            )}
-          </p>
+        {/* Top Controls Row */}
+        {filteredProducts.length > 0 && !isLoading && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <p className="text-sm text-muted-foreground">
+              {t.shop.showing}&nbsp;
+              <span className="font-bold text-foreground">{filteredProducts.length}</span>&nbsp;
+              {t.shop.products}
+            </p>
+            <div className="flex items-center">
+              <span className="text-sm text-muted-foreground mr-1 font-medium">{st('sortBy')}</span>
+              <div className="relative">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="appearance-none bg-transparent hover:text-foreground/80 text-foreground text-sm font-bold py-1 pl-2 pr-6 transition-colors cursor-pointer outline-none focus:ring-0 focus:outline-none"
+                >
+                  <option className="bg-background text-foreground" value="newest">{st('newest')}</option>
+                  <option className="bg-background text-foreground" value="price-asc">{st('priceAsc')}</option>
+                  <option className="bg-background text-foreground" value="price-desc">{st('priceDesc')}</option>
+                  <option className="bg-background text-foreground" value="name-asc">{st('nameAsc')}</option>
+                </select>
+                <ChevronDown size={14} strokeWidth={2.5} className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none text-foreground" />
+              </div>
+            </div>
+          </div>
         )}
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+            <Loader2 className="w-10 h-10 text-foreground/40 animate-spin mb-4" />
             <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">Syncing Inventory...</p>
           </div>
         ) : filteredProducts.length === 0 ? (
@@ -326,17 +389,17 @@ export default function Shop() {
             <h2 className="text-2xl font-extrabold text-foreground mb-2">{t.shop.notFound}</h2>
             <p className="text-muted-foreground mb-6">{t.shop.noProductsTryAgain}</p>
             <button
-              onClick={() => { setSearchQuery(''); setActiveCategory('all'); }}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-zinc-900 font-bold text-sm hover:brightness-110 transition-all shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+              onClick={clearSearch}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-foreground text-background font-bold text-sm hover:opacity-80 transition-all shadow-lg"
             >
               ✨ {t.shopCategories.all}
             </button>
           </div>
         ) : (
           /* Flat grid */
-          <motion.div 
+          <motion.div
             layout
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-10 w-full"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 w-full"
           >
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((product, index) => {
@@ -348,8 +411,8 @@ export default function Shop() {
                   initial={{ opacity: 0, y: 20, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-                  transition={{ 
-                    duration: 0.4, 
+                  transition={{
+                    duration: 0.4,
                     delay: index * 0.03,
                     ease: "easeOut"
                   }}

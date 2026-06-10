@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'PUT') {
     try {
-      const { name, code, nameZh, nameMs, description, descriptionZh, descriptionMs, images, videoUrl, stock, price, sellerPrice, promotion, category, status } = req.body;
+      const { name, code, nameZh, nameMs, description, descriptionZh, descriptionMs, images, videoUrl, stock, price, sellerPrice, promotion, boxPrice, itemsPerBox, boxSellerPrice, boxPromotion, category, status } = req.body;
       
       const trimmedCode = code?.trim();
       if (trimmedCode) {
@@ -65,6 +65,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           price: parseFloat(price as any),
           sellerPrice: sellerPrice ? parseFloat(sellerPrice as any) : null,
           promotion: promotion ? parseFloat(promotion as any) : null,
+          boxPrice: boxPrice ? parseFloat(boxPrice as any) : null,
+          itemsPerBox: itemsPerBox ? parseInt(itemsPerBox as any) : null,
+          boxSellerPrice: boxSellerPrice ? parseFloat(boxSellerPrice as any) : null,
+          boxPromotion: boxPromotion ? parseFloat(boxPromotion as any) : null,
           category,
           status,
         },

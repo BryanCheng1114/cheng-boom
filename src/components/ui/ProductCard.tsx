@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useCart } from '../cart/CartProvider';
 import { ShoppingCart, Plus, Minus } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -21,14 +22,31 @@ export interface ProductCardProps {
   stock?: number;
   promotion?: number | null;
   sellerPrice?: number | null;
+  boxPrice?: number | null;
+  itemsPerBox?: number | null;
+  boxSellerPrice?: number | null;
+  boxPromotion?: number | null;
+  createdAt?: string | Date;
 }
 
-export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, sellerPrice, images = [], category, categoryZh, categoryMs, stock = 0 }: ProductCardProps) {
+export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, sellerPrice, boxPrice, itemsPerBox, boxSellerPrice, boxPromotion, images = [], category, categoryZh, categoryMs, stock = 0, createdAt }: ProductCardProps) {
   const { items, addItem, updateQuantity } = useCart();
   const { flyToCart } = useFlyToCart();
   const { t, locale } = useTranslation();
   const { settings } = useBusiness();
   const imageRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+
+  const cardT = {
+    new: { en: 'New', zh: '新品', ms: 'Baru' },
+    buy: { en: 'Buy', zh: '立即购买', ms: 'Beli' },
+    addToCart: { en: 'Add to cart', zh: '加入购物车', ms: 'Tambah troli' },
+    learnMore: { en: 'Learn more', zh: '了解更多', ms: 'Ketahui lanjut' },
+    save: { en: 'Save', zh: '节省', ms: 'Jimat' },
+  };
+  const ct = (key: keyof typeof cardT) => cardT[key][locale as 'en'|'zh'|'ms'] || cardT[key].en;
+
+  const isNew = createdAt && (new Date().getTime() - new Date(createdAt).getTime()) / (1000 * 3600 * 24) < 30;
 
   // Translation helpers
   const translatedName: string = (((locale === 'zh' && nameZh) ? nameZh : (locale === 'ms' && nameMs) ? nameMs : null) || (t.products as any)?.[id]?.name || name) as string;
@@ -75,6 +93,36 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
       strikeThroughPrice = price;
     }
   }
+
+  let activeBoxPrice = boxPrice;
+  let hasBoxDiscount = false;
+  let strikeThroughBoxPrice: number | undefined = undefined;
+
+  if (activeBoxPrice) {
+    if (isSeller) {
+      if (boxSellerPrice !== null && boxSellerPrice !== undefined && boxSellerPrice > 0) {
+        activeBoxPrice = boxSellerPrice;
+        if (boxSellerPrice < boxPrice!) {
+          hasBoxDiscount = true;
+          strikeThroughBoxPrice = boxPrice!;
+        }
+      } else {
+        const hasPromo = boxPromotion !== null && boxPromotion !== undefined && boxPromotion < boxPrice!;
+        if (hasPromo) {
+          activeBoxPrice = boxPromotion as number;
+          hasBoxDiscount = true;
+          strikeThroughBoxPrice = boxPrice!;
+        }
+      }
+    } else {
+      const hasPromo = boxPromotion !== null && boxPromotion !== undefined && boxPromotion < boxPrice!;
+      if (hasPromo) {
+        activeBoxPrice = boxPromotion as number;
+        hasBoxDiscount = true;
+        strikeThroughBoxPrice = boxPrice!;
+      }
+    }
+  }
   
   const discountPercent = hasDiscount 
     ? Math.round(((price - activePrice) / price) * 100) 
@@ -85,7 +133,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     if (quantity < stock) {
-      addItem({ id, code, name: translatedName, price: activePrice, originalPrice: strikeThroughPrice, image: displayImage, stock });
+      addItem({ id, cartItemId: id, code, name: translatedName, price: activePrice, originalPrice: strikeThroughPrice, image: displayImage, stock });
       if (imageRef.current && displayImage) {
         flyToCart(displayImage, imageRef.current);
       }
@@ -101,17 +149,28 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
 
 
 
+  const handleBuyNow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    router.push({ pathname: '/shop', query: { ...router.query, buy: id } }, undefined, { shallow: true, scroll: false });
+  };
+
   return (
     <Link href={`/shop/${id}`} className="group block h-full">
-      <div className={`h-full flex flex-col bg-card border border-border rounded-2xl overflow-hidden transition-all duration-300 shadow-sm hover:shadow-[0_8px_30px_rgba(245,158,11,0.15)] hover:-translate-y-1 ${isOutOfStock ? 'opacity-75' : 'hover:border-primary/50'}`}>
+      <div className={`relative h-full flex flex-col bg-zinc-50 dark:bg-white/5 rounded-[2rem] overflow-hidden transition-all duration-300 ${isOutOfStock ? 'opacity-75' : ''}`}>
         
-        {/* Image Container */}
-        <div ref={imageRef} className="relative h-56 w-full overflow-hidden bg-white dark:bg-zinc-900 shrink-0 flex items-center justify-center group/img">
+        {/* NEW tag */}
+        {isNew && !isOutOfStock && (
+          <div className="absolute top-5 left-5 z-30 font-extrabold text-primary text-[13px] tracking-wide">
+            {ct('new')}
+          </div>
+        )}
 
+        {/* Image Container */}
+        <div ref={imageRef} className="relative h-[19rem] w-full overflow-hidden shrink-0 flex items-center justify-center group/img">
           {/* Product Image */}
           <div
-            className={`absolute inset-0 z-10 w-full h-full bg-contain bg-no-repeat bg-center transition-transform duration-700 ease-out ${!isOutOfStock && 'group-hover/img:scale-110'}`}
-            style={{ backgroundImage: `url(${displayImage})` }}
+            className={`absolute inset-0 z-10 w-full h-full bg-contain bg-no-repeat bg-center transition-transform duration-700 ease-out ${!isOutOfStock && 'group-hover/img:scale-105'}`}
+            style={{ backgroundImage: `url(${displayImage})`, backgroundPosition: 'center' }}
           />
           
           {/* Centered Watermark Overlay */}
@@ -125,55 +184,40 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
           </div>
         </div>
         
-        <div className="p-5 flex flex-col flex-1 justify-between gap-4">
-          <div className="min-h-[3.25rem] flex flex-col justify-start">
-            <h3 className="font-extrabold text-base md:text-lg text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+        <div className="px-6 pb-6 pt-2 flex flex-col flex-1 justify-between gap-4">
+          <div className="flex flex-col justify-start">
+            <h3 className="font-extrabold text-[17px] text-foreground transition-colors line-clamp-2 leading-snug">
               {translatedName}
             </h3>
           </div>
           
-          <div className="mt-auto pt-3 border-t border-border/50">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex flex-col min-w-0 flex-1">
-                {hasDiscount && (
-                  <span className="text-[10px] sm:text-xs text-muted-foreground line-through decoration-red-500/50 mb-0.5 truncate">
-                    RM {strikeThroughPrice?.toFixed(2)}
-                  </span>
-                )}
-                <span className="text-[15px] sm:text-base font-black text-foreground tracking-tighter truncate">
+          <div className="mt-auto flex flex-col gap-4">
+            {/* Price Line */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-2 whitespace-nowrap overflow-hidden">
+                <span className="text-[17px] font-black text-foreground tracking-tight truncate">
                   RM {activePrice.toFixed(2)}
                 </span>
-              </div>
-              
-              <div className={`flex shrink-0 items-center bg-zinc-100 dark:bg-zinc-800/80 rounded-full p-0.5 border border-zinc-200 dark:border-zinc-700/50 backdrop-blur-sm shadow-inner ${isOutOfStock && 'opacity-50 grayscale'}`}>
-                {quantity > 0 ? (
-                  <button
-                    onClick={handleMinus}
-                    className="w-7 h-7 flex items-center justify-center rounded-full text-zinc-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-600 shadow-sm transition-all"
-                    aria-label="Decrease quantity"
-                  >
-                    <Minus size={14} strokeWidth={2.5} />
-                  </button>
-                ) : (
-                  <div className="w-7 h-7 flex items-center justify-center text-zinc-400 dark:text-zinc-500">
-                    <ShoppingCart size={13} />
-                  </div>
+                {hasDiscount && (
+                  <span className="text-xs font-bold text-primary truncate mt-0.5">
+                    {ct('save')} RM {(strikeThroughPrice! - activePrice).toFixed(2)}
+                  </span>
                 )}
-                
-                <span className="w-6 text-center font-bold text-xs text-foreground">
-                  {quantity}
-                </span>
+              </div>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3 mt-1">
+              <button
+                onClick={handleBuyNow}
+                disabled={isOutOfStock}
+                className="w-full py-2.5 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-sm transition-all hover:opacity-80 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {ct('buy')}
+              </button>
 
-                <button
-                  onClick={handleAdd}
-                  disabled={isOutOfStock || quantity >= stock}
-                  className={`w-7 h-7 flex items-center justify-center rounded-full transition-all active:scale-95 ${isOutOfStock || quantity >= stock 
-                    ? 'bg-zinc-300 dark:bg-zinc-700 text-zinc-500 cursor-not-allowed' 
-                    : 'bg-primary text-zinc-900 hover:brightness-110 shadow-[0_0_12px_rgba(245,158,11,0.5)]'}`}
-                  aria-label="Increase quantity"
-                >
-                  <Plus size={14} strokeWidth={3} />
-                </button>
+              <div className="w-full py-2.5 rounded-full bg-transparent border-[1.5px] border-zinc-900 dark:border-white text-zinc-900 dark:text-white font-bold text-sm text-center transition-all hover:bg-black/5 dark:hover:bg-white/10 group-active:scale-[0.98]">
+                {ct('learnMore')}
               </div>
             </div>
           </div>

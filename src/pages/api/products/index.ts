@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'POST') {
     try {
-      const { name, code, nameZh, nameMs, description, descriptionZh, descriptionMs, images, videoUrl, stock, price, sellerPrice, promotion, category } = req.body;
+      const { name, code, nameZh, nameMs, description, descriptionZh, descriptionMs, images, videoUrl, stock, price, sellerPrice, promotion, boxPrice, itemsPerBox, boxSellerPrice, boxPromotion, category } = req.body;
       
       if (!code || !code.trim()) {
         return res.status(400).json({ error: 'Product code is required' });
@@ -61,6 +61,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           price: parseFloat(price as any) || 0,
           sellerPrice: sellerPrice ? parseFloat(sellerPrice as any) : null,
           promotion: promotion ? parseFloat(promotion as any) : null,
+          boxPrice: boxPrice ? parseFloat(boxPrice as any) : null,
+          itemsPerBox: itemsPerBox ? parseInt(itemsPerBox as any) : null,
+          boxSellerPrice: boxSellerPrice ? parseFloat(boxSellerPrice as any) : null,
+          boxPromotion: boxPromotion ? parseFloat(boxPromotion as any) : null,
           category,
           status: 'Live',
         },

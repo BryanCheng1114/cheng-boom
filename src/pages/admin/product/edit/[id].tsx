@@ -34,6 +34,10 @@ const EditProductPage = () => {
     price: '',
     sellerPrice: '',
     promotion: '',
+    boxPrice: '',
+    itemsPerBox: '',
+    boxSellerPrice: '',
+    boxPromotion: '',
     status: 'Live',
   });
 
@@ -94,6 +98,10 @@ const EditProductPage = () => {
             price: String(data.price || '0'),
             sellerPrice: String(data.sellerPrice || ''),
             promotion: String(data.promotion || ''),
+            boxPrice: String(data.boxPrice || ''),
+            itemsPerBox: String(data.itemsPerBox || ''),
+            boxSellerPrice: String(data.boxSellerPrice || ''),
+            boxPromotion: String(data.boxPromotion || ''),
             status: data.status || 'Live',
           });
           
@@ -116,6 +124,10 @@ const EditProductPage = () => {
             price: String(data.price || '0'),
             sellerPrice: String(data.sellerPrice || ''),
             promotion: String(data.promotion || ''),
+            boxPrice: String(data.boxPrice || ''),
+            itemsPerBox: String(data.itemsPerBox || ''),
+            boxSellerPrice: String(data.boxSellerPrice || ''),
+            boxPromotion: String(data.boxPromotion || ''),
             status: data.status || 'Live',
           });
         } else {
@@ -491,19 +503,20 @@ const EditProductPage = () => {
             </div>
           </div>
 
-          {/* Pricing & Stock */}
+          {/* Inventory & Commerce */}
           <div className="bg-white dark:bg-zinc-900/40 p-8 rounded-[48px] border dark:border-white/10 border-zinc-100 shadow-xl">
+            {/* Single Item Section */}
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-lg"><DollarSign size={18} /></div>
-              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t('inventory_commerce')}</h2>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t('inventory_commerce')} - Single Item</h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {/* Quantity Stock */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+              {/* Single Items Stock */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
                   <Package size={14} className="text-zinc-500" />
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{t('quantity_stock')}</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Single Items Stock *</label>
                 </div>
                 <input 
                   type="number" 
@@ -515,11 +528,11 @@ const EditProductPage = () => {
                 />
               </div>
 
-              {/* Original Price */}
+              {/* Single Item Price */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
                   <Tag size={14} className="text-zinc-500" />
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{t('original_price')}</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Single Item Price *</label>
                 </div>
                 <input 
                   type="text" 
@@ -532,11 +545,11 @@ const EditProductPage = () => {
                 />
               </div>
 
-              {/* Seller Price */}
+              {/* Single Item Seller Price */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
                   <DollarSign size={14} className="text-zinc-500" />
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{t('seller_price')}</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Single Item Seller Price</label>
                 </div>
                 <input 
                   type="text" 
@@ -548,16 +561,88 @@ const EditProductPage = () => {
                 />
               </div>
 
-              {/* Sale Price */}
+              {/* Single Promo Price */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-3.5 h-3.5 rounded-full bg-red-500 animate-pulse" />
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{t('sale_price')}</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Single Item Promo Price</label>
                 </div>
                 <input 
                   type="text" 
                   name="promotion"
                   value={formData.promotion}
+                  onChange={handleChange}
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-red-500 text-sm" 
+                  placeholder="Optional"
+                />
+              </div>
+            </div>
+
+            {/* Per Box Section */}
+            <div className="flex items-center gap-3 mb-6 pt-8 border-t border-zinc-200 dark:border-zinc-800">
+              <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg"><Package size={18} /></div>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t('inventory_commerce')} - Per Box</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Items Per Box */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <Package size={14} className="text-zinc-500" />
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Items Per Box</label>
+                </div>
+                <input 
+                  type="number" 
+                  name="itemsPerBox"
+                  value={formData.itemsPerBox}
+                  onChange={handleChange}
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm" 
+                  placeholder="Optional"
+                />
+              </div>
+
+              {/* Box Price */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <Tag size={14} className="text-zinc-500" />
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Per Box Price</label>
+                </div>
+                <input 
+                  type="text" 
+                  name="boxPrice"
+                  value={formData.boxPrice}
+                  onChange={handleChange}
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm" 
+                  placeholder="0.00 (Optional)"
+                />
+              </div>
+
+              {/* Box Seller Price */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <DollarSign size={14} className="text-zinc-500" />
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Box Seller Price</label>
+                </div>
+                <input 
+                  type="text" 
+                  name="boxSellerPrice"
+                  value={formData.boxSellerPrice}
+                  onChange={handleChange}
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm" 
+                  placeholder="Optional"
+                />
+              </div>
+
+              {/* Box Promo Price */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-3.5 h-3.5 rounded-full bg-red-500 animate-pulse" />
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Box Promo Price</label>
+                </div>
+                <input 
+                  type="text" 
+                  name="boxPromotion"
+                  value={formData.boxPromotion}
                   onChange={handleChange}
                   className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-red-500 text-sm" 
                   placeholder="Optional"

@@ -53,27 +53,64 @@ export const sendOrderReceiptEmail = async (
     timeStyle: 'short'
   });
 
+  const isSeller = !!(sellerLevelName && sellerLevelName.trim() !== '');
+
+  let promoItemDiscount = 0;
+  let sellerItemDiscount = 0;
+
   const itemsHtml = items.map((item, index) => {
     const orig = item.originalPrice || item.price;
-    const isPromo = orig > item.price;
-    const promoVal = isPromo ? (orig - item.price) * item.quantity : 0;
-    
+    const isDiscounted = orig > item.price;
+    const savings = isDiscounted ? (orig - item.price) * item.quantity : 0;
+
+    // Variant label: "Single" or "Box (x12)"
+    const variantLabel = item.variant === 'Box'
+      ? `Box${item.itemsPerBox ? ` (x${item.itemsPerBox})` : ''}`
+      : item.variant === 'Single'
+        ? 'Single'
+        : '';
+
+    // Detect seller-exclusive price vs promo discount
+    const isSellerPrice = isSeller && isDiscounted && (
+      item.variant === 'Box'
+        ? item.boxSellerPrice != null && parseFloat(item.price) === parseFloat(item.boxSellerPrice)
+        : item.sellerPrice != null && parseFloat(item.price) === parseFloat(item.sellerPrice)
+    );
+
+    if (isDiscounted) {
+      if (isSellerPrice) {
+        sellerItemDiscount += savings;
+      } else {
+        promoItemDiscount += savings;
+      }
+    }
+
+    const discountLabel = isSellerPrice
+      ? `<span style="color: #f59e0b; font-size: 11px; font-weight: bold;">Seller Price</span>`
+      : `<span style="color: #dc2626; font-size: 11px;">Promo</span>`;
+
+    const discountCell = isDiscounted
+      ? `<div style="color: #dc2626;">-RM ${savings.toFixed(2)}</div><div>${discountLabel}</div>`
+      : '-';
+
     return `
     <tr>
       <td style="padding: 12px; border-bottom: 1px solid #eeeeee;">${index + 1}</td>
       <td style="padding: 12px; border-bottom: 1px solid #eeeeee;">
         <strong>${item.name}</strong><br/>
         <span style="color: #666; font-size: 12px;">Code: ${item.code || '-'}</span>
+        ${variantLabel ? `<br/><span style="display: inline-block; margin-top: 3px; padding: 1px 6px; background: #f4f4f5; border-radius: 4px; font-size: 11px; color: #555; font-weight: 600;">${variantLabel}</span>` : ''}
       </td>
       <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: center;">${item.quantity}</td>
       <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right;">RM ${parseFloat(orig).toFixed(2)}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right; color: #dc2626;">${isPromo ? '-RM ' + promoVal.toFixed(2) : '-'}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right;">${discountCell}</td>
       <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right;">RM ${(parseFloat(item.price) * item.quantity).toFixed(2)}</td>
     </tr>
-  `}).join('');
+  `;
+  }).join('');
   
   const baseTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const itemDiscount = (originalAmount || baseTotal) - baseTotal;
+  const totalItemDiscount = promoItemDiscount + sellerItemDiscount;
 
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
@@ -105,7 +142,7 @@ export const sendOrderReceiptEmail = async (
               <th style="padding: 10px; text-align: left;">Product</th>
               <th style="padding: 10px; text-align: center;">Qty</th>
               <th style="padding: 10px; text-align: right;">Unit Price</th>
-              <th style="padding: 10px; text-align: right;">Promo</th>
+              <th style="padding: 10px; text-align: right;">${isSeller ? 'Disc.' : 'Promo'}</th>
               <th style="padding: 10px; text-align: right;">Total</th>
             </tr>
           </thead>
@@ -113,20 +150,26 @@ export const sendOrderReceiptEmail = async (
             ${itemsHtml}
           </tbody>
           <tfoot>
-            ${originalAmount && originalAmount > baseTotal ? `
+            ${totalItemDiscount > 0 ? `
             <tr>
               <td colspan="5" style="padding: 10px 12px; text-align: right; font-size: 14px; color: #666;">Original Total:</td>
-              <td style="padding: 10px 12px; text-align: right; font-size: 14px; color: #666;">RM ${parseFloat(originalAmount.toString()).toFixed(2)}</td>
+              <td style="padding: 10px 12px; text-align: right; font-size: 14px; color: #666;">RM ${parseFloat((originalAmount || baseTotal + totalItemDiscount).toString()).toFixed(2)}</td>
             </tr>
+            ${promoItemDiscount > 0 ? `
             <tr>
-              <td colspan="5" style="padding: 10px 12px; text-align: right; font-size: 14px; color: #666;">Item Discount:</td>
-              <td style="padding: 10px 12px; text-align: right; font-size: 14px; color: #666;">-RM ${parseFloat(itemDiscount.toString()).toFixed(2)}</td>
-            </tr>
+              <td colspan="5" style="padding: 4px 12px; text-align: right; font-size: 13px; color: #666;">Item Discount:</td>
+              <td style="padding: 4px 12px; text-align: right; font-size: 13px; color: #dc2626;">-RM ${promoItemDiscount.toFixed(2)}</td>
+            </tr>` : ''}
+            ${sellerItemDiscount > 0 ? `
+            <tr>
+              <td colspan="5" style="padding: 4px 12px; text-align: right; font-size: 13px; color: #666;">Seller Price Savings:</td>
+              <td style="padding: 4px 12px; text-align: right; font-size: 13px; color: #f59e0b;">-RM ${sellerItemDiscount.toFixed(2)}</td>
+            </tr>` : ''}
             ` : ''}
             ${totalDiscount && totalDiscount > 0 ? `
             <tr>
               <td colspan="5" style="padding: 10px 12px; text-align: right; font-size: 14px; color: #f59e0b;">
-                ${sellerLevelName || 'Seller'} Discount (${discountPercent || 0}%):
+                ${sellerLevelName || 'Seller'} Tier Discount (${discountPercent || 0}%):
               </td>
               <td style="padding: 10px 12px; text-align: right; font-size: 14px; color: #f59e0b;">-RM ${parseFloat((baseTotal - totalAmount).toString()).toFixed(2)}</td>
             </tr>
@@ -150,6 +193,7 @@ export const sendOrderReceiptEmail = async (
       </div>
     </div>
   `;
+
 
   const mailOptions = {
     from: `"${businessName} System" <no-reply@cheng-boom.com>`,

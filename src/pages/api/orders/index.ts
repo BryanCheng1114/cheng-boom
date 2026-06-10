@@ -28,16 +28,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // 2a. Deduct stock atomically for each item
         for (const item of items) {
           const qty = parseInt(item.quantity);
+          const deductQty = item.variant === 'Box' && item.itemsPerBox ? qty * parseInt(item.itemsPerBox) : qty;
           const updateResult = await tx.product.updateMany({
             where: {
               id: item.productId || item.id,
               stock: {
-                gte: qty // ONLY update if stock is sufficient
+                gte: deductQty // ONLY update if stock is sufficient
               }
             },
             data: {
               stock: {
-                decrement: qty
+                decrement: deductQty
               }
             }
           });
@@ -65,6 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 name: item.name,
                 price: parseFloat(item.price),
                 quantity: parseInt(item.quantity),
+                variant: item.variant || null,
               })),
             },
           },
@@ -74,10 +76,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       });
 
+      // Enrich items with sellerPrice/boxSellerPrice for accurate email discount labeling
+      const productIds = [...new Set(items.map((i: any) => i.productId || i.id))];
+      const products = await prisma.product.findMany({
+        where: { id: { in: productIds as string[] } },
+        select: { id: true, sellerPrice: true, boxSellerPrice: true, itemsPerBox: true },
+      });
+      const productMap: Record<string, any> = {};
+      products.forEach((p) => { productMap[p.id] = p; });
+      const enrichedItems = items.map((item: any) => {
+        const pd = productMap[item.productId || item.id];
+        return { ...item, sellerPrice: pd?.sellerPrice ?? null, boxSellerPrice: pd?.boxSellerPrice ?? null, itemsPerBox: pd?.itemsPerBox ?? null };
+      });
+
       sendOrderReceiptEmail(
         order, 
         { ...customerInfo, role: customer.role }, 
-        items, 
+        enrichedItems, 
         totalAmount,
         originalAmount,
         totalDiscount,

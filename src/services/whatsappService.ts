@@ -135,16 +135,39 @@ export const generateWhatsAppLink = (
   // --- Items ---
   msg += `*${l.items}*\n\n`;
 
+  let promoItemSavings = 0;
+  let sellerItemSavings = 0;
+
   items.forEach((item, idx) => {
     const itemTotal = (item.price * item.quantity).toFixed(2);
-    msg += `*${idx + 1}. ${item.name}*\n`;
+    const variantStr = item.variant === 'Box'
+      ? `(Box${item.itemsPerBox ? ` of ${item.itemsPerBox}` : ''})`
+      : item.variant === 'Single'
+        ? '(Single)'
+        : '';
+    msg += `*${idx + 1}. ${item.name}${variantStr ? ' ' + variantStr : ''}*\n`;
     if (item.code) {
       msg += `   ${l.code}: \`${item.code}\`\n`;
     }
     msg += `   ${l.qty}: ${item.quantity}\n`;
     msg += `   ${l.unitPrice}: RM ${item.price.toFixed(2)}\n`;
     if (item.originalPrice && item.originalPrice > item.price) {
-      msg += `   ${l.original}: RM ${item.originalPrice.toFixed(2)} _(${l.discounted})_\n`;
+      const savings = (item.originalPrice - item.price) * item.quantity;
+      // Detect if this discount is a seller-exclusive price
+      const isSellerPriceItem = isSeller && (
+        item.variant === 'Box'
+          ? (item as any).boxSellerPrice != null && item.price === (item as any).boxSellerPrice
+          : (item as any).sellerPrice != null && item.price === (item as any).sellerPrice
+      );
+      const discountTag = isSellerPriceItem
+        ? (locale === 'zh' ? '卖家专属价' : locale === 'ms' ? 'Harga Penjual' : 'Seller Price')
+        : l.discounted;
+      msg += `   ${l.original}: RM ${item.originalPrice.toFixed(2)} _(${discountTag})_\n`;
+      if (isSellerPriceItem) {
+        sellerItemSavings += savings;
+      } else {
+        promoItemSavings += savings;
+      }
     }
     msg += `   ${l.subtotal}: *RM ${itemTotal}*\n\n`;
   });
@@ -152,28 +175,33 @@ export const generateWhatsAppLink = (
   // --- Summary ---
   const totalOriginal = items.reduce((sum, item) => sum + (item.originalPrice || item.price) * item.quantity, 0);
   const baseTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const itemSavings = totalOriginal - baseTotal;
-  const sellerDiscountVal = baseTotal - totalPrice;
+  const sellerTierDiscountVal = baseTotal - totalPrice;
 
   msg += `${divider}\n`;
   msg += `${l.originalTotal}: RM ${totalOriginal.toFixed(2)}\n`;
 
-  if (itemSavings > 0) {
-    msg += `Item Discount: *-RM ${itemSavings.toFixed(2)}*\n`;
+  if (promoItemSavings > 0) {
+    msg += `${locale === 'zh' ? '商品折扣' : locale === 'ms' ? 'Diskaun Produk' : 'Item Discount'}: *-RM ${promoItemSavings.toFixed(2)}*\n`;
   }
 
-  if (sellerDiscountVal > 0) {
-    const savingsLabel = isSeller 
-      ? (locale === 'zh' ? `${sellerLevelName || '卖家'}折扣 (${discountPercent}%)` : locale === 'ms' ? `Diskaun ${sellerLevelName || 'Penjual'} (${discountPercent}%)` : `${sellerLevelName || 'Seller'} Discount (${discountPercent}%)`)
-      : l.savings;
-    msg += `${savingsLabel}: *-RM ${sellerDiscountVal.toFixed(2)}*\n`;
+  if (sellerItemSavings > 0) {
+    const sellerItemLabel = locale === 'zh' ? '卖家专属优惠' : locale === 'ms' ? 'Diskaun Harga Penjual' : 'Seller Price Savings';
+    msg += `${sellerItemLabel}: *-RM ${sellerItemSavings.toFixed(2)}*\n`;
   }
-  
+
+  if (sellerTierDiscountVal > 0) {
+    const savingsLabel = isSeller
+      ? (locale === 'zh' ? `${sellerLevelName || '卖家'}折扣 (${discountPercent}%)` : locale === 'ms' ? `Diskaun ${sellerLevelName || 'Penjual'} (${discountPercent}%)` : `${sellerLevelName || 'Seller'} Tier Discount (${discountPercent}%)`)
+      : l.savings;
+    msg += `${savingsLabel}: *-RM ${sellerTierDiscountVal.toFixed(2)}*\n`;
+  }
+
   if (isFreeShipping) {
     msg += `Shipping: *FREE*\n`;
   }
 
   msg += `\n*${l.total}: RM ${totalPrice.toFixed(2)}*\n\n`;
+
 
   // --- Closing ---
   msg += `${divider}\n`;

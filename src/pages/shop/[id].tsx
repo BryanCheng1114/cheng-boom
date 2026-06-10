@@ -3,8 +3,9 @@ import { useRouter } from 'next/router';
 import { useState, useRef, useEffect } from 'react';
 import { prisma } from '../../lib/prisma';
 import { useCart } from '../../components/cart/CartProvider';
-import { ArrowLeft, ShoppingCart, Plus, Minus, CheckCircle, Maximize2, X, Loader2, Package, User, Phone, CreditCard, MapPin, Check, MessageCircle, HelpCircle, Zap } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Plus, Minus, CheckCircle, Maximize2, X, Loader2, Package, User, Phone, CreditCard, MapPin, Check, MessageCircle, HelpCircle, Zap, Share2, Link as LinkIcon } from 'lucide-react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
+import { SharedCheckoutModal } from '../../components/checkout/SharedCheckoutModal';
 import { generateWhatsAppLink, OrderDetails } from '../../services/whatsappService';
 
 const paymentMethodLabels: Record<string, Record<string, string>> = {
@@ -36,75 +37,57 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   const [activeImageIdx, setActiveImageIdx] = useState(0);
 
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [orderDetails, setOrderDetails] = useState<OrderDetails>({
-    customerName: '',
-    customerPhone: '',
-    paymentMethod: 'TNG e-wallet',
-    deliveryMode: 'Self Collect',
-    address: '',
-    notes: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isWhatsAppTermsAgreed, setIsWhatsAppTermsAgreed] = useState(false);
-  const [shakeTerms, setShakeTerms] = useState(false);
-  const [isGuideOpen, setIsGuideOpen] = useState(false);
-  const shakeControls = useAnimation();
-  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<'Single' | 'Box' | null>(null);
+  const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
-  const cartItemSafe = items.find((item) => item.id === product?.id);
-  const currentCartQtySafe = cartItemSafe?.quantity || 0;
-  const maxAvailableSafe = Math.max(0, (product?.stock || 0) - currentCartQtySafe);
+
+  const cartItemIdSingle = `${product?.id}-Single`;
+  const cartItemSingleQty = items.find((item) => item.cartItemId === cartItemIdSingle)?.quantity || 0;
+  
+  const cartItemIdBox = `${product?.id}-Box`;
+  const cartItemBoxQty = items.find((item) => item.cartItemId === cartItemIdBox)?.quantity || 0;
+  
+  const totalItemsInCart = cartItemSingleQty + (cartItemBoxQty * (product?.itemsPerBox || 1));
+  const baseStock = product?.stock || 0;
+  const trueRemainingStock = baseStock; // Do not deduct cart items live
+
+  const maxAvailableSingle = trueRemainingStock;
+  let maxAvailableBox = 0;
+  if (product?.itemsPerBox && product.itemsPerBox > 1) {
+    maxAvailableBox = Math.floor(trueRemainingStock / product.itemsPerBox);
+  }
+
+  const currentMaxAvailable = selectedVariant === 'Box' ? maxAvailableBox : (selectedVariant === 'Single' ? maxAvailableSingle : 0);
 
   // Sync / Clamp local selection if it exceeds max available stock
   useEffect(() => {
-    if (localQty > maxAvailableSafe) {
-      setLocalQty(maxAvailableSafe);
+    if (selectedVariant && localQty > currentMaxAvailable) {
+      setLocalQty(currentMaxAvailable);
     }
-  }, [maxAvailableSafe, localQty]);
+  }, [currentMaxAvailable, localQty, selectedVariant]);
 
+  // Auto-select Single if no Box pricing is available
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        const user = JSON.parse(savedUser);
-        try {
-          const res = await fetch(`/api/customers/${user.id}`);
-          if (res.ok) {
-            const fullProfile = await res.json();
-            const mapPayment = (val: string | null | undefined) => {
-              if (!val) return 'TNG e-wallet';
-              const lower = val.toLowerCase();
-              if (lower.includes('bank')) return 'bank transfer';
-              if (lower.includes('duit')) return 'DuitNow qr';
-              return 'TNG e-wallet';
-            };
-            const mapDelivery = (val: string | null | undefined) => {
-              if (!val) return 'Self Collect';
-              return val.toLowerCase().includes('delivery') ? 'Delivery' : 'Self Collect';
-            };
-            setOrderDetails(prev => ({
-              ...prev,
-              customerName: fullProfile.name || '',
-              customerPhone: fullProfile.phone || '',
-              address: fullProfile.address || '',
-              paymentMethod: mapPayment(fullProfile.preferredPayment),
-              deliveryMode: mapDelivery(fullProfile.orderMode),
-              notes: fullProfile.notes || ''
-            }));
-          } else {
-            setOrderDetails(prev => ({
-              ...prev,
-              customerName: user.name || '',
-              customerPhone: user.phone || ''
-            }));
-          }
-        } catch (err) {
-          console.error('Failed to fetch user profile for Buy Now:', err);
-        }
-      }
-    };
-    fetchUserProfile();
-  }, []);
+    const hasBoxPricing = !!(product?.boxPrice && product?.itemsPerBox && product?.itemsPerBox > 1);
+    if (!hasBoxPricing && maxAvailableSingle > 0) {
+      if (!selectedVariant) setSelectedVariant('Single');
+      if (localQty === 0) setLocalQty(1);
+    }
+  }, [product, maxAvailableSingle, selectedVariant, localQty]);
+
+  // Auto-open checkout if navigated with ?buy=true
+  useEffect(() => {
+    if (router.isReady && router.query.buy === 'true' && maxAvailableSingle > 0) {
+      if (localQty === 0) setLocalQty(1);
+      setSelectedVariant('Single');
+      setIsCheckoutOpen(true);
+      // Clean up URL
+      const { buy, ...restQuery } = router.query;
+      router.replace({ pathname: router.pathname, query: restQuery }, undefined, { shallow: true });
+    }
+  }, [router.isReady, router.query.buy, maxAvailableSingle]);
+
 
   // Handle fallback state for static generation
   if (router.isFallback) {
@@ -138,23 +121,19 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   let strikeThroughPrice: number | undefined = undefined;
 
   if (isSeller) {
-    if (product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0) {
+    if (product.sellerPrice && product.sellerPrice > 0) {
       activePrice = product.sellerPrice;
       if (product.sellerPrice < product.price) {
         hasDiscount = true;
         strikeThroughPrice = product.price;
       }
-    } else {
-      const hasPromo = product.promotion !== null && product.promotion !== undefined && product.promotion < product.price;
-      if (hasPromo) {
-        activePrice = product.promotion as number;
-        hasDiscount = true;
-        strikeThroughPrice = product.price;
-      }
+    } else if (product.promotion !== null && product.promotion !== undefined && product.promotion < product.price) {
+      activePrice = product.promotion as number;
+      hasDiscount = true;
+      strikeThroughPrice = product.price;
     }
   } else {
-    const hasPromo = product.promotion !== null && product.promotion !== undefined && product.promotion < product.price;
-    if (hasPromo) {
+    if (product.promotion !== null && product.promotion !== undefined && product.promotion < product.price) {
       activePrice = product.promotion as number;
       hasDiscount = true;
       strikeThroughPrice = product.price;
@@ -163,36 +142,92 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
   const savings = hasDiscount ? (product.price - activePrice) : 0;
 
-  const cartItem = items.find((item) => item.id === product.id);
-  const currentCartQty = cartItem?.quantity || 0;
-  const maxAvailable = Math.max(0, stock - currentCartQty);
+  let activeBoxPrice = product.boxPrice;
+  let hasBoxDiscount = false;
+  let strikeThroughBoxPrice: number | undefined = undefined;
+
+  if (activeBoxPrice && product.itemsPerBox && product.itemsPerBox > 1) {
+    if (isSeller) {
+      if (product.boxSellerPrice && product.boxSellerPrice > 0) {
+        activeBoxPrice = product.boxSellerPrice;
+        if (product.boxSellerPrice < product.boxPrice!) {
+          hasBoxDiscount = true;
+          strikeThroughBoxPrice = product.boxPrice!;
+        }
+      } else if (product.boxPromotion !== null && product.boxPromotion !== undefined && product.boxPromotion < product.boxPrice!) {
+        activeBoxPrice = product.boxPromotion as number;
+        hasBoxDiscount = true;
+        strikeThroughBoxPrice = product.boxPrice!;
+      }
+    } else {
+      if (product.boxPromotion !== null && product.boxPromotion !== undefined && product.boxPromotion < product.boxPrice!) {
+        activeBoxPrice = product.boxPromotion as number;
+        hasBoxDiscount = true;
+        strikeThroughBoxPrice = product.boxPrice!;
+      }
+    }
+  }
+
+  const boxSavings = hasBoxDiscount && strikeThroughBoxPrice && activeBoxPrice ? (strikeThroughBoxPrice - activeBoxPrice) : 0;
+
+
+
+  const handleWhatsAppShare = () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    const priceToDisplay = currentDisplayPrice || minPrice;
+    const msg = `Check out ${translatedName} for RM${priceToDisplay.toFixed(2)}. Get it on Cheng-BOOM now! ${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  const handleCopyLink = () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    navigator.clipboard.writeText(url);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   const handleAddToCart = () => {
-    if (localQty > 0 && localQty <= maxAvailable) {
+    if (!selectedVariant) {
+      setIsWarningModalOpen(true);
+      return;
+    }
+    if (localQty <= 0) return;
+
+    if (localQty > 0 && localQty <= currentMaxAvailable) {
       if (imageRef.current) {
         flyToCart(images[activeImageIdx] || '', imageRef.current);
       }
       
       addItem({ 
         id: product.id,
+        cartItemId: `${product.id}-${selectedVariant}`,
+        variant: selectedVariant,
+        itemsPerBox: product.itemsPerBox,
         code: product.code,
         name: translatedName, 
-        price: activePrice, 
-        originalPrice: strikeThroughPrice, 
+        price: selectedVariant === 'Single' ? activePrice : activeBoxPrice!, 
+        originalPrice: selectedVariant === 'Single' ? strikeThroughPrice : strikeThroughBoxPrice, 
         image: images[activeImageIdx] || '',
-        stock: stock
+        stock: currentMaxAvailable // Limit to remaining available stock for this variant
       }, localQty);
+      
+      // Reset after add
+      setSelectedVariant(null);
       setLocalQty(0);
     }
   };
 
-  const increment = () => {
-    if (localQty < maxAvailable) setLocalQty(prev => prev + 1);
+  const handleBuyNow = () => {
+    if (!selectedVariant) {
+      setIsWarningModalOpen(true);
+      return;
+    }
+    if (localQty <= 0) return;
+    setIsCheckoutOpen(true);
   };
-  
-  const decrement = () => {
-    if (localQty > 0) setLocalQty(prev => prev - 1);
-  };
+
+  const increment = () => { if (localQty < currentMaxAvailable) setLocalQty(prev => prev + 1); };
+  const decrement = () => { if (localQty > 1) setLocalQty(prev => prev - 1); };
 
   // @ts-ignore
   let translatedName = (locale === 'zh' && product.nameZh) ? product.nameZh : (locale === 'ms' && product.nameMs) ? product.nameMs : null;
@@ -224,77 +259,6 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   const totalDiscount = baseTotalPrice * (discountPercent / 100);
   const finalTotalPrice = baseTotalPrice - totalDiscount;
 
-  const handleCheckoutSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerInfo: {
-            name: orderDetails.customerName,
-            phone: orderDetails.customerPhone,
-            address: orderDetails.address || (orderDetails.deliveryMode === 'Self Collect' ? 'Self Collect' : ''),
-            paymentMethod: orderDetails.paymentMethod,
-            deliveryMode: orderDetails.deliveryMode,
-            notes: orderDetails.notes,
-            role: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}').role : 'Guest'
-          },
-          items: [{
-            productId: product.id,
-            code: product.code,
-            name: translatedName,
-            price: activePrice,
-            originalPrice: strikeThroughPrice,
-            quantity: localQty
-          }],
-          totalAmount: finalTotalPrice,
-          originalAmount: totalOriginalPrice,
-          totalDiscount: totalDiscount,
-          sellerLevelName: sellerLevelName,
-          discountPercent: discountPercent,
-          isFreeShipping: isFreeShipping
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to save order');
-
-      const url = generateWhatsAppLink(
-        [{
-          id: product.id,
-          code: product.code,
-          name: translatedName,
-          price: activePrice,
-          originalPrice: strikeThroughPrice,
-          quantity: localQty
-        }],
-        finalTotalPrice,
-        {
-          ...orderDetails,
-          role: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}').role : 'Guest'
-        },
-        locale as 'en' | 'zh' | 'ms',
-        isSeller,
-        settings?.businessName,
-        settings?.whatsapp ?? undefined,
-        sellerLevelName,
-        discountPercent,
-        isFreeShipping
-      );
-      window.open(url, '_blank');
-
-      setIsCheckoutOpen(false);
-      setLocalQty(0);
-    } catch (error) {
-      console.error('Checkout error:', error);
-      alert('Failed to process order. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const generateInquiryMessage = () => {
     const cleanNumber = (settings?.whatsapp || '601112269835').replace(/\D/g, '');
     const url = typeof window !== 'undefined' ? window.location.href : '';
@@ -320,10 +284,35 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
   const images = product.images || [];
 
+  // Dynamic Pricing Calculations for Shopee Style
+  const hasBoxPricing = !!(product.boxPrice && product.itemsPerBox && product.itemsPerBox > 1);
+  
+  const minPrice = hasBoxPricing ? Math.min(activePrice, activeBoxPrice!) : activePrice;
+  const maxPrice = hasBoxPricing ? Math.max(activePrice, activeBoxPrice!) : activePrice;
+  
+  const effectiveSingleStrike = strikeThroughPrice || activePrice;
+  const effectiveBoxStrike = strikeThroughBoxPrice || activeBoxPrice || activePrice;
+  const minOriginal = hasBoxPricing ? Math.min(effectiveSingleStrike, effectiveBoxStrike) : effectiveSingleStrike;
+  const maxOriginal = hasBoxPricing ? Math.max(effectiveSingleStrike, effectiveBoxStrike) : effectiveSingleStrike;
+  
+  const hasAnyDiscount = hasDiscount || hasBoxDiscount;
+  
+  const currentDisplayPrice = selectedVariant === 'Single' ? activePrice : selectedVariant === 'Box' ? activeBoxPrice! : null;
+  const currentStrikePrice = selectedVariant === 'Single' ? strikeThroughPrice : selectedVariant === 'Box' ? strikeThroughBoxPrice : null;
+  
+  const singleSavingsPercent = hasDiscount && strikeThroughPrice ? Math.round(((strikeThroughPrice - activePrice) / strikeThroughPrice) * 100) : 0;
+  const boxSavingsPercent = hasBoxDiscount && strikeThroughBoxPrice && activeBoxPrice ? Math.round(((strikeThroughBoxPrice - activeBoxPrice) / strikeThroughBoxPrice) * 100) : 0;
+  const maxSavingsPercent = Math.max(singleSavingsPercent, boxSavingsPercent);
+
   return (
     <>
       <Head>
         <title>{`${translatedName} - Cheng-BOOM`}</title>
+        <meta property="og:title" content={translatedName || 'Product Details'} />
+        <meta property="og:description" content={translatedDesc ? (translatedDesc.length > 150 ? translatedDesc.substring(0, 150) + '...' : translatedDesc) : 'Check out this product on Cheng-BOOM'} />
+        <meta property="og:image" content={images[0] ? (images[0].startsWith('http') ? images[0] : `https://cheng-boom.com${images[0]}`) : ''} />
+        <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : ''} />
+        <meta property="og:type" content="product" />
       </Head>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
@@ -333,7 +322,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
           {router.query.from === 'cart' ? (locale === 'zh' ? '返回购物车' : locale === 'ms' ? 'Kembali ke Troli' : 'Back to Cart') : t.productDetail.backToCollection}
         </Link>
         
-        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 mb-20 items-start">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 mb-12 items-start bg-white dark:bg-zinc-900 rounded-2xl p-8 md:p-10 border border-border shadow-sm">
           
           {/* LEFT: Image Section */}
           <div className="w-full space-y-4">
@@ -399,70 +388,42 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
           {/* RIGHT: Info Section */}
           <div className="w-full flex flex-col justify-start">
             <div className="flex flex-col justify-start mb-8">
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-primary/10 text-primary rounded-lg text-[10px] font-black tracking-widest uppercase mb-4 w-fit border border-primary/20">
-                {translatedCategory}
-              </div>
               
-              <h1 className="text-3xl md:text-4xl font-black text-foreground tracking-tight leading-tight">
+              
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-normal leading-tight mb-4">
                 {translatedName}
               </h1>
+              {/* Availability (Moved from bottom) */}
+              <div className="flex items-center gap-2 text-zinc-500 mt-2">
+                <CheckCircle size={16} className={trueRemainingStock > 0 ? "text-green-500" : "text-red-500"} />
+                <span className="text-sm font-medium">{trueRemainingStock} {t.productDetail.inStockSuffix}</span>
+              </div>
+              
             </div>
 
-            {/* Pricing Card */}
-            <div className="bg-zinc-50 dark:bg-white/5 rounded-2xl p-6 border border-border/50 mb-8">
-              <div className="flex flex-wrap items-end gap-3 mb-2">
-                {hasDiscount && (
-                  <span className="text-lg text-zinc-400 line-through decoration-red-500/50 mb-0.5">
-                    RM {strikeThroughPrice?.toFixed(2)}
-                  </span>
-                )}
-                <span className="text-3xl font-black text-foreground tracking-tighter">
-                  RM {activePrice.toFixed(2)}
-                </span>
-                
-                {hasDiscount && (
-                  <span className="text-xs font-bold text-green-500 mb-1 ml-1 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
-                    {t.productDetail.save} RM {savings.toFixed(2)}
-                  </span>
-                )}
-              </div>
-
-              {isSeller && (() => {
+            {/* Unified Pricing Card (Shopee Style) */}
+            <div className="rounded-2xl p-2 mb-8 space-y-8">
+              
+              {/* Dynamic Price Header */}
+              {isSeller ? (() => {
                 const labelsMap = {
-                  en: {
-                    original: 'Original Price',
-                    promo: 'Promotion Price',
-                    seller: 'Seller Price',
-                    discount: 'Total Discount',
-                    title: 'Seller Pricing Analysis'
-                  },
-                  zh: {
-                    original: '产品原价',
-                    promo: '促销特价',
-                    seller: '卖家特价',
-                    discount: '总折扣',
-                    title: '卖家价格对比分析'
-                  },
-                  ms: {
-                    original: 'Harga Asal',
-                    promo: 'Harga Promosi',
-                    seller: 'Harga Penjual',
-                    discount: 'Jumlah Diskaun',
-                    title: 'Analisis Harga Penjual'
-                  }
+                  en: { original: 'Original Price', promo: 'Promotion', seller: 'Seller Price', discount: 'Discount', title: 'Seller Pricing Analysis' },
+                  zh: { original: '原价', promo: '促销价', seller: '卖家价', discount: '折扣', title: '卖家价格对比分析' },
+                  ms: { original: 'Harga Asal', promo: 'Promosi', seller: 'Harga Penjual', discount: 'Diskaun', title: 'Analisis Harga Penjual' }
                 };
                 const currentLabels = labelsMap[locale as 'en' | 'zh' | 'ms'] || labelsMap.en;
 
                 return (
-                  <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+                  <div className="relative flex flex-col justify-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] py-4 px-5 rounded-xl overflow-hidden">
                     <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-3">
                       {currentLabels.title}
                     </p>
-                    <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+                    <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
                       <div className="overflow-x-auto">
                         <table className="w-full text-left text-[11px] border-collapse min-w-[320px]">
                           <thead>
                             <tr className="bg-zinc-50 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 font-extrabold border-b border-zinc-200 dark:border-zinc-800">
+                              <th className="px-4 py-2.5">Variant</th>
                               <th className="px-4 py-2.5">{currentLabels.original}</th>
                               <th className="px-4 py-2.5">{currentLabels.promo}</th>
                               <th className="px-4 py-2.5">{currentLabels.seller}</th>
@@ -470,105 +431,173 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                             </tr>
                           </thead>
                           <tbody>
-                            <tr className="font-bold text-foreground">
-                              <td className="px-4 py-3 text-zinc-400 dark:text-zinc-500 line-through">
-                                RM {product.price.toFixed(2)}
-                              </td>
-                              <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">
-                                {product.promotion !== null && product.promotion !== undefined && product.promotion < product.price
-                                  ? `RM ${product.promotion.toFixed(2)}`
-                                  : '-'
-                                }
-                              </td>
-                              <td className="px-4 py-3 text-primary font-extrabold">
-                                {product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0
-                                  ? `RM ${product.sellerPrice.toFixed(2)}`
-                                  : '-'
-                                }
-                              </td>
-                              <td className="px-4 py-3 text-green-500 font-extrabold text-right">
-                                {product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0 && product.sellerPrice < product.price
-                                  ? `RM ${(product.price - product.sellerPrice).toFixed(2)}`
-                                  : '-'
-                                }
-                              </td>
+                            <tr className={`font-bold text-foreground border-b border-zinc-100 dark:border-zinc-800/50 ${selectedVariant === 'Single' ? 'bg-primary/5' : ''}`}>
+                              <td className="px-4 py-3">Single</td>
+                              <td className="px-4 py-3 text-zinc-400 dark:text-zinc-500 line-through">RM {product.price.toFixed(2)}</td>
+                              <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">{product.promotion !== null && product.promotion !== undefined && product.promotion < product.price ? `RM ${product.promotion.toFixed(2)}` : '-'}</td>
+                              <td className="px-4 py-3 text-primary font-extrabold">{product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0 ? `RM ${product.sellerPrice.toFixed(2)}` : '-'}</td>
+                              <td className="px-4 py-3 text-green-500 font-extrabold text-right">{product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0 && product.sellerPrice < product.price ? `RM ${(product.price - product.sellerPrice).toFixed(2)}` : '-'}</td>
                             </tr>
+                            {hasBoxPricing && (
+                              <tr className={`font-bold text-foreground ${selectedVariant === 'Box' ? 'bg-primary/5' : ''}`}>
+                                <td className="px-4 py-3">Box</td>
+                                <td className="px-4 py-3 text-zinc-400 dark:text-zinc-500 line-through">RM {product.boxPrice!.toFixed(2)}</td>
+                                <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">{product.boxPromotion !== null && product.boxPromotion !== undefined && product.boxPromotion < product.boxPrice! ? `RM ${product.boxPromotion.toFixed(2)}` : '-'}</td>
+                                <td className="px-4 py-3 text-primary font-extrabold">{product.boxSellerPrice !== null && product.boxSellerPrice !== undefined && product.boxSellerPrice > 0 ? `RM ${product.boxSellerPrice.toFixed(2)}` : '-'}</td>
+                                <td className="px-4 py-3 text-green-500 font-extrabold text-right">{product.boxSellerPrice !== null && product.boxSellerPrice !== undefined && product.boxSellerPrice > 0 && product.boxSellerPrice < product.boxPrice! ? `RM ${(product.boxPrice! - product.boxSellerPrice).toFixed(2)}` : '-'}</td>
+                              </tr>
+                            )}
                           </tbody>
                         </table>
                       </div>
                     </div>
                   </div>
                 );
-              })()}
+              })() : (
+              <div className="relative flex flex-col justify-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] py-4 px-5 rounded-xl overflow-hidden">
+                <div className="flex flex-wrap items-end gap-3">
+                  {/* Strike Through Range or Specific */}
+                  {currentDisplayPrice ? (
+                    currentStrikePrice && (
+                      <span className="text-lg text-zinc-400 line-through decoration-red-500/50 mb-0.5">
+                        RM {currentStrikePrice.toFixed(2)}
+                      </span>
+                    )
+                  ) : (
+                    hasAnyDiscount && (
+                      <span className="text-lg text-zinc-400 line-through decoration-red-500/50 mb-0.5">
+                        {minOriginal === maxOriginal ? `RM ${minOriginal.toFixed(2)}` : `RM ${minOriginal.toFixed(2)} - RM ${maxOriginal.toFixed(2)}`}
+                      </span>
+                    )
+                  )}
 
-              <div className="mt-6 flex flex-col gap-4">
-                {/* Quantity Control */}
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{t.productDetail.selectQuantity}</span>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center bg-zinc-200 dark:bg-zinc-800 rounded-xl p-1 border border-zinc-300 dark:border-zinc-700">
-                      <button 
-                        onClick={decrement}
-                        disabled={localQty === 0}
-                        className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-zinc-700 transition-all text-zinc-600 dark:text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <span className="w-12 text-center font-black text-lg">{localQty}</span>
-                      <button 
-                        onClick={increment}
-                        disabled={localQty >= maxAvailable}
-                        className="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-zinc-900 hover:brightness-110 transition-all shadow-md disabled:bg-zinc-300 dark:disabled:bg-zinc-700 disabled:text-zinc-500 disabled:shadow-none disabled:cursor-not-allowed"
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 w-full mt-2">
-                  {/* Chat Now Button */}
-                  <button
-                    onClick={generateInquiryMessage}
-                    className="flex flex-col items-center justify-center gap-1.5 shrink-0 w-[80px] sm:w-[90px] h-[60px] bg-transparent text-zinc-500 dark:text-zinc-400 hover:text-green-500 transition-all active:scale-95"
-                  >
-                    <MessageCircle size={24} strokeWidth={2.5} className="text-green-500" /> 
-                    <span className="text-[10px] sm:text-[11px] font-black tracking-wide leading-none text-center">
-                      {locale === 'zh' ? '联系客服' : locale === 'ms' ? 'Sembang' : 'Chat Now'}
-                    </span>
-                  </button>
-
-                  {/* Add Button */}
-                  <button
-                    onClick={handleAddToCart}
-                    disabled={localQty === 0 || stock <= 0 || maxAvailable === 0}
-                    className="flex flex-col items-center justify-center gap-1.5 shrink-0 w-[80px] sm:w-[90px] h-[60px] bg-transparent text-zinc-500 dark:text-zinc-400 hover:text-primary transition-all disabled:opacity-50 disabled:grayscale active:scale-95"
-                  >
-                    <ShoppingCart size={24} strokeWidth={2.5} className="text-primary" /> 
-                    <span className="text-[10px] sm:text-[11px] font-black tracking-wide leading-none text-center">
-                      {stock <= 0 ? 'Out' : maxAvailable <= 0 ? 'Limit' : t.productDetail.addToCart}
-                    </span>
-                  </button>
-
-                  {/* Buy Now Button */}
-                  <button
-                    onClick={() => {
-                      setIsWhatsAppTermsAgreed(false);
-                      setIsCheckoutOpen(true);
-                    }}
-                    disabled={localQty === 0 || stock <= 0}
-                    className="flex-1 h-[60px] bg-primary text-zinc-900 rounded-[20px] font-black text-lg hover:brightness-110 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:grayscale disabled:shadow-none active:scale-[0.98]"
-                  >
-                    {locale === 'zh' ? '立即购买' : locale === 'ms' ? 'Beli Sekarang' : 'Buy Now'}
-                  </button>
+                  {/* Active Price Range or Specific */}
+                  <span className="text-3xl sm:text-4xl font-bold text-primary tracking-tight">
+                    {currentDisplayPrice ? (
+                      `RM ${currentDisplayPrice.toFixed(2)}`
+                    ) : (
+                      minPrice === maxPrice ? `RM ${minPrice.toFixed(2)}` : `RM ${minPrice.toFixed(2)} - RM ${maxPrice.toFixed(2)}`
+                    )}
+                  </span>
+                  
+                  {/* Discount Pill */}
+                  {currentDisplayPrice ? (
+                    currentStrikePrice && (
+                      <span className="text-xs font-bold text-primary mb-1 ml-1 bg-primary/10 px-2 py-0.5 rounded-sm">
+                        {selectedVariant === 'Single' ? `-${singleSavingsPercent}%` : `-${boxSavingsPercent}%`}
+                      </span>
+                    )
+                  ) : (
+                    hasAnyDiscount && maxSavingsPercent > 0 && (
+                      <span className="text-xs font-bold text-primary mb-1 ml-1 bg-primary/10 px-2 py-0.5 rounded-sm">
+                        {minPrice === maxPrice ? `-${maxSavingsPercent}%` : `Up to -${maxSavingsPercent}%`}
+                      </span>
+                    )
+                  )}
                 </div>
               </div>
+
+              )}
+              {/* Options Selector */}
+              {hasBoxPricing && (
+                <div className="flex flex-row items-center gap-4">
+                  <span className="text-sm font-medium text-zinc-400 w-16">
+                    {locale === 'zh' ? '选项' : locale === 'ms' ? 'Pilihan' : 'Option'}:
+                  </span>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => {
+                        setSelectedVariant('Single');
+                        setLocalQty(1);
+                      }}
+                      className={`px-5 py-2.5 rounded-xl text-sm font-medium border transition-all ${selectedVariant === 'Single' ? 'border-zinc-900 dark:border-white text-zinc-900 bg-white shadow-md' : 'border-zinc-300 dark:border-zinc-700 text-zinc-500 hover:border-zinc-900 dark:hover:border-white hover:text-zinc-900 dark:hover:text-white'}`}
+                    >
+                      {locale === 'zh' ? '单品' : locale === 'ms' ? 'Satu' : 'Single Item'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedVariant('Box');
+                        setLocalQty(1);
+                      }}
+                      className={`px-5 py-2.5 rounded-xl text-sm font-medium border transition-all flex items-center gap-2 ${selectedVariant === 'Box' ? 'border-zinc-900 dark:border-white text-zinc-900 bg-white shadow-md' : 'border-zinc-300 dark:border-zinc-700 text-zinc-500 hover:border-zinc-900 dark:hover:border-white hover:text-zinc-900 dark:hover:text-white'}`}
+                    >
+                      {locale === 'zh' ? '整盒' : locale === 'ms' ? 'Kotak' : 'Per Box'}
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-sm ${selectedVariant === 'Box' ? 'bg-zinc-200 text-zinc-900' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500'}`}>
+                        {product.itemsPerBox} {locale === 'zh' ? '件' : locale === 'ms' ? 'Item' : 'Items'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Quantity */}
+              <div className="flex flex-row items-center gap-4">
+                <span className="text-sm font-medium text-zinc-400 w-16">
+                  {locale === 'zh' ? '数量' : locale === 'ms' ? 'Kuantiti' : 'Quantity'}:
+                </span>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center border border-zinc-300 dark:border-zinc-700 rounded-xl w-fit overflow-hidden">
+                    <button 
+                      onClick={decrement}
+                      disabled={localQty <= 1 || !selectedVariant}
+                      className="w-10 h-10 flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all text-zinc-600 dark:text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed border-r border-zinc-300 dark:border-zinc-700"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <span className="w-14 text-center font-bold text-base bg-white dark:bg-zinc-950 h-10 flex items-center justify-center">{selectedVariant ? localQty : 0}</span>
+                    <button 
+                      onClick={increment}
+                      disabled={localQty >= currentMaxAvailable || !selectedVariant}
+                      className="w-10 h-10 flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all text-zinc-600 dark:text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed border-l border-zinc-300 dark:border-zinc-700"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                  
+                </div>
+              </div>
+
+              
+
+              {/* Action Buttons (Shopee Style) */}
+              <div className="pt-4 flex items-center gap-3 w-full">
+                <button
+                  onClick={handleAddToCart}
+                  className="flex-1 h-[54px] bg-white text-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl font-medium text-base hover:bg-zinc-50 transition-all flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm"
+                >
+                  <ShoppingCart size={18} /> {t.productDetail.addToCart}
+                </button>
+
+                <button
+                  onClick={handleBuyNow}
+                  className="flex-1 h-[54px] bg-primary text-zinc-900 rounded-xl font-bold text-base hover:brightness-110 transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98]"
+                >
+                  {locale === 'zh' ? '立即购买' : locale === 'ms' ? 'Beli Sekarang' : 'Buy Now'}
+                </button>
+              </div>
+
             </div>
 
-            {/* Availability */}
-            <div className="flex items-center gap-2 text-zinc-500">
-              <CheckCircle size={14} className={stock > 0 ? "text-green-500" : "text-red-500"} />
-              <span className="text-xs font-medium">{stock} {t.productDetail.inStockSuffix}</span>
+            {/* Footer Row: Share */}
+            <div className="flex items-center justify-end w-full pt-4 mt-2 border-t border-zinc-100 dark:border-zinc-800/50">
+              {/* Share Feature */}
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium text-zinc-400">Share:</span>
+                <button 
+                  onClick={handleWhatsAppShare}
+                  className="w-8 h-8 rounded-full hover:scale-110 transition-transform flex items-center justify-center overflow-hidden drop-shadow-sm"
+                  title="Share to WhatsApp"
+                >
+                  <img src="/whatsapp-call-icon-psd-editable_314999-3666.avif" alt="WhatsApp" className="w-full h-full object-contain" />
+                </button>
+                <button 
+                  onClick={handleCopyLink}
+                  className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-foreground transition-colors flex items-center justify-center"
+                  title="Copy Link"
+                >
+                  {isCopied ? <Check size={16} className="text-green-500" /> : <LinkIcon size={16} />}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -580,12 +609,12 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
           {/* 1. Description Section */}
           <section className="bg-white dark:bg-zinc-900 rounded-2xl p-8 md:p-10 border border-border shadow-sm">
             <div className="flex items-center gap-2 mb-8 border-l-4 border-primary pl-4">
-              <h2 className="text-2xl font-black tracking-tight uppercase">{t.productDetail.description}</h2>
+              <h2 className="text-2xl font-bold tracking-tight uppercase">{t.productDetail.description}</h2>
             </div>
             
             <div className="space-y-8">
               <div className="space-y-2">
-                <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest">{t.productDetail.productDetails}</h4>
+                <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{t.productDetail.productDetails}</h4>
                 <div className="space-y-1 text-sm text-zinc-600 dark:text-zinc-300 font-medium">
                   <p>{t.productDetail.code}: {product.code?.toUpperCase() || product.id.toUpperCase()}</p>
                   <p>{t.productDetail.name}: {translatedName}</p>
@@ -594,7 +623,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
               </div>
 
               <div className="space-y-2">
-                <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest">{t.productDetail.productDescription}</h4>
+                <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{t.productDetail.productDescription}</h4>
                 <p className="text-sm text-zinc-600 dark:text-zinc-300 font-medium whitespace-pre-wrap">
                   {translatedDesc}
                 </p>
@@ -606,7 +635,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
           {embedUrl && (
             <section className="bg-white dark:bg-zinc-900 rounded-2xl p-8 md:p-10 border border-border shadow-sm">
               <div className="flex items-center gap-2 mb-8 border-l-4 border-primary pl-4">
-                <h2 className="text-2xl font-black tracking-tight uppercase">{t.productDetail.videoDemo}</h2>
+                <h2 className="text-2xl font-bold tracking-tight uppercase">{t.productDetail.videoDemo}</h2>
               </div>
               
               <div className="w-full">
@@ -690,370 +719,49 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
 {/* ── CHECKOUT MODAL ────────────────────────────────────────── */}
         {isCheckoutOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-            {/* Backdrop */}
-            <div 
-              className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity animate-in fade-in duration-300"
-              onClick={() => setIsCheckoutOpen(false)}
-            />
-            
-            {/* Modal Content */}
-            <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-950 rounded-[40px] shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 animate-in slide-in-from-bottom-8 duration-500">
-              <button 
-                onClick={() => setIsCheckoutOpen(false)}
-                className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors z-20 text-zinc-500"
-              >
-                <X size={24} />
-              </button>
-
-              <form onSubmit={handleCheckoutSubmit} className="max-h-[90vh] overflow-y-auto">
-                <div className="p-8 sm:p-12">
-                  <div className="mb-10">
-                    <h2 className="text-3xl font-black text-foreground mb-2">{t.cart.checkout.title} <span className="text-primary">{t.cart.checkout.titleAccent}</span></h2>
-                    <p className="text-muted-foreground font-medium">{t.cart.checkout.desc}</p>
-                  </div>
-
-                  <div className="space-y-8">
-
-                    {/* Customer Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">
-                          <User size={12} className="text-primary" /> {t.cart.checkout.formName}
-                        </label>
-                        <input 
-                          type="text" 
-                          required
-                          className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold"
-                          placeholder={t.cart.checkout.formNamePlaceholder}
-                          value={orderDetails.customerName}
-                          onChange={(e) => setOrderDetails({ ...orderDetails, customerName: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="relative flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1 group w-max">
-                          <Phone size={12} className="text-primary" /> {t.cart.checkout.formPhone}
-                          <span className="cursor-help flex items-center justify-center w-4 h-4 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-500 hover:text-primary transition-colors">
-                            <HelpCircle size={10} strokeWidth={3} />
-                          </span>
-                          {/* Instant Custom Tooltip */}
-                          <div className="absolute bottom-full mb-1.5 left-0 hidden group-hover:block w-[220px] p-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] leading-relaxed font-bold rounded-lg shadow-2xl z-[110] normal-case tracking-normal">
-                            {(t.cart.checkout as any).phoneFormatHint || "Only Malaysia mobile numbers (+60 or 01) are allowed."}
-                            <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-zinc-900 dark:bg-white rotate-45 rounded-sm" />
-                          </div>
-                        </label>
-                        <input 
-                          type="tel" 
-                          required
-                          pattern="^(\+?601|01)[0-9]{8,9}$"
-                          title={(t.cart.checkout as any).phoneFormatHint || "Only Malaysia mobile numbers (+60 or 01) are allowed."}
-                          className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold"
-                          placeholder={t.cart.checkout.formPhonePlaceholder}
-                          value={orderDetails.customerPhone}
-                          onChange={(e) => setOrderDetails({ ...orderDetails, customerPhone: e.target.value })}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Payment Method */}
-                    <div className="space-y-3">
-                      <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">
-                        <CreditCard size={12} className="text-primary" /> {t.cart.checkout.paymentTitle}
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {['TNG e-wallet', 'bank transfer', 'DuitNow qr'].map((method) => (
-                          <button
-                            key={method}
-                            type="button"
-                            onClick={() => setOrderDetails({ ...orderDetails, paymentMethod: method })}
-                            className={cn(
-                              "px-4 py-4 rounded-2xl border text-[11px] font-black uppercase tracking-tight transition-all flex items-center justify-center gap-2",
-                              orderDetails.paymentMethod === method
-                                ? "bg-primary border-primary text-zinc-900 shadow-lg shadow-primary/20 scale-[1.02]"
-                                : "bg-zinc-50 dark:bg-white/5 border-border text-zinc-500 dark:text-zinc-400 hover:border-primary/50"
-                            )}
-                          >
-                            {orderDetails.paymentMethod === method && <Check size={14} strokeWidth={3} />}
-                            {paymentMethodLabels[method]?.[locale] || method}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Delivery Mode */}
-                    <div className="space-y-3">
-                      <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">
-                        <MapPin size={12} className="text-primary" /> {t.cart.checkout.deliveryTitle}
-                      </label>
-                      <div className="grid grid-cols-2 gap-3">
-                        {['Self Collect', 'Delivery'].map((mode) => (
-                          <button
-                            key={mode}
-                            type="button"
-                            onClick={() => setOrderDetails({ ...orderDetails, deliveryMode: mode })}
-                            className={cn(
-                              "px-4 py-4 rounded-2xl border text-sm font-black transition-all flex items-center justify-center gap-2",
-                              orderDetails.deliveryMode === mode
-                                ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-xl scale-[1.02]"
-                                : "bg-zinc-50 dark:bg-white/5 border-border text-zinc-500 dark:text-zinc-400 hover:border-zinc-900/50 dark:hover:border-white/50"
-                            )}
-                          >
-                            {deliveryModeLabels[mode]?.[locale] || mode}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Address (If Delivery) */}
-                    {orderDetails.deliveryMode === 'Delivery' && (
-                      <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">{t.cart.checkout.address}</label>
-                        <textarea 
-                          required
-                          className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold resize-none"
-                          placeholder={t.cart.checkout.addressPlaceholder}
-                          rows={3}
-                          value={orderDetails.address}
-                          onChange={(e) => setOrderDetails({ ...orderDetails, address: e.target.value })}
-                        />
-                      </div>
-                    )}
-
-                    {/* Special Notes */}
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">{t.cart.checkout.notes}</label>
-                      <textarea 
-                        rows={3}
-                        className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold resize-none"
-                        placeholder={t.cart.checkout.notesPlaceholder}
-                        value={orderDetails.notes}
-                        onChange={(e) => setOrderDetails({ ...orderDetails, notes: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mt-12 flex flex-col gap-4">
-                     {/* Premium custom robot verification checkbox */}
-                     <motion.div 
-                       animate={shakeControls}
-                       className={cn(
-                         "border rounded-2xl p-4 transition-all duration-300 flex items-start gap-4 cursor-pointer select-none",
-                         isWhatsAppTermsAgreed 
-                           ? "bg-green-500/5 border-green-500/30 dark:bg-green-500/10" 
-                           : "bg-blue-500/5 border-blue-500/20 dark:bg-blue-500/10 hover:border-blue-500/40",
-                         shakeTerms && "border-red-500 bg-red-500/5 dark:bg-red-500/10"
-                       )}
-                       onClick={() => setIsWhatsAppTermsAgreed(!isWhatsAppTermsAgreed)}
-                     >
-                       <div className="flex items-center mt-0.5">
-                         <div className={cn(
-                           "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200 shrink-0",
-                           isWhatsAppTermsAgreed 
-                             ? "bg-green-500 border-green-500 text-zinc-900 scale-105 shadow-md shadow-green-500/20" 
-                             : "border-blue-400 dark:border-blue-500 bg-white dark:bg-zinc-950"
-                         )}>
-                           {isWhatsAppTermsAgreed && <Check size={14} strokeWidth={4} />}
-                         </div>
-                       </div>
-                       <div className="text-left">
-                         <p className={cn(
-                           "text-[10px] font-black uppercase tracking-widest mb-1 transition-colors",
-                           isWhatsAppTermsAgreed ? "text-green-500 animate-pulse" : "text-blue-500"
-                         )}>
-                           {locale === 'zh' ? '安全下单验证' : locale === 'ms' ? 'Pengesahan Pesanan Selamat' : 'Secure Order Verification'}
-                         </p>
-                         <p className={cn(
-                           "text-[11px] font-bold leading-relaxed transition-colors",
-                           isWhatsAppTermsAgreed ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400"
-                         )}>
-                           {locale === 'zh' 
-                             ? '我明了并同意：点击后，我将被重定向到 WhatsApp 且内容已自动填好。为避免下单失败，我绝不修改文本，直接点击发送。' 
-                             : locale === 'ms' 
-                               ? 'Saya faham & setuju: Selepas klik, saya akan dihalakan ke WhatsApp dengan maklumat yang diisi automatik. Saya tidak akan mengubah mesej dan terus klik hantar.' 
-                               : 'I understand & agree: After clicking, I will be redirected to WhatsApp with autofilled information. I will not edit the text and click send directly.'}
-                         </p>
-                       </div>
-                     </motion.div>
-
-                     <button 
-                        type="submit"
-                        disabled={isSubmitting}
-                        onClick={(e) => {
-                          if (!isWhatsAppTermsAgreed) {
-                            e.preventDefault();
-                            shakeControls.start({
-                              x: [0, -15, 15, -12, 12, -8, 8, -4, 4, 0],
-                              y: [0, 8, -8, 6, -6, 4, -4, 2, -2, 0],
-                              rotate: [0, -3, 3, -2, 2, -1, 1, 0],
-                              transition: { duration: 0.5, ease: "easeInOut" }
-                            });
-                            setShakeTerms(true);
-                            setTimeout(() => setShakeTerms(false), 500);
-                          }
-                        }}
-                        className={cn(
-                          "w-full py-5 px-4 mb-2 bg-primary text-zinc-900 rounded-[20px] font-black text-lg transition-all flex justify-center items-center gap-2",
-                          (!isWhatsAppTermsAgreed || isSubmitting) ? "opacity-40 cursor-not-allowed grayscale shadow-none" : "hover:brightness-110 shadow-xl hover:shadow-primary/20 active:scale-[0.98]"
-                        )}
-                     >
-                        {isSubmitting ? (
-                          <div className="w-6 h-6 border-4 border-zinc-900/20 border-t-zinc-900 rounded-full animate-spin" />
-                        ) : (
-                          <MessageCircle size={22} strokeWidth={3} className="shrink-0" />
-                        )}
-                        <span className="leading-tight">
-                          {isSubmitting ? 'Processing...' : t.cart.checkout.confirmBtn}
-                        </span>
-                     </button>
-
-                     <div className="flex justify-end mt-2">
-                       <button
-                         type="button"
-                         onClick={() => setIsGuideOpen(true)}
-                         className="flex items-center gap-1.5 text-zinc-500 hover:text-primary transition-colors text-xs font-black uppercase tracking-widest"
-                       >
-                         <HelpCircle size={14} strokeWidth={3} />
-                         {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}
-                       </button>
-                     </div>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
+          <SharedCheckoutModal
+            mode="single"
+            product={product}
+            quantity={localQty}
+            onClose={() => setIsCheckoutOpen(false)}
+          />
         )}
 
-        {/* ── GUIDANCE MODAL ────────────────────────────────────────── */}
-        {isGuideOpen && (
+      <AnimatePresence>
+        {isWarningModalOpen && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6">
-            <div 
-              className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity animate-in fade-in duration-300"
-              onClick={() => setIsGuideOpen(false)}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsWarningModalOpen(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
             />
-            <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-950 rounded-[40px] shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 animate-in slide-in-from-bottom-8 duration-500">
-              <button 
-                onClick={() => setIsGuideOpen(false)}
-                className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors z-20 text-zinc-500"
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col items-center text-center"
+            >
+              <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6">
+                <span className="text-red-500 text-2xl font-black">!</span>
+              </div>
+              <h3 className="text-xl font-black text-foreground mb-2">
+                {locale === 'zh' ? '请选择一个选项' : locale === 'ms' ? 'Sila Pilih Pilihan' : 'Select an Option'}
+              </h3>
+              <p className="text-zinc-500 text-sm mb-8 font-medium">
+                {locale === 'zh' ? '请在加入购物车或购买前选择单品或整盒。' : locale === 'ms' ? 'Sila pilih samada Satu atau Kotak sebelum meneruskan.' : 'Please choose whether you want Single or Per Box before proceeding.'}
+              </p>
+              <button
+                onClick={() => setIsWarningModalOpen(false)}
+                className="w-full py-4 bg-primary text-zinc-900 rounded-2xl font-black text-lg hover:brightness-110 transition-all active:scale-95"
               >
-                <X size={24} />
+                {locale === 'zh' ? '好的' : locale === 'ms' ? 'OK' : 'OK'}
               </button>
-              <div className="p-8 sm:p-12 max-h-[85vh] overflow-y-auto text-center">
-                 <h2 className="text-3xl font-black text-foreground mb-8">
-                   {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}
-                 </h2>
-                 
-                 <div className="space-y-12 text-left">
-                   {/* Step 1 placeholder */}
-                   <div className="space-y-4">
-                     <h3 className="text-xl font-bold flex items-center gap-3">
-                       <span className="w-8 h-8 rounded-full bg-primary text-zinc-900 flex items-center justify-center font-black">1</span> 
-                       {locale === 'zh' ? '自动跳转到 WhatsApp' : locale === 'ms' ? 'Hala ke WhatsApp' : 'Redirect to WhatsApp'}
-                     </h3>
-                     <p className="text-muted-foreground leading-relaxed">
-                       {locale === 'zh' 
-                         ? '点击确认后，您将被直接带到 WhatsApp，我们已为您自动填好包含订单详细信息的消息。' 
-                         : locale === 'ms' 
-                         ? 'Selepas pengesahan, anda akan dibawa ke WhatsApp. Mesej mengandungi butiran pesanan anda akan diisi secara automatik.' 
-                         : 'After confirming, you will be taken to WhatsApp where your message containing order details will be automatically filled.'}
-                     </p>
-                     <div 
-                       className="w-full rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm relative cursor-zoom-in group"
-                       onClick={() => setZoomedImage('/ordering guide/image1.png')}
-                     >
-                       <img 
-                         src="/ordering guide/image1.png" 
-                         alt="Guide Step 1" 
-                         className="w-full h-auto object-contain bg-zinc-50 dark:bg-zinc-900 group-hover:scale-105 transition-transform duration-500" 
-                       />
-                     </div>
-                   </div>
-
-                   {/* Step 2 placeholder */}
-                   <div className="space-y-4">
-                     <h3 className="text-xl font-bold flex items-center gap-3">
-                       <span className="w-8 h-8 rounded-full bg-primary text-zinc-900 flex items-center justify-center font-black">2</span> 
-                       {locale === 'zh' ? '发送信息' : locale === 'ms' ? 'Hantar Mesej' : 'Send the Message'}
-                     </h3>
-                     <p className="text-muted-foreground leading-relaxed">
-                       {locale === 'zh' 
-                         ? '只需在 WhatsApp 中点击“发送”即可！为确保系统准确处理，请不要修改任何预填文本。' 
-                         : locale === 'ms' 
-                         ? 'Hanya klik "Hantar" di WhatsApp! Jangan ubah sebarang teks pramuat untuk memastikan pemprosesan yang tepat.' 
-                         : 'Simply click "Send" in WhatsApp! Please do not modify the pre-filled text to ensure your order is processed accurately.'}
-                     </p>
-                     <div 
-                       className="w-full rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm relative cursor-zoom-in group"
-                       onClick={() => setZoomedImage('/ordering guide/image2.png')}
-                     >
-                       <img 
-                         src="/ordering guide/image2.png" 
-                         alt="Guide Step 2" 
-                         className="w-full h-auto object-contain bg-zinc-50 dark:bg-zinc-900 group-hover:scale-105 transition-transform duration-500" 
-                       />
-                     </div>
-                   </div>
-
-
-                   {/* Step 3 */}
-                   <div className="space-y-4">
-                     <h3 className="text-xl font-bold flex items-center gap-3">
-                       <span className="w-8 h-8 rounded-full bg-primary text-zinc-900 flex items-center justify-center font-black">3</span> 
-                       {locale === 'zh' ? '等待客服确认' : locale === 'ms' ? 'Tunggu Pengesahan Peniaga' : 'Wait for Dealer Confirmation'}
-                     </h3>
-                     <p className="text-muted-foreground leading-relaxed">
-                       {locale === 'zh' 
-                         ? '我们的客服将在 24 小时内回复您，处理您的订单并完成交易。请耐心等待，我们会尽快与您对接！' 
-                         : locale === 'ms' 
-                         ? 'Peniaga kami akan membalas dalam masa 24 jam untuk memproses pesanan anda. Sila tunggu dengan sabar sementara kami menyelesaikan urusan dengan anda!' 
-                         : 'Our dealer will reply within 24 hours to process your order and complete the deal. Please wait patiently as we will assist you very soon!'}
-                     </p>
-                   </div>
-                 </div>
-
-                  <button 
-                    onClick={() => setIsGuideOpen(false)}
-                    className="w-full mt-10 py-5 bg-primary text-zinc-900 rounded-[20px] font-black text-lg transition-all shadow-xl hover:shadow-primary/20 hover:brightness-110 active:scale-[0.98]"
-                  >
-                    {locale === 'zh' ? '知道了！' : locale === 'ms' ? 'Faham!' : 'Got it!'}
-                  </button>
-              </div>
-            </div>
+            </motion.div>
           </div>
         )}
-
-        {/* ── IMAGE LIGHTBOX ────────────────────────────────────────── */}
-        {zoomedImage && (
-          <div 
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-sm p-4 sm:p-8"
-            onClick={() => setZoomedImage(null)}
-          >
-            <button
-              onClick={() => setZoomedImage(null)}
-              className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-white transition-all duration-200 z-10"
-            >
-              <X size={20} />
-            </button>
-            <div
-              className="relative w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <img
-                src={zoomedImage}
-                alt="Zoomed Preview"
-                className="w-auto h-auto max-w-full max-h-[85vh] object-contain z-10"
-              />
-              {/* Centered Watermark Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                <img 
-                  src={settings?.watermarkUrl || "/transparent-Background.png"} 
-                  className="w-[70%] h-[70%] max-h-[70vh] object-contain opacity-30 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700" 
-                  alt="" 
-                  draggable={false}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+      </AnimatePresence>
     </>
   );
 }

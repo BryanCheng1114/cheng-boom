@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export interface CartItem {
   id: string;
+  cartItemId: string;
+  variant?: 'Single' | 'Box';
   code?: string | null;
   name: string;
   price: number;
@@ -9,6 +11,7 @@ export interface CartItem {
   image?: string;
   quantity: number;
   stock?: number;
+  itemsPerBox?: number;
 }
 
 interface CartContextType {
@@ -16,6 +19,7 @@ interface CartContextType {
   addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number, maxStockOverride?: number) => void;
+  updateVariant: (id: string, variant: 'Single' | 'Box', newPrice?: number, newOriginalPrice?: number) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -71,11 +75,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = (newItem: Omit<CartItem, 'quantity'>, quantity: number = 1) => {
     setItems((prev) => {
-      const existing = prev.find((item) => item.id === newItem.id);
+      const existing = prev.find((item) => item.cartItemId === newItem.cartItemId);
       const maxStock = newItem.stock !== undefined ? newItem.stock : Infinity;
       if (existing) {
         return prev.map((item) =>
-          item.id === newItem.id
+          item.cartItemId === newItem.cartItemId
             ? { ...item, quantity: Math.min(item.quantity + quantity, maxStock) }
             : item
         );
@@ -84,22 +88,36 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+  const removeItem = (cartItemId: string) => {
+    setItems((prev) => prev.filter((item) => item.cartItemId !== cartItemId));
   };
 
-  const updateQuantity = (id: string, quantity: number, maxStockOverride?: number) => {
+  const updateQuantity = (cartItemId: string, quantity: number, maxStockOverride?: number) => {
     if (quantity <= 0) {
-      removeItem(id);
+      removeItem(cartItemId);
       return;
     }
     setItems((prev) =>
       prev.map((item) => {
-        if (item.id === id) {
+        if (item.cartItemId === cartItemId) {
           const limit = maxStockOverride !== undefined 
             ? maxStockOverride 
             : (item.stock !== undefined ? item.stock : Infinity);
           return { ...item, quantity: Math.min(quantity, limit) };
+        }
+        return item;
+      })
+    );
+  };
+
+  const updateVariant = (cartItemId: string, variant: 'Single' | 'Box', newPrice?: number, newOriginalPrice?: number) => {
+    setItems((prev) =>
+      prev.map((item) => {
+        if (item.cartItemId === cartItemId) {
+          const updatedItem = { ...item, variant };
+          if (newPrice !== undefined) updatedItem.price = newPrice;
+          if (newOriginalPrice !== undefined) updatedItem.originalPrice = newOriginalPrice;
+          return updatedItem;
         }
         return item;
       })
@@ -126,7 +144,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, totalOriginalPrice, totalDiscount, discountPercent, isFreeShipping }}
+      value={{ items, addItem, removeItem, updateQuantity, updateVariant, clearCart, totalItems, totalPrice, totalOriginalPrice, totalDiscount, discountPercent, isFreeShipping }}
     >
       {children}
     </CartContext.Provider>

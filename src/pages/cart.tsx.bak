@@ -387,21 +387,193 @@ export default function Cart() {
                 </Link>
                 <Link 
                   href="/login" 
+          setProductsMap(pMap);
+        }
+      } catch (err) {
+        console.error('Failed to fetch product stocks:', err);
+      }
+    };
+    fetchStocks();
+  }, []);
+
+  const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0]) return;
+    
+    const file = e.target.files[0];
+    if (file.type === 'application/pdf') {
+      setPdfErrorModalOpen(true);
+      e.target.value = '';
+      return;
+    }
+    
+    setIsUploadingReceipt(true);
+    try {
+      const file = e.target.files[0];
+      const formDataObj = new FormData();
+      formDataObj.append('files', file);
+      
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formDataObj,
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setOrderDetails(prev => ({ ...prev, paymentReceiptUrl: data.urls[0] }));
+      } else {
+        alert('Upload failed');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Upload error');
+    } finally {
+      setIsUploadingReceipt(false);
+    }
+  };
+
+  // Monitor stock and auto-clamp quantities if database stock levels decrease
+  useEffect(() => {
+    if (Object.keys(productsStock).length > 0) {
+      items.forEach((item) => {
+        const dbStock = productsStock[item.id];
+        if (dbStock !== undefined && item.quantity > dbStock) {
+          updateQuantity(item.cartItemId, dbStock);
+        }
+      });
+    }
+  }, [productsStock, items, updateQuantity]);
+
+  if (!mounted) return null; // Prevent hydration mismatch
+
+  const ErrorModals = (
+    <AnimatePresence>
+      {/* PDF Error Modal */}
+      {pdfErrorModalOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6"
+        >
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setPdfErrorModalOpen(false)}
+          />
+          <motion.div
+            initial={{ scale: 0.95, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.95, y: 20 }}
+            className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-800"
+          >
+            <div className="p-8 flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mb-6">
+                <Shield size={32} />
+              </div>
+              <h3 className="text-xl font-black text-foreground mb-3">
+                {locale === 'zh' ? '不支持 PDF' : locale === 'ms' ? 'PDF Tidak Dibenarkan' : 'PDF Not Allowed'}
+              </h3>
+              <p className="text-zinc-500 dark:text-zinc-400 font-medium mb-8 text-sm leading-relaxed">
+                {locale === 'zh' ? '请仅上传图片文件（如 JPG、PNG）作为您的付款收据。' : locale === 'ms' ? 'Sila muat naik fail imej (seperti JPG, PNG) sahaja untuk resit pembayaran anda.' : 'Please upload only image files (like JPG, PNG) for your payment receipt.'}
+              </p>
+              <button
+                onClick={() => setPdfErrorModalOpen(false)}
+                className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black uppercase tracking-widest transition-colors shadow-lg shadow-amber-500/20"
+              >
+                {locale === 'zh' ? '确定' : locale === 'ms' ? 'OK' : 'OK'}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Insufficient Stock Modal */}
+      {stockErrorModalOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6"
+        >
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setStockErrorModalOpen(false)}
+          />
+          <motion.div
+            initial={{ scale: 0.95, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.95, y: 20 }}
+            className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-800"
+          >
+            <div className="p-8 flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mb-6">
+                <AlertTriangle size={32} />
+              </div>
+              <h3 className="text-xl font-black text-foreground mb-3">
+                {locale === 'zh' ? '商品已售罄' : locale === 'ms' ? 'Item Habis Dijual' : 'Item Sold Out'}
+              </h3>
+              <p className="text-zinc-500 dark:text-zinc-400 font-medium mb-4 text-sm leading-relaxed">
+                {locale === 'zh' 
+                  ? '抱歉，您抢购的以下商品刚刚已售罄。您的购物车已自动更新。' 
+                  : locale === 'ms' 
+                  ? 'Maaf, item berikut telah habis dijual. Troli anda telah dikemas kini.' 
+                  : 'Sorry, the following items just sold out. Your cart has been updated.'}
+              </p>
+
+              <div className="w-full bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 mb-8 text-left max-h-32 overflow-y-auto">
+                <ul className="space-y-2">
+                  {stockErrorProductName.split(',').filter(Boolean).map((name, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+                      <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{name.trim()}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <button
+                onClick={() => setStockErrorModalOpen(false)}
+                className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black uppercase tracking-widest transition-colors shadow-lg shadow-amber-500/20"
+              >
+                {locale === 'zh' ? '确定' : locale === 'ms' ? 'OK' : 'OK'}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  if (items.length === 0) {
+    return (
+      <>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center min-h-[60vh] flex flex-col justify-center items-center">
+          <div className="mb-6 text-foreground">
+            <ShoppingCart size={64} strokeWidth={1.5} />
+          </div>
+          <h1 className="text-3xl font-bold mb-4 text-foreground">{t.cart.emptyTitle || 'Your cart is empty'}</h1>
+          
+          {!isLoggedIn ? (
+            <>
+              <p className="text-muted-foreground mb-8 text-sm max-w-md leading-relaxed">
+                {locale === 'zh' 
+                  ? `登录您的 ${settings?.businessName || 'Cheng-BOOM'} 帐户以查看您保存的商品或继续购物` 
+                  : locale === 'ms'
+                  ? `Log masuk ke akaun ${settings?.businessName || 'Cheng-BOOM'} anda untuk melihat item anda yang disimpan atau teruskan membeli-belah`
+                  : `Sign in to your ${settings?.businessName || 'Cheng-BOOM'} account to view your saved items or continue shopping`}
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
+                <Link 
+                  href="/shop" 
+                  className="w-full sm:w-auto px-8 py-3 bg-white text-zinc-900 rounded-full font-bold hover:bg-zinc-200 transition-all inline-flex items-center justify-center gap-2 shadow-lg"
+                >
+                  {locale === 'zh' ? '继续购物' : locale === 'ms' ? 'Teruskan Membeli-belah' : 'Continue shopping'} <ArrowRight size={20} />
+                </Link>
+                <Link 
+                  href="/login" 
                   className="w-full sm:w-auto px-8 py-3 bg-primary border-2 border-primary text-zinc-900 rounded-full font-bold hover:brightness-110 transition-all text-center shadow-lg shadow-primary/20"
                 >
                   {locale === 'zh' ? '登录' : locale === 'ms' ? 'Log Masuk' : 'Sign in'}
                 </Link>
               </div>
-            </>
-          ) : (
-            <>
-              <p className="text-muted-foreground mb-8 text-lg">{t.cart.emptyDesc}</p>
-              <Link 
-                href="/shop" 
-                className="px-8 py-3 bg-white text-zinc-900 rounded-full font-bold hover:bg-zinc-200 transition-all inline-flex items-center gap-2 shadow-lg"
-              >
-                {t.cart.startShopping || 'Continue shopping'} <ArrowRight size={20} />
-              </Link>
             </>
           )}
         </div>

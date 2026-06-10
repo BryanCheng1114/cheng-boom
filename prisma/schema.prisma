@@ -30,6 +30,10 @@ model Product {
   price       Float
   sellerPrice Float?   // Seller special price
   promotion   Float?
+  boxPrice       Float?
+  itemsPerBox    Int?
+  boxSellerPrice Float?
+  boxPromotion   Float?
   category    String?
   status      String   @default("Live")
   createdAt   DateTime @default(now())
@@ -126,4 +130,5 @@ model OrderItem {
   name      String
   price     Float
   quantity  Int
+  variant   String?
 }
