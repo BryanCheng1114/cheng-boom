@@ -209,7 +209,9 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
         name: singleTranslatedName || '',
         price: activePrice,
         originalPrice: strikeThroughPrice,
-        quantity: quantity
+        quantity: quantity,
+        variant: 'Single',
+        itemsPerBox: product.itemsPerBox
       }] : (cartItems?.map(item => ({
         id: item.id,
         cartItemId: item.cartItemId,
@@ -217,7 +219,9 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
         name: item.name,
         price: item.price,
         originalPrice: item.originalPrice,
-        quantity: item.quantity
+        quantity: item.quantity,
+        variant: item.variant,
+        itemsPerBox: item.itemsPerBox
       })) || []);
 
       const response = await fetch('/api/orders', {

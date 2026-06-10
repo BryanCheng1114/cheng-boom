@@ -86,7 +86,7 @@ export const sendOrderReceiptEmail = async (
     }
 
     const discountLabel = isSellerPrice
-      ? `<span style="color: #f59e0b; font-size: 11px; font-weight: bold;">Seller Price</span>`
+      ? `<span style="color: #f59e0b; font-size: 11px; font-weight: bold;">Seller Discount</span>`
       : `<span style="color: #dc2626; font-size: 11px;">Promo</span>`;
 
     const discountCell = isDiscounted
@@ -102,9 +102,9 @@ export const sendOrderReceiptEmail = async (
         ${variantLabel ? `<br/><span style="display: inline-block; margin-top: 3px; padding: 1px 6px; background: #f4f4f5; border-radius: 4px; font-size: 11px; color: #555; font-weight: 600;">${variantLabel}</span>` : ''}
       </td>
       <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: center;">${item.quantity}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right;">RM ${parseFloat(orig).toFixed(2)}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right;">${discountCell}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right;">RM ${(parseFloat(item.price) * item.quantity).toFixed(2)}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right; white-space: nowrap;">RM ${parseFloat(orig).toFixed(2)}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right; white-space: nowrap;">${discountCell}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right; white-space: nowrap;">RM ${(parseFloat(item.price) * item.quantity).toFixed(2)}</td>
     </tr>
   `;
   }).join('');
@@ -113,7 +113,7 @@ export const sendOrderReceiptEmail = async (
   const totalItemDiscount = promoItemDiscount + sellerItemDiscount;
 
   const htmlContent = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+    <div style="font-family: Arial, sans-serif; max-width: 750px; margin: 0 auto; color: #333;">
       <div style="background-color: #09090b; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
         <h1 style="color: #f59e0b; margin: 0; font-style: italic; font-weight: 900; text-transform: uppercase;">${businessName}</h1>
         <p style="color: #fff; margin: 5px 0 0 0; letter-spacing: 2px; font-size: 12px;">NEW ORDER NOTIFICATION</p>
@@ -138,12 +138,12 @@ export const sendOrderReceiptEmail = async (
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
           <thead>
             <tr style="background-color: #f4f4f5;">
-              <th style="padding: 10px; text-align: left;">No.</th>
-              <th style="padding: 10px; text-align: left;">Product</th>
-              <th style="padding: 10px; text-align: center;">Qty</th>
-              <th style="padding: 10px; text-align: right;">Unit Price</th>
-              <th style="padding: 10px; text-align: right;">${isSeller ? 'Disc.' : 'Promo'}</th>
-              <th style="padding: 10px; text-align: right;">Total</th>
+              <th style="padding: 10px; text-align: left; width: 5%;">No.</th>
+              <th style="padding: 10px; text-align: left; width: 40%;">Product</th>
+              <th style="padding: 10px; text-align: center; width: 10%;">Qty</th>
+              <th style="padding: 10px; text-align: right; width: 15%; white-space: nowrap;">Unit Price</th>
+              <th style="padding: 10px; text-align: right; width: 15%; white-space: nowrap;">${isSeller ? 'Disc.' : 'Promo'}</th>
+              <th style="padding: 10px; text-align: right; width: 15%; white-space: nowrap;">Total</th>
             </tr>
           </thead>
           <tbody>

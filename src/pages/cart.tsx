@@ -437,7 +437,9 @@ export default function Cart() {
             name: item.name,
             price: item.price,
             originalPrice: item.originalPrice,
-            quantity: item.quantity
+            quantity: item.quantity,
+            variant: item.variant,
+            itemsPerBox: item.itemsPerBox
           })),
           totalAmount: finalSelectedTotalPrice,
           originalAmount: selectedTotalOriginalPrice,

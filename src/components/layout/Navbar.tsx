@@ -213,15 +213,15 @@ export function Navbar() {
   const businessName = settings?.businessName || 'Cheng-BOOM';
   const profileInitial = user?.name?.trim().charAt(0).toUpperCase() || 'U';
 
-  const isHomePage = router.pathname === '/';
-  const isTransparent = isHomePage && !isScrolled && !mobileOpen;
+  const isTransparentHeroPage = router.pathname === '/' || router.pathname === '/about' || router.pathname === '/contact' || router.pathname === '/shop';
+  const isTransparent = isTransparentHeroPage && !isScrolled && !mobileOpen;
 
   return (
     <>
       <nav 
         className={cn(
           "top-0 z-50 w-full transition-all duration-300",
-          isHomePage ? "fixed" : "sticky",
+          isTransparentHeroPage ? "fixed" : "sticky",
           isTransparent
             ? "bg-transparent text-white border-b border-transparent shadow-none"
             : "bg-[#161617] text-[#f5f5f7] border-b border-white/[0.08] shadow-sm"
@@ -274,10 +274,10 @@ export function Navbar() {
               {/* Dropdown Mega Menu (Full Width) */}
               <div className="absolute top-[63px] left-0 w-full invisible opacity-0 group-hover/shop:visible group-hover/shop:opacity-100 transition-all duration-300">
                 <div className={cn(
-                  "w-full pb-4 pt-1 transition-all duration-300",
+                  "w-full pb-4 pt-1 transition-all duration-300 shadow-2xl",
                   isTransparent 
-                    ? "bg-transparent border-b border-transparent shadow-none" 
-                    : "bg-[#161617] border-b border-white/[0.08] shadow-2xl"
+                    ? "bg-black/95 backdrop-blur-md border-b border-white/10" 
+                    : "bg-[#161617] border-b border-white/[0.08]"
                 )}>
                   <div className="mx-auto w-full max-w-[1400px] overflow-x-auto scrollbar-hide px-4 py-6">
                     <div className="flex items-start justify-center gap-6 sm:gap-8 lg:gap-12 flex-nowrap min-w-max px-2">
@@ -602,15 +602,15 @@ export function Navbar() {
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       placeholder={st('search')}
-                      className="w-full pl-12 pr-12 py-2.5 rounded-full text-base font-medium bg-zinc-100 dark:bg-zinc-800/60 border border-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-zinc-200/50 dark:focus:bg-zinc-800 transition-colors"
+                      className="w-full pl-12 pr-12 py-3 text-lg font-medium bg-transparent border-none text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-0 transition-colors"
                     />
                     {searchQuery && (
                       <button
                         type="button"
                         onClick={() => setSearchQuery('')}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-zinc-300 dark:bg-zinc-600 flex items-center justify-center text-zinc-600 dark:text-zinc-300 hover:bg-zinc-400 dark:hover:bg-zinc-500 transition-colors"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                       >
-                        <X size={12} strokeWidth={3} />
+                        <X size={16} strokeWidth={2} />
                       </button>
                     )}
                   </form>
@@ -639,12 +639,12 @@ export function Navbar() {
                       {hasRecommended && (
                         <div>
                           <h3 className="text-[15px] text-muted-foreground mb-4">{st('popular')}</h3>
-                          <div className="flex flex-wrap gap-2.5">
+                          <div className="flex flex-wrap gap-x-4 gap-y-2">
                             {trendingWords.map((word, idx) => (
                               <button
                                 key={`trend-${idx}`}
                                 onClick={() => pickSuggestion(word)}
-                                className="px-5 py-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-foreground text-[15px] font-medium transition-colors"
+                                className="py-1.5 text-muted-foreground hover:text-foreground text-[15px] sm:text-[17px] font-medium transition-colors"
                               >
                                 {word}
                               </button>

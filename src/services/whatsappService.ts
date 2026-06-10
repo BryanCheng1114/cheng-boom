@@ -150,19 +150,28 @@ export const generateWhatsAppLink = (
       msg += `   ${l.code}: \`${item.code}\`\n`;
     }
     msg += `   ${l.qty}: ${item.quantity}\n`;
-    msg += `   ${l.unitPrice}: RM ${item.price.toFixed(2)}\n`;
-    if (item.originalPrice && item.originalPrice > item.price) {
-      const savings = (item.originalPrice - item.price) * item.quantity;
-      // Detect if this discount is a seller-exclusive price
-      const isSellerPriceItem = isSeller && (
-        item.variant === 'Box'
-          ? (item as any).boxSellerPrice != null && item.price === (item as any).boxSellerPrice
-          : (item as any).sellerPrice != null && item.price === (item as any).sellerPrice
-      );
-      const discountTag = isSellerPriceItem
-        ? (locale === 'zh' ? '卖家专属价' : locale === 'ms' ? 'Harga Penjual' : 'Seller Price')
-        : l.discounted;
-      msg += `   ${l.original}: RM ${item.originalPrice.toFixed(2)} _(${discountTag})_\n`;
+    const origPrice = item.originalPrice || item.price;
+    const isDiscounted = origPrice > item.price;
+    const isSellerPriceItem = isDiscounted && isSeller && (
+      item.variant === 'Box'
+        ? (item as any).boxSellerPrice != null && item.price === (item as any).boxSellerPrice
+        : (item as any).sellerPrice != null && item.price === (item as any).sellerPrice
+    );
+
+    let unitPriceLabel = '';
+    if (isSellerPriceItem) {
+      const spLabel = locale === 'zh' ? '卖家专属价' : locale === 'ms' ? 'Harga Penjual' : 'Seller Price';
+      unitPriceLabel = ` _(${spLabel})_`;
+    } else if (isDiscounted) {
+      unitPriceLabel = ` _(${l.discounted})_`;
+    }
+
+    msg += `   ${l.unitPrice}: RM ${item.price.toFixed(2)}${unitPriceLabel}\n`;
+    
+    if (isDiscounted) {
+      const savings = (origPrice - item.price) * item.quantity;
+      msg += `   ${l.original}: RM ${origPrice.toFixed(2)}\n`;
+      
       if (isSellerPriceItem) {
         sellerItemSavings += savings;
       } else {

@@ -192,157 +192,158 @@ export default function Shop() {
         />
       )}
 
-      {/* ── Page Header ───────────────────────────────────────────────────── */}
-      <div className="bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+      {/* ── Page Header & Category Tab Bar ───────────────────────────────── */}
+      <div className="bg-black">
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-12">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-lg">
               {searchQuery ? `"${searchQuery}"` : activeCategoryLabel}
             </h1>
             {searchQuery && (
-              <p className="mt-4 text-muted-foreground text-sm">
+              <p className="mt-4 text-white/80 text-sm">
                 {t.shop.showing}&nbsp;
-                <span className="font-bold text-foreground">{filteredProducts.length}</span>&nbsp;
+                <span className="font-bold text-white">{filteredProducts.length}</span>&nbsp;
                 {t.shop.products}
                 {' '}
                 <button
                   onClick={clearSearch}
-                  className="inline-flex items-center gap-1 ml-2 text-xs font-bold text-foreground hover:underline opacity-70 hover:opacity-100"
+                  className="inline-flex items-center gap-1 ml-2 text-xs font-bold text-white hover:underline opacity-70 hover:opacity-100"
                 >
                   <X size={12} /> Clear search
                 </button>
               </p>
             )}
             {!searchQuery && (
-              <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">{t.shop.categoriesDesc}</p>
+              <p className="mt-4 text-lg text-white/80 max-w-2xl mx-auto drop-shadow-md">{t.shop.categoriesDesc}</p>
             )}
           </div>
         </div>
-      </div>
 
-      {/* ── Category Tab Bar ─────────────────────────────────────────── */}
-      <div className="bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-2 md:gap-4">
+        {/* ── Category Tab Bar ─────────────────────────────────────────── */}
+        <div className="relative bg-transparent border-y border-white/10 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center gap-2 md:gap-4">
 
-            {/* Left Scroll Button */}
-            <div className="hidden md:flex items-center justify-center w-8 shrink-0">
-              <AnimatePresence>
-                {showLeftScroll && (
-                  <motion.button
-                    initial={{ opacity: 0, x: -5 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -5 }}
-                    onClick={() => {
-                      scrollContainerRef.current?.scrollBy({ left: -250, behavior: 'smooth' });
-                    }}
-                    className="text-zinc-400 hover:text-foreground transition-colors focus:outline-none"
-                  >
-                    <ChevronLeft size={32} strokeWidth={1.5} />
-                  </motion.button>
-                )}
-              </AnimatePresence>
-            </div>
+              {/* Left Scroll Button */}
+              <div className="hidden md:flex items-center justify-center w-8 shrink-0">
+                <AnimatePresence>
+                  {showLeftScroll && (
+                    <motion.button
+                      initial={{ opacity: 0, x: -5 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -5 }}
+                      onClick={() => {
+                        scrollContainerRef.current?.scrollBy({ left: -250, behavior: 'smooth' });
+                      }}
+                      className="text-white/50 hover:text-white transition-colors focus:outline-none"
+                    >
+                      <ChevronLeft size={32} strokeWidth={1.5} />
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </div>
 
-            <div
-              ref={scrollContainerRef}
-              onScroll={handleScroll}
-              className="flex-1 flex gap-2 overflow-x-auto pb-2 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-            >
-              {/* "All" tab */}
-              <button
-                onClick={() => handleCategoryClick('all')}
-                className={[
-                  'relative shrink-0 flex items-center gap-2 px-6 py-2.5 text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full',
-                  activeCategory === 'all'
-                    ? 'text-zinc-900'
-                    : 'text-zinc-500 dark:text-zinc-400 hover:text-foreground hover:bg-zinc-100 dark:hover:bg-white/5',
-                ].join(' ')}
+              <div
+                ref={scrollContainerRef}
+                onScroll={handleScroll}
+                className="flex-1 flex gap-2 overflow-x-auto pb-2 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
               >
-                <span className="relative z-10">{t.shopCategories.all}</span>
-                <span className={[
-                  'relative z-10 inline-flex items-center justify-center min-w-[24px] h-5 px-2 rounded-full text-[10px] font-black transition-colors shadow-sm',
-                  activeCategory === 'all'
-                    ? 'bg-white/90 text-zinc-900 border border-zinc-900/5'
-                    : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400',
-                ].join(' ')}>
-                  {allProducts.length}
-                </span>
-                {activeCategory === 'all' && (
-                  <motion.div
-                    layoutId="activeTabBackground"
-                    className="absolute inset-0 bg-primary rounded-full shadow-[0_4px_15px_rgba(245,158,11,0.4)]"
-                    transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-              </button>
+                {/* "All" tab */}
+                <button
+                  onClick={() => handleCategoryClick('all')}
+                  className={[
+                    'relative shrink-0 flex items-center gap-2 px-6 py-2.5 text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full drop-shadow-md',
+                    activeCategory === 'all'
+                      ? 'text-zinc-900'
+                      : 'text-white/90 hover:text-white hover:bg-white/10',
+                  ].join(' ')}
+                >
+                  <span className="relative z-10">{t.shopCategories.all}</span>
+                  <span className={[
+                    'relative z-10 inline-flex items-center justify-center min-w-[24px] h-5 px-2 rounded-full text-[10px] font-black transition-colors shadow-sm',
+                    activeCategory === 'all'
+                      ? 'bg-white/90 text-zinc-900 border border-zinc-900/5'
+                      : 'bg-white/10 text-white/70',
+                  ].join(' ')}>
+                    {allProducts.length}
+                  </span>
+                  {activeCategory === 'all' && (
+                    <motion.div
+                      layoutId="activeTabBackground"
+                      className="absolute inset-0 bg-primary rounded-full shadow-[0_4px_15px_rgba(245,158,11,0.4)]"
+                      transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                </button>
 
-              {/* Category tabs */}
-              {categories.map(cat => {
-                const key = cat.code || cat.key || cat.name.toLowerCase().replace(/\s+/g, '');
+                {/* Category tabs */}
+                {categories.map(cat => {
+                  const key = cat.code || cat.key || cat.name.toLowerCase().replace(/\s+/g, '');
 
-                let label = cat.name;
-                if (locale === 'zh' && cat.nameZh) {
-                  label = cat.nameZh;
-                } else if (locale === 'ms' && cat.nameMs) {
-                  label = cat.nameMs;
-                } else {
-                  label = (t.shopCategories as any)[key] || cat.name;
-                }
+                  let label = cat.name;
+                  if (locale === 'zh' && cat.nameZh) {
+                    label = cat.nameZh;
+                  } else if (locale === 'ms' && cat.nameMs) {
+                    label = cat.nameMs;
+                  } else {
+                    label = (t.shopCategories as any)[key] || cat.name;
+                  }
 
-                const count = allProducts.filter(p => p.category === cat.name).length;
-                const isActive = activeCategory === key;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => handleCategoryClick(key)}
-                    className={[
-                      'relative shrink-0 flex items-center gap-2 px-6 py-2.5 text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full',
-                      isActive
-                        ? 'text-zinc-900'
-                        : 'text-zinc-500 dark:text-zinc-400 hover:text-foreground hover:bg-zinc-100 dark:hover:bg-white/5',
-                    ].join(' ')}
-                  >
-                    <span className="relative z-10">{label}</span>
-                    <span className={[
-                      'relative z-10 inline-flex items-center justify-center min-w-[24px] h-5 px-2 rounded-full text-[10px] font-black transition-colors shadow-sm',
-                      isActive
-                        ? 'bg-white/90 text-zinc-900 border border-zinc-900/5'
-                        : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400',
-                    ].join(' ')}>
-                      {count}
-                    </span>
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeTabBackground"
-                        className="absolute inset-0 bg-primary rounded-full shadow-[0_4px_15px_rgba(245,158,11,0.4)]"
-                        transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                      />
-                    )}
-                  </button>
-                );
-              })}
+                  const count = allProducts.filter(p => p.category === cat.name).length;
+                  const isActive = activeCategory === key;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => handleCategoryClick(key)}
+                      className={[
+                        'relative shrink-0 flex items-center gap-2 px-6 py-2.5 text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full drop-shadow-md',
+                        isActive
+                          ? 'text-zinc-900'
+                          : 'text-white/90 hover:text-white hover:bg-white/10',
+                      ].join(' ')}
+                    >
+                      <span className="relative z-10">{label}</span>
+                      <span className={[
+                        'relative z-10 inline-flex items-center justify-center min-w-[24px] h-5 px-2 rounded-full text-[10px] font-black transition-colors shadow-sm',
+                        isActive
+                          ? 'bg-white/90 text-zinc-900 border border-zinc-900/5'
+                          : 'bg-white/10 text-white/70',
+                      ].join(' ')}>
+                        {count}
+                      </span>
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeTabBackground"
+                          className="absolute inset-0 bg-primary rounded-full shadow-[0_4px_15px_rgba(245,158,11,0.4)]"
+                          transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Right Scroll Button */}
+              <div className="hidden md:flex items-center justify-center w-8 shrink-0">
+                <AnimatePresence>
+                  {showRightScroll && (
+                    <motion.button
+                      initial={{ opacity: 0, x: 5 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 5 }}
+                      onClick={() => {
+                        scrollContainerRef.current?.scrollBy({ left: 250, behavior: 'smooth' });
+                      }}
+                      className="text-white/50 hover:text-white transition-colors focus:outline-none"
+                    >
+                      <ChevronRight size={32} strokeWidth={1.5} />
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </div>
+
             </div>
-
-            {/* Right Scroll Button */}
-            <div className="hidden md:flex items-center justify-center w-8 shrink-0">
-              <AnimatePresence>
-                {showRightScroll && (
-                  <motion.button
-                    initial={{ opacity: 0, x: 5 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 5 }}
-                    onClick={() => {
-                      scrollContainerRef.current?.scrollBy({ left: 250, behavior: 'smooth' });
-                    }}
-                    className="text-zinc-400 hover:text-foreground transition-colors focus:outline-none"
-                  >
-                    <ChevronRight size={32} strokeWidth={1.5} />
-                  </motion.button>
-                )}
-              </AnimatePresence>
-            </div>
-
           </div>
         </div>
       </div>
