@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { useCart } from '../cart/CartProvider';
-import { LanguageSwitcher } from './LanguageSwitcher';
 import { ShoppingCart, ChevronDown, Menu, X, User, ChevronRight, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
@@ -66,6 +65,7 @@ export function Navbar() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [isShopHovered, setIsShopHovered] = useState(false);
 
   const logoutTranslations = {
     title: { en: 'Log Out', zh: '登出', ms: 'Log Keluar' },
@@ -214,7 +214,7 @@ export function Navbar() {
   const profileInitial = user?.name?.trim().charAt(0).toUpperCase() || 'U';
 
   const isTransparentHeroPage = router.pathname === '/' || router.pathname === '/about' || router.pathname === '/contact' || router.pathname === '/shop';
-  const isTransparent = isTransparentHeroPage && !isScrolled && !mobileOpen;
+  const isTransparent = isTransparentHeroPage && !isScrolled && !mobileOpen && !isShopHovered;
 
   return (
     <>
@@ -231,9 +231,9 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between gap-2 sm:gap-4">
 
           {/* ---- Brand ---- */}
-          <Link href="/" className="group flex shrink-0 items-center" aria-label={`${businessName} home`}>
+          <Link href="/" className="group flex shrink-0 items-center h-full" aria-label={`${businessName} home`}>
             <span
-              className="block whitespace-nowrap text-[19px] sm:text-[22px] font-black italic leading-none tracking-wider bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent transition-transform duration-300 group-hover:scale-105 origin-left py-1 pr-1"
+              className="block whitespace-nowrap text-[19px] sm:text-[22px] font-black italic leading-none tracking-wider text-white transition-colors duration-300 group-hover:text-yellow-400 group-hover:scale-105 origin-left py-1 pr-1"
               style={{ fontFamily }}
               title={businessName}
             >
@@ -242,30 +242,34 @@ export function Navbar() {
           </Link>
 
           {/* ---- Desktop Nav ---- */}
-          <div className="hidden md:flex flex-1 items-center justify-center gap-1 lg:gap-2">
+          <div className="hidden md:flex flex-1 items-center justify-center gap-1 lg:gap-2 h-full">
 
             {/* Home Page */}
             <Link
               href="/"
               className={cn(
-                'hidden',
+                'hidden relative px-3 font-sans text-[15px] font-semibold tracking-wider transition-all duration-300 lg:px-4',
                 isActive('/') 
-                  ? 'bg-white/10 text-white' 
-                  : ''
+                  ? 'text-yellow-400' 
+                  : 'text-white/90 hover:text-yellow-400'
               )}
             >
               {t.nav.home}
             </Link>
 
             {/* Shop — with mega menu dropdown */}
-            <div className="group/shop h-full flex items-center">
+            <div 
+              className="group/shop h-full flex items-center"
+              onMouseEnter={() => setIsShopHovered(true)}
+              onMouseLeave={() => setIsShopHovered(false)}
+            >
               <Link
                 href="/shop"
                 className={cn(
-                  'relative flex items-center gap-1 rounded-full px-3 py-2 font-sans text-[14px] font-medium tracking-wide text-white/82 transition-all duration-300 hover:bg-white/8 hover:text-white group-hover/shop:bg-white/8 group-hover/shop:text-white lg:px-4',
+                  'relative h-full flex items-center gap-1 px-3 font-sans text-[15px] font-semibold tracking-wider transition-all duration-300 lg:px-4',
                   isActivePrefix('/shop') 
-                    ? 'bg-white/10 text-white' 
-                    : ''
+                    ? 'text-yellow-400' 
+                    : 'text-white/90 group-hover/shop:text-yellow-400 after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-yellow-400 after:scale-x-0 group-hover/shop:after:scale-x-100 after:transition-transform after:duration-300'
                 )}
               >
                 {t.nav.shop}
@@ -274,10 +278,10 @@ export function Navbar() {
               {/* Dropdown Mega Menu (Full Width) */}
               <div className="absolute top-[63px] left-0 w-full invisible opacity-0 group-hover/shop:visible group-hover/shop:opacity-100 transition-all duration-300">
                 <div className={cn(
-                  "w-full pb-4 pt-1 transition-all duration-300 shadow-2xl",
+                  "w-full pb-4 pt-1 transition-all duration-300",
                   isTransparent 
-                    ? "bg-black/95 backdrop-blur-md border-b border-white/10" 
-                    : "bg-[#161617] border-b border-white/[0.08]"
+                    ? "bg-transparent border-transparent" 
+                    : "bg-[#161617] border-b border-white/[0.08] shadow-2xl"
                 )}>
                   <div className="mx-auto w-full max-w-[1400px] overflow-x-auto scrollbar-hide px-4 py-6">
                     <div className="flex items-start justify-center gap-6 sm:gap-8 lg:gap-12 flex-nowrap min-w-max px-2">
@@ -309,7 +313,7 @@ export function Navbar() {
                             href={`/shop?category=${key}`}
                             className="flex flex-col items-center justify-start gap-3 text-center transition-all group/cat hover:-translate-y-1"
                           >
-                            <div className="flex h-[48px] w-[48px] sm:h-[60px] sm:w-[60px] lg:h-[72px] lg:w-[72px] items-center justify-center">
+                            <div className="flex h-[60px] w-[60px] sm:h-[72px] sm:w-[72px] lg:h-[88px] lg:w-[88px] items-center justify-center">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img 
                                 src={category.transparentImage || category.image || '/example.png'} 
@@ -317,7 +321,7 @@ export function Navbar() {
                                 className="max-h-full max-w-full object-contain opacity-85 transition-all duration-300 group-hover/cat:opacity-100 group-hover/cat:scale-110 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
                               />
                             </div>
-                            <span className="text-[12px] lg:text-[13px] font-medium tracking-wide text-white/72 group-hover/cat:text-white transition-colors">
+                            <span className="text-[14px] lg:text-[15px] font-medium tracking-wide text-white/72 group-hover/cat:text-white transition-colors">
                               {label}
                             </span>
                           </Link>
@@ -333,10 +337,10 @@ export function Navbar() {
             <Link
               href="/about"
               className={cn(
-                'relative rounded-full px-3 py-2 font-sans text-[14px] font-medium tracking-wide text-white/82 transition-all duration-300 hover:bg-white/8 hover:text-white lg:px-4',
+                'relative h-full flex items-center px-3 font-sans text-[15px] font-semibold tracking-wider transition-all duration-300 lg:px-4',
                 isActive('/about') 
-                  ? 'bg-white/10 text-white' 
-                  : ''
+                  ? 'text-yellow-400' 
+                  : 'text-white/90 hover:text-yellow-400 after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-yellow-400 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300'
               )}
             >
               {t.nav.aboutUs}
@@ -346,10 +350,10 @@ export function Navbar() {
             <Link
               href="/contact"
               className={cn(
-                'relative rounded-full px-3 py-2 font-sans text-[14px] font-medium tracking-wide text-white/82 transition-all duration-300 hover:bg-white/8 hover:text-white lg:px-4',
+                'relative h-full flex items-center px-3 font-sans text-[15px] font-semibold tracking-wider transition-all duration-300 lg:px-4',
                 isActive('/contact') 
-                  ? 'bg-white/10 text-white' 
-                  : ''
+                  ? 'text-yellow-400' 
+                  : 'text-white/90 hover:text-yellow-400 after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-yellow-400 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300'
               )}
             >
               {t.nav.contact}
@@ -357,22 +361,22 @@ export function Navbar() {
           </div>
 
           {/* ---- Right Actions ---- */}
-          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
 
             {/* Search Icon */}
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white group"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white group"
               aria-label="Search"
             >
-              <Search strokeWidth={1.5} className="w-[18px] h-[18px] sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+              <Search strokeWidth={1.5} className="w-6 h-6 group-hover:scale-110 transition-transform" />
             </button>
 
             {/* Cart */}
             <Link
               id="navbar-cart-btn"
               href="/cart"
-              className="relative flex h-9 w-9 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white group"
+              className="relative flex h-11 w-11 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white group"
               aria-label="Cart"
             >
               <motion.div
@@ -382,7 +386,7 @@ export function Navbar() {
                 } : {}}
                 transition={{ duration: 0.4 }}
               >
-                <ShoppingCart strokeWidth={1.5} className="w-[18px] h-[18px] sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                <ShoppingCart strokeWidth={1.5} className="w-6 h-6 group-hover:scale-110 transition-transform" />
               </motion.div>
 
               {/* Confetti Burst */}
@@ -432,7 +436,7 @@ export function Navbar() {
                 <div className="flex items-center gap-2 cursor-pointer relative">
                   {/* Icon Frame */}
                   <div
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-sm font-black text-white ring-1 ring-white/10 transition-all duration-300 group-hover/profile:-translate-y-0.5 group-hover/profile:bg-white/25"
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-base font-black text-white ring-1 ring-white/10 transition-all duration-300 group-hover/profile:-translate-y-0.5 group-hover/profile:bg-white/25"
                     aria-label={`${user.name} profile`}
                     title={user.name}
                   >
@@ -468,25 +472,20 @@ export function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white group"
+                  className="flex h-11 w-11 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white group"
                   title="Sign In"
                 >
-                  <User strokeWidth={1.5} className="w-[18px] h-[18px] sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                  <User strokeWidth={1.5} className="w-6 h-6 group-hover:scale-110 transition-transform" />
                 </Link>
               )}
-            </div>
-
-            {/* Site Settings: Language */}
-            <div className="hidden sm:flex items-center gap-1 ml-3 sm:ml-4">
-              <LanguageSwitcher />
             </div>
 
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="ml-0.5 flex h-9 w-9 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white md:hidden"
+              className="ml-0.5 flex h-11 w-11 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white md:hidden"
             >
-              {mobileOpen ? <X strokeWidth={1.5} className="w-[18px] h-[18px]" /> : <Menu strokeWidth={1.5} className="w-[18px] h-[18px]" />}
+              {mobileOpen ? <X strokeWidth={1.5} className="w-6 h-6" /> : <Menu strokeWidth={1.5} className="w-6 h-6" />}
             </button>
           </div>
         </div>

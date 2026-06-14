@@ -5,7 +5,6 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useBusiness } from '../../context/BusinessContext';
 
 export function WhatsAppButton() {
-  const [showTooltip, setShowTooltip] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const { t } = useTranslation();
   const { settings } = useBusiness();
@@ -23,7 +22,7 @@ export function WhatsAppButton() {
     <>
       {/* Message preview bubble */}
       {showPreview && (
-        <div className="fixed bottom-28 right-4 sm:right-6 z-50 w-72 animate-fade-in-up">
+        <div className="fixed bottom-32 right-4 sm:right-6 z-50 w-72 animate-fade-in-up">
           <div className="relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-2xl p-4">
             {/* Close */}
             <button
@@ -75,21 +74,12 @@ export function WhatsAppButton() {
       )}
 
       {/* Floating button */}
-      <div className="fixed bottom-6 right-4 sm:right-6 z-50 flex flex-col items-end gap-2">
-
-        {/* Tooltip label */}
-        {showTooltip && !showPreview && (
-          <div className="bg-primary text-zinc-900 text-[10px] font-black px-4 py-1.5 rounded-full shadow-xl whitespace-nowrap animate-in fade-in slide-in-from-bottom-4 duration-300 uppercase tracking-widest border border-primary/20 flex items-center h-7">
-            {t.floating.whatsapp.chatWithUs}
-          </div>
-        )}
+      <div className="fixed bottom-12 right-4 sm:right-6 z-50 flex flex-col items-end gap-2">
 
         <button
           onClick={() => setShowPreview(!showPreview)}
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
           aria-label={t.floating.whatsapp.chatBtn}
-          className="relative w-16 h-16 rounded-full shadow-2xl shadow-green-500/40 hover:scale-110 active:scale-95 transition-all duration-300 overflow-hidden group"
+          className="relative w-14 h-14 rounded-full shadow-2xl shadow-green-500/40 hover:scale-110 active:scale-95 transition-all duration-300 overflow-hidden group"
         >
           {/* Pulsing ring */}
           <span className="absolute inset-0 rounded-full bg-green-400/30 animate-ping" />

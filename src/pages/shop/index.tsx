@@ -195,7 +195,7 @@ export default function Shop() {
       {/* ── Page Header & Category Tab Bar ───────────────────────────────── */}
       <div className="bg-black">
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-12">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-48 pb-20">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-lg">
               {searchQuery ? `"${searchQuery}"` : activeCategoryLabel}
@@ -385,30 +385,29 @@ export default function Shop() {
           </div>
         ) : filteredProducts.length === 0 ? (
           /* Empty state */
-          <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="flex flex-col items-center justify-center min-h-[50vh] py-32 text-center">
             <div className="text-6xl mb-6">🔍</div>
             <h2 className="text-2xl font-extrabold text-foreground mb-2">{t.shop.notFound}</h2>
             <p className="text-muted-foreground mb-6">{t.shop.noProductsTryAgain}</p>
-            <button
-              onClick={clearSearch}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-foreground text-background font-bold text-sm hover:opacity-80 transition-all shadow-lg"
-            >
-              ✨ {t.shopCategories.all}
-            </button>
           </div>
         ) : (
           /* Flat grid */
-          <motion.div
-            layout
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 w-full"
-          >
-            <AnimatePresence mode="popLayout">
+          <div
+  className="
+    grid
+    grid-cols-1
+    sm:grid-cols-2
+    md:grid-cols-3
+    lg:grid-cols-4
+    gap-6
+  "
+>
+            <AnimatePresence>
               {filteredProducts.map((product, index) => {
                 const catObj = categories.find(c => c.name === product.category);
                 return (
                 <motion.div
                   key={product.id}
-                  layout
                   initial={{ opacity: 0, y: 20, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
@@ -417,14 +416,14 @@ export default function Shop() {
                     delay: index * 0.03,
                     ease: "easeOut"
                   }}
-                  className="h-full flex flex-col"
+                 className="h-full w-full lg:w-[286px]"
                 >
                   <ProductCard {...product} categoryZh={catObj?.nameZh} categoryMs={catObj?.nameMs} />
                 </motion.div>
                 );
               })}
             </AnimatePresence>
-          </motion.div>
+          </div>
         )}
       </div>
     </>

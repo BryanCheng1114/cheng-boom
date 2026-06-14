@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, ArrowUp, ChevronLeft, ChevronRight, FileCheck, ShieldCheck, Headphones } from 'lucide-react';
+import { ArrowRight, ArrowUp, ChevronLeft, ChevronRight, FileCheck, ShieldCheck, Headphones, Truck } from 'lucide-react';
 import { categoriesData as mockCategories } from '../utils/mockData';
 import { useTranslation } from '../hooks/useTranslation';
 import { useBusiness } from '../context/BusinessContext';
@@ -233,7 +233,7 @@ export default function Home() {
           <div className="mt-8 md:mt-10 flex justify-center items-center" style={{ animation: 'fade-in-up 0.9s 0.3s ease both' }}>
             <Link
               href="/shop"
-              className="group inline-flex justify-center items-center px-6 py-2.5 rounded-full font-bold text-sm text-black bg-white hover:bg-zinc-200 transition-all duration-300 shadow-lg"
+              className="group inline-flex justify-center items-center px-6 py-2.5 rounded-full font-bold text-sm text-black bg-white hover:bg-yellow-400 transition-colors duration-300 shadow-lg"
             >
               <span className="tracking-wide">{t.nav.shop || 'Shop'}</span>
             </Link>
@@ -378,11 +378,9 @@ export default function Home() {
                       {/* ── Rank number (Stacked in front) ── */}
                       <span
                         aria-hidden="true"
-                        className="absolute -left-[14%] bottom-[2%] z-50 font-black leading-[0.8] tracking-tighter select-none pointer-events-none drop-shadow-2xl"
+                        className="absolute -left-[14%] bottom-[2%] z-50 font-black leading-[0.8] tracking-tighter select-none pointer-events-none drop-shadow-2xl text-black transition-colors duration-300 [-webkit-text-stroke:2.5px_rgba(255,255,255,0.9)] group-hover/card:text-yellow-400 group-hover/card:[-webkit-text-stroke:2.5px_#facc15]"
                         style={{
                           fontSize: 'clamp(60px, 11vw, 140px)',
-                          WebkitTextStroke: '2.5px rgba(255,255,255,0.9)',
-                          color: '#000', // Solid black body with white stroke
                         }}
                       >
                         {index + 1}
@@ -497,46 +495,63 @@ export default function Home() {
       </section>
 
       {/* ===== SECTION 5: Feature Highlights ===== */}
-      <section className="bg-black py-16 md:py-32 transition-colors duration-500">
-        <div className="max-w-6xl mx-auto px-8 sm:px-12 md:px-16 lg:px-24">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-20 md:gap-32 text-center">
+      <section className="bg-black py-16 md:py-32 transition-colors duration-500 border-t border-white/5">
+        <div className="max-w-screen-2xl mx-auto px-8 sm:px-12 md:px-16 lg:px-24">
+          <div className="text-center mb-16 md:mb-24">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-white leading-tight tracking-tight">What We Guarantee</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16 lg:gap-24 xl:gap-32 text-center">
             
             {/* Feature 1 */}
-            <div className="flex flex-col items-center group cursor-pointer" onClick={() => window.location.href = '/about'}>
-              <div className="mb-6 text-zinc-500 group-hover:text-white transition-colors duration-300">
-                <FileCheck size={60} strokeWidth={1.5} />
+            <div className="flex flex-col items-center group transition-transform duration-500 hover:-translate-y-2">
+              <div className="mb-6 text-zinc-500 group-hover:text-white transition-all duration-500 transform group-hover:scale-110">
+                <FileCheck size={64} strokeWidth={1.5} />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3 tracking-tight transition-colors duration-300">
+              <h3 className="text-xl md:text-2xl font-bold text-white mb-3 tracking-tight transition-colors duration-300">
                 {t.features?.licensed || 'Fully Licensed'}
               </h3>
-              <p className="text-sm md:text-base text-zinc-400 leading-relaxed max-w-[250px]">
+              <p className="text-base text-zinc-400 leading-relaxed max-w-[250px]">
                 {t.features?.licensedDesc || '100% legal & certified'}
               </p>
             </div>
 
             {/* Feature 2 */}
-            <div className="flex flex-col items-center group cursor-pointer" onClick={() => window.location.href = '/about'}>
-              <div className="mb-6 text-zinc-500 group-hover:text-white transition-colors duration-300">
-                <ShieldCheck size={60} strokeWidth={1.5} />
+            <div className="flex flex-col items-center group transition-transform duration-500 hover:-translate-y-2">
+              <div className="mb-6 text-zinc-500 group-hover:text-white transition-all duration-500 transform group-hover:scale-110">
+                <ShieldCheck size={64} strokeWidth={1.5} />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3 tracking-tight transition-colors duration-300">
+              <h3 className="text-xl md:text-2xl font-bold text-white mb-3 tracking-tight transition-colors duration-300">
                 {t.features?.safety || 'Safety Approved'}
               </h3>
-              <p className="text-sm md:text-base text-zinc-400 leading-relaxed max-w-[250px]">
+              <p className="text-base text-zinc-400 leading-relaxed max-w-[250px]">
                 {t.features?.safetyDesc || 'Tested & secure'}
               </p>
             </div>
 
             {/* Feature 3 */}
-            <div className="flex flex-col items-center group cursor-pointer" onClick={() => window.location.href = '/contact'}>
-              <div className="mb-6 text-zinc-500 group-hover:text-white transition-colors duration-300">
-                <Headphones size={60} strokeWidth={1.5} />
+            <div className="flex flex-col items-center group transition-transform duration-500 hover:-translate-y-2">
+              <div className="mb-6 text-zinc-500 group-hover:text-white transition-all duration-500 transform group-hover:scale-110">
+                <Headphones size={64} strokeWidth={1.5} />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3 tracking-tight transition-colors duration-300">
+              <h3 className="text-xl md:text-2xl font-bold text-white mb-3 tracking-tight transition-colors duration-300">
                 {t.features?.support || 'Expert Support'}
               </h3>
-              <p className="text-sm md:text-base text-zinc-400 leading-relaxed max-w-[250px]">
+              <p className="text-base text-zinc-400 leading-relaxed max-w-[250px]">
                 {t.features?.supportDesc || 'Always here to help'}
+              </p>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="flex flex-col items-center group transition-transform duration-500 hover:-translate-y-2">
+              <div className="mb-6 text-zinc-500 group-hover:text-white transition-all duration-500 transform group-hover:scale-110">
+                <Truck size={64} strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl md:text-2xl font-bold text-white mb-3 tracking-tight transition-colors duration-300">
+                Fast Delivery
+              </h3>
+              <p className="text-base text-zinc-400 leading-relaxed max-w-[250px]">
+                Nationwide secure shipping
               </p>
             </div>
 
@@ -595,7 +610,7 @@ export default function Home() {
       {/* ===== FLOATING SCROLL TO TOP BUTTON (MIDDLE BOTTOM) ===== */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[999] flex items-center justify-center w-12 h-12 rounded-full shadow-xl border hover:scale-110 active:scale-95 transition-all duration-300
+        className={`fixed bottom-12 left-1/2 -translate-x-1/2 z-[999] flex items-center justify-center w-12 h-12 rounded-full shadow-xl border hover:scale-110 active:scale-95 transition-all duration-300
           bg-zinc-900 border-zinc-800 text-white hover:bg-black
           dark:bg-white dark:border-white dark:text-zinc-950 dark:hover:bg-zinc-100
           ${showScrollTop ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'}

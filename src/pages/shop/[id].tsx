@@ -38,7 +38,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<'Single' | 'Box' | null>(null);
-  const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
+  const [showVariantError, setShowVariantError] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
 
@@ -188,7 +188,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
   const handleAddToCart = () => {
     if (!selectedVariant) {
-      setIsWarningModalOpen(true);
+      setShowVariantError(true);
       return;
     }
     if (localQty <= 0) return;
@@ -219,7 +219,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
   const handleBuyNow = () => {
     if (!selectedVariant) {
-      setIsWarningModalOpen(true);
+      setShowVariantError(true);
       return;
     }
     if (localQty <= 0) return;
@@ -393,12 +393,6 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
               <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-normal leading-tight mb-4">
                 {translatedName}
               </h1>
-              {/* Availability (Moved from bottom) */}
-              <div className="flex items-center gap-2 text-zinc-500 mt-2">
-                <CheckCircle size={16} className={trueRemainingStock > 0 ? "text-green-500" : "text-red-500"} />
-                <span className="text-sm font-medium">{trueRemainingStock} {t.productDetail.inStockSuffix}</span>
-              </div>
-              
             </div>
 
             {/* Unified Pricing Card (Shopee Style) */}
@@ -454,7 +448,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                   </div>
                 );
               })() : (
-              <div className="relative flex flex-col justify-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] py-4 px-5 rounded-xl overflow-hidden">
+              <div className="relative flex flex-col justify-center py-2">
                 <div className="flex flex-wrap items-end gap-3">
                   {/* Strike Through Range or Specific */}
                   {currentDisplayPrice ? (
@@ -498,6 +492,10 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
               </div>
 
               )}
+              <div className={cn(
+                "flex flex-col gap-6 transition-colors duration-300",
+                showVariantError ? "bg-red-50/50 dark:bg-red-950/20 p-4 -mx-4 rounded-xl border border-red-100 dark:border-red-900/30" : ""
+              )}>
               {/* Options Selector */}
               {hasBoxPricing && (
                 <div className="flex flex-row items-center gap-4">
@@ -509,22 +507,34 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                       onClick={() => {
                         setSelectedVariant('Single');
                         setLocalQty(1);
+                        setShowVariantError(false);
                       }}
-                      className={`px-5 py-2.5 rounded-xl text-sm font-medium border transition-all ${selectedVariant === 'Single' ? 'border-zinc-900 dark:border-white text-zinc-900 bg-white shadow-md' : 'border-zinc-300 dark:border-zinc-700 text-zinc-500 hover:border-zinc-900 dark:hover:border-white hover:text-zinc-900 dark:hover:text-white'}`}
+                      className={`px-5 py-2.5 rounded-md text-sm font-medium transition-all relative overflow-hidden ${selectedVariant === 'Single' ? 'border-2 border-primary text-black bg-white dark:bg-white shadow-sm' : 'border border-zinc-300 dark:border-zinc-700 text-zinc-500 hover:border-primary hover:text-primary'}`}
                     >
                       {locale === 'zh' ? '单品' : locale === 'ms' ? 'Satu' : 'Single Item'}
+                      {selectedVariant === 'Single' && (
+                        <div className="absolute bottom-0 right-0 w-6 h-6 bg-primary flex items-end justify-end" style={{ clipPath: 'polygon(100% 0, 0% 100%, 100% 100%)' }}>
+                          <Check size={10} className="text-white mb-[1px] mr-[1px]" strokeWidth={4} />
+                        </div>
+                      )}
                     </button>
                     <button
                       onClick={() => {
                         setSelectedVariant('Box');
                         setLocalQty(1);
+                        setShowVariantError(false);
                       }}
-                      className={`px-5 py-2.5 rounded-xl text-sm font-medium border transition-all flex items-center gap-2 ${selectedVariant === 'Box' ? 'border-zinc-900 dark:border-white text-zinc-900 bg-white shadow-md' : 'border-zinc-300 dark:border-zinc-700 text-zinc-500 hover:border-zinc-900 dark:hover:border-white hover:text-zinc-900 dark:hover:text-white'}`}
+                      className={`px-5 py-2.5 rounded-md text-sm font-medium transition-all relative overflow-hidden flex items-center gap-2 ${selectedVariant === 'Box' ? 'border-2 border-primary text-black bg-white dark:bg-white shadow-sm' : 'border border-zinc-300 dark:border-zinc-700 text-zinc-500 hover:border-primary hover:text-primary'}`}
                     >
                       {locale === 'zh' ? '整盒' : locale === 'ms' ? 'Kotak' : 'Per Box'}
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-sm ${selectedVariant === 'Box' ? 'bg-zinc-200 text-zinc-900' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500'}`}>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-sm ${selectedVariant === 'Box' ? 'bg-primary/20 text-black' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500'}`}>
                         {product.itemsPerBox} {locale === 'zh' ? '件' : locale === 'ms' ? 'Item' : 'Items'}
                       </span>
+                      {selectedVariant === 'Box' && (
+                        <div className="absolute bottom-0 right-0 w-6 h-6 bg-primary flex items-end justify-end" style={{ clipPath: 'polygon(100% 0, 0% 100%, 100% 100%)' }}>
+                          <Check size={10} className="text-white mb-[1px] mr-[1px]" strokeWidth={4} />
+                        </div>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -557,7 +567,18 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                 </div>
               </div>
 
-              
+              {/* Availability */}
+              <div className="flex items-center gap-2 text-zinc-500 mt-2">
+                <CheckCircle size={16} className={trueRemainingStock > 0 ? "text-green-500" : "text-red-500"} />
+                <span className="text-sm font-medium">{trueRemainingStock} {t.productDetail.inStockSuffix}</span>
+              </div>
+
+              {showVariantError && (
+                <div className="text-red-500 text-sm font-medium">
+                  {locale === 'zh' ? '请先选择商品选项' : locale === 'ms' ? 'Sila pilih variasi produk dahulu' : 'Please select product variation first'}
+                </div>
+              )}
+              </div>
 
               {/* Action Buttons (Shopee Style) */}
               <div className="pt-4 flex items-center gap-3 w-full">
@@ -727,41 +748,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
           />
         )}
 
-      <AnimatePresence>
-        {isWarningModalOpen && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsWarningModalOpen(false)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-md"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col items-center text-center"
-            >
-              <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6">
-                <span className="text-red-500 text-2xl font-black">!</span>
-              </div>
-              <h3 className="text-xl font-black text-foreground mb-2">
-                {locale === 'zh' ? '请选择一个选项' : locale === 'ms' ? 'Sila Pilih Pilihan' : 'Select an Option'}
-              </h3>
-              <p className="text-zinc-500 text-sm mb-8 font-medium">
-                {locale === 'zh' ? '请在加入购物车或购买前选择单品或整盒。' : locale === 'ms' ? 'Sila pilih samada Satu atau Kotak sebelum meneruskan.' : 'Please choose whether you want Single or Per Box before proceeding.'}
-              </p>
-              <button
-                onClick={() => setIsWarningModalOpen(false)}
-                className="w-full py-4 bg-primary text-zinc-900 rounded-2xl font-black text-lg hover:brightness-110 transition-all active:scale-95"
-              >
-                {locale === 'zh' ? '好的' : locale === 'ms' ? 'OK' : 'OK'}
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+
     </>
   );
 }
