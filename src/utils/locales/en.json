@@ -443,6 +443,19 @@
     "discount": "Discount",
     "subtotalLabel": "Subtotal",
     "orderItems": "Order Items",
-    "orderInfo": "Order Info"
+    "orderInfo": "Order Info",
+    "profileDetails": "Profile Details",
+    "accountOverview": "Account Overview",
+    "ordersHeader": "Orders",
+    "myOrders": "My Orders",
+    "accountSettings": "Account Settings",
+    "myAccount": "My Account",
+    "viewMyAccount": "View My Account",
+    "orderDetails": "Order Details",
+    "downloadReceipt": "Download Receipt",
+    "generatingPdf": "Generating PDF...",
+    "progressTracker": "Progress Tracker",
+    "discardChanges": "Discard Changes",
+    "passwordLengthHint": "Password must be at least 8 characters, and include an uppercase letter, a number, and a symbol."
   }
 }

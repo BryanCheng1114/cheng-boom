@@ -1,24 +1,13 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useCart } from '../components/cart/CartProvider';
-import { generateWhatsAppLink, OrderDetails } from '../services/whatsappService';
 import { useBusiness } from '../context/BusinessContext';
+import { SharedCheckoutModal } from '../components/checkout/SharedCheckoutModal';
 import { Trash2, Plus, Minus, ChevronUp, ChevronDown, CheckSquare, Square, ArrowRight, MessageCircle, Shield, X, MapPin, CreditCard, User, Phone, Check, Zap, HelpCircle, Upload, ExternalLink, AlertTriangle, ShoppingCart } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { cn } from '../utils/cn';
-import { motion, useAnimation, AnimatePresence } from 'framer-motion';
-
-const paymentMethodLabels: Record<string, Record<string, string>> = {
-  'Cash on Delivery': { en: 'Cash on Delivery', zh: '货到付款', ms: 'Tunai Semasa' },
-  'Bank Transfer': { en: 'Bank Transfer', zh: '银行转账', ms: 'Pindahan Bank' },
-  'TNG DuitNow': { en: 'TNG DuitNow', zh: 'TNG二维码', ms: 'DuitNow QR' }
-};
-
-const deliveryModeLabels: Record<string, Record<string, string>> = {
-  'Self Collect': { en: 'Self Collect', zh: '自取', ms: 'Ambil Sendiri' },
-  'Delivery': { en: 'Delivery', zh: '运送', ms: 'Penghantaran' }
-};
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Cart() {
   const { items, updateQuantity, updateVariant, removeItem, clearCart, totalPrice, totalOriginalPrice, totalItems, totalDiscount, discountPercent, isFreeShipping } = useCart();
@@ -28,22 +17,12 @@ export default function Cart() {
   const { t, locale } = useTranslation();
   const { settings } = useBusiness();
 
-  // Modal Form State
-  const [orderDetails, setOrderDetails] = useState<OrderDetails>({
-    customerName: '',
-    customerPhone: '',
-    paymentMethod: 'Cash on Delivery',
-    deliveryMode: 'Self Collect',
-    address: '',
-    notes: '',
-    paymentReceiptUrl: ''
-  });
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [isDiscountDetailOpen, setIsDiscountDetailOpen] = useState(false);
   const [productsStock, setProductsStock] = useState<Record<string, number>>({});
   const [productsMap, setProductsMap] = useState<Record<string, any>>({});
+  const [isClearCartModalOpen, setIsClearCartModalOpen] = useState(false);
+  const [itemToRemove, setItemToRemove] = useState<string | null>(null);
 
   const toggleItemSelection = (id: string) => {
     setSelectedItemIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
@@ -112,17 +91,7 @@ export default function Cart() {
     }
   });
 
-  const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
-  const [isWhatsAppTermsAgreed, setIsWhatsAppTermsAgreed] = useState(false);
-  const [shakeTerms, setShakeTerms] = useState(false);
-  const [isGuideOpen, setIsGuideOpen] = useState(false);
-  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
-  const [isClearCartModalOpen, setIsClearCartModalOpen] = useState(false);
-  const [itemToRemove, setItemToRemove] = useState<string | null>(null);
-  const [stockErrorModalOpen, setStockErrorModalOpen] = useState(false);
-  const [stockErrorProductName, setStockErrorProductName] = useState('');
-  const [pdfErrorModalOpen, setPdfErrorModalOpen] = useState(false);
-  const shakeControls = useAnimation();
+
 
   const clearCartTranslations = {
     title: { en: 'Clear Cart', zh: '清空购物车', ms: 'Kosongkan Troli' },
@@ -147,44 +116,6 @@ export default function Cart() {
       const savedUser = localStorage.getItem('user');
       if (savedUser) {
         setIsLoggedIn(true);
-        const user = JSON.parse(savedUser);
-        try {
-          const res = await fetch(`/api/customers/${user.id}`);
-          if (res.ok) {
-            const fullProfile = await res.json();
-            
-            const mapPayment = (val: string | null | undefined) => {
-              if (!val) return 'Cash on Delivery';
-              const lower = val.toLowerCase();
-              if (lower.includes('bank')) return 'Bank Transfer';
-              if (lower.includes('tng') || lower.includes('duit')) return 'TNG DuitNow';
-              return 'Cash on Delivery';
-            };
-            const mapDelivery = (val: string | null | undefined) => {
-              if (!val) return 'Self Collect';
-              return val.toLowerCase().includes('delivery') ? 'Delivery' : 'Self Collect';
-            };
-
-            setOrderDetails(prev => ({
-              ...prev,
-              customerName: fullProfile.name || '',
-              customerPhone: fullProfile.phone || '',
-              address: fullProfile.address || '',
-              paymentMethod: mapPayment(fullProfile.preferredPayment),
-              deliveryMode: mapDelivery(fullProfile.orderMode),
-              notes: fullProfile.notes || ''
-            }));
-          } else {
-            // Fallback to local storage basic info
-            setOrderDetails(prev => ({
-              ...prev,
-              customerName: user.name || '',
-              customerPhone: user.phone || ''
-            }));
-          }
-        } catch (err) {
-          console.error('Failed to fetch user profile for cart:', err);
-        }
       }
     };
 
@@ -213,41 +144,22 @@ export default function Cart() {
     };
     fetchStocks();
   }, []);
-
-  const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !e.target.files[0]) return;
-    
-    const file = e.target.files[0];
-    if (file.type === 'application/pdf') {
-      setPdfErrorModalOpen(true);
-      e.target.value = '';
-      return;
-    }
-    
-    setIsUploadingReceipt(true);
+  const handleStockError = async (productName: string) => {
     try {
-      const file = e.target.files[0];
-      const formDataObj = new FormData();
-      formDataObj.append('files', file);
-      
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formDataObj,
-      });
-      
+      const res = await fetch('/api/products');
       if (res.ok) {
         const data = await res.json();
-        setOrderDetails(prev => ({ ...prev, paymentReceiptUrl: data.urls[0] }));
-      } else {
-        alert('Upload failed');
+        const stockMap: Record<string, number> = {};
+        data.forEach((p: any) => {
+          stockMap[p.id] = p.stock || 0;
+        });
+        setProductsStock(stockMap);
       }
     } catch (err) {
-      console.error(err);
-      alert('Upload error');
-    } finally {
-      setIsUploadingReceipt(false);
+      console.error('Failed to refresh stocks on error:', err);
     }
   };
+
 
   // Monitor stock and auto-clamp quantities if database stock levels decrease
   useEffect(() => {
@@ -263,131 +175,34 @@ export default function Cart() {
 
   if (!mounted) return null; // Prevent hydration mismatch
 
-  const ErrorModals = (
-    <AnimatePresence>
-      {/* PDF Error Modal */}
-      {pdfErrorModalOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6"
-        >
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setPdfErrorModalOpen(false)}
-          />
-          <motion.div
-            initial={{ scale: 0.95, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.95, y: 20 }}
-            className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-800"
-          >
-            <div className="p-8 flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mb-6">
-                <Shield size={32} />
-              </div>
-              <h3 className="text-xl font-black text-foreground mb-3">
-                {locale === 'zh' ? '不支持 PDF' : locale === 'ms' ? 'PDF Tidak Dibenarkan' : 'PDF Not Allowed'}
-              </h3>
-              <p className="text-zinc-500 dark:text-zinc-400 font-medium mb-8 text-sm leading-relaxed">
-                {locale === 'zh' ? '请仅上传图片文件（如 JPG、PNG）作为您的付款收据。' : locale === 'ms' ? 'Sila muat naik fail imej (seperti JPG, PNG) sahaja untuk resit pembayaran anda.' : 'Please upload only image files (like JPG, PNG) for your payment receipt.'}
-              </p>
-              <button
-                onClick={() => setPdfErrorModalOpen(false)}
-                className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black uppercase tracking-widest transition-colors shadow-lg shadow-amber-500/20"
-              >
-                {locale === 'zh' ? '确定' : locale === 'ms' ? 'OK' : 'OK'}
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-
-      {/* Insufficient Stock Modal */}
-      {stockErrorModalOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6"
-        >
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setStockErrorModalOpen(false)}
-          />
-          <motion.div
-            initial={{ scale: 0.95, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.95, y: 20 }}
-            className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-800"
-          >
-            <div className="p-8 flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mb-6">
-                <AlertTriangle size={32} />
-              </div>
-              <h3 className="text-xl font-black text-foreground mb-3">
-                {locale === 'zh' ? '商品已售罄' : locale === 'ms' ? 'Item Habis Dijual' : 'Item Sold Out'}
-              </h3>
-              <p className="text-zinc-500 dark:text-zinc-400 font-medium mb-4 text-sm leading-relaxed">
-                {locale === 'zh' 
-                  ? '抱歉，您抢购的以下商品刚刚已售罄。您的购物车已自动更新。' 
-                  : locale === 'ms' 
-                  ? 'Maaf, item berikut telah habis dijual. Troli anda telah dikemas kini.' 
-                  : 'Sorry, the following items just sold out. Your cart has been updated.'}
-              </p>
-
-              <div className="w-full bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 mb-8 text-left max-h-32 overflow-y-auto">
-                <ul className="space-y-2">
-                  {stockErrorProductName.split(',').filter(Boolean).map((name, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
-                      <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{name.trim()}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <button
-                onClick={() => setStockErrorModalOpen(false)}
-                className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black uppercase tracking-widest transition-colors shadow-lg shadow-amber-500/20"
-              >
-                {locale === 'zh' ? '确定' : locale === 'ms' ? 'OK' : 'OK'}
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-
   if (items.length === 0) {
     return (
       <>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center min-h-[60vh] flex flex-col justify-center items-center">
-          <div className="mb-6 text-foreground">
-            <ShoppingCart size={64} strokeWidth={1.5} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center min-h-[50vh] sm:min-h-[60vh] flex flex-col justify-center items-center">
+          <div className="mb-4 sm:mb-6 w-20 h-20 sm:w-24 sm:h-24 bg-zinc-100 dark:bg-zinc-900 rounded-full flex items-center justify-center text-zinc-400 dark:text-zinc-500">
+            <ShoppingCart className="w-8 h-8 sm:w-12 sm:h-12" strokeWidth={1.5} />
           </div>
-          <h1 className="text-3xl font-bold mb-4 text-foreground">{t.cart.emptyTitle || 'Your cart is empty'}</h1>
+          <h1 className="text-2xl sm:text-3xl font-black mb-3 sm:mb-4 text-foreground tracking-tight">{t.cart.emptyTitle || 'Your cart is empty'}</h1>
           
           {!isLoggedIn ? (
             <>
-              <p className="text-muted-foreground mb-8 text-sm max-w-md leading-relaxed">
+              <p className="text-zinc-500 dark:text-zinc-400 mb-8 sm:mb-10 text-sm sm:text-base max-w-md leading-relaxed px-4">
                 {locale === 'zh' 
                   ? `登录您的 ${settings?.businessName || 'Cheng-BOOM'} 帐户以查看您保存的商品或继续购物` 
                   : locale === 'ms'
                   ? `Log masuk ke akaun ${settings?.businessName || 'Cheng-BOOM'} anda untuk melihat item anda yang disimpan atau teruskan membeli-belah`
                   : `Sign in to your ${settings?.businessName || 'Cheng-BOOM'} account to view your saved items or continue shopping`}
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto max-w-xs sm:max-w-none mx-auto">
                 <Link 
                   href="/shop" 
-                  className="w-full sm:w-auto px-8 py-3 bg-white text-zinc-900 rounded-full font-bold hover:bg-zinc-200 transition-all inline-flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-full font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all inline-flex items-center justify-center gap-2 shadow-sm"
                 >
-                  {locale === 'zh' ? '继续购物' : locale === 'ms' ? 'Teruskan Membeli-belah' : 'Continue shopping'} <ArrowRight size={20} />
+                  {locale === 'zh' ? '继续购物' : locale === 'ms' ? 'Teruskan Membeli-belah' : 'Continue shopping'} <ArrowRight size={18} className="hidden sm:block" />
                 </Link>
                 <Link 
                   href="/login" 
-                  className="w-full sm:w-auto px-8 py-3 bg-primary border-2 border-primary text-zinc-900 rounded-full font-bold hover:brightness-110 transition-all text-center shadow-lg shadow-primary/20"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-3 bg-primary text-zinc-900 rounded-full font-bold hover:brightness-110 transition-all text-center shadow-lg shadow-primary/20"
                 >
                   {locale === 'zh' ? '登录' : locale === 'ms' ? 'Log Masuk' : 'Sign in'}
                 </Link>
@@ -395,112 +210,19 @@ export default function Cart() {
             </>
           ) : (
             <>
-              <p className="text-muted-foreground mb-8 text-lg">{t.cart.emptyDesc}</p>
+              <p className="text-zinc-500 dark:text-zinc-400 mb-8 sm:mb-10 text-sm sm:text-base px-4">{t.cart.emptyDesc}</p>
               <Link 
                 href="/shop" 
-                className="px-8 py-3 bg-white text-zinc-900 rounded-full font-bold hover:bg-zinc-200 transition-all inline-flex items-center gap-2 shadow-lg"
+                className="w-full sm:w-auto max-w-xs mx-auto px-6 sm:px-8 py-3.5 sm:py-3 bg-primary text-zinc-900 rounded-full font-bold hover:brightness-110 transition-all inline-flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
               >
-                {t.cart.startShopping || 'Continue shopping'} <ArrowRight size={20} />
+                {t.cart.startShopping || 'Continue shopping'} <ArrowRight size={18} />
               </Link>
             </>
           )}
         </div>
-        {ErrorModals}
       </>
     );
   }
-
-  const handleCheckoutSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedItems.length === 0) return;
-    setIsSubmitting(true);
-
-    try {
-      // 1. Save to database
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerInfo: {
-            name: orderDetails.customerName,
-            phone: orderDetails.customerPhone,
-            address: orderDetails.address || (orderDetails.deliveryMode === 'Self Collect' ? 'Self Collect' : ''),
-            paymentMethod: orderDetails.paymentMethod,
-            deliveryMode: orderDetails.deliveryMode,
-            notes: orderDetails.notes,
-            role: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}').role : 'Guest',
-            paymentReceiptUrl: orderDetails.paymentReceiptUrl
-          },
-          items: selectedItems.map(item => ({
-            productId: item.id,
-            code: item.code,
-            name: item.name,
-            price: item.price,
-            originalPrice: item.originalPrice,
-            quantity: item.quantity,
-            variant: item.variant,
-            itemsPerBox: item.itemsPerBox
-          })),
-          totalAmount: finalSelectedTotalPrice,
-          originalAmount: selectedTotalOriginalPrice,
-          totalDiscount: selectedTotalDiscount,
-          sellerLevelName: sellerLevelName,
-          discountPercent: discountPercent,
-          isFreeShipping: isFreeShipping
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        if (errorData.code === 'INSUFFICIENT_STOCK') {
-          setStockErrorProductName(errorData.productName);
-          setStockErrorModalOpen(true);
-          const res = await fetch('/api/products');
-          if (res.ok) {
-            const data = await res.json();
-            const stockMap: Record<string, number> = {};
-            data.forEach((p: any) => { stockMap[p.id] = p.stock || 0; });
-            setProductsStock(stockMap);
-          }
-          setIsSubmitting(false);
-          return;
-        }
-        throw new Error('Failed to save order');
-      }
-
-      // 2. Open WhatsApp - enrich items with seller price fields for accurate labeling
-      const enrichedItems = selectedItems.map(item => ({
-        ...item,
-        sellerPrice: productsMap[item.id]?.sellerPrice ?? null,
-        boxSellerPrice: productsMap[item.id]?.boxSellerPrice ?? null,
-      }));
-      const url = generateWhatsAppLink(
-        enrichedItems as any,
-        finalSelectedTotalPrice,
-        {
-          ...orderDetails,
-          role: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}').role : 'Guest'
-        },
-        locale as 'en' | 'zh' | 'ms',
-        isSeller,
-        settings?.businessName,
-        settings?.whatsapp ?? undefined,
-        sellerLevelName,
-        discountPercent,
-        isFreeShipping
-      );
-      window.open(url, '_blank');
-
-      // 3. Cleanup
-      clearCart();
-      setIsCheckoutOpen(false);
-    } catch (error) {
-      console.error('Checkout error:', error);
-      alert('Failed to process order. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const baseTotalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const totalItemSavings = totalOriginalPrice - baseTotalPrice;
@@ -511,26 +233,37 @@ export default function Cart() {
         <title>{`${t.cart.title} - Cheng-BOOM`}</title>
       </Head>
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
-        <div className="flex items-center justify-between mb-12">
-          <h1 className="text-4xl font-black text-foreground tracking-tight">
-            {locale === 'zh' ? '购物车' : locale === 'ms' ? 'Troli Beli-belah' : 'Shopping Cart'} <span className="text-xl sm:text-2xl text-zinc-500 font-medium ml-4">({totalItems} {t.cart.items})</span>
+        <div className="flex items-center justify-between mb-4 sm:mb-8 md:mb-12">
+          <h1 className="text-3xl sm:text-4xl font-normal text-foreground tracking-tight">
+            {locale === 'zh' ? '我的购物车' : locale === 'ms' ? 'Troli Beli-belah Saya' : 'My Shopping Cart'}
           </h1>
-          {items.length > 0 && (
-            <button
-              onClick={() => setIsClearCartModalOpen(true)}
-              className="text-sm font-medium text-zinc-500 hover:text-red-500 transition-colors flex items-center gap-1"
-            >
-              <Trash2 size={16} />
-              {locale === 'zh' ? '清空购物车' : locale === 'ms' ? 'Kosongkan Troli' : 'Clear Cart'}
-            </button>
-          )}
+        </div>
+
+        {/* Mobile Subtotal Header */}
+        <div className="flex sm:hidden items-center justify-between mb-2 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+          <div className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+            {locale === 'zh' ? `小计 (${selectedItemIds.length})` : locale === 'ms' ? `Subjumlah (${selectedItemIds.length})` : `Subtotal (${selectedItemIds.length})`}: <span className="font-bold text-foreground ml-1">RM {finalSelectedTotalPrice.toFixed(2)}</span>
+          </div>
+          <button
+            onClick={() => {
+              if (selectedItemIds.length === 0) {
+                alert(locale === 'zh' ? '请选择商品进行结算' : locale === 'ms' ? 'Sila pilih item untuk dibayar' : 'Please select items to checkout');
+                return;
+              }
+              setIsCheckoutOpen(true);
+            }}
+            disabled={selectedItemIds.length === 0}
+            className={`py-2 px-5 rounded-full font-bold text-sm transition-all shadow-sm ${selectedItemIds.length > 0 ? 'bg-primary text-zinc-900 hover:brightness-110' : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-400 cursor-not-allowed shadow-none'}`}
+          >
+            {t.cart.checkout.confirmBtn || 'Check Out'}
+          </button>
         </div>
         
         <div className="w-full">
           {/* Cart Table Header (Desktop only) */}
-          <div className="hidden sm:flex items-center gap-4 p-4 bg-white dark:bg-zinc-950 border border-border text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-4 rounded-sm shadow-sm">
+          <div className="hidden sm:flex items-center gap-4 pb-4 border-b border-zinc-100 dark:border-zinc-800 text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">
             <div className="w-[40px] flex justify-center shrink-0">
-              <button onClick={toggleAllSelection} className="hover:text-primary transition-colors">
+              <button onClick={toggleAllSelection} className="hover:text-primary transition-colors focus:outline-none">
                 {selectedItemIds.length === items.length && items.length > 0 ? (
                   <CheckSquare size={20} className="text-primary" />
                 ) : (
@@ -538,40 +271,20 @@ export default function Cart() {
                 )}
               </button>
             </div>
-            <div className="flex-1">{locale === 'zh' ? '商品' : locale === 'ms' ? 'Produk' : 'Product'}</div>
-            <div className="w-[15%] text-center">{locale === 'zh' ? '单价' : locale === 'ms' ? 'Harga Seunit' : 'Unit Price'}</div>
+            <div className="flex-1">{locale === 'zh' ? '商品' : locale === 'ms' ? 'Item' : 'Item'}</div>
+            <div className="w-[15%] text-center">{locale === 'zh' ? '单价' : locale === 'ms' ? 'Harga Seunit' : 'Item Price'}</div>
             <div className="w-[15%] text-center">{locale === 'zh' ? '数量' : locale === 'ms' ? 'Kuantiti' : 'Quantity'}</div>
-            <div className="w-[15%] text-center">{locale === 'zh' ? '总价' : locale === 'ms' ? 'Jumlah Harga' : 'Total Price'}</div>
-            <div className="w-[10%] text-center">{locale === 'zh' ? '操作' : locale === 'ms' ? 'Tindakan' : 'Actions'}</div>
+            <div className="w-[15%] text-center">{locale === 'zh' ? '价格' : locale === 'ms' ? 'Harga' : 'Price'}</div>
+            <div className="w-[10%] flex justify-center shrink-0"></div>
           </div>
 
           {/* Cart Items */}
-          <div className="w-full space-y-4 pb-6">
+          <div className="w-full pb-6">
             {items.map((item) => (
-              <div key={item.cartItemId} className="group relative flex flex-col sm:flex-row items-center gap-4 p-4 bg-white dark:bg-zinc-950 border border-border rounded-sm shadow-sm hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
+              <div key={item.cartItemId} className="group relative flex flex-row flex-wrap sm:flex-nowrap items-start sm:items-center gap-2 sm:gap-4 py-6 border-b border-zinc-100 dark:border-zinc-800 transition-colors">
                 
-                {/* Mobile Header for Checkbox (only visible on mobile) */}
-                <div className="flex sm:hidden w-full items-center justify-between border-b border-border pb-3 mb-2">
-                  <button 
-                    onClick={() => toggleItemSelection(item.cartItemId)}
-                    className="flex items-center gap-3 text-zinc-500 hover:text-primary transition-colors focus:outline-none"
-                  >
-                    {selectedItemIds.includes(item.cartItemId) ? (
-                      <CheckSquare size={22} className="text-primary" />
-                    ) : (
-                      <Square size={22} />
-                    )}
-                  </button>
-                  <button 
-                    onClick={() => setItemToRemove(item.cartItemId)}
-                    className="text-zinc-400 hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                </div>
-
-                {/* Desktop Checkbox */}
-                <div className="hidden sm:flex w-[40px] justify-center shrink-0">
+                {/* Checkbox */}
+                <div className="flex w-[30px] sm:w-[40px] justify-center shrink-0 mt-3 sm:mt-0">
                   <button 
                     onClick={() => toggleItemSelection(item.cartItemId)}
                     className="text-zinc-400 hover:text-primary transition-colors focus:outline-none"
@@ -584,18 +297,31 @@ export default function Cart() {
                   </button>
                 </div>
 
-                {/* Product Info */}
-                <Link href={`/shop/${item.id}?from=cart`} className="flex-1 flex flex-row items-center gap-4 w-full sm:w-auto hover:opacity-80 transition-opacity">
-                  <div className="w-20 h-20 rounded-sm overflow-hidden bg-muted shrink-0 border border-border">
-                    <img src={item.image || '/transparent-Background.png'} alt={item.name} className="w-full h-full object-cover" />
-                  </div>
+                {/* Mobile & Desktop Image */}
+                <Link href={`/shop/${item.id}?from=cart`} className="w-16 h-16 sm:w-20 sm:h-20 rounded-sm overflow-hidden bg-transparent shrink-0">
+                  <img src={item.image || '/transparent-Background.png'} alt={item.name} className="w-full h-full object-contain" />
+                </Link>
+
+                {/* Details Container */}
+                <div className="flex-1 flex flex-col justify-center gap-1 sm:gap-0 sm:flex-row sm:items-center min-w-[150px]">
+                  
+                  {/* Title & Mobile details */}
                   <div className="flex-1 flex flex-col justify-center">
-                    <h3 className="text-base sm:text-lg font-bold text-foreground line-clamp-2 leading-tight">
-                      {t.products?.[item.id]?.name || item.name}
-                    </h3>
+                    <Link href={`/shop/${item.id}?from=cart`} className="hover:opacity-80 transition-opacity">
+                      <h3 className="text-sm sm:text-base font-medium text-foreground line-clamp-2 leading-tight">
+                        {t.products?.[item.id]?.name || item.name}
+                      </h3>
+                    </Link>
+                    
+                    {/* Mobile Price */}
+                    <div className="sm:hidden mt-1 text-foreground font-bold text-sm">
+                      RM {item.price.toFixed(2)}
+                    </div>
+
+                    {/* Variation */}
                     {(item.variant || item.code) && (
-                      <div className="text-sm text-zinc-500 mt-2 flex items-center gap-2">
-                        <span>{locale === 'zh' ? '分类:' : locale === 'ms' ? 'Variasi:' : 'Variations:'}</span>
+                      <div className="text-xs text-zinc-500 mt-1 sm:mt-2 flex items-center gap-2">
+                        <span className="font-medium text-zinc-600 dark:text-zinc-400">{locale === 'zh' ? '分类:' : locale === 'ms' ? 'Variasi:' : 'Variation:'}</span>
                         {item.variant ? (
                           (productsMap[item.id] && productsMap[item.id].boxPrice !== null && productsMap[item.id].boxPrice !== undefined) ? (
                             <div className="relative group/variant" onClick={(e) => e.preventDefault()}>
@@ -617,100 +343,131 @@ export default function Cart() {
                                   }
                                   updateVariant(item.cartItemId, newVariant, newPrice, newOrigPrice);
                                 }}
-                                className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 rounded px-2 py-1 text-xs outline-none cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors focus:ring-1 focus:ring-primary"
+                                className="bg-transparent border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded px-2 py-1 text-xs outline-none cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors focus:ring-1 focus:ring-primary"
                               >
                                 <option value="Single">Single</option>
                                 <option value="Box">Box</option>
                               </select>
                             </div>
                           ) : (
-                            <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">{item.variant}</span>
+                            <span className="text-xs text-zinc-500">{item.variant}</span>
                           )
                         ) : (
-                          <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">{item.code}</span>
+                          <span className="text-xs text-zinc-500">{item.code}</span>
                         )}
                       </div>
                     )}
-                    {/* Mobile Price */}
-                    <div className="sm:hidden mt-2 text-primary font-bold text-lg">
-                      RM {item.price.toFixed(2)}
+
+                    {/* Mobile Remove & Quantity Row */}
+                    <div className="flex sm:hidden items-center justify-between mt-4 w-full pr-2">
+                      <button 
+                        onClick={() => setItemToRemove(item.cartItemId)}
+                        className="text-primary text-sm font-medium hover:opacity-80 transition-opacity"
+                      >
+                        {locale === 'zh' ? '删除' : locale === 'ms' ? 'Padam' : 'Remove'}
+                      </button>
+
+                      {/* Mobile Quantity */}
+                      <div className="flex items-center border border-zinc-200 dark:border-zinc-700 rounded-sm overflow-hidden h-7">
+                        <button 
+                          onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
+                          className="w-7 h-full flex items-center justify-center bg-transparent text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border-r border-zinc-200 dark:border-zinc-700"
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <div className="w-8 h-full flex items-center justify-center bg-transparent text-xs font-medium text-foreground">
+                          {item.quantity}
+                        </div>
+                        <button 
+                          onClick={() => {
+                            const maxStock = productsStock[item.id] !== undefined ? productsStock[item.id] : (item.stock ?? Infinity);
+                            updateQuantity(item.cartItemId, item.quantity + 1, maxStock);
+                          }}
+                          disabled={item.quantity >= (productsStock[item.id] !== undefined ? productsStock[item.id] : (item.stock ?? Infinity))}
+                          className="w-7 h-full flex items-center justify-center bg-transparent text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 transition-colors border-l border-zinc-200 dark:border-zinc-700"
+                        >
+                          <Plus size={12} />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </Link>
 
-                {/* Unit Price (Desktop) */}
-                <div className="hidden sm:block w-[15%] text-center">
-                  <p className="text-foreground font-medium text-base">RM {item.price.toFixed(2)}</p>
-                  {item.originalPrice && item.originalPrice > item.price && (
-                    <div className="mt-1 flex flex-col items-center justify-center gap-0.5">
-                      {(() => {
-                        const pDetails = productsMap[item.id];
-                        let isSellerPrice = false;
-                        if (pDetails) {
-                          if (item.variant === 'Box') {
-                            isSellerPrice = isSeller && pDetails.boxSellerPrice != null && item.price === pDetails.boxSellerPrice;
-                          } else {
-                            isSellerPrice = isSeller && pDetails.sellerPrice != null && item.price === pDetails.sellerPrice;
+                  {/* Desktop Only Columns */}
+                  
+                  {/* Unit Price (Desktop) */}
+                  <div className="hidden sm:block w-[15%] text-center">
+                    <p className="text-zinc-600 dark:text-zinc-300 font-medium text-sm">RM {item.price.toFixed(2)}</p>
+                    {item.originalPrice && item.originalPrice > item.price && (
+                      <div className="mt-1 flex flex-col items-center justify-center gap-0.5">
+                        {(() => {
+                          const pDetails = productsMap[item.id];
+                          let isSellerPrice = false;
+                          if (pDetails) {
+                            if (item.variant === 'Box') {
+                              isSellerPrice = isSeller && pDetails.boxSellerPrice != null && item.price === pDetails.boxSellerPrice;
+                            } else {
+                              isSellerPrice = isSeller && pDetails.sellerPrice != null && item.price === pDetails.sellerPrice;
+                            }
                           }
-                        }
-                        return (
-                          <span className={`text-xs font-medium ${isSellerPrice ? 'text-primary' : 'text-orange-500'}`}>
-                            {isSellerPrice 
-                              ? (locale === 'zh' ? '卖家优惠 ' : locale === 'ms' ? 'Diskaun Penjual ' : 'Seller Discount ') 
-                              : (locale === 'zh' ? '折扣 ' : locale === 'ms' ? 'Diskaun ' : 'Discount ')}
-                            {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}%
-                          </span>
-                        );
-                      })()}
-                    </div>
-                  )}
-                </div>
+                          return (
+                            <span className={`text-xs font-medium ${isSellerPrice ? 'text-primary' : 'text-zinc-400 line-through'}`}>
+                              {isSellerPrice 
+                                ? (locale === 'zh' ? '卖家优惠 ' : locale === 'ms' ? 'Diskaun Penjual ' : 'Seller Discount ') 
+                                : ''}
+                              {isSellerPrice ? Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100) + '%' : `RM ${item.originalPrice.toFixed(2)}`}
+                            </span>
+                          );
+                        })()}
+                      </div>
+                    )}
+                  </div>
 
-                {/* Quantity */}
-                <div className="w-full sm:w-[15%] flex flex-col items-center justify-center">
-                  <div className="flex items-center border border-border rounded-sm overflow-hidden h-8">
-                    <button 
-                      onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
-                      className="w-8 h-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-foreground transition-colors border-r border-border"
-                    >
-                      <Minus size={14} />
-                    </button>
-                    <div className="w-10 h-full flex items-center justify-center bg-white dark:bg-zinc-950 text-sm font-medium text-foreground">
-                      {item.quantity}
+                  {/* Quantity (Desktop) */}
+                  <div className="hidden sm:flex w-[15%] flex-col items-center justify-center">
+                    <div className="flex items-center border border-zinc-200 dark:border-zinc-700 rounded-sm overflow-hidden h-8">
+                      <button 
+                        onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
+                        className="w-8 h-full flex items-center justify-center bg-transparent text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border-r border-zinc-200 dark:border-zinc-700"
+                      >
+                        <Minus size={14} />
+                      </button>
+                      <div className="w-10 h-full flex items-center justify-center bg-transparent text-sm font-medium text-foreground">
+                        {item.quantity}
+                      </div>
+                      <button 
+                        onClick={() => {
+                          const maxStock = productsStock[item.id] !== undefined ? productsStock[item.id] : (item.stock ?? Infinity);
+                          updateQuantity(item.cartItemId, item.quantity + 1, maxStock);
+                        }}
+                        disabled={item.quantity >= (productsStock[item.id] !== undefined ? productsStock[item.id] : (item.stock ?? Infinity))}
+                        className="w-8 h-full flex items-center justify-center bg-transparent text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 transition-colors border-l border-zinc-200 dark:border-zinc-700"
+                      >
+                        <Plus size={14} />
+                      </button>
                     </div>
+                    {item.quantity >= (productsStock[item.id] !== undefined ? productsStock[item.id] : (item.stock ?? Infinity)) ? (
+                      <p className="text-red-500 text-[10px] uppercase mt-1 text-center">Max Stock</p>
+                    ) : (productsStock[item.id] !== undefined && productsStock[item.id] <= 5 && productsStock[item.id] > 0) ? (
+                      <p className="text-red-500 text-xs mt-1 text-center">{productsStock[item.id]} items left</p>
+                    ) : null}
+                  </div>
+
+                  {/* Total Price (Desktop) */}
+                  <div className="hidden sm:flex w-[15%] justify-center items-center font-bold text-sm text-foreground">
+                    RM {(item.price * item.quantity).toFixed(2)}
+                  </div>
+
+                  {/* Delete Action (Desktop) */}
+                  <div className="hidden sm:flex w-[10%] justify-center">
                     <button 
-                      onClick={() => {
-                        const maxStock = productsStock[item.id] !== undefined ? productsStock[item.id] : (item.stock ?? Infinity);
-                        updateQuantity(item.cartItemId, item.quantity + 1, maxStock);
-                      }}
-                      disabled={item.quantity >= (productsStock[item.id] !== undefined ? productsStock[item.id] : (item.stock ?? Infinity))}
-                      className="w-8 h-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-foreground disabled:opacity-50 transition-colors border-l border-border"
+                      onClick={() => setItemToRemove(item.cartItemId)}
+                      className="text-zinc-400 hover:text-red-500 transition-colors p-2"
                     >
-                      <Plus size={14} />
+                      <Trash2 size={18} />
                     </button>
                   </div>
-                  {item.quantity >= (productsStock[item.id] !== undefined ? productsStock[item.id] : (item.stock ?? Infinity)) ? (
-                    <p className="text-red-500 text-[10px] uppercase mt-1 text-center">Max Stock</p>
-                  ) : (productsStock[item.id] !== undefined && productsStock[item.id] <= 5 && productsStock[item.id] > 0) ? (
-                    <p className="text-red-500 text-xs mt-1 text-center">{productsStock[item.id]} items left</p>
-                  ) : null}
+                  
                 </div>
-
-                {/* Total Price (Desktop) */}
-                <div className="hidden sm:block w-[15%] text-center text-primary font-bold text-base">
-                  RM {(item.price * item.quantity).toFixed(2)}
-                </div>
-
-                {/* Actions (Desktop) */}
-                <div className="hidden sm:flex w-[10%] justify-center">
-                  <button 
-                    onClick={() => setItemToRemove(item.cartItemId)}
-                    className="text-zinc-500 hover:text-red-500 transition-colors flex items-center gap-1 text-sm font-medium"
-                  >
-                    {locale === 'zh' ? '删除' : locale === 'ms' ? 'Padam' : 'Delete'}
-                  </button>
-                </div>
-                
               </div>
             ))}
             
@@ -719,30 +476,86 @@ export default function Cart() {
           
         </div>
 
-        {/* Sticky Bottom Bar */}
-        <div className="sticky bottom-0 w-full bg-white dark:bg-zinc-950 border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-50 transition-all duration-300 rounded-sm mt-8">
+        {/* Mobile Total Section */}
+        <div className="sm:hidden w-full bg-white dark:bg-zinc-950 mt-4 p-4 border-t border-zinc-100 dark:border-zinc-800">
+          {/* Details */}
+          <div className="space-y-3 text-sm mb-6 border-b border-zinc-100 dark:border-zinc-800 pb-4">
+            <div className="flex justify-between items-center gap-4 text-zinc-600 dark:text-zinc-400 font-medium">
+              <span>{locale === 'zh' ? `小计 (${selectedItemIds.length})` : locale === 'ms' ? `Subjumlah (${selectedItemIds.length})` : `Subtotal (${selectedItemIds.length})`}</span>
+              <span>RM {selectedTotalOriginalPrice.toFixed(2)}</span>
+            </div>
+            
+            {selectedTotalPromoDiscount > 0 && (
+              <div className="flex justify-between items-center gap-4 text-zinc-600 dark:text-zinc-400 font-medium">
+                <span>{locale === 'zh' ? '商品折扣' : locale === 'ms' ? 'Diskaun Produk' : 'Product Discount'}</span>
+                <span>-RM {selectedTotalPromoDiscount.toFixed(2)}</span>
+              </div>
+            )}
+
+            {selectedTotalSellerItemDiscount > 0 && (
+              <div className="flex justify-between items-center gap-4 text-primary font-medium">
+                <span>{locale === 'zh' ? '卖家专属优惠' : locale === 'ms' ? 'Tawaran Eksklusif Penjual' : 'Seller Exclusive Price'}</span>
+                <span>-RM {selectedTotalSellerItemDiscount.toFixed(2)}</span>
+              </div>
+            )}
+
+            {selectedTotalDiscount > 0 && (
+              <div className="flex justify-between items-center gap-4 text-purple-500 font-medium">
+                <span>{locale === 'zh' ? `${sellerLevelName || '卖家'}折扣 (${discountPercent}%)` : locale === 'ms' ? `Diskaun ${sellerLevelName || 'Penjual'} (${discountPercent}%)` : `${sellerLevelName || 'Seller'} Tier Discount (${discountPercent}%)`}</span>
+                <span>-RM {selectedTotalDiscount.toFixed(2)}</span>
+              </div>
+            )}
+
+            {selectedTotalSaved > 0 && (
+              <div className="flex justify-between items-center gap-4 text-primary font-bold">
+                <span>{locale === 'zh' ? '已节省' : locale === 'ms' ? 'Jimat' : 'Saved'}</span>
+                <span>-RM {selectedTotalSaved.toFixed(2)}</span>
+              </div>
+            )}
+            
+            <div className="flex justify-between items-center gap-4 font-black text-foreground text-lg mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+              <span>{locale === 'zh' ? `总计 (${selectedItemIds.length} 件)` : locale === 'ms' ? `Jumlah (${selectedItemIds.length} item)` : `Total (${selectedItemIds.length} Items)`}</span>
+              <span className="text-primary">RM {finalSelectedTotalPrice.toFixed(2)}</span>
+            </div>
+          </div>
+
+          {/* Mobile Buttons */}
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => {
+                if (selectedItemIds.length === 0) {
+                  alert(locale === 'zh' ? '请选择商品进行结算' : locale === 'ms' ? 'Sila pilih item untuk dibayar' : 'Please select items to checkout');
+                  return;
+                }
+                setIsCheckoutOpen(true);
+              }}
+              disabled={selectedItemIds.length === 0}
+              className={`w-full py-3.5 rounded-full font-black text-base transition-all shadow-md ${selectedItemIds.length > 0 ? 'bg-primary text-zinc-900 hover:brightness-110 hover:shadow-lg hover:shadow-primary/20' : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-400 cursor-not-allowed shadow-none'}`}
+            >
+              {t.cart.checkout.confirmBtn || 'Check Out'}
+            </button>
+            <Link 
+              href="/shop" 
+              className="flex items-center justify-center w-full py-3.5 rounded-full font-bold text-base transition-all bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 shadow-sm"
+            >
+              {locale === 'zh' ? '继续购物' : locale === 'ms' ? 'Teruskan Membeli-belah' : 'Continue Shopping'}
+            </Link>
+          </div>
+        </div>
+
+        {/* Sticky Bottom Bar (Desktop Only) */}
+        <div className="hidden sm:block sticky bottom-0 w-full bg-white dark:bg-zinc-950 border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-50 transition-all duration-300 rounded-sm mt-8">
           <div className="w-full px-5 sm:px-8 py-4 sm:py-5 flex flex-wrap sm:flex-nowrap items-center justify-between gap-4">
             
             {/* Left Actions */}
             <div className="flex items-center gap-6">
-              <button 
-                onClick={toggleAllSelection}
-                className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300 hover:text-primary transition-colors text-sm sm:text-base font-medium"
+              <Link 
+                href="/shop" 
+                className="flex items-center justify-center gap-2 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-full py-2.5 px-6 transition-all text-sm sm:text-base font-bold group shadow-sm"
               >
-                {selectedItemIds.length === items.length && items.length > 0 ? (
-                  <CheckSquare size={20} className="text-primary" />
-                ) : (
-                  <Square size={20} />
-                )}
-                <span className="whitespace-nowrap">{locale === 'zh' ? `全选 (${items.length})` : locale === 'ms' ? `Pilih Semua (${items.length})` : `Select All (${items.length})`}</span>
-              </button>
-
-              <button 
-                onClick={() => selectedItemIds.length > 0 && removeSelectedItems()}
-                className={`text-sm sm:text-base font-medium transition-colors ${selectedItemIds.length > 0 ? 'text-zinc-600 dark:text-zinc-300 hover:text-red-500 cursor-pointer' : 'text-zinc-400 cursor-not-allowed'}`}
-              >
-                {locale === 'zh' ? '删除' : locale === 'ms' ? 'Padam' : 'Delete'}
-              </button>
+                <ArrowRight size={18} className="rotate-180 transition-transform group-hover:-translate-x-1" />
+                <span className="whitespace-nowrap">{locale === 'zh' ? '继续购物' : locale === 'ms' ? 'Teruskan Membeli-belah' : 'Continue Shopping'}</span>
+              </Link>
             </div>
 
             {/* Right Totals & Checkout */}
@@ -775,11 +588,10 @@ export default function Cart() {
                     alert(locale === 'zh' ? '请选择商品进行结算' : locale === 'ms' ? 'Sila pilih item untuk dibayar' : 'Please select items to checkout');
                     return;
                   }
-                  setIsWhatsAppTermsAgreed(false);
                   setIsCheckoutOpen(true);
                 }}
                 disabled={selectedItemIds.length === 0}
-                className={`py-3 sm:py-4 px-6 sm:px-10 rounded-sm font-black text-base sm:text-lg transition-all shadow-md flex items-center justify-center ${selectedItemIds.length > 0 ? 'bg-primary text-zinc-900 hover:brightness-110' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed shadow-none'}`}
+                className={`py-3 sm:py-4 px-8 sm:px-10 rounded-full font-black text-base sm:text-lg transition-all shadow-md flex items-center justify-center ${selectedItemIds.length > 0 ? 'bg-primary text-zinc-900 hover:brightness-110 hover:shadow-lg hover:shadow-primary/20' : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-400 cursor-not-allowed shadow-none'}`}
               >
                 {t.cart.checkout.confirmBtn || 'Check Out'}
               </button>
@@ -853,495 +665,21 @@ export default function Cart() {
         {/* ── CHECKOUT MODAL ────────────────────────────────────────── */}
 
         {isCheckoutOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-            {/* Backdrop */}
-            <div 
-              className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity animate-in fade-in duration-300"
-              onClick={() => setIsCheckoutOpen(false)}
-            />
-            
-            {/* Modal Content */}
-            <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-950 rounded-[40px] shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 animate-in slide-in-from-bottom-8 duration-500">
-              <button 
-                onClick={() => setIsCheckoutOpen(false)}
-                className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors z-20 text-zinc-500"
-              >
-                <X size={24} />
-              </button>
-
-              <form onSubmit={handleCheckoutSubmit} className="max-h-[90vh] overflow-y-auto">
-                <div className="p-8 sm:p-12">
-                  <div className="mb-10">
-                    <h2 className="text-3xl font-black text-foreground mb-2">{t.cart.checkout.title} <span className="text-primary">{t.cart.checkout.titleAccent}</span></h2>
-                    <p className="text-muted-foreground font-medium">{t.cart.checkout.desc}</p>
-                    
-                    {/* Unified Order Summary Box */}
-                    <div className="mt-6 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
-                      {/* Item List */}
-                      {selectedItems.length > 0 && (
-                        <>
-                          <div className="max-h-48 overflow-y-auto bg-zinc-50 dark:bg-zinc-900/50">
-                            {selectedItems.map((item, idx) => (
-                              <div key={item.cartItemId + idx} className="p-4 flex items-center gap-4 border-b border-zinc-100 dark:border-zinc-800/50 last:border-0">
-                                <div className="w-12 h-12 rounded-lg overflow-hidden bg-white dark:bg-zinc-800 shrink-0 border border-zinc-100 dark:border-zinc-700">
-                                  {item.image && (
-                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                                  )}
-                                </div>
-                                <div className="flex-1 overflow-hidden min-w-0">
-                                  <h4 className="font-bold text-sm text-foreground truncate">{t.products?.[item.id]?.name || item.name}</h4>
-                                  <p className="text-xs text-zinc-500 font-medium mt-0.5">
-                                    {item.variant && <span className="mr-2">{item.variant}</span>}
-                                    Qty: {item.quantity}
-                                  </p>
-                                </div>
-                                <span className="text-sm font-bold text-foreground whitespace-nowrap">RM {(item.price * item.quantity).toFixed(2)}</span>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="border-t border-dashed border-zinc-200 dark:border-zinc-700" />
-                        </>
-                      )}
-                      {/* Total Payable Row */}
-                      <div className="p-5 bg-primary/10 flex items-center justify-between gap-4">
-                        <div className="flex flex-col">
-                          <span className="text-xs font-black uppercase tracking-widest text-primary mb-1">
-                            {locale === 'zh' ? '应付总额' : locale === 'ms' ? 'Jumlah Perlu Dibayar' : 'Total Payable'}
-                          </span>
-                          <span className="text-[10px] text-zinc-500 font-bold dark:text-zinc-400">
-                            {locale === 'zh' ? '请准备此确切金额' : locale === 'ms' ? 'Sila sediakan jumlah tepat ini' : 'Please prepare this exact amount'}
-                            {selectedTotalSaved > 0 && (
-                              <span className="ml-1 text-primary">· {locale === 'zh' ? '节省' : locale === 'ms' ? 'Jimat' : 'Saved'} RM {selectedTotalSaved.toFixed(2)}</span>
-                            )}
-                          </span>
-                        </div>
-                        <span className="text-3xl font-black text-primary tracking-tight whitespace-nowrap">RM {finalSelectedTotalPrice.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-
-                  <div className="space-y-8">
-
-                    {/* Customer Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">
-                          <User size={12} className="text-primary" /> {t.cart.checkout.formName}
-                        </label>
-                        <input 
-                          type="text" 
-                          required
-                          className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold"
-                          placeholder={t.cart.checkout.formNamePlaceholder}
-                          value={orderDetails.customerName}
-                          onChange={(e) => setOrderDetails({ ...orderDetails, customerName: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="relative flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1 group w-max">
-                          <Phone size={12} className="text-primary" /> {t.cart.checkout.formPhone}
-                          <span className="cursor-help flex items-center justify-center w-4 h-4 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-500 hover:text-primary transition-colors">
-                            <HelpCircle size={10} strokeWidth={3} />
-                          </span>
-                          {/* Instant Custom Tooltip */}
-                          <div className="absolute bottom-full mb-1.5 left-0 hidden group-hover:block w-[220px] p-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] leading-relaxed font-bold rounded-lg shadow-2xl z-[110] normal-case tracking-normal">
-                            {(t.cart.checkout as any).phoneFormatHint || "Only Malaysia mobile numbers (+60 or 01) are allowed."}
-                            <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-zinc-900 dark:bg-white rotate-45 rounded-sm" />
-                          </div>
-                        </label>
-                        <input 
-                          type="tel" 
-                          required
-                          pattern="^(\+?601|01)[0-9]{8,9}$"
-                          title={(t.cart.checkout as any).phoneFormatHint || "Only Malaysia mobile numbers (+60 or 01) are allowed."}
-                          className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold"
-                          placeholder={t.cart.checkout.formPhonePlaceholder}
-                          value={orderDetails.customerPhone}
-                          onChange={(e) => setOrderDetails({ ...orderDetails, customerPhone: e.target.value })}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Payment Method */}
-                    <div className="space-y-3">
-                      <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">
-                        <CreditCard size={12} className="text-primary" /> {t.cart.checkout.paymentTitle}
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {['Cash on Delivery', 'Bank Transfer', 'TNG DuitNow'].map((method) => (
-                          <button
-                            key={method}
-                            type="button"
-                            onClick={() => setOrderDetails({ ...orderDetails, paymentMethod: method })}
-                            className={cn(
-                              "px-4 py-4 rounded-2xl border text-[11px] font-black uppercase tracking-tight transition-all flex items-center justify-center gap-2",
-                              orderDetails.paymentMethod === method
-                                ? "bg-primary border-primary text-zinc-900 shadow-lg shadow-primary/20 scale-[1.02]"
-                                : "bg-zinc-50 dark:bg-white/5 border-border text-zinc-500 dark:text-zinc-400 hover:border-primary/50"
-                            )}
-                          >
-                            {orderDetails.paymentMethod === method && <Check size={14} strokeWidth={3} />}
-                            {paymentMethodLabels[method]?.[locale] || method}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Upload Receipt Section (Conditional) */}
-                    <AnimatePresence mode="popLayout">
-                      {(orderDetails.paymentMethod === 'Bank Transfer' || orderDetails.paymentMethod === 'TNG DuitNow') && (
-                        <motion.div 
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="space-y-4 overflow-hidden"
-                        >
-                          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800">
-                            <h4 className="text-sm font-black mb-4 text-center">
-                              {orderDetails.paymentMethod === 'Bank Transfer' ? 'Bank Transfer Details' : 'TNG DuitNow QR'}
-                            </h4>
-                            
-                            {orderDetails.paymentMethod === 'Bank Transfer' && settings?.bankTransferImage && (
-                              <div className="mb-4">
-                                <img src={settings.bankTransferImage} alt="Bank Details" className="w-full max-w-xs mx-auto rounded-xl shadow-md border border-zinc-200 dark:border-zinc-700" />
-                              </div>
-                            )}
-                            {orderDetails.paymentMethod === 'TNG DuitNow' && settings?.tngDuitnowImage && (
-                              <div className="mb-4">
-                                <img src={settings.tngDuitnowImage} alt="TNG DuitNow QR" className="w-full max-w-xs mx-auto rounded-xl shadow-md border border-zinc-200 dark:border-zinc-700" />
-                              </div>
-                            )}
-                            
-                            <p className="text-[11px] font-bold text-zinc-500 mb-6 text-center leading-relaxed">
-                              {orderDetails.paymentMethod === 'Bank Transfer' 
-                                ? (locale === 'zh' ? '请将款项转至上方银行账户并上传转账收据。' : locale === 'ms' ? 'Sila pindahkan jumlah keseluruhan ke akaun bank di atas dan muat naik resit.' : 'Please transfer the total amount to the bank account above and upload the receipt.')
-                                : (locale === 'zh' ? '请扫描上方二维码进行支付并上传付款收据。' : locale === 'ms' ? 'Sila imbas kod QR di atas untuk membuat pembayaran dan muat naik resit.' : 'Please scan the QR code above to pay the total amount and upload the receipt.')}
-                            </p>
-
-                            <div className="space-y-3">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Upload Receipt Image</label>
-                              <div className="relative border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-2xl p-6 flex flex-col items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer group bg-white dark:bg-zinc-900 overflow-hidden min-h-[140px]">
-                                {orderDetails.paymentReceiptUrl ? (
-                                  <div className="flex flex-col items-center gap-4 z-20 w-full">
-                                    <div className="flex flex-col items-center gap-2">
-                                      <div className="w-12 h-12 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center mb-1">
-                                        <Check size={24} />
-                                      </div>
-                                      <span className="text-xs font-bold text-green-600 text-center">
-                                        {locale === 'zh' ? '收据已成功上传' : locale === 'ms' ? 'Resit Berjaya Dimuat Naik' : 'Receipt Uploaded Successfully'}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                      <button 
-                                        type="button"
-                                        onClick={() => window.open(orderDetails.paymentReceiptUrl, '_blank')}
-                                        className="flex items-center gap-1.5 px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors"
-                                      >
-                                        <ExternalLink size={14} /> {locale === 'zh' ? '查看' : locale === 'ms' ? 'Lihat' : 'View'}
-                                      </button>
-                                      <button 
-                                        type="button"
-                                        onClick={() => document.getElementById('receipt-upload')?.click()}
-                                        className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors"
-                                      >
-                                        <Upload size={14} /> {locale === 'zh' ? '更改' : locale === 'ms' ? 'Tukar' : 'Change'}
-                                      </button>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="flex flex-col items-center gap-2">
-                                    {isUploadingReceipt ? (
-                                      <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                                    ) : (
-                                      <Upload size={24} className="text-zinc-400 group-hover:text-primary transition-colors" />
-                                    )}
-                                    <span className="text-xs font-bold text-zinc-500">{isUploadingReceipt ? 'Uploading...' : 'Click to Upload Receipt'}</span>
-                                  </div>
-                                )}
-                                <input 
-                                  id="receipt-upload"
-                                  type="file" 
-                                  accept="image/*"
-                                  onChange={handleReceiptUpload}
-                                  disabled={isUploadingReceipt}
-                                  className={cn("absolute inset-0 opacity-0 disabled:cursor-not-allowed", orderDetails.paymentReceiptUrl ? "hidden" : "cursor-pointer z-10")}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    {/* Delivery Mode */}
-                    <div className="space-y-3">
-                      <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">
-                        <MapPin size={12} className="text-primary" /> {t.cart.checkout.deliveryTitle}
-                      </label>
-                      <div className="grid grid-cols-2 gap-3">
-                        {['Self Collect', 'Delivery'].map((mode) => (
-                          <button
-                            key={mode}
-                            type="button"
-                            onClick={() => setOrderDetails({ ...orderDetails, deliveryMode: mode })}
-                            className={cn(
-                              "px-4 py-4 rounded-2xl border text-sm font-black transition-all flex items-center justify-center gap-2",
-                              orderDetails.deliveryMode === mode
-                                ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-xl scale-[1.02]"
-                                : "bg-zinc-50 dark:bg-white/5 border-border text-zinc-500 dark:text-zinc-400 hover:border-zinc-900/50 dark:hover:border-white/50"
-                            )}
-                          >
-                            {deliveryModeLabels[mode]?.[locale] || mode}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Address (If Delivery) */}
-                    {orderDetails.deliveryMode === 'Delivery' && (
-                      <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">{t.cart.checkout.address}</label>
-                        <textarea 
-                          required
-                          className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold resize-none"
-                          placeholder={t.cart.checkout.addressPlaceholder}
-                          rows={3}
-                          value={orderDetails.address}
-                          onChange={(e) => setOrderDetails({ ...orderDetails, address: e.target.value })}
-                        />
-                      </div>
-                    )}
-
-                    {/* Special Notes */}
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">{t.cart.checkout.notes}</label>
-                      <textarea 
-                        rows={3}
-                        className="w-full px-6 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold resize-none"
-                        placeholder={t.cart.checkout.notesPlaceholder}
-                        value={orderDetails.notes}
-                        onChange={(e) => setOrderDetails({ ...orderDetails, notes: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mt-12 flex flex-col gap-4">
-                     {/* Premium custom robot verification checkbox */}
-                     <motion.div 
-                       animate={shakeControls}
-                       className={cn(
-                         "border rounded-2xl p-4 transition-all duration-300 flex items-start gap-4 cursor-pointer select-none",
-                         isWhatsAppTermsAgreed 
-                           ? "bg-green-500/5 border-green-500/30 dark:bg-green-500/10" 
-                           : "bg-blue-500/5 border-blue-500/20 dark:bg-blue-500/10 hover:border-blue-500/40",
-                         shakeTerms && "border-red-500 bg-red-500/5 dark:bg-red-500/10"
-                       )}
-                       onClick={() => setIsWhatsAppTermsAgreed(!isWhatsAppTermsAgreed)}
-                     >
-                       <div className="flex items-center mt-0.5">
-                         <div className={cn(
-                           "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200 shrink-0",
-                           isWhatsAppTermsAgreed 
-                             ? "bg-green-500 border-green-500 text-zinc-900 scale-105 shadow-md shadow-green-500/20" 
-                             : "border-blue-400 dark:border-blue-500 bg-white dark:bg-zinc-950"
-                         )}>
-                           {isWhatsAppTermsAgreed && <Check size={14} strokeWidth={4} />}
-                         </div>
-                       </div>
-                       <div className="text-left">
-                         <p className={cn(
-                           "text-[10px] font-black uppercase tracking-widest mb-1 transition-colors",
-                           isWhatsAppTermsAgreed ? "text-green-500 animate-pulse" : "text-blue-500"
-                         )}>
-                           {locale === 'zh' ? '安全下单验证' : locale === 'ms' ? 'Pengesahan Pesanan Selamat' : 'Secure Order Verification'}
-                         </p>
-                         <p className={cn(
-                           "text-[11px] font-bold leading-relaxed transition-colors",
-                           isWhatsAppTermsAgreed ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400"
-                         )}>
-                           {locale === 'zh' 
-                             ? '我明了并同意：点击后，我将被重定向到 WhatsApp 且内容已自动填好。为避免下单失败，我绝不修改文本，直接点击发送。' 
-                             : locale === 'ms' 
-                               ? 'Saya faham & setuju: Selepas klik, saya akan dihalakan ke WhatsApp dengan maklumat yang diisi automatik. Saya tidak akan mengubah mesej dan terus klik hantar.' 
-                               : 'I understand & agree: After clicking, I will be redirected to WhatsApp with autofilled information. I will not edit the text and click send directly.'}
-                         </p>
-                       </div>
-                     </motion.div>
-
-                     <button 
-                        type="submit"
-                        disabled={isSubmitting || (!orderDetails.paymentReceiptUrl && (orderDetails.paymentMethod === 'Bank Transfer' || orderDetails.paymentMethod === 'TNG DuitNow'))}
-                        onClick={(e) => {
-                          if (!isWhatsAppTermsAgreed) {
-                            e.preventDefault();
-                            shakeControls.start({
-                              x: [0, -15, 15, -12, 12, -8, 8, -4, 4, 0],
-                              y: [0, 8, -8, 6, -6, 4, -4, 2, -2, 0],
-                              rotate: [0, -3, 3, -2, 2, -1, 1, 0],
-                              transition: { duration: 0.5, ease: "easeInOut" }
-                            });
-                            setShakeTerms(true);
-                            setTimeout(() => setShakeTerms(false), 500);
-                          } else if (!orderDetails.paymentReceiptUrl && (orderDetails.paymentMethod === 'Bank Transfer' || orderDetails.paymentMethod === 'TNG DuitNow')) {
-                            e.preventDefault();
-                            alert(locale === 'zh' ? '请先上传付款收据。' : locale === 'ms' ? 'Sila muat naik resit pembayaran terlebih dahulu.' : 'Please upload your payment receipt first.');
-                          }
-                        }}
-                        className={cn(
-                          "w-full py-5 px-4 mb-2 bg-primary text-zinc-900 rounded-[20px] font-black text-lg transition-all flex justify-center items-center gap-2",
-                          (!isWhatsAppTermsAgreed || isSubmitting || (!orderDetails.paymentReceiptUrl && (orderDetails.paymentMethod === 'Bank Transfer' || orderDetails.paymentMethod === 'TNG DuitNow'))) ? "opacity-40 cursor-not-allowed grayscale shadow-none" : "hover:brightness-110 shadow-xl hover:shadow-primary/20 active:scale-[0.98]"
-                        )}
-                     >
-                        {isSubmitting ? (
-                          <div className="w-6 h-6 border-4 border-zinc-900/20 border-t-zinc-900 rounded-full animate-spin" />
-                        ) : (
-                          <MessageCircle size={22} strokeWidth={3} className="shrink-0" />
-                        )}
-                        <span className="leading-tight">
-                          {isSubmitting ? 'Processing...' : t.cart.checkout.confirmBtn}
-                        </span>
-                     </button>
-
-                     <div className="flex justify-end mt-2">
-                       <button
-                         type="button"
-                         onClick={() => setIsGuideOpen(true)}
-                         className="flex items-center gap-1.5 text-zinc-500 hover:text-primary transition-colors text-xs font-black uppercase tracking-widest"
-                       >
-                         <HelpCircle size={14} strokeWidth={3} />
-                         {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}
-                       </button>
-                     </div>
-
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* ── GUIDANCE MODAL ────────────────────────────────────────── */}
-        {isGuideOpen && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6">
-            <div 
-              className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity animate-in fade-in duration-300"
-              onClick={() => setIsGuideOpen(false)}
-            />
-            <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-950 rounded-[40px] shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 animate-in slide-in-from-bottom-8 duration-500">
-              <button 
-                onClick={() => setIsGuideOpen(false)}
-                className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors z-20 text-zinc-500"
-              >
-                <X size={24} />
-              </button>
-              <div className="p-8 sm:p-12 max-h-[85vh] overflow-y-auto text-center">
-                 <h2 className="text-3xl font-black text-foreground mb-8">
-                   {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}
-                 </h2>
-                 
-                 <div className="space-y-12 text-left">
-                   {/* Step 1 placeholder */}
-                   <div className="space-y-4">
-                     <h3 className="text-xl font-bold flex items-center gap-3">
-                       <span className="w-8 h-8 rounded-full bg-primary text-zinc-900 flex items-center justify-center font-black">1</span> 
-                       {locale === 'zh' ? '自动跳转到 WhatsApp' : locale === 'ms' ? 'Hala ke WhatsApp' : 'Redirect to WhatsApp'}
-                     </h3>
-                     <p className="text-muted-foreground leading-relaxed">
-                       {locale === 'zh' 
-                         ? '点击确认后，您将被直接带到 WhatsApp，我们已为您自动填好包含订单详细信息的消息。' 
-                         : locale === 'ms' 
-                         ? 'Selepas pengesahan, anda akan dibawa ke WhatsApp. Mesej mengandungi butiran pesanan anda akan diisi secara automatik.' 
-                         : 'After confirming, you will be taken to WhatsApp where your message containing order details will be automatically filled.'}
-                     </p>
-                     <div 
-                       className="w-full rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm relative cursor-zoom-in group"
-                       onClick={() => setZoomedImage('/ordering guide/image1.png')}
-                     >
-                       <img 
-                         src="/ordering guide/image1.png" 
-                         alt="Guide Step 1" 
-                         className="w-full h-auto object-contain bg-zinc-50 dark:bg-zinc-900 group-hover:scale-105 transition-transform duration-500" 
-                       />
-                     </div>
-                   </div>
-
-                   {/* Step 2 placeholder */}
-                   <div className="space-y-4">
-                     <h3 className="text-xl font-bold flex items-center gap-3">
-                       <span className="w-8 h-8 rounded-full bg-primary text-zinc-900 flex items-center justify-center font-black">2</span> 
-                       {locale === 'zh' ? '发送信息' : locale === 'ms' ? 'Hantar Mesej' : 'Send the Message'}
-                     </h3>
-                     <p className="text-muted-foreground leading-relaxed">
-                       {locale === 'zh' 
-                         ? '只需在 WhatsApp 中点击“发送”即可！为确保系统准确处理，请不要修改任何预填文本。' 
-                         : locale === 'ms' 
-                         ? 'Hanya klik "Hantar" di WhatsApp! Jangan ubah sebarang teks pramuat untuk memastikan pemprosesan yang tepat.' 
-                         : 'Simply click "Send" in WhatsApp! Please do not modify the pre-filled text to ensure your order is processed accurately.'}
-                     </p>
-                     <div 
-                       className="w-full rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm relative cursor-zoom-in group"
-                       onClick={() => setZoomedImage('/ordering guide/image2.png')}
-                     >
-                       <img 
-                         src="/ordering guide/image2.png" 
-                         alt="Guide Step 2" 
-                         className="w-full h-auto object-contain bg-zinc-50 dark:bg-zinc-900 group-hover:scale-105 transition-transform duration-500" 
-                       />
-                     </div>
-                   </div>
-
-
-                   {/* Step 3 */}
-                   <div className="space-y-4">
-                     <h3 className="text-xl font-bold flex items-center gap-3">
-                       <span className="w-8 h-8 rounded-full bg-primary text-zinc-900 flex items-center justify-center font-black">3</span> 
-                       {locale === 'zh' ? '等待客服确认' : locale === 'ms' ? 'Tunggu Pengesahan Peniaga' : 'Wait for Dealer Confirmation'}
-                     </h3>
-                     <p className="text-muted-foreground leading-relaxed">
-                       {locale === 'zh' 
-                         ? '我们的客服将在 24 小时内回复您，处理您的订单并完成交易。请耐心等待，我们会尽快与您对接！' 
-                         : locale === 'ms' 
-                         ? 'Peniaga kami akan membalas dalam masa 24 jam untuk memproses pesanan anda. Sila tunggu dengan sabar sementara kami menyelesaikan urusan dengan anda!' 
-                         : 'Our dealer will reply within 24 hours to process your order and complete the deal. Please wait patiently as we will assist you very soon!'}
-                     </p>
-                   </div>
-                 </div>
-
-                  <button 
-                    onClick={() => setIsGuideOpen(false)}
-                    className="w-full mt-10 py-5 bg-primary text-zinc-900 rounded-[20px] font-black text-lg transition-all shadow-xl hover:shadow-primary/20 hover:brightness-110 active:scale-[0.98]"
-                  >
-                    {locale === 'zh' ? '知道了！' : locale === 'ms' ? 'Faham!' : 'Got it!'}
-                  </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── IMAGE LIGHTBOX ────────────────────────────────────────── */}
-        {zoomedImage && (
-          <div 
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-sm p-4 sm:p-8"
-            onClick={() => setZoomedImage(null)}
-          >
-            <button
-              onClick={() => setZoomedImage(null)}
-              className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-white transition-all duration-200 z-10"
-            >
-              <X size={20} />
-            </button>
-            <div
-              className="relative w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <img
-                src={zoomedImage}
-                alt="Zoomed Preview"
-                className="w-auto h-auto max-w-full max-h-[85vh] object-contain"
-              />
-            </div>
-          </div>
+          <SharedCheckoutModal
+            mode="cart"
+            cartItems={selectedItems}
+            cartTotals={{
+              totalPrice: finalSelectedTotalPrice,
+              totalOriginalPrice: selectedTotalOriginalPrice,
+              totalDiscount: selectedTotalSaved,
+              discountPercent: discountPercent,
+              sellerLevelName: sellerLevelName,
+              isFreeShipping: isFreeShipping
+            }}
+            clearCart={clearCart}
+            onClose={() => setIsCheckoutOpen(false)}
+            onStockError={handleStockError}
+          />
         )}
 
       </div>
@@ -1456,7 +794,6 @@ export default function Cart() {
           </motion.div>
         )}
       </AnimatePresence>
-      {ErrorModals}
     </>
   );
 }

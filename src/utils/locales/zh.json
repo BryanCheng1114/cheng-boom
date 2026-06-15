@@ -444,6 +444,19 @@
     "discount": "折扣",
     "subtotalLabel": "小计",
     "orderItems": "订单详情",
-    "orderInfo": "订单信息"
+    "orderInfo": "订单信息",
+    "profileDetails": "个人资料详情",
+    "accountOverview": "账户概览",
+    "ordersHeader": "订单",
+    "myOrders": "我的订单",
+    "accountSettings": "账号设置",
+    "myAccount": "我的账号",
+    "viewMyAccount": "查看我的账号",
+    "orderDetails": "订单详情",
+    "downloadReceipt": "下载收据",
+    "generatingPdf": "正在生成 PDF...",
+    "progressTracker": "进度跟踪",
+    "discardChanges": "取消更改",
+    "passwordLengthHint": "密码必须至少包含8个字符，并包含大写字母、数字和符号。"
   }
 }

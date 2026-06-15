@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useCart } from '../cart/CartProvider';
-import { ShoppingCart, ChevronDown, Menu, X, User, ChevronRight, Search } from 'lucide-react';
+import { ShoppingCart, ChevronDown, Menu, X, User, ChevronRight, Search, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { cn } from '../../utils/cn';
@@ -55,6 +55,7 @@ export function Navbar() {
   const router = useRouter();
   const { t, locale } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileLangExpanded, setMobileLangExpanded] = useState(false);
   const [shopExpanded, setShopExpanded] = useState(false);
   const [isWiggling, setIsWiggling] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -574,6 +575,59 @@ export function Navbar() {
                 >
                   {t.nav.contact}
                 </Link>
+
+                <div className="my-2 h-px w-full bg-white/10" />
+
+                {/* My Account */}
+                <button
+                  onClick={() => {
+                    setMobileOpen(false);
+                    router.push(user ? '/profile' : '/login');
+                  }}
+                  className="py-4 text-[14px] font-medium tracking-wide text-white/60 hover:text-white uppercase transition-colors flex items-center justify-between w-full text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <User size={18} />
+                    {t.nav?.profile?.account || (locale === 'zh' ? '我的账号' : 'My Account')}
+                  </div>
+                  <ChevronRight size={16} className="opacity-50" />
+                </button>
+
+                {/* Language Switcher */}
+                <div className="flex flex-col">
+                  <button
+                    onClick={() => setMobileLangExpanded(!mobileLangExpanded)}
+                    className="py-4 text-[14px] font-medium tracking-wide text-white/60 hover:text-white uppercase transition-colors flex items-center justify-between w-full text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Globe size={18} />
+                      {locale === 'zh' ? '马来西亚 / 中文' : 'Malaysia / English'}
+                    </div>
+                    <ChevronRight size={16} className={`opacity-50 transition-transform ${mobileLangExpanded ? 'rotate-90' : ''}`} />
+                  </button>
+                  <AnimatePresence>
+                    {mobileLangExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <button
+                          onClick={() => {
+                            const newLocale = locale === 'zh' ? 'en' : 'zh';
+                            router.push(router.pathname, router.asPath, { locale: newLocale });
+                            setMobileOpen(false);
+                            setMobileLangExpanded(false);
+                          }}
+                          className="py-3 pl-8 text-[13px] font-medium tracking-wide text-white/40 hover:text-white transition-colors w-full text-left flex items-center justify-between"
+                        >
+                          {locale === 'zh' ? 'Malaysia / English' : '马来西亚 / 中文'}
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             </motion.div>
           )}
