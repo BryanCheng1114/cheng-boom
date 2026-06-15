@@ -34,10 +34,15 @@ import {
   TrendingUp,
   Award,
   Crown,
-  Search
+  Search,
+  Mail
 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useBusiness } from '../context/BusinessContext';
+
+import { jsPDF } from 'jspdf';
+import { toPng } from 'html-to-image';
+import { ReceiptTemplate } from '../components/profile/ReceiptTemplate';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -53,6 +58,41 @@ export default function ProfilePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const receiptRef = React.useRef<HTMLDivElement>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  const handleDownloadReceipt = async () => {
+    if (!receiptRef.current || !selectedOrder) return;
+    setIsGeneratingPdf(true);
+    try {
+      const element = receiptRef.current;
+      const dataUrl = await toPng(element, {
+        cacheBust: true,
+        backgroundColor: '#ffffff',
+        pixelRatio: 2,
+        fontEmbedCSS: '',
+        width: element.scrollWidth,
+        height: element.scrollHeight
+      });
+      
+      const aspect = element.scrollHeight / element.scrollWidth;
+      
+      const pdfWidth = 210;
+      const pdfHeight = pdfWidth * aspect;
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [pdfWidth, pdfHeight]
+      });
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Receipt_${selectedOrder.id}.pdf`);
+    } catch (err) {
+      console.error('Failed to generate PDF:', err);
+      alert('Failed to generate PDF receipt. Please try again.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   const logoutTranslations = {
     title: { en: 'Log Out', zh: '登出', ms: 'Log Keluar' },
@@ -282,105 +322,70 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Breadcrumbs */}
+          <div className="flex items-center gap-2 text-sm text-zinc-500 mb-6">
+            <button onClick={() => router.push('/')} className="hover:text-white transition-colors">HomePage</button>
+            <span>/</span>
+            <span className="text-white">Profile Details</span>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            {/* Sidebar: Profile Summary */}
-            <div className="lg:col-span-4 space-y-6">
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/5 rounded-[40px] p-8 shadow-2xl relative lg:h-[700px] overflow-y-auto overflow-x-hidden custom-scrollbar"
-              >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-                
-                <div className="flex flex-col items-center text-center mb-10 relative z-10">
-                  <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-orange-500/20 rounded-[32px] flex items-center justify-center text-primary border border-primary/20 shadow-inner mb-6 ring-4 ring-primary/5">
-                    <span className="font-black italic text-4xl">{user.name.charAt(0)}</span>
+            {/* Sidebar: Navigation (DJI Style) */}
+            <div className="lg:col-span-3 flex flex-col min-h-[500px] bg-white dark:bg-[#111111] rounded-2xl p-8 shadow-sm">
+              <div className="flex flex-col flex-1">
+                {/* Account Overview Header */}
+                <button 
+                  onClick={() => setActiveTab('')}
+                  className={`text-left text-sm py-2 mb-6 transition-colors ${activeTab === '' ? 'text-white font-medium' : 'text-zinc-400 hover:text-white'}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <User size={18} />
+                    <span className="text-base font-medium">Account Overview</span>
                   </div>
-                  <h2 className="text-3xl font-black italic dark:text-white text-zinc-900 mb-2 leading-tight">{user.name}</h2>
-                  <div className="group relative">
-                    <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-default transition-all ${
-                      user.role === 'Seller' ? 'bg-gradient-to-r from-yellow-500/10 to-amber-500/10 text-yellow-600 dark:text-yellow-500 border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.15)]' : 'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'
-                    }`}>
-                      {user.role === 'Seller' ? <Crown size={14} className="text-yellow-500 drop-shadow-md" /> : <UserCheck size={12} />}
-                      {t.profilePage?.roles?.[user.role] || user.role} {t.profilePage?.status || 'Status'}
-                    </div>
-                    {user.role === 'Seller' && (
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-4 bg-zinc-900 dark:bg-zinc-800 border border-white/10 rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 text-center pointer-events-none">
-                        <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-900 dark:bg-zinc-800 border-t border-l border-white/10 rotate-45" />
-                        <div className="relative z-10 space-y-1">
-                          <p className="text-sm font-black text-yellow-400 italic drop-shadow-md">
-                            {user.sellerLevel ? user.sellerLevel.name : 'Normal Member'}
-                          </p>
-                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-relaxed">
-                            {user.sellerLevel ? (
-                                `${user.sellerLevel.discountPercent}% Discount${user.sellerLevel.freeShipping ? ' + Free Shipping' : ''}`
-                            ) : (
-                                (t.profilePage?.sellerActivatedDesc as string || 'Enjoy exclusive seller benefits.').replace(/CHENG-BOOM|Cheng-BOOM/i, settings?.businessName || 'Cheng-BOOM')
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                </button>
+
+                {/* Orders Section */}
+                <div className="mb-6">
+                  <h4 className="text-xs text-zinc-500 uppercase tracking-widest font-semibold mb-3">Orders</h4>
+                  <button 
+                    onClick={() => setActiveTab('all_orders')}
+                    className={`flex items-center gap-3 w-full text-left text-sm py-2 transition-colors ${activeTab === 'all_orders' ? 'text-white font-medium' : 'text-zinc-400 hover:text-white'}`}
+                  >
+                    <Receipt size={16} /> My Orders
+                  </button>
                 </div>
 
-                <div className="space-y-4 pt-4 border-t dark:border-white/5 border-zinc-100">
-                  <button 
-                    onClick={() => setActiveTab('view_profile')}
-                    className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all font-bold text-sm ${activeTab === 'view_profile' ? 'bg-primary text-zinc-900 shadow-lg shadow-primary/20' : 'bg-zinc-500/5 text-zinc-500 hover:bg-zinc-500/10'}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <User size={18} />
-                      {t.profilePage?.viewProfile || 'View Profile'}
-                    </div>
-                    {activeTab !== 'view_profile' && <ChevronRight size={16} />}
-                  </button>
+                {/* Account Settings Section */}
+                <div className="mb-6">
+                  <h4 className="text-xs text-zinc-500 uppercase tracking-widest font-semibold mb-3">Account Settings</h4>
                   <button 
                     onClick={() => setActiveTab('edit_profile')}
-                    className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all font-bold text-sm ${activeTab === 'edit_profile' ? 'bg-primary text-zinc-900 shadow-lg shadow-primary/20' : 'bg-zinc-500/5 text-zinc-500 hover:bg-zinc-500/10'}`}
+                    className={`flex items-center gap-3 w-full text-left text-sm py-2 transition-colors ${activeTab === 'edit_profile' ? 'text-white font-medium' : 'text-zinc-400 hover:text-white'}`}
                   >
-                    <div className="flex items-center gap-3">
-                      <Edit3 size={18} />
-                      {t.profilePage?.editProfile || 'Edit Profile'}
-                    </div>
-                    {activeTab !== 'edit_profile' && <ChevronRight size={16} />}
+                    <Edit3 size={16} /> Edit Profile
                   </button>
                   <button 
                     onClick={() => setActiveTab('change_password')}
-                    className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all font-bold text-sm ${activeTab === 'change_password' ? 'bg-primary text-zinc-900 shadow-lg shadow-primary/20' : 'bg-zinc-500/5 text-zinc-500 hover:bg-zinc-500/10'}`}
+                    className={`flex items-center gap-3 w-full text-left text-sm py-2 transition-colors ${activeTab === 'change_password' ? 'text-white font-medium' : 'text-zinc-400 hover:text-white'}`}
                   >
-                    <div className="flex items-center gap-3">
-                      <Lock size={18} />
-                      {t.profilePage?.changePassword || 'Change Password'}
-                    </div>
-                    {activeTab !== 'change_password' && <ChevronRight size={16} />}
-                  </button>
-                  <button 
-                    onClick={() => setActiveTab('all_orders')}
-                    className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all font-bold text-sm ${activeTab === 'all_orders' ? 'bg-primary text-zinc-900 shadow-lg shadow-primary/20' : 'bg-zinc-500/5 text-zinc-500 hover:bg-zinc-500/10'}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Package size={18} />
-                      {t.profilePage?.allOrders || 'All Orders'}
-                    </div>
-                    {activeTab !== 'all_orders' && <ChevronRight size={16} />}
-                  </button>
-                  <button 
-                    onClick={() => setIsLogoutModalOpen(true)}
-                    className="w-full flex items-center gap-3 p-4 rounded-2xl bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-all font-bold text-sm mt-4 border border-red-500/10"
-                  >
-                    <LogOut size={18} />
-                    {t.profilePage?.logout || 'Logout'}
+                    <Lock size={16} /> Change Password
                   </button>
                 </div>
-              </motion.div>
+              </div>
 
-
+              {/* Logout Button at bottom */}
+              <button 
+                onClick={() => setIsLogoutModalOpen(true)}
+                className="flex items-center gap-3 text-sm text-zinc-500 hover:text-red-500 transition-colors mt-8 pt-6 border-t border-zinc-200 dark:border-white/5"
+              >
+                <LogOut size={16} />
+                Logout
+              </button>
             </div>
 
             {/* Main Content */}
-            <div className="lg:col-span-8 space-y-8">
+            <div className="lg:col-span-9 space-y-8">
               
               <AnimatePresence mode="wait">
                 {activeTab === 'edit_profile' && (
@@ -390,14 +395,14 @@ export default function ProfilePage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-6 md:p-8 shadow-2xl lg:h-[700px] overflow-hidden flex flex-col"
+                    className="bg-white dark:bg-[#111111] rounded-2xl p-8 shadow-sm flex flex-col"
                   >
                     <div className="flex items-center gap-3 mb-6 shrink-0">
                       <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
                         <ArrowLeft size={18} />
                       </button>
                       <User size={20} className="text-zinc-400" />
-                      <h3 className="text-xl font-black italic uppercase tracking-tight">
+                      <h3 className="text-xl font-medium text-foreground dark:text-white">
                         {t.profilePage?.editInformation || 'Edit Information'}
                       </h3>
                     </div>
@@ -405,18 +410,18 @@ export default function ProfilePage() {
                     <form onSubmit={handleUpdateProfile} className="space-y-4 flex-1 flex flex-col justify-between">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.fullName || 'Full Name'}</label>
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1">{t.profilePage?.fullName || 'Full Name'}</label>
                           <input 
                             type="text"
                             required
-                            className="w-full px-5 py-3 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold text-foreground dark:text-white"
+                            className="w-full px-5 py-3 rounded-xl bg-zinc-50 dark:bg-white/5 focus:bg-zinc-100 dark:focus:bg-white/10 outline-none transition-all font-medium text-foreground dark:text-white"
                             value={editForm.name}
                             onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                           />
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between ml-1">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">{t.profilePage?.phoneNumber || 'Phone Number'}</label>
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">{t.profilePage?.phoneNumber || 'Phone Number'}</label>
                             <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1">
                               <Shield size={8} /> {t.profilePage?.permanent || 'Permanent'}
                             </span>
@@ -424,7 +429,7 @@ export default function ProfilePage() {
                           <input 
                             type="tel"
                             disabled
-                            className="w-full px-5 py-3 rounded-2xl bg-zinc-500/10 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 outline-none transition-all font-bold text-zinc-400 cursor-not-allowed"
+                            className="w-full px-5 py-3 rounded-xl bg-zinc-100 dark:bg-white/5 outline-none transition-all font-medium text-zinc-400 cursor-not-allowed opacity-70"
                             value={editForm.phone}
                           />
                         </div>
@@ -432,18 +437,18 @@ export default function ProfilePage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.preferredPayment || 'Preferred Payment'}</label>
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1">{t.profilePage?.preferredPayment || 'Preferred Payment'}</label>
                           <div className="relative">
                             <select 
                               required
-                              className="w-full px-5 py-3 rounded-2xl bg-zinc-500/5 dark:bg-zinc-800 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold appearance-none cursor-pointer text-foreground dark:text-white"
+                              className="w-full px-5 py-3 rounded-xl bg-zinc-50 dark:bg-white/5 focus:bg-zinc-100 dark:focus:bg-white/10 outline-none transition-all font-medium appearance-none cursor-pointer text-foreground dark:text-white"
                               value={editForm.preferredPayment}
                               onChange={(e) => setEditForm({ ...editForm, preferredPayment: e.target.value })}
                             >
-                              <option value="" className="dark:bg-zinc-900">{t.profilePage?.selectMethod || 'Select Method'}</option>
-                              <option value="TNG e-wallet" className="dark:bg-zinc-900">TNG e-wallet</option>
-                              <option value="bank transfer" className="dark:bg-zinc-900">Bank Transfer</option>
-                              <option value="DuitNow qr" className="dark:bg-zinc-900">DuitNow QR</option>
+                              <option value="" className="dark:bg-[#111111]">{t.profilePage?.selectMethod || 'Select Method'}</option>
+                              <option value="TNG e-wallet" className="dark:bg-[#111111]">TNG e-wallet</option>
+                              <option value="bank transfer" className="dark:bg-[#111111]">Bank Transfer</option>
+                              <option value="DuitNow qr" className="dark:bg-[#111111]">DuitNow QR</option>
                             </select>
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
                               <ChevronDown size={16} />
@@ -451,17 +456,17 @@ export default function ProfilePage() {
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.orderMode || 'Order Mode'}</label>
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1">{t.profilePage?.orderMode || 'Order Mode'}</label>
                           <div className="relative">
                             <select 
                               required
-                              className="w-full px-5 py-3 rounded-2xl bg-zinc-500/5 dark:bg-zinc-800 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold appearance-none cursor-pointer text-foreground dark:text-white"
+                              className="w-full px-5 py-3 rounded-xl bg-zinc-50 dark:bg-white/5 focus:bg-zinc-100 dark:focus:bg-white/10 outline-none transition-all font-medium appearance-none cursor-pointer text-foreground dark:text-white"
                               value={editForm.orderMode}
                               onChange={(e) => setEditForm({ ...editForm, orderMode: e.target.value })}
                             >
-                              <option value="" className="dark:bg-zinc-900">{t.profilePage?.selectMode || 'Select Mode'}</option>
-                              <option value="Self Collect" className="dark:bg-zinc-900">Self Collect</option>
-                              <option value="Delivery" className="dark:bg-zinc-900">Delivery</option>
+                              <option value="" className="dark:bg-[#111111]">{t.profilePage?.selectMode || 'Select Mode'}</option>
+                              <option value="Self Collect" className="dark:bg-[#111111]">Self Collect</option>
+                              <option value="Delivery" className="dark:bg-[#111111]">Delivery</option>
                             </select>
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
                               <ChevronDown size={16} />
@@ -471,10 +476,10 @@ export default function ProfilePage() {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.addressLabel || 'Delivery / Collection Address'}</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1">{t.profilePage?.addressLabel || 'Delivery / Collection Address'}</label>
                         <textarea 
                           required={editForm.orderMode === 'Delivery'}
-                          className="w-full px-5 py-3 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold resize-none text-foreground dark:text-white"
+                          className="w-full px-5 py-3 rounded-xl bg-zinc-50 dark:bg-white/5 focus:bg-zinc-100 dark:focus:bg-white/10 outline-none transition-all font-medium resize-none text-foreground dark:text-white"
                           rows={2}
                           value={editForm.address}
                           onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
@@ -482,23 +487,23 @@ export default function ProfilePage() {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.notesLabel || 'Default Order Notes (Optional)'}</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1">{t.profilePage?.notesLabel || 'Default Order Notes (Optional)'}</label>
                         <input 
                           type="text"
-                          className="w-full px-5 py-3 rounded-2xl bg-zinc-500/5 border border-zinc-500/10 focus:border-primary outline-none transition-all font-bold text-foreground dark:text-white"
+                          className="w-full px-5 py-3 rounded-xl bg-zinc-50 dark:bg-white/5 focus:bg-zinc-100 dark:focus:bg-white/10 outline-none transition-all font-medium text-foreground dark:text-white"
                           value={editForm.notes}
                           onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
                         />
                       </div>
 
-                      <div className="flex items-center gap-4 pt-2 shrink-0">
+                      <div className="flex items-center gap-4 pt-6 shrink-0">
                         <button 
                           type="submit"
                           disabled={isSaving || !hasEditChanges}
-                          className={`flex-1 py-4 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-2 ${
+                          className={`flex-1 py-3 rounded-full font-bold transition-all flex items-center justify-center gap-2 ${
                             !hasEditChanges || isSaving
                               ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed'
-                              : 'bg-primary text-zinc-900 hover:brightness-110 shadow-lg shadow-primary/20'
+                              : 'bg-yellow-500 text-black hover:bg-yellow-600'
                           }`}
                         >
                           {isSaving ? <Loader2 className="animate-spin" /> : null}
@@ -520,7 +525,7 @@ export default function ProfilePage() {
                             }
                             setActiveTab('');
                           }}
-                          className="px-8 py-4 bg-zinc-500/10 text-zinc-500 rounded-2xl font-black text-lg hover:bg-zinc-500/20 transition-all flex items-center justify-center shrink-0"
+                          className="px-8 py-3 bg-zinc-100 dark:bg-white/5 text-zinc-500 dark:text-zinc-400 rounded-full font-bold hover:bg-zinc-200 dark:hover:bg-white/10 transition-all flex items-center justify-center shrink-0"
                         >
                           Discard Changes
                         </button>
@@ -536,37 +541,37 @@ export default function ProfilePage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 md:p-12 shadow-2xl lg:h-[700px] overflow-y-auto overflow-x-hidden custom-scrollbar"
+                    className="bg-white dark:bg-[#111111] rounded-2xl p-8 shadow-sm"
                   >
                     <div className="flex items-center gap-3 mb-10">
                       <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
                         <ArrowLeft size={18} />
                       </button>
                       <Lock size={20} className="text-zinc-400" />
-                      <h3 className="text-xl font-black italic uppercase tracking-tight">
+                      <h3 className="text-xl font-medium text-foreground dark:text-white">
                         {t.profilePage?.securitySettings || 'Security Settings'}
                       </h3>
                     </div>
 
                     <form onSubmit={handleChangePassword} className="space-y-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.newPassword || 'New Password'}</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1">{t.profilePage?.newPassword || 'New Password'}</label>
                         <input 
                           type="password"
                           required
                           minLength={6}
-                          className="w-full px-5 py-4 rounded-2xl bg-zinc-500/5 border border-zinc-500/10 focus:border-primary outline-none transition-all font-bold text-foreground dark:text-white"
+                          className="w-full px-5 py-4 rounded-xl bg-zinc-50 dark:bg-white/5 focus:bg-zinc-100 dark:focus:bg-white/10 outline-none transition-all font-medium text-foreground dark:text-white"
                           placeholder="••••••••"
                           value={passwordForm.newPassword}
                           onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.confirmNewPassword || 'Confirm New Password'}</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1">{t.profilePage?.confirmNewPassword || 'Confirm New Password'}</label>
                         <input 
                           type="password"
                           required
-                          className="w-full px-5 py-4 rounded-2xl bg-zinc-500/5 border border-zinc-500/10 focus:border-primary outline-none transition-all font-bold text-foreground dark:text-white"
+                          className="w-full px-5 py-4 rounded-xl bg-zinc-50 dark:bg-white/5 focus:bg-zinc-100 dark:focus:bg-white/10 outline-none transition-all font-medium text-foreground dark:text-white"
                           placeholder="••••••••"
                           value={passwordForm.confirmPassword}
                           onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
@@ -577,10 +582,10 @@ export default function ProfilePage() {
                         <button 
                           type="submit"
                           disabled={isSaving || !isPasswordFormValid}
-                          className={`flex-1 py-4 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-2 ${
+                          className={`flex-1 py-3 rounded-full font-bold transition-all flex items-center justify-center gap-2 ${
                             !isPasswordFormValid || isSaving
                               ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed'
-                              : 'bg-primary text-zinc-900 hover:brightness-110 shadow-lg shadow-primary/20'
+                              : 'bg-yellow-500 text-black hover:bg-yellow-600'
                           }`}
                         >
                           {isSaving ? <Loader2 className="animate-spin" /> : null}
@@ -592,7 +597,7 @@ export default function ProfilePage() {
                             setPasswordForm({ newPassword: '', confirmPassword: '' });
                             setActiveTab('');
                           }}
-                          className="px-8 py-4 bg-zinc-500/10 text-zinc-500 rounded-2xl font-black text-lg hover:bg-zinc-500/20 transition-all flex items-center justify-center shrink-0"
+                          className="px-8 py-3 bg-zinc-100 dark:bg-white/5 text-zinc-500 dark:text-zinc-400 rounded-full font-bold hover:bg-zinc-200 dark:hover:bg-white/10 transition-all flex items-center justify-center shrink-0"
                         >
                           Discard Changes
                         </button>
@@ -602,117 +607,100 @@ export default function ProfilePage() {
                 )}
 
                 {activeTab === '' && (
-                  /* ── DEFAULT DASHBOARD VIEW ───────────────────────────── */
+                  /* ── DEFAULT DASHBOARD VIEW (DJI Style) ───────────────────────────── */
                   <motion.div
                     key="default_dashboard"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="flex flex-col gap-6 lg:h-[700px] overflow-y-auto overflow-x-hidden custom-scrollbar pr-2"
+                    className="flex flex-col gap-6"
                   >
-
-                    {/* Top Stats Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0">
-                      {/* Total Orders Card */}
-                      <div className="group relative bg-white dark:bg-zinc-900 border border-border rounded-[32px] p-6 shadow-sm overflow-hidden transition-all hover:shadow-xl hover:border-primary/20">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-                        <div className="relative z-10 flex flex-col h-full justify-between gap-4">
-                          <div className="flex items-center justify-between">
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">{t.profilePage?.totalOrders || 'Total Orders'}</p>
-                            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                              <ShoppingBag size={20} strokeWidth={2.5} />
-                            </div>
+                    {/* Top Section: Split Left & Right */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      
+                      {/* Left: Profile Info */}
+                      <div className="bg-white dark:bg-[#111111] rounded-2xl p-8 flex flex-col md:flex-row items-center gap-6 shadow-sm">
+                        <div className="w-20 h-20 bg-zinc-200 dark:bg-zinc-800 rounded-full flex shrink-0 items-center justify-center text-3xl font-medium text-zinc-400 dark:text-zinc-500">
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex flex-col text-center md:text-left">
+                          <h2 className="text-xl font-medium text-foreground dark:text-white mb-2">{user.name}</h2>
+                          <div className="flex items-center justify-center md:justify-start gap-2 text-zinc-500 dark:text-zinc-400 text-sm mb-4">
+                            <Mail size={14} className="opacity-70" />
+                            <span>{user.email || user.phone || '-'}</span>
                           </div>
-                          <div>
-                            <p className="text-4xl font-black italic text-foreground tracking-tighter">{orders.length}</p>
-                          </div>
+                          <button 
+                            onClick={() => setActiveTab('view_profile')}
+                            className="text-yellow-500 hover:text-yellow-400 text-sm font-medium transition-colors flex items-center gap-1 justify-center md:justify-start"
+                          >
+                            View My Account <ChevronRight size={14} />
+                          </button>
                         </div>
                       </div>
 
-                      {/* Total Spend Card */}
-                      <div className="group relative bg-white dark:bg-zinc-900 border border-border rounded-[32px] p-6 shadow-sm overflow-hidden transition-all hover:shadow-xl hover:border-primary/20">
-                        <div className="absolute top-0 left-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2" />
-                        <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+                      {/* Right: Stats Info */}
+                      <div className="bg-white dark:bg-[#111111] rounded-2xl p-8 flex flex-col justify-center shadow-sm">
+                        <div className="space-y-6">
                           <div className="flex items-center justify-between">
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{t.profilePage?.lifetimeInvestment || 'Total Spent'}</p>
-                            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:rotate-12 transition-transform">
-                              <DollarSign size={20} strokeWidth={2.5} />
-                            </div>
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400">{t.profilePage?.totalOrders || 'Total Orders'}</p>
+                            <p className="text-2xl font-bold text-foreground dark:text-white">{orders.length}</p>
                           </div>
-                          <div>
-                            <p className="text-3xl font-black italic text-foreground dark:text-white tracking-tighter">
-                              RM<span className="text-primary">{totalSpend.toFixed(2).split('.')[0]}</span>
-                              <span className="text-xl opacity-50 text-foreground dark:text-white">.{totalSpend.toFixed(2).split('.')[1]}</span>
-                            </p>
+                          <div className="h-px bg-zinc-200 dark:bg-white/5 w-full" />
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400">{t.profilePage?.lifetimeInvestment || 'Total Spent'}</p>
+                            <p className="text-2xl font-bold text-foreground dark:text-white">RM {totalSpend.toFixed(2)}</p>
                           </div>
                         </div>
                       </div>
 
                     </div>
 
-                    {/* Recent Orders List */}
-                    <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 shadow-sm flex-1 flex flex-col min-h-0">
-                      <div className="flex items-center justify-between mb-8">
-                        <div className="flex items-center gap-3">
-                          <Package size={20} className="text-zinc-400" />
-                          <h3 className="text-xl font-black italic uppercase tracking-tight">
-                            {t.profilePage?.recentOrders || 'Recent Orders'}
-                          </h3>
-                        </div>
-                        {orders.length > 3 && (
-                          <button 
-                            onClick={() => setActiveTab('all_orders')}
-                            className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline px-4 py-2 bg-primary/5 rounded-full flex items-center gap-1"
-                          >
-                            {t.profilePage?.viewAll || 'View All'} <ChevronRight size={12} />
-                          </button>
-                        )}
-                      </div>
+                    {/* Bottom Section: Recent Orders */}
+                    <div className="bg-white dark:bg-[#111111] rounded-2xl p-8 shadow-sm min-h-[400px] flex flex-col mt-4">
+                      <h3 className="text-xl font-medium text-foreground dark:text-white mb-8">
+                        Recent Orders
+                      </h3>
 
                       {orders.length === 0 ? (
-                        <div className="py-12 text-center flex-1 flex flex-col items-center justify-center">
-                          <div className="w-16 h-16 bg-zinc-500/5 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-300">
-                            <Package size={32} />
+                        <div className="flex-1 flex flex-col items-center justify-center text-center">
+                          <div className="w-24 h-24 bg-zinc-100 dark:bg-zinc-800/50 rounded-lg flex items-center justify-center mb-6">
+                            <Receipt size={48} className="text-zinc-300 dark:text-zinc-600" strokeWidth={1} />
                           </div>
-                          <p className="text-sm font-bold text-zinc-400">{t.profilePage?.noOrdersYet || "You haven't placed any orders yet."}</p>
+                          <p className="text-lg text-zinc-800 dark:text-zinc-300 font-medium mb-8">No orders</p>
+                          <button 
+                            onClick={() => router.push('/shop')}
+                            className="bg-yellow-500 hover:bg-yellow-600 text-black px-8 py-3 rounded-full font-bold transition-colors"
+                          >
+                            Shop Now
+                          </button>
                         </div>
                       ) : (
-                        <div className="space-y-4 overflow-y-auto custom-scrollbar flex-1 pr-2">
+                        <div className="space-y-4">
                           {orders.slice(0, 3).map((order: any) => (
-                            <button 
+                            <div 
                               key={order.id}
                               onClick={() => setSelectedOrder(order)}
-                              className="w-full group p-5 rounded-3xl bg-zinc-500/5 border border-transparent hover:border-primary/20 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                              className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors cursor-pointer border border-zinc-100 dark:border-white/5"
                             >
                               <div className="flex items-center gap-4 text-left">
-                                <div className="w-12 h-12 rounded-2xl bg-white dark:bg-zinc-950 flex items-center justify-center text-primary shadow-sm border border-border">
-                                  <ShoppingBag size={20} />
+                                <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-white/5 flex items-center justify-center text-zinc-400">
+                                  <ShoppingBag size={18} />
                                 </div>
-                                <div className="flex flex-col">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-[10px] md:text-xs font-black text-foreground" title={order.id}>{t.profilePage?.orderHash || 'Order #'} {order.id}</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tight ${
-                                      order.status === 'Completed' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
-                                    }`}>
-                                      {statusTranslations[order.status as string]?.[locale as string] || order.status}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <Calendar size={12} className="text-zinc-400" />
-                                    <span className="text-[10px] text-zinc-500 font-bold">{new Date(order.createdAt).toLocaleDateString()}</span>
-                                  </div>
+                                <div>
+                                  <div className="text-sm text-foreground dark:text-white font-medium">Order #{order.id}</div>
+                                  <div className="text-xs text-zinc-500 mt-1">{new Date(order.createdAt).toLocaleDateString()}</div>
                                 </div>
                               </div>
-                              <div className="flex items-center justify-between md:justify-end gap-6">
-                                <div className="flex flex-col items-end">
-                                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{t.profilePage?.amount || 'Amount'}</span>
-                                  <span className="text-lg font-black text-foreground">RM {order.totalAmount.toFixed(2)}</span>
+                              <div className="flex items-center gap-6">
+                                <div className="text-right">
+                                  <div className="text-sm text-foreground dark:text-white font-medium">RM {order.totalAmount.toFixed(2)}</div>
+                                  <div className={`text-xs mt-1 ${order.status === 'Completed' ? 'text-green-500' : 'text-zinc-500'}`}>
+                                    {statusTranslations[order.status as string]?.[locale as string] || order.status}
+                                  </div>
                                 </div>
-                                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Info size={20} strokeWidth={3} />
-                                </div>
+                                <ChevronRight size={16} className="text-zinc-400" />
                               </div>
-                            </button>
+                            </div>
                           ))}
                         </div>
                       )}
@@ -729,59 +717,61 @@ export default function ProfilePage() {
                     exit={{ opacity: 0, y: -20 }}
                     className="space-y-6"
                   >
-                    <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 md:p-10 shadow-2xl lg:h-[700px] overflow-y-auto overflow-x-hidden custom-scrollbar">
+                    <div className="bg-white dark:bg-[#111111] rounded-2xl p-8 shadow-sm">
                       <div className="flex items-center gap-3 mb-8">
                         <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
                           <ArrowLeft size={18} />
                         </button>
                         <User size={20} className="text-zinc-400" />
-                        <h3 className="text-xl font-black italic uppercase tracking-tight">
-                          {t.profilePage?.viewProfile || 'View Profile'}
+                        <h3 className="text-xl font-medium text-foreground dark:text-white">
+                          View My Account
                         </h3>
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.fullName || 'Full Name'}</label>
-                          <p className="px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 font-bold text-foreground dark:text-white">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1">{t.profilePage?.fullName || 'Full Name'}</label>
+                          <p className="px-5 py-4 rounded-xl bg-zinc-50 dark:bg-white/5 font-medium text-foreground dark:text-white">
                             {user.name || '-'}
                           </p>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.phoneNumber || 'Phone Number'}</label>
-                          <p className="px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 font-bold text-foreground dark:text-white">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1">{t.profilePage?.phoneNumber || 'Phone Number'}</label>
+                          <p className="px-5 py-4 rounded-xl bg-zinc-50 dark:bg-white/5 font-medium text-foreground dark:text-white">
                             {user.phone || '-'}
                           </p>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.preferredPayment || 'Preferred Payment'}</label>
-                          <p className="px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 font-bold text-primary">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1">{t.profilePage?.preferredPayment || 'Preferred Payment'}</label>
+                          <p className="px-5 py-4 rounded-xl bg-zinc-50 dark:bg-white/5 font-medium text-yellow-500">
                             {user.preferredPayment || (t.profilePage?.notSet || 'Not set')}
                           </p>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.orderMode || 'Order Mode'}</label>
-                          <p className="px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 font-bold text-primary">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1">{t.profilePage?.orderMode || 'Order Mode'}</label>
+                          <p className="px-5 py-4 rounded-xl bg-zinc-50 dark:bg-white/5 font-medium text-yellow-500">
                             {user.orderMode || (t.profilePage?.notSet || 'Not set')}
                           </p>
                         </div>
                       </div>
                       
                       <div className="space-y-2 mt-8">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.addressLabel || 'Delivery / Collection Address'}</label>
-                        <p className="px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 font-bold text-foreground dark:text-white min-h-[100px] whitespace-pre-wrap">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1">{t.profilePage?.addressLabel || 'Delivery / Collection Address'}</label>
+                        <p className="px-5 py-4 rounded-xl bg-zinc-50 dark:bg-white/5 font-medium text-foreground dark:text-white min-h-[100px] whitespace-pre-wrap">
                           {user.address || '-'}
                         </p>
                       </div>
                       <div className="space-y-2 mt-8">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-1">{t.profilePage?.notesLabel || 'Default Order Notes (Optional)'}</label>
-                        <p className="px-5 py-4 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 font-bold text-foreground dark:text-white min-h-[60px] whitespace-pre-wrap">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1">{t.profilePage?.notesLabel || 'Default Order Notes (Optional)'}</label>
+                        <p className="px-5 py-4 rounded-xl bg-zinc-50 dark:bg-white/5 font-medium text-foreground dark:text-white min-h-[60px] whitespace-pre-wrap">
                           {user.notes || '-'}
                         </p>
                       </div>
                     </div>
                   </motion.div>
                 )}
+
+
 
                 {activeTab === 'all_orders' && (
                   /* ── ALL ORDERS VIEW ──────────────────────────────────── */
@@ -793,22 +783,22 @@ export default function ProfilePage() {
                     className="space-y-8"
                   >
                     {/* All Orders List */}
-                    <div className="bg-white dark:bg-zinc-900 border border-border rounded-[40px] p-8 shadow-sm lg:h-[700px] flex flex-col">
+                    <div className="bg-white dark:bg-[#111111] rounded-2xl p-8 shadow-sm lg:h-[700px] flex flex-col">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 shrink-0">
                         <div className="flex items-center gap-3">
                           <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
                             <ArrowLeft size={18} />
                           </button>
                           <Package size={20} className="text-zinc-400" />
-                          <h3 className="text-xl font-black italic uppercase tracking-tight">
-                            {t.profilePage?.allOrders || 'All Orders'}
+                          <h3 className="text-xl font-medium text-foreground dark:text-white">
+                            My Orders
                           </h3>
                         </div>
                         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                           <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-zinc-500/5 dark:bg-zinc-900 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold text-sm text-foreground dark:text-white cursor-pointer appearance-none"
+                            className="w-full sm:w-auto px-4 py-3 rounded-xl bg-zinc-50 dark:bg-white/5 font-medium text-sm text-foreground dark:text-white cursor-pointer appearance-none outline-none"
                           >
                             <option value="All" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">{statusTranslations['All']?.[locale as string] || statusTranslations['All'].en}</option>
                             <option value="Completed" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">{statusTranslations['Completed']?.[locale as string] || statusTranslations['Completed'].en}</option>
@@ -824,7 +814,7 @@ export default function ProfilePage() {
                             <input
                               type="text"
                               placeholder={searchPlaceholderTranslations[locale as string] || searchPlaceholderTranslations.en}
-                              className="w-full sm:w-64 pl-10 pr-10 py-3 rounded-2xl bg-zinc-500/5 dark:bg-white/5 border border-zinc-500/10 dark:border-white/10 focus:border-primary outline-none transition-all font-bold text-sm text-foreground dark:text-white"
+                              className="w-full sm:w-64 pl-10 pr-10 py-3 rounded-xl bg-zinc-50 dark:bg-white/5 font-medium text-sm text-foreground dark:text-white outline-none"
                               value={searchQuery}
                               onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -852,40 +842,30 @@ export default function ProfilePage() {
                       ) : (
                         <div className="space-y-4 flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 min-h-0">
                           {filteredOrders.map((order: any) => (
-                            <button 
+                            <div 
                               key={order.id}
                               onClick={() => setSelectedOrder(order)}
-                              className="w-full group p-5 rounded-3xl bg-zinc-500/5 border border-transparent hover:border-primary/20 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                              className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors cursor-pointer border border-zinc-100 dark:border-white/5"
                             >
                               <div className="flex items-center gap-4 text-left">
-                                <div className="w-12 h-12 rounded-2xl bg-white dark:bg-zinc-950 flex items-center justify-center text-primary shadow-sm border border-border">
-                                  <ShoppingBag size={20} />
+                                <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-white/5 flex items-center justify-center text-zinc-400">
+                                  <ShoppingBag size={18} />
                                 </div>
-                                <div className="flex flex-col">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-[10px] md:text-xs font-black text-foreground" title={order.id}>{t.profilePage?.orderHash || 'Order #'} {order.id}</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tight ${
-                                      order.status === 'Completed' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'
-                                    }`}>
-                                      {statusTranslations[order.status as string]?.[locale as string] || order.status}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <Calendar size={12} className="text-zinc-400" />
-                                    <span className="text-[10px] text-zinc-500 font-bold">{new Date(order.createdAt).toLocaleDateString()}</span>
-                                  </div>
+                                <div>
+                                  <div className="text-sm text-foreground dark:text-white font-medium">Order #{order.id}</div>
+                                  <div className="text-xs text-zinc-500 mt-1">{new Date(order.createdAt).toLocaleDateString()}</div>
                                 </div>
                               </div>
-                              <div className="flex items-center justify-between md:justify-end gap-6">
-                                <div className="flex flex-col items-end">
-                                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{t.profilePage?.amount || 'Amount'}</span>
-                                  <span className="text-lg font-black text-foreground">RM {order.totalAmount.toFixed(2)}</span>
+                              <div className="flex items-center gap-6">
+                                <div className="text-right">
+                                  <div className="text-sm text-foreground dark:text-white font-medium">RM {order.totalAmount.toFixed(2)}</div>
+                                  <div className={`text-xs mt-1 ${order.status === 'Completed' ? 'text-green-500' : 'text-zinc-500'}`}>
+                                    {statusTranslations[order.status as string]?.[locale as string] || order.status}
+                                  </div>
                                 </div>
-                                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Info size={20} strokeWidth={3} />
-                                </div>
+                                <ChevronRight size={16} className="text-zinc-400" />
                               </div>
-                            </button>
+                            </div>
                           ))}
                         </div>
                       )}
@@ -932,15 +912,6 @@ export default function ProfilePage() {
                       >
                         <Copy size={20} />
                       </button>
-                    </div>
-                    {/* Status Badge */}
-                    <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold ${
-                        selectedOrder.status === 'Completed' ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20' 
-                        : selectedOrder.status === 'Cancelled' ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
-                        : 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20'
-                      }`}>
-                        {selectedOrder.status === 'Completed' ? <Check size={14} /> : selectedOrder.status === 'Cancelled' ? <X size={14} /> : <Clock size={14} />}
-                        {statusTranslations[selectedOrder.status as string]?.[locale as string] || selectedOrder.status}
                     </div>
                   </div>
 
@@ -1052,13 +1023,20 @@ export default function ProfilePage() {
                         <Info size={16} />
                         <span className="text-xs font-bold">{t.profilePage?.orderStatus || 'Order Status'}</span>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-black ${
-                        selectedOrder.status === 'Completed' ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20' 
-                        : selectedOrder.status === 'Cancelled' ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20' 
-                        : 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20'
-                      }`}>
+                      <span className="text-sm font-black text-orange-500">
                         {statusTranslations[selectedOrder.status as string]?.[locale as string] || selectedOrder.status}
                       </span>
+                    </div>
+
+                    <div className="pt-6 border-t border-zinc-200 dark:border-white/10 mt-6">
+                      <button 
+                        onClick={handleDownloadReceipt}
+                        disabled={isGeneratingPdf}
+                        className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isGeneratingPdf ? <Loader2 className="animate-spin" size={18} /> : <Receipt size={18} />}
+                        {isGeneratingPdf ? 'Generating PDF...' : 'Download Receipt'}
+                      </button>
                     </div>
                   </div>
 
@@ -1067,26 +1045,16 @@ export default function ProfilePage() {
                 {/* Right Side: Order Items */}
                 <div className="w-full md:w-1/2 lg:w-[45%] bg-white dark:bg-zinc-900 p-6 sm:p-10 lg:p-12 flex flex-col h-full overflow-y-auto custom-scrollbar">
                   
-                  <h3 className="text-sm font-black text-foreground dark:text-white uppercase tracking-widest flex items-center gap-2 mb-8">
-                    <ShoppingBag size={18} className="text-primary" /> {t.profilePage?.orderItems || 'Order Items'}
+                  <h3 className="text-sm font-black text-foreground dark:text-white uppercase tracking-widest mb-8">
+                    {t.profilePage?.orderItems || 'Order Items'}
                   </h3>
 
                   {/* Items List */}
                   <div className="space-y-4 flex-1">
                     {selectedOrder.items?.map((item: any, idx: number) => (
-                      <div key={idx} className="flex items-center gap-4 py-4 border-b border-zinc-100 dark:border-zinc-800 last:border-0 group">
-                        <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-950 flex items-center justify-center text-zinc-400 border border-zinc-200 dark:border-zinc-800 overflow-hidden shrink-0 shadow-sm group-hover:border-primary/30 transition-all">
-                          {item.image ? (
-                             <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                          ) : (
-                             <Flame size={24} className="text-primary opacity-50" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
+                      <div key={idx} className="flex items-center justify-between py-4 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
+                        <div className="flex-1 min-w-0 pr-4">
                           <p className="text-sm font-black text-foreground dark:text-white truncate">{item.name}</p>
-                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1 flex items-center gap-1">
-                            <Flame size={10} className="text-orange-500" /> Premium Firework
-                          </p>
                         </div>
                         <div className="text-right shrink-0">
                           <p className="text-sm font-black text-foreground dark:text-white">RM {item.price.toFixed(2)}</p>
@@ -1191,6 +1159,18 @@ export default function ProfilePage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Hidden Receipt Template for PDF Generation */}
+        {selectedOrder && (
+          <div style={{ position: 'absolute', top: '-10000px', left: '-10000px', zIndex: -100 }}>
+            <ReceiptTemplate 
+              ref={receiptRef} 
+              order={selectedOrder} 
+              businessSettings={settings} 
+              user={user} 
+            />
+          </div>
+        )}
       </div>
     </>
   );
