@@ -59,6 +59,10 @@ export default function Home() {
   const [catPage, setCatPage] = useState(0);
   const [catAtStart, setCatAtStart] = useState(true);
   const [catAtEnd, setCatAtEnd] = useState(false);
+  const [mobileCatIndex, setMobileCatIndex] = useState(0);
+  const [mobileScrollProgress, setMobileScrollProgress] = useState(0);
+  const [infoSliderIndex, setInfoSliderIndex] = useState(0);
+  const [infoScrollProgress, setInfoScrollProgress] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const dragStartX = useRef(0);
@@ -218,7 +222,7 @@ export default function Home() {
 
           {/* Headline */}
           <div className="space-y-4 md:space-y-5" style={{ animation: 'fade-in-up 0.9s 0.15s ease both' }}>
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter leading-none uppercase drop-shadow-lg">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-white tracking-tight leading-tight drop-shadow-lg">
               {t.home.heroTitle1} <br className="hidden sm:block" />
               <span className="text-white">
                 {t.home.heroTitle2}
@@ -255,79 +259,175 @@ export default function Home() {
           <div className="w-[600px] h-[600px] rounded-full bg-blue-500/10 blur-[120px]" />
         </div>
 
-        {/* ── Section title ── */}
-        <div className="px-[12%] mb-5 md:mb-7 flex items-end justify-between gap-4 relative z-20">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/35 mb-1.5">
-              {t.home.explore || 'Browse'}
-            </p>
-            <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-none">
-              {t.home.categories || 'Categories'}
-            </h2>
-          </div>
-          {/* Progress pills */}
-          {!isLoadingCategories && totalPages > 1 && (
-            <div className="hidden sm:flex items-center gap-[5px] pb-1">
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-[2px] rounded-full transition-all duration-300 ${
-                    i === catPage ? 'w-8 bg-white' : 'w-4 bg-white/20'
-                  }`}
-                />
-              ))}
+        {/* ── DESKTOP VIEW (hidden on mobile, visible on medium screens and up) ── */}
+        <div className="hidden md:block">
+          {/* ── Section title ── */}
+          <div className="px-[12%] mb-5 md:mb-7 flex items-end justify-between gap-4 relative z-20">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/35 mb-2 ml-1 hidden md:block">
+                Curated
+              </p>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-white tracking-tight leading-tight">
+                {t.home.shopByCategory || 'Shop by Category'}
+              </h2>
             </div>
-          )}
+            {/* Progress pills */}
+            {!isLoadingCategories && totalPages > 1 && (
+              <div className="hidden sm:flex items-center gap-[5px] pb-1">
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-[2px] rounded-full transition-all duration-300 ${
+                      i === catPage ? 'w-8 bg-white' : 'w-4 bg-white/20'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── Carousel area ── */}
+          <div className="relative">
+
+            {/* ── LEFT WALL (Solid Black) ── */}
+            <div className="absolute inset-y-0 left-0 w-[12%] z-40 bg-black pointer-events-none" />
+            
+            {/* ── LEFT BUTTON ── */}
+            <div 
+              onClick={slidePrev}
+              className={`absolute inset-y-0 left-0 w-[12%] z-50 flex items-center justify-center cursor-pointer transition-all duration-300 ${
+                catAtStart ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto hover:bg-white/5'
+              }`}
+            >
+              <ChevronLeft className="w-8 h-8 text-white md:w-12 md:h-12 drop-shadow-lg" strokeWidth={2.5} />
+            </div>
+
+            {/* ── RIGHT WALL (Solid Black) ── */}
+            <div className="absolute inset-y-0 right-0 w-[12%] z-40 bg-black pointer-events-none" />
+
+            {/* ── RIGHT BUTTON ── */}
+            <div 
+              onClick={slideNext}
+              className={`absolute inset-y-0 right-0 w-[12%] z-50 flex items-center justify-center cursor-pointer transition-all duration-300 ${
+                catAtEnd ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto hover:bg-white/5'
+              }`}
+            >
+              <ChevronRight className="w-8 h-8 text-white md:w-12 md:h-12 drop-shadow-lg" strokeWidth={2.5} />
+            </div>
+
+            {/* ── Scroll track ── */}
+            {/* relative z-10 isolates the stacking context, so nothing inside here can EVER overlap the z-40 walls */}
+            <div
+              ref={carouselRef}
+              onScroll={handleCarouselScroll}
+              onMouseDown={onMouseDown}
+              onMouseMove={onMouseMove}
+              onMouseUp={onMouseUp}
+              onMouseLeave={onMouseUp}
+              className="relative z-10 flex gap-8 overflow-x-auto scrollbar-hide py-8 pl-[16%] pr-[12%]"
+              style={{ cursor: 'grab', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
+            >
+              {isLoadingCategories ? (
+                /* Skeleton */
+                [...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex-shrink-0 rounded-lg bg-white/[0.07] animate-pulse"
+                    style={{ width: 'calc((72vw - 3.5 * 32px) / 4.5)', aspectRatio: '2/3' }}
+                  />
+                ))
+              ) : (
+                sortedCategories.map((category, index) => {
+                  const fallback = category.name || category.key || category.code || category.id || 'category';
+                  const key = category.key || category.code || fallback.toLowerCase().replace(/\s+/g, '');
+                  const image = category.image || '/example.png';
+
+                  return (
+                    <div
+                      key={category.id || key}
+                      data-cat-card
+                      className="relative flex-shrink-0"
+                      style={{
+                        // 72vw available (100vw - 16vw left pad - 12vw right pad), minus 3.5 gaps of 32px
+                        width: 'calc((72vw - 3.5 * 32px) / 4.5)',
+                        minWidth: '80px',
+                      }}
+                    >
+                      {/* The wrapper handles the hover scale for BOTH image and number together */}
+                      <div className="group/card relative w-full h-full transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.04] hover:z-40 cursor-pointer">
+                        
+                        {/* ── Image card ── */}
+                        <Link
+                          href={`/shop?category=${key}`}
+                          draggable={false}
+                          onClick={(e) => { if (isDragging.current) e.preventDefault(); }}
+                          className="relative block overflow-hidden rounded-[20px] sm:rounded-[32px] select-none w-full shadow-lg"
+                          style={{ aspectRatio: '2/3' }}
+                        >
+                          {/* Image */}
+                          <div
+                            className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover/card:scale-110"
+                            style={{ backgroundImage: `url(${image})` }}
+                          />
+                          {/* Top fade */}
+                          <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/35 via-transparent to-transparent" />
+                          {/* Bottom vignette */}
+                          <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+
+
+
+                          {/* Hover ring */}
+                          <div className="absolute inset-0 z-30 rounded-[20px] sm:rounded-[32px] ring-1 ring-inset ring-white/0 group-hover/card:ring-white/25 transition-all duration-300 pointer-events-none" />
+                        </Link>
+
+                        {/* ── Rank number (Stacked in front) ── */}
+                        <span
+                          aria-hidden="true"
+                          className="absolute -left-[14%] bottom-[2%] z-50 font-black leading-[0.8] tracking-tighter select-none pointer-events-none drop-shadow-2xl text-black transition-colors duration-300 [-webkit-text-stroke:2.5px_rgba(255,255,255,0.9)] group-hover/card:text-yellow-400 group-hover/card:[-webkit-text-stroke:2.5px_#facc15]"
+                          style={{
+                            fontSize: 'clamp(60px, 11vw, 140px)',
+                          }}
+                        >
+                          {index + 1}
+                        </span>
+
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* ── Carousel area ── */}
-        <div className="relative">
-
-          {/* ── LEFT WALL (Solid Black) ── */}
-          <div className="absolute inset-y-0 left-0 w-[12%] z-40 bg-black pointer-events-none" />
-          
-          {/* ── LEFT BUTTON ── */}
-          <div 
-            onClick={slidePrev}
-            className={`absolute inset-y-0 left-0 w-[12%] z-50 flex items-center justify-center cursor-pointer transition-all duration-300 ${
-              catAtStart ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto hover:bg-white/5'
-            }`}
-          >
-            <ChevronLeft className="w-8 h-8 text-white md:w-12 md:h-12 drop-shadow-lg" strokeWidth={2.5} />
+        {/* ── MOBILE VIEW (visible on mobile, hidden on medium screens and up) ── */}
+        <div className="md:hidden relative z-20">
+          {/* Mobile Title */}
+          <div className="px-6 mb-6">
+            <h2 className="text-3xl font-serif text-white tracking-tight leading-tight">
+              {t.home.shopByCategory || 'Shop by Category'}
+            </h2>
           </div>
 
-          {/* ── RIGHT WALL (Solid Black) ── */}
-          <div className="absolute inset-y-0 right-0 w-[12%] z-40 bg-black pointer-events-none" />
-
-          {/* ── RIGHT BUTTON ── */}
-          <div 
-            onClick={slideNext}
-            className={`absolute inset-y-0 right-0 w-[12%] z-50 flex items-center justify-center cursor-pointer transition-all duration-300 ${
-              catAtEnd ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto hover:bg-white/5'
-            }`}
-          >
-            <ChevronRight className="w-8 h-8 text-white md:w-12 md:h-12 drop-shadow-lg" strokeWidth={2.5} />
-          </div>
-
-          {/* ── Scroll track ── */}
-          {/* relative z-10 isolates the stacking context, so nothing inside here can EVER overlap the z-40 walls */}
+          {/* Mobile Carousel Track */}
           <div
-            ref={carouselRef}
-            onScroll={handleCarouselScroll}
-            onMouseDown={onMouseDown}
-            onMouseMove={onMouseMove}
-            onMouseUp={onMouseUp}
-            onMouseLeave={onMouseUp}
-            className="relative z-10 flex gap-8 overflow-x-auto scrollbar-hide py-8 pl-[16%] pr-[12%]"
-            style={{ cursor: 'grab', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
+            className="flex gap-4 overflow-x-auto scrollbar-hide px-6 pb-4 pt-2 snap-x snap-mandatory scroll-px-6 after:content-[''] after:w-1 after:shrink-0"
+            style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              const maxScrollLeft = el.scrollWidth - el.clientWidth;
+              if (maxScrollLeft > 0) {
+                const progress = el.scrollLeft / maxScrollLeft;
+                setMobileScrollProgress(Math.min(1, Math.max(0, progress)));
+              }
+            }}
           >
             {isLoadingCategories ? (
-              /* Skeleton */
-              [...Array(5)].map((_, i) => (
+              /* Mobile Skeletons */
+              [...Array(3)].map((_, i) => (
                 <div
                   key={i}
-                  className="flex-shrink-0 rounded-lg bg-white/[0.07] animate-pulse"
-                  style={{ width: 'calc((72vw - 3.5 * 32px) / 4.5)', aspectRatio: '2/3' }}
+                  className="flex-shrink-0 w-[65%] aspect-[4/5] bg-white/[0.07] animate-pulse rounded-[16px] snap-start"
                 />
               ))
             ) : (
@@ -340,63 +440,138 @@ export default function Home() {
                 return (
                   <div
                     key={category.id || key}
-                    data-cat-card
-                    className="relative flex-shrink-0"
-                    style={{
-                      // 72vw available (100vw - 16vw left pad - 12vw right pad), minus 3.5 gaps of 32px
-                      width: 'calc((72vw - 3.5 * 32px) / 4.5)',
-                      minWidth: '80px',
-                    }}
+                    className="relative flex-shrink-0 w-[65%] aspect-[4/5] snap-start"
                   >
-                    {/* The wrapper handles the hover scale for BOTH image and number together */}
-                    <div className="group/card relative w-full h-full transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.04] hover:z-40 cursor-pointer">
-                      
-                      {/* ── Image card ── */}
-                      <Link
-                        href={`/shop?category=${key}`}
+                    <Link
+                      href={`/shop?category=${key}`}
+                      className="absolute inset-0 overflow-hidden shadow-xl active:scale-[0.98] transition-all duration-200 block rounded-[16px]"
+                    >
+                      <img
+                        src={image}
+                        alt={title}
+                        className="w-full h-full object-cover"
                         draggable={false}
-                        onClick={(e) => { if (isDragging.current) e.preventDefault(); }}
-                        className="relative block overflow-hidden rounded-[20px] sm:rounded-[32px] select-none w-full shadow-lg"
-                        style={{ aspectRatio: '2/3' }}
-                      >
-                        {/* Image */}
-                        <div
-                          className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover/card:scale-110"
-                          style={{ backgroundImage: `url(${image})` }}
-                        />
-                        {/* Top fade */}
-                        <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/35 via-transparent to-transparent" />
-                        {/* Bottom vignette */}
-                        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                      />
+                      
+                      {/* Subtle bottom overlay gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+                    </Link>
 
-
-
-                        {/* Hover ring */}
-                        <div className="absolute inset-0 z-30 rounded-[20px] sm:rounded-[32px] ring-1 ring-inset ring-white/0 group-hover/card:ring-white/25 transition-all duration-300 pointer-events-none" />
-                      </Link>
-
-                      {/* ── Rank number (Stacked in front) ── */}
-                      <span
-                        aria-hidden="true"
-                        className="absolute -left-[14%] bottom-[2%] z-50 font-black leading-[0.8] tracking-tighter select-none pointer-events-none drop-shadow-2xl text-black transition-colors duration-300 [-webkit-text-stroke:2.5px_rgba(255,255,255,0.9)] group-hover/card:text-yellow-400 group-hover/card:[-webkit-text-stroke:2.5px_#facc15]"
-                        style={{
-                          fontSize: 'clamp(60px, 11vw, 140px)',
-                        }}
-                      >
-                        {index + 1}
-                      </span>
-
-                    </div>
+                    {/* Mobile Category Number */}
+                    <span
+                      aria-hidden="true"
+                      className="absolute -left-[10%] bottom-[2%] z-50 font-black leading-[0.8] tracking-tighter select-none pointer-events-none drop-shadow-2xl text-black transition-colors duration-300 [-webkit-text-stroke:2px_rgba(255,255,255,0.9)]"
+                      style={{
+                        fontSize: 'clamp(50px, 15vw, 90px)',
+                      }}
+                    >
+                      {index + 1}
+                    </span>
                   </div>
                 );
               })
             )}
           </div>
+
+          {/* Mobile Page Indicator Line */}
+          {!isLoadingCategories && sortedCategories.length > 0 && (
+            <div className="flex justify-center items-center mt-4 mb-2 px-6">
+              <div className="w-24 h-1 bg-white/20 rounded-full overflow-hidden relative">
+                <div 
+                  className="absolute top-0 h-full bg-white rounded-full transition-all duration-75 ease-out"
+                  style={{
+                    width: `${100 / sortedCategories.length}%`,
+                    left: `${mobileScrollProgress * (100 - (100 / sortedCategories.length))}%`
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ===== SECTION 2.5: UNIFIED MOBILE SLIDER (Coverage & Safety) ===== */}
+      <section className="md:hidden relative bg-[#f8f7f9] dark:bg-black py-16 flex flex-col items-center overflow-hidden">
+        {/* Dynamic Text Area */}
+        <div className="px-8 text-center min-h-[160px] flex flex-col justify-center z-10">
+          <h2 className="text-3xl font-serif text-zinc-900 dark:text-white leading-tight tracking-tight mb-4 transition-opacity duration-300" key={`title-${infoSliderIndex}`}>
+            {infoSliderIndex === 0 ? (t.coverage?.title || 'Our Delivery Coverage.') : (t.safety?.title || 'Safety First, Always')}
+          </h2>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium transition-opacity duration-300" key={`desc-${infoSliderIndex}`}>
+            {infoSliderIndex === 0 
+              ? (t.coverage?.desc || 'We exclusively serves customers only in Bintulu. We bring premium fireworks directly to your local celebrations with reliable, safe delivery.') 
+              : (t.safety?.desc || 'We deliver joy, but safety is our promise. All our fireworks are strictly tested and approved, ensuring you can enjoy a spectacular and secure celebration.')}
+          </p>
+        </div>
+
+        {/* Image Slider Track */}
+        <div 
+          className="w-full mt-4 flex overflow-x-auto snap-x snap-mandatory scrollbar-hide px-6 pb-6"
+          style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
+          onScroll={(e) => {
+             const el = e.currentTarget;
+             const maxScrollLeft = el.scrollWidth - el.clientWidth;
+             if (maxScrollLeft > 0) {
+               const progress = el.scrollLeft / maxScrollLeft;
+               setInfoScrollProgress(Math.min(1, Math.max(0, progress)));
+             }
+             const index = Math.round(el.scrollLeft / el.clientWidth);
+             if (index !== infoSliderIndex) setInfoSliderIndex(index);
+          }}
+        >
+          {/* Slide 0: Map Image */}
+          <div className="w-full flex-shrink-0 snap-center px-1">
+            <div 
+              className="relative w-full aspect-[4/5] rounded-[24px] overflow-hidden bg-transparent"
+              onClick={() => setLightboxSrc(mapImageSrc)}
+            >
+               <Image
+                 src={mapImageSrc}
+                 alt="Map"
+                 fill
+                 className="object-contain"
+               />
+               <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                 <img src={settings?.watermarkUrl || "/transparent-Background.png"} className="w-[30%] h-[30%] object-contain opacity-30 mix-blend-multiply dark:mix-blend-screen" alt=""/>
+               </div>
+            </div>
+          </div>
+
+          {/* Slide 1: Safety Image */}
+          <div className="w-full flex-shrink-0 snap-center px-1">
+            <div 
+              className="relative w-full aspect-[4/5] rounded-[24px] overflow-hidden bg-transparent"
+              onClick={() => setLightboxSrc(locale === 'zh' ? '/safe_guide_zh.png' : '/safe_guide.png')}
+            >
+               <Image
+                 src={locale === 'zh' ? '/safe_guide_zh.png' : '/safe_guide.png'}
+                 alt="Safety"
+                 fill
+                 className="object-contain"
+               />
+               <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                 <img src={settings?.watermarkUrl || "/transparent-Background.png"} className="w-[30%] h-[30%] object-contain opacity-30 mix-blend-multiply dark:mix-blend-screen" alt=""/>
+               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Page Indicator Line */}
+        <div className="flex justify-center items-center mt-2 mb-2 px-6">
+          <div className="w-24 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full overflow-hidden relative">
+            <div 
+              className="absolute top-0 h-full bg-zinc-800 dark:bg-white rounded-full transition-all duration-75 ease-out"
+              style={{
+                width: `50%`,
+                left: `${infoScrollProgress * 50}%`
+              }}
+            />
+          </div>
         </div>
       </section>
 
       {/* ===== SECTION 3: Our Delivery Coverage — East Malaysia ===== */}
-      <section id="coverage" className="relative h-auto md:h-[75vh] bg-white dark:bg-black overflow-hidden flex flex-col md:flex-row transition-colors duration-500">
+      <section id="coverage" className="hidden md:flex relative h-[75vh] bg-white dark:bg-black overflow-hidden flex-col md:flex-row transition-colors duration-500">
         
         {/* Left Side: Text Content */}
         <div className="w-full md:w-[45%] flex flex-col justify-center px-8 sm:px-12 md:px-16 lg:px-24 py-16 md:py-0">
@@ -446,7 +621,7 @@ export default function Home() {
       </section>
 
       {/* ===== SECTION 4: Safety First ===== */}
-      <section id="safety" className="relative h-auto md:h-[75vh] bg-black overflow-hidden flex flex-col md:flex-row transition-colors duration-500">
+      <section id="safety" className="hidden md:flex relative h-[75vh] bg-black overflow-hidden flex-col md:flex-row transition-colors duration-500">
         
         {/* Left Side: Image Content */}
         <div className="w-full md:w-[55%] h-[50vh] md:h-full relative bg-black flex items-center justify-center p-8 md:p-16 lg:p-24">
@@ -495,63 +670,63 @@ export default function Home() {
       </section>
 
       {/* ===== SECTION 5: Feature Highlights ===== */}
-      <section className="bg-black py-16 md:py-32 transition-colors duration-500 border-t border-white/5">
-        <div className="max-w-screen-2xl mx-auto px-8 sm:px-12 md:px-16 lg:px-24">
-          <div className="text-center mb-16 md:mb-24">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-white leading-tight tracking-tight">What We Guarantee</h2>
+      <section className="bg-white dark:bg-black py-16 md:py-32 transition-colors duration-500">
+        <div className="max-w-screen-xl mx-auto px-6 sm:px-12 md:px-16 lg:px-24">
+          <div className="text-center mb-10 md:mb-16">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-zinc-900 dark:text-white leading-tight tracking-tight">{t.features?.title || 'What We Guarantee'}</h2>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16 lg:gap-24 xl:gap-32 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 text-center">
             
             {/* Feature 1 */}
-            <div className="flex flex-col items-center group transition-transform duration-500 hover:-translate-y-2">
-              <div className="mb-6 text-zinc-500 group-hover:text-white transition-all duration-500 transform group-hover:scale-110">
-                <FileCheck size={64} strokeWidth={1.5} />
+            <div className="flex flex-col items-center justify-center py-8 px-4 bg-[#FAFAFA] dark:bg-zinc-900/50 rounded-xl group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+              <div className="mb-4 text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800 dark:group-hover:text-zinc-300">
+                <FileCheck size={32} strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl md:text-2xl font-bold text-white mb-3 tracking-tight transition-colors duration-300">
+              <h3 className="text-[13px] sm:text-sm font-bold text-zinc-900 dark:text-white mb-2 tracking-tight">
                 {t.features?.licensed || 'Fully Licensed'}
               </h3>
-              <p className="text-base text-zinc-400 leading-relaxed max-w-[250px]">
+              <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 leading-snug max-w-[180px]">
                 {t.features?.licensedDesc || '100% legal & certified'}
               </p>
             </div>
 
             {/* Feature 2 */}
-            <div className="flex flex-col items-center group transition-transform duration-500 hover:-translate-y-2">
-              <div className="mb-6 text-zinc-500 group-hover:text-white transition-all duration-500 transform group-hover:scale-110">
-                <ShieldCheck size={64} strokeWidth={1.5} />
+            <div className="flex flex-col items-center justify-center py-8 px-4 bg-[#FAFAFA] dark:bg-zinc-900/50 rounded-xl group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+              <div className="mb-4 text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800 dark:group-hover:text-zinc-300">
+                <ShieldCheck size={32} strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl md:text-2xl font-bold text-white mb-3 tracking-tight transition-colors duration-300">
+              <h3 className="text-[13px] sm:text-sm font-bold text-zinc-900 dark:text-white mb-2 tracking-tight">
                 {t.features?.safety || 'Safety Approved'}
               </h3>
-              <p className="text-base text-zinc-400 leading-relaxed max-w-[250px]">
+              <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 leading-snug max-w-[180px]">
                 {t.features?.safetyDesc || 'Tested & secure'}
               </p>
             </div>
 
             {/* Feature 3 */}
-            <div className="flex flex-col items-center group transition-transform duration-500 hover:-translate-y-2">
-              <div className="mb-6 text-zinc-500 group-hover:text-white transition-all duration-500 transform group-hover:scale-110">
-                <Headphones size={64} strokeWidth={1.5} />
+            <div className="flex flex-col items-center justify-center py-8 px-4 bg-[#FAFAFA] dark:bg-zinc-900/50 rounded-xl group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+              <div className="mb-4 text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800 dark:group-hover:text-zinc-300">
+                <Headphones size={32} strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl md:text-2xl font-bold text-white mb-3 tracking-tight transition-colors duration-300">
+              <h3 className="text-[13px] sm:text-sm font-bold text-zinc-900 dark:text-white mb-2 tracking-tight">
                 {t.features?.support || 'Expert Support'}
               </h3>
-              <p className="text-base text-zinc-400 leading-relaxed max-w-[250px]">
+              <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 leading-snug max-w-[180px]">
                 {t.features?.supportDesc || 'Always here to help'}
               </p>
             </div>
 
             {/* Feature 4 */}
-            <div className="flex flex-col items-center group transition-transform duration-500 hover:-translate-y-2">
-              <div className="mb-6 text-zinc-500 group-hover:text-white transition-all duration-500 transform group-hover:scale-110">
-                <Truck size={64} strokeWidth={1.5} />
+            <div className="flex flex-col items-center justify-center py-8 px-4 bg-[#FAFAFA] dark:bg-zinc-900/50 rounded-xl group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+              <div className="mb-4 text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800 dark:group-hover:text-zinc-300">
+                <Truck size={32} strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl md:text-2xl font-bold text-white mb-3 tracking-tight transition-colors duration-300">
-                Fast Delivery
+              <h3 className="text-[13px] sm:text-sm font-bold text-zinc-900 dark:text-white mb-2 tracking-tight">
+                {t.features?.fastDelivery || 'Fast Delivery'}
               </h3>
-              <p className="text-base text-zinc-400 leading-relaxed max-w-[250px]">
-                Nationwide secure shipping
+              <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 leading-snug max-w-[180px]">
+                {t.features?.fastDeliveryDesc || 'Nationwide secure shipping'}
               </p>
             </div>
 
@@ -606,20 +781,7 @@ export default function Home() {
         </div>
       )}
 
-
-      {/* ===== FLOATING SCROLL TO TOP BUTTON (MIDDLE BOTTOM) ===== */}
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className={`fixed bottom-12 left-1/2 -translate-x-1/2 z-[999] flex items-center justify-center w-12 h-12 rounded-full shadow-xl border hover:scale-110 active:scale-95 transition-all duration-300
-          bg-zinc-900 border-zinc-800 text-white hover:bg-black
-          dark:bg-white dark:border-white dark:text-zinc-950 dark:hover:bg-zinc-100
-          ${showScrollTop ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'}
-        `}
-        aria-label={t.coverage?.backToTop || 'Back to Top'}
-      >
-        <ArrowUp size={18} strokeWidth={2.5} />
-      </button>
-
+      {/* Removed old floating scroll to top button */}
     </>
   );
 }

@@ -155,10 +155,11 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   };
 
   return (
-    <Link href={`/shop/${id}`} className="group block h-full w-full">
-      <div className={`relative h-full w-full flex flex-col bg-zinc-50 dark:bg-white/5 rounded-[2rem] overflow-hidden transition-all duration-300 ${isOutOfStock ? 'opacity-75' : ''}`}>
+    <Link href={`/shop/${id}`} className="group block h-full">
+      <div className={`relative h-full flex flex-col bg-zinc-50 dark:bg-white/5 rounded-[2rem] overflow-hidden transition-all duration-300 ${isOutOfStock ? 'opacity-75' : ''}`}>
         
         {/* NEW tag */}
+
         {isNew && !isOutOfStock && (
           <div className="absolute top-5 left-5 z-30 font-extrabold text-primary text-[13px] tracking-wide">
             {ct('new')}
@@ -166,7 +167,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
         )}
 
         {/* Image Container */}
-        <div ref={imageRef} className="relative h-[19rem] w-full bg-white overflow-hidden shrink-0 flex items-center justify-center group/img">
+        <div ref={imageRef} className="relative h-[11rem] sm:h-[19rem] w-full bg-white overflow-hidden shrink-0 flex items-center justify-center group/img">
           {/* Product Image */}
           <div
             className={`absolute inset-0 z-10 w-full h-full bg-contain bg-no-repeat bg-center transition-transform duration-700 ease-out ${!isOutOfStock && 'group-hover/img:scale-105'}`}
@@ -184,41 +185,41 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
           </div>
         </div>
         
-        <div className="px-6 pb-6 pt-2 flex flex-col flex-1 justify-between gap-4">
+       <div className="px-3 sm:px-6 pb-3 sm:pb-5 pt-2 flex flex-col flex-1 justify-between gap-2 sm:gap-3">
           <div className="flex flex-col justify-start">
-            <h3 className="font-medium text-[16px] text-foreground transition-colors line-clamp-2 leading-snug tracking-wide min-h-[46px]">
+            <h3 className="font-medium text-[13px] sm:text-[16px] text-foreground transition-colors line-clamp-2 leading-snug tracking-wide h-[38px] sm:h-[46px] overflow-hidden">
               {translatedName}
             </h3>
           </div>
           
           <div className="mt-auto flex flex-col gap-4">
             {/* Price Line */}
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-2 whitespace-nowrap overflow-hidden">
-                <span className="font-bold text-foreground tracking-tight truncate">
-                  <span className="text-[13px] mr-0.5 font-semibold">RM</span>
-                  <span className="text-[19px]">{activePrice.toFixed(2)}</span>
+            <div className="flex flex-col gap-1 sm:gap-1.5 w-full">
+              <div className="flex flex-row items-center gap-1 sm:gap-2 whitespace-nowrap overflow-hidden w-full">
+                <span className="font-bold text-foreground tracking-tight truncate shrink-0">
+                  <span className="text-[9px] sm:text-[13px] mr-0.5 font-semibold">RM</span>
+                  <span className="text-[13px] sm:text-[19px]">{activePrice.toFixed(2)}</span>
                 </span>
                 {hasDiscount && (
-                  <span className="font-bold text-primary truncate ml-1">
-                    <span className="text-[13px] mr-0.5 font-semibold">{ct('save')} RM</span>
-                    <span className="text-[19px]">{(strikeThroughPrice! - activePrice).toFixed(2)}</span>
+                  <span className="font-bold text-primary truncate">
+                    <span className="text-[8px] sm:text-[11px] mr-0.5 font-medium">{ct('save')} RM</span>
+                    <span className="text-[10px] sm:text-[14px]">{(strikeThroughPrice! - activePrice).toFixed(2)}</span>
                   </span>
                 )}
               </div>
             </div>
             
             {/* Action Buttons */}
-            <div className="flex flex-col gap-3 mt-1">
+            <div className="flex flex-col gap-2 sm:gap-3 mt-1">
               <button
                 onClick={handleBuyNow}
                 disabled={isOutOfStock}
-                className="w-full py-2.5 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-sm transition-all hover:bg-yellow-400 hover:text-zinc-900 dark:hover:bg-yellow-400 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-1.5 sm:py-2.5 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-[11px] sm:text-sm transition-all hover:bg-yellow-400 hover:text-zinc-900 dark:hover:bg-yellow-400 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {ct('buy')}
               </button>
 
-              <div className="w-full py-2.5 rounded-full bg-transparent border-[1.5px] border-zinc-900 dark:border-white text-zinc-900 dark:text-white font-bold text-sm text-center transition-all hover:bg-yellow-400 hover:text-zinc-900 hover:border-yellow-400 dark:hover:bg-yellow-400 dark:hover:text-zinc-900 dark:hover:border-yellow-400 group-active:scale-[0.98]">
+              <div className="w-full py-1.5 sm:py-2.5 rounded-full bg-transparent border-[1.5px] border-zinc-900 dark:border-white text-zinc-900 dark:text-white font-bold text-[11px] sm:text-sm text-center transition-all hover:bg-yellow-400 hover:text-zinc-900 hover:border-yellow-400 dark:hover:bg-yellow-400 dark:hover:text-zinc-900 dark:hover:border-yellow-400 group-active:scale-[0.98]">
                 {ct('learnMore')}
               </div>
             </div>

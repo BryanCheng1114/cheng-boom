@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { QRCodeCanvas } from 'qrcode.react';
-import { Globe } from 'lucide-react';
+import { Globe, ChevronDown, ChevronUp } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useBusiness } from '../../context/BusinessContext';
 
@@ -30,6 +30,11 @@ export function Footer() {
   const router = useRouter();
   const [categories, setCategories] = useState<any[]>([]);
   const [siteUrl, setSiteUrl] = useState('https://cheng-boom.test');
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  const toggleAccordion = (section: string) => {
+    setExpanded(expanded === section ? null : section);
+  };
 
   const DISPLAY_NUMBER  = settings?.phone || '+60 111-226-9835';
   const EMAIL           = settings?.email || 'hello@cheng-boom.test';
@@ -61,13 +66,183 @@ export function Footer() {
   return (
     <footer className="bg-[#191919] text-[#b0b0b0] mt-auto border-t border-zinc-800">
       {/* Main footer grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 md:py-16 md:bg-transparent bg-white dark:bg-transparent">
+        
+        {/* ===== MOBILE ACCORDION FOOTER ===== */}
+        <div className="md:hidden flex flex-col divide-y divide-zinc-200 dark:divide-zinc-800 border-b border-zinc-200 dark:border-zinc-800 pb-2 mb-6">
+          
+          {/* Back to Top */}
+          <div className="pb-4 pt-0 flex justify-center">
+            <button 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="flex items-center gap-1.5 text-[14px] text-zinc-500 dark:text-zinc-400 font-medium hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+            >
+              {t.footer?.backToTop || 'Back to top'} <ChevronUp size={16} strokeWidth={2} />
+            </button>
+          </div>
+
+          {/* SUPPORT */}
+          <div>
+            <button 
+              onClick={() => toggleAccordion('support')}
+              className="w-full flex justify-between items-center py-4 text-zinc-900 dark:text-white font-bold text-[15px] tracking-normal capitalize"
+            >
+              <span>{t.footer?.support || 'Support'}</span>
+              <ChevronDown 
+                 size={20} 
+                 strokeWidth={1.5}
+                 className={`text-zinc-900 dark:text-zinc-400 transition-transform duration-300 ${expanded === 'support' ? 'rotate-180' : ''}`} 
+              />
+            </button>
+            {expanded === 'support' && (
+              <ul className="pb-5 space-y-4">
+                {quickLinks.map(({ href, label }) => (
+                  <li key={`${href}-${label}`}>
+                    <Link href={href} className="text-[14px] text-zinc-600 dark:text-[#808080] hover:text-zinc-900 transition-colors block">
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* CATEGORIES */}
+          <div>
+            <button 
+              onClick={() => toggleAccordion('categories')}
+              className="w-full flex justify-between items-center py-4 text-zinc-900 dark:text-white font-bold text-[15px] tracking-normal capitalize"
+            >
+              <span className="capitalize">{(t.footer?.categories || 'Categories').toLowerCase()}</span>
+              <ChevronDown 
+                 size={20} 
+                 strokeWidth={1.5}
+                 className={`text-zinc-900 dark:text-zinc-400 transition-transform duration-300 ${expanded === 'categories' ? 'rotate-180' : ''}`} 
+              />
+            </button>
+            {expanded === 'categories' && (
+              <ul className="pb-5 space-y-4">
+                {(categories.length > 0 ? categories : [
+                  { id: '1', name: 'Fireworks' },
+                  { id: '2', name: 'Firecrackers' },
+                  { id: '3', name: 'Fountain' },
+                  { id: '4', name: 'Handheld' },
+                  { id: '5', name: 'Skyline' },
+                ]).slice(0, 8).map((cat) => {
+                  const key = cat.key || cat.name.toLowerCase().replace(/\s+/g, '');
+                  let label = cat.name;
+                  if (locale === 'zh' && cat.nameZh) label = cat.nameZh;
+                  else if (locale === 'ms' && cat.nameMs) label = cat.nameMs;
+                  else label = (t.shopCategories as any)?.[key] || cat.name;
+                  return (
+                    <li key={cat.id}>
+                      <Link href={`/shop?category=${key}`} className="text-[14px] text-zinc-600 dark:text-[#808080] hover:text-zinc-900 transition-colors block capitalize">
+                        {label.toLowerCase()}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          {/* CONTACT US */}
+          <div>
+            <button 
+              onClick={() => toggleAccordion('contact')}
+              className="w-full flex justify-between items-center py-4 text-zinc-900 dark:text-white font-bold text-[15px] tracking-normal capitalize"
+            >
+              <span className="capitalize">{(t.footer?.contactUs || 'Contact Us').toLowerCase()}</span>
+              <ChevronDown 
+                 size={20} 
+                 strokeWidth={1.5}
+                 className={`text-zinc-900 dark:text-zinc-400 transition-transform duration-300 ${expanded === 'contact' ? 'rotate-180' : ''}`} 
+              />
+            </button>
+            {expanded === 'contact' && (
+              <ul className="pb-5 space-y-4">
+                <li>
+                  <div className="flex flex-col">
+                    <span className="mb-1 text-[13px] text-zinc-500">{t.footer?.email || 'E-mail'}</span>
+                    <span className="text-zinc-800 dark:text-white text-[14px] font-medium">{EMAIL}</span>
+                  </div>
+                </li>
+                <li>
+                  <div className="flex flex-col mt-2">
+                    <span className="mb-1 text-[13px] text-zinc-500">{t.footer?.callUs || 'Call us'}</span>
+                    <span className="text-zinc-800 dark:text-white text-[14px] font-medium">{DISPLAY_NUMBER}</span>
+                  </div>
+                </li>
+              </ul>
+            )}
+          </div>
+
+          {/* FOLLOW US */}
+          <div>
+            <button 
+              onClick={() => toggleAccordion('follow')}
+              className="w-full flex justify-between items-center py-4 text-zinc-900 dark:text-white font-bold text-[15px] tracking-normal capitalize"
+            >
+              <span>{t.footer?.followUs || 'Follow Us'}</span>
+              <ChevronDown 
+                 size={20} 
+                 strokeWidth={1.5}
+                 className={`text-zinc-900 dark:text-zinc-400 transition-transform duration-300 ${expanded === 'follow' ? 'rotate-180' : ''}`} 
+              />
+            </button>
+            {expanded === 'follow' && (
+              <ul className="pb-5 space-y-4">
+                {settings?.facebook && (
+                  <li>
+                    <div className="flex flex-col">
+                      <span className="mb-1 text-[13px] text-zinc-500">Facebook</span>
+                      <span className="text-zinc-800 dark:text-white text-[14px] font-medium">{settings.facebook}</span>
+                    </div>
+                  </li>
+                )}
+                {settings?.instagram && (
+                  <li>
+                    <div className="flex flex-col mt-1">
+                      <span className="mb-1 text-[13px] text-zinc-500">Instagram</span>
+                      <span className="text-zinc-800 dark:text-white text-[14px] font-medium">{settings.instagram}</span>
+                    </div>
+                  </li>
+                )}
+                {settings?.tiktok && (
+                  <li>
+                    <div className="flex flex-col mt-1">
+                      <span className="mb-1 text-[13px] text-zinc-500">TikTok</span>
+                      <span className="text-zinc-800 dark:text-white text-[14px] font-medium">{settings.tiktok}</span>
+                    </div>
+                  </li>
+                )}
+                {(!settings?.facebook && !settings?.instagram && !settings?.tiktok) && (
+                  <li><span className="text-zinc-500 text-[14px]">No social accounts linked.</span></li>
+                )}
+              </ul>
+            )}
+          </div>
+
+          {/* Mobile Language Toggle */}
+          <div>
+            <button 
+              onClick={toggleLanguage}
+              className="w-full flex items-center py-4 text-zinc-900 dark:text-white font-bold text-[15px] tracking-normal"
+            >
+              <Globe size={20} strokeWidth={1.5} className="mr-3 text-zinc-900 dark:text-zinc-400" />
+              <span>{locale === 'zh' ? '马来西亚/中文' : 'Malaysia/English'}</span>
+            </button>
+          </div>
+
+        </div>
+
+        {/* ===== DESKTOP FOOTER GRID ===== */}
+        <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
 
           {/* ---- Column 1: SUPPORT ---- */}
           <div className="space-y-6">
             <h3 className="text-white font-bold text-base tracking-wide uppercase">
-              SUPPORT
+              {t.footer?.support || 'SUPPORT'}
             </h3>
             <ul className="space-y-4">
               {quickLinks.map(({ href, label }) => (
@@ -125,13 +300,13 @@ export function Footer() {
             <ul className="space-y-4">
               <li>
                 <a href={`mailto:${EMAIL}`} className="text-sm hover:text-white transition-colors flex flex-col group">
-                  <span className="mb-1 text-sm text-[#b0b0b0]">E-mail</span>
+                  <span className="mb-1 text-sm text-[#b0b0b0]">{t.footer?.email || 'E-mail'}</span>
                   <span className="text-white group-hover:text-gray-300 transition-colors text-base font-medium">{EMAIL}</span>
                 </a>
               </li>
               <li>
                 <div className="text-sm flex flex-col mt-4">
-                  <span className="mb-1 text-sm text-[#b0b0b0]">Call us:</span>
+                  <span className="mb-1 text-sm text-[#b0b0b0]">{t.footer?.callUs || 'Call us:'}</span>
                   <span className="text-white text-base font-medium">{DISPLAY_NUMBER}</span>
                 </div>
               </li>
@@ -141,7 +316,7 @@ export function Footer() {
           {/* ---- Column 4: Follow Us ---- */}
           <div className="space-y-6">
             <h3 className="text-white font-bold text-base tracking-wide uppercase">
-              FOLLOW US
+              {t.footer?.followUs || 'FOLLOW US'}
             </h3>
             <div className="flex items-center gap-4">
               {settings?.facebook && (
@@ -212,26 +387,23 @@ export function Footer() {
       </div>
 
       {/* ---- Bottom Bar ---- */}
-      <div>
+      <div className="bg-white dark:bg-[#191919]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6 flex flex-col sm:flex-row items-center justify-between gap-6 border-t border-white/10">
+          <div className="pt-6 pb-12 md:pb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 md:border-t md:border-white/10">
             <div className="flex flex-col gap-1.5">
-              <p className="text-white font-medium text-sm">
-                Copyright &copy; {new Date().getFullYear()} {businessName}. All Rights Reserved.
+              <p className="text-zinc-900 dark:text-white font-medium text-sm">
+                {t.footer?.copyright ? `${t.footer.copyright} \u00A9 ${new Date().getFullYear()} ${businessName}. ${t.footer.allRightsReserved}` : `Copyright \u00A9 ${new Date().getFullYear()} ${businessName}. All Rights Reserved.`}
               </p>
-              <p className="text-xs text-[#808080]">
-                Notice: There is no payment gateway available on this website. All transactions are handled separately.
+              <p className="text-[11px] text-zinc-500 dark:text-[#808080]">
+                {t.footer?.notice || 'Notice: There is no payment gateway available on this website. All transactions are handled separately.'}
               </p>
             </div>
             
             <button 
               onClick={toggleLanguage}
-              className="flex items-center gap-2.5 text-white hover:text-gray-300 transition-colors group shrink-0"
+              className="hidden md:flex items-center gap-2.5 text-zinc-900 dark:text-white hover:text-zinc-600 dark:hover:text-gray-300 transition-colors group shrink-0"
             >
-              <span className="text-sm font-medium">Malaysia / {locale === 'zh' ? '中文' : 'English'}</span>
-              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                <Globe size={18} />
-              </div>
+              <span className="text-sm font-bold">{locale === 'zh' ? '马来西亚/中文' : 'Malaysia/English'}</span>
             </button>
           </div>
         </div>

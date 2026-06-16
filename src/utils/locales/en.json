@@ -39,7 +39,8 @@
     "ourHistory": "Our History",
     "featuredTitle": "Featured Pyrotechnics",
     "featuredDesc": "Hand-picked selections that guarantee a jaw-dropping finale for your celebration.",
-    "viewAll": "View all products"
+    "viewAll": "View all products",
+    "shopByCategory": "Shop by Category"
   },
   "shop": {
     "categoriesDesc": "Find the perfect display for your celebration",
@@ -112,7 +113,20 @@
     "feature2Title": "Pure Color",
     "feature2Desc": "Using high-purity minerals to ensure deep, saturated reds and electric blues.",
     "feature3Title": "Pro Support",
-    "feature3Desc": "Our experts are available 24/7 to help you design the perfect display."
+    "feature3Desc": "Our experts are available 24/7 to help you design the perfect display.",
+    "aboutTab": "About Us",
+    "historyTab": "Our History",
+    "originTab": "Our Origin",
+    "p1": "At Cheng-BOOM, every spark is a story and every celebration begins with a vision. We provide our customers with premium, hand-selected pyrotechnics to bring their most spectacular moments to life.",
+    "p2": "Our expertly curated collection of fireworks empowers event planners, families, and professionals to capture the magic of the night sky. From vibrant handheld sparklers to grand finale aerial displays, our products are used to create treasured memories in every corner of the country.",
+    "p3": "We achieve this through an unwavering commitment to safety, a culture of continuous innovation, and a focus on curating only the highest-quality pyrotechnic designs. Building on the ethos that safety and spectacle go hand-in-hand, our products combine advanced chemistry with mesmerizing visual effects.",
+    "p4": "Headquartered in Malaysia, Cheng-BOOM benefits from direct access to top-tier manufacturers and a dedicated team of pyrotechnic experts. What started as a passion for celebrations has grown into a trusted provider for commercial and personal events. Today, Cheng-BOOM is redefining how people celebrate. Professionals in event management, weddings, and public festivities trust our products to help them accomplish their visions safer, faster, and with greater brilliance than ever before.",
+    "hist_p1": "Founded over two decades ago, Cheng-BOOM started as a small family-run pyrotechnic supplier in a modest warehouse. The vision was simple: to bring joy and color to local community celebrations.",
+    "hist_p2": "Through the years, our dedication to quality and safety earned us the trust of major event organizers. We expanded our operations, sourcing the most innovative and spectacular fireworks from around the globe.",
+    "hist_p3": "Today, we stand as a leading name in the pyrotechnics industry. From intimate weddings to massive New Year's Eve city displays, our history is written in the skies above, celebrated by millions of people.",
+    "orig_p1": "The spark that started Cheng-BOOM was born from a deep fascination with the alchemy of fireworks. Our founders, entranced by the intricate dance of light and sound, sought to perfect the art of the celebration.",
+    "orig_p2": "In our early days, every product was hand-tested and meticulously selected. We believed that a firework wasn't just a product, but a medium for emotion—a way to encapsulate the feeling of triumph and joy.",
+    "orig_p3": "That original passion remains the driving force of our company. The origin of Cheng-BOOM is a testament to what happens when you combine scientific precision with an unyielding love for the spectacular."
   },
   "origin": {
     "title": "Our Origin",
@@ -333,8 +347,15 @@
     "contactUs": "Contact Us",
     "whatsapp": "WhatsApp",
     "address": "Fireworks District, Kuala Lumpur, Malaysia",
-    "copyright": "Cheng-BOOM Fireworks. All rights reserved.",
-    "orderNote": "Orders fulfilled via WhatsApp · No online payment required"
+    "copyright": "Copyright",
+    "allRightsReserved": "All Rights Reserved.",
+    "orderNote": "Orders fulfilled via WhatsApp · No online payment required",
+    "backToTop": "Back to top",
+    "support": "Support",
+    "email": "E-mail",
+    "callUs": "Call us",
+    "followUs": "Follow Us",
+    "notice": "Notice: There is no payment gateway available on this website. All transactions are handled separately."
   },
   "products": {
     "pw-1": { "name": "Thunder Crackers 100x", "desc": "Extremely loud crackling strings of mini firecrackers." },
@@ -365,12 +386,15 @@
     "desc": "We deliver joy, but safety is our promise. All our fireworks are strictly tested and approved, ensuring you can enjoy a spectacular and secure celebration."
   },
   "features": {
+    "title": "What we guarantee",
     "licensed": "Fully Licensed",
     "licensedDesc": "100% legal & certified",
     "safety": "Safety Approved",
     "safetyDesc": "Tested & secure",
     "support": "Expert Support",
     "supportDesc": "Always here to help",
+    "fastDelivery": "Fast Delivery",
+    "fastDeliveryDesc": "Nationwide secure shipping",
     "learnMore": "Learn More >"
   },
   "profilePage": {

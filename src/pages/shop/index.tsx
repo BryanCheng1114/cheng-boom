@@ -193,15 +193,32 @@ export default function Shop() {
       )}
 
       {/* ── Page Header & Category Tab Bar ───────────────────────────────── */}
-      <div className="bg-black">
+      <div className="bg-[#0a0a0a]">
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-48 pb-20">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-lg">
+        {/* ── HERO BANNER ────────────────────────────────────────────────── */}
+        <section className="relative h-[20vh] md:h-[45vh] flex items-center justify-center overflow-hidden pt-12 md:pt-0">
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
+            style={{ backgroundImage: 'url("/shop.jpg")' }}
+          />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+          {/* Smooth blend into the section below */}
+          <div className="absolute inset-x-0 bottom-0 h-24 md:h-40 bg-gradient-to-t from-[#0a0a0a] to-transparent z-10" />
+
+          <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mt-6 md:mt-16">
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-3xl sm:text-4xl md:text-6xl font-black text-white tracking-tighter drop-shadow-[0_10px_50px_rgba(0,0,0,0.5)] uppercase"
+            >
               {searchQuery ? `"${searchQuery}"` : activeCategoryLabel}
-            </h1>
+            </motion.h1>
             {searchQuery && (
-              <p className="mt-4 text-white/80 text-sm">
+              <motion.p 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+                className="mt-4 text-white/80 text-sm"
+              >
                 {t.shop.showing}&nbsp;
                 <span className="font-bold text-white">{filteredProducts.length}</span>&nbsp;
                 {t.shop.products}
@@ -212,16 +229,13 @@ export default function Shop() {
                 >
                   <X size={12} /> Clear search
                 </button>
-              </p>
-            )}
-            {!searchQuery && (
-              <p className="mt-4 text-lg text-white/80 max-w-2xl mx-auto drop-shadow-md">{t.shop.categoriesDesc}</p>
+              </motion.p>
             )}
           </div>
-        </div>
+        </section>
 
         {/* ── Category Tab Bar ─────────────────────────────────────────── */}
-        <div className="relative bg-transparent border-y border-white/10 shadow-sm">
+        <div className="relative z-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center gap-2 md:gap-4">
 
@@ -253,7 +267,7 @@ export default function Shop() {
                 <button
                   onClick={() => handleCategoryClick('all')}
                   className={[
-                    'relative shrink-0 flex items-center gap-2 px-6 py-2.5 text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full drop-shadow-md',
+                    'relative shrink-0 flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full drop-shadow-md',
                     activeCategory === 'all'
                       ? 'text-zinc-900'
                       : 'text-white/90 hover:text-white hover:bg-white/10',
@@ -261,7 +275,7 @@ export default function Shop() {
                 >
                   <span className="relative z-10">{t.shopCategories.all}</span>
                   <span className={[
-                    'relative z-10 inline-flex items-center justify-center min-w-[24px] h-5 px-2 rounded-full text-[10px] font-black transition-colors shadow-sm',
+                    'relative z-10 inline-flex items-center justify-center min-w-[20px] sm:min-w-[24px] h-4 sm:h-5 px-1.5 sm:px-2 rounded-full text-[9px] sm:text-[10px] font-black transition-colors shadow-sm',
                     activeCategory === 'all'
                       ? 'bg-white/90 text-zinc-900 border border-zinc-900/5'
                       : 'bg-white/10 text-white/70',
@@ -297,7 +311,7 @@ export default function Shop() {
                       key={cat.id}
                       onClick={() => handleCategoryClick(key)}
                       className={[
-                        'relative shrink-0 flex items-center gap-2 px-6 py-2.5 text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full drop-shadow-md',
+                        'relative shrink-0 flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full drop-shadow-md',
                         isActive
                           ? 'text-zinc-900'
                           : 'text-white/90 hover:text-white hover:bg-white/10',
@@ -305,7 +319,7 @@ export default function Shop() {
                     >
                       <span className="relative z-10">{label}</span>
                       <span className={[
-                        'relative z-10 inline-flex items-center justify-center min-w-[24px] h-5 px-2 rounded-full text-[10px] font-black transition-colors shadow-sm',
+                        'relative z-10 inline-flex items-center justify-center min-w-[20px] sm:min-w-[24px] h-4 sm:h-5 px-1.5 sm:px-2 rounded-full text-[9px] sm:text-[10px] font-black transition-colors shadow-sm',
                         isActive
                           ? 'bg-white/90 text-zinc-900 border border-zinc-900/5'
                           : 'bg-white/10 text-white/70',
@@ -353,26 +367,26 @@ export default function Shop() {
 
         {/* Top Controls Row */}
         {filteredProducts.length > 0 && !isLoading && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-row items-center justify-between w-full gap-2 mb-6">
+            <p className="text-[11px] sm:text-sm text-muted-foreground whitespace-nowrap">
               {t.shop.showing}&nbsp;
               <span className="font-bold text-foreground">{filteredProducts.length}</span>&nbsp;
-              {t.shop.products}
+              <span className="hidden sm:inline">{t.shop.products}</span>
             </p>
-            <div className="flex items-center">
-              <span className="text-sm text-muted-foreground mr-1 font-medium">{st('sortBy')}</span>
+            <div className="flex items-center shrink-0">
+              <span className="text-[11px] sm:text-sm text-muted-foreground mr-1 font-medium">{st('sortBy')}</span>
               <div className="relative">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="appearance-none bg-transparent hover:text-foreground/80 text-foreground text-sm font-bold py-1 pl-2 pr-6 transition-colors cursor-pointer outline-none focus:ring-0 focus:outline-none"
+                  className="appearance-none bg-transparent hover:text-foreground/80 text-foreground text-[11px] sm:text-sm font-bold py-1 pl-1 pr-5 sm:pl-2 sm:pr-6 transition-colors cursor-pointer outline-none focus:ring-0 focus:outline-none max-w-[120px] sm:max-w-none text-ellipsis"
                 >
                   <option className="bg-background text-foreground" value="newest">{st('newest')}</option>
                   <option className="bg-background text-foreground" value="price-asc">{st('priceAsc')}</option>
                   <option className="bg-background text-foreground" value="price-desc">{st('priceDesc')}</option>
                   <option className="bg-background text-foreground" value="name-asc">{st('nameAsc')}</option>
                 </select>
-                <ChevronDown size={14} strokeWidth={2.5} className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none text-foreground" />
+                <ChevronDown size={14} strokeWidth={2.5} className="absolute right-0 sm:right-1 top-1/2 -translate-y-1/2 pointer-events-none text-foreground" />
               </div>
             </div>
           </div>
@@ -385,23 +399,14 @@ export default function Shop() {
           </div>
         ) : filteredProducts.length === 0 ? (
           /* Empty state */
-          <div className="flex flex-col items-center justify-center min-h-[50vh] py-32 text-center">
-            <div className="text-6xl mb-6">🔍</div>
-            <h2 className="text-2xl font-extrabold text-foreground mb-2">{t.shop.notFound}</h2>
-            <p className="text-muted-foreground mb-6">{t.shop.noProductsTryAgain}</p>
+          <div className="flex flex-col items-center justify-center min-h-[40vh] py-16 sm:py-32 px-4 text-center">
+            <div className="text-4xl sm:text-6xl mb-4 sm:mb-6">🔍</div>
+            <h2 className="text-lg sm:text-2xl font-extrabold text-foreground mb-2">{t.shop.notFound}</h2>
+            <p className="text-xs sm:text-base text-muted-foreground mb-6 max-w-[250px] sm:max-w-none mx-auto">{t.shop.noProductsTryAgain}</p>
           </div>
         ) : (
           /* Flat grid */
-          <div
-  className="
-    grid
-    grid-cols-1
-    sm:grid-cols-2
-    md:grid-cols-3
-    lg:grid-cols-4
-    gap-6
-  "
->
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             <AnimatePresence>
               {filteredProducts.map((product, index) => {
                 const catObj = categories.find(c => c.name === product.category);
@@ -416,7 +421,7 @@ export default function Shop() {
                     delay: index * 0.03,
                     ease: "easeOut"
                   }}
-                 className="h-full w-full lg:w-[286px]"
+                  className="h-full w-[170px] sm:w-[240px] md:w-[250px] lg:w-[286px]"
                 >
                   <ProductCard {...product} categoryZh={catObj?.nameZh} categoryMs={catObj?.nameMs} />
                 </motion.div>

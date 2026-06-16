@@ -529,7 +529,7 @@ export function Navbar() {
                       >
                         <div className="flex flex-col pb-4">
                           <span className="py-2 pl-2 mb-1 text-[12px] font-bold tracking-widest text-white/40 uppercase">
-                            Categories
+                            {locale === 'zh' ? '商品类别' : 'Categories'}
                           </span>
                           {(categories.length > 0 ? categories : []).map((category) => {
                             const key = category.code || category.key || category.name.toLowerCase().replace(/\s+/g, '');
@@ -562,7 +562,7 @@ export function Navbar() {
                 <Link
                   href="/about"
                   onClick={() => setMobileOpen(false)}
-                  className="py-4 text-[14px] font-medium tracking-wide text-white/60 hover:text-white uppercase transition-colors"
+                  className="py-5 text-[18px] font-semibold text-white transition-colors block w-full text-left"
                 >
                   {t.nav.aboutUs}
                 </Link>
@@ -571,7 +571,7 @@ export function Navbar() {
                 <Link
                   href="/contact"
                   onClick={() => setMobileOpen(false)}
-                  className="py-4 text-[14px] font-medium tracking-wide text-white/60 hover:text-white uppercase transition-colors"
+                  className="py-5 text-[18px] font-semibold text-white transition-colors block w-full text-left"
                 >
                   {t.nav.contact}
                 </Link>
@@ -584,26 +584,26 @@ export function Navbar() {
                     setMobileOpen(false);
                     router.push(user ? '/profile' : '/login');
                   }}
-                  className="py-4 text-[14px] font-medium tracking-wide text-white/60 hover:text-white uppercase transition-colors flex items-center justify-between w-full text-left"
+                  className="py-5 text-[18px] font-semibold text-white transition-colors flex items-center justify-between w-full text-left"
                 >
                   <div className="flex items-center gap-3">
-                    <User size={18} />
+                    <User size={20} />
                     {t.nav?.profile?.account || (locale === 'zh' ? '我的账号' : 'My Account')}
                   </div>
-                  <ChevronRight size={16} className="opacity-50" />
+                  <ChevronRight size={20} className="opacity-50" />
                 </button>
 
                 {/* Language Switcher */}
                 <div className="flex flex-col">
                   <button
                     onClick={() => setMobileLangExpanded(!mobileLangExpanded)}
-                    className="py-4 text-[14px] font-medium tracking-wide text-white/60 hover:text-white uppercase transition-colors flex items-center justify-between w-full text-left"
+                    className="py-5 text-[18px] font-semibold text-white transition-colors flex items-center justify-between w-full text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <Globe size={18} />
+                      <Globe size={20} />
                       {locale === 'zh' ? '马来西亚 / 中文' : 'Malaysia / English'}
                     </div>
-                    <ChevronRight size={16} className={`opacity-50 transition-transform ${mobileLangExpanded ? 'rotate-90' : ''}`} />
+                    <ChevronRight size={20} className={`opacity-50 transition-transform ${mobileLangExpanded ? 'rotate-90' : ''}`} />
                   </button>
                   <AnimatePresence>
                     {mobileLangExpanded && (
@@ -620,7 +620,7 @@ export function Navbar() {
                             setMobileOpen(false);
                             setMobileLangExpanded(false);
                           }}
-                          className="py-3 pl-8 text-[13px] font-medium tracking-wide text-white/40 hover:text-white transition-colors w-full text-left flex items-center justify-between"
+                          className="py-3 pl-8 text-[16px] font-medium text-white/40 hover:text-white transition-colors w-full text-left flex items-center justify-between"
                         >
                           {locale === 'zh' ? 'Malaysia / English' : '马来西亚 / 中文'}
                         </button>
