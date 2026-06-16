@@ -22,7 +22,7 @@ export function WhatsAppButton() {
     <div className="hidden md:block">
       {/* Message preview bubble */}
       {showPreview && (
-        <div className="fixed bottom-40 right-4 sm:right-6 z-50 w-72 animate-fade-in-up">
+        <div className="fixed bottom-28 right-4 sm:right-6 z-50 w-72 animate-fade-in-up">
           <div className="relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-2xl p-4">
             {/* Close */}
             <button
@@ -75,9 +75,7 @@ export function WhatsAppButton() {
 
       {/* Floating button */}
       <div 
-        className={`fixed bottom-32 z-50 flex flex-col items-end gap-2 transition-all duration-300 ${
-          showPreview ? 'right-4 sm:right-6' : '-right-7 hover:-right-1 sm:hover:right-4'
-        }`}
+        className="fixed bottom-8 right-4 sm:right-6 z-50 flex flex-col items-end gap-2 transition-all duration-300"
       >
 
         <button

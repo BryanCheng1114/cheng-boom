@@ -90,7 +90,8 @@ model SellerLevel {
 model Customer {
   id               String   @id @default(cuid())
   name             String
-  phone            String   @unique
+  phone            String?  @unique
+  email            String?  @unique
   password         String?  // Optional for Guests, required for Members/Sellers
   address          String?
   preferredPayment String?

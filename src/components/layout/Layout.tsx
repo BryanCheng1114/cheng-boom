@@ -19,7 +19,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       {!isLoginPage && <Footer />}
-      <WhatsAppButton />
+      {!isLoginPage && <WhatsAppButton />}
     </div>
   );
 }

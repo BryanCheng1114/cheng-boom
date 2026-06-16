@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useState, useRef, useEffect } from 'react';
 import { prisma } from '../../lib/prisma';
 import { useCart } from '../../components/cart/CartProvider';
-import { ArrowLeft, ShoppingCart, Plus, Minus, CheckCircle, Maximize2, X, Loader2, Package, User, Phone, CreditCard, MapPin, Check, MessageCircle, HelpCircle, Zap, Share2, Link as LinkIcon } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Plus, Minus, CheckCircle, Maximize2, X, Loader2, Package, User, Phone, CreditCard, MapPin, Check, MessageCircle, HelpCircle, Zap, Share2, Link as LinkIcon, Home, ChevronRight, ShieldCheck, Truck, Award, Headset } from 'lucide-react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { SharedCheckoutModal } from '../../components/checkout/SharedCheckoutModal';
 import { generateWhatsAppLink, OrderDetails } from '../../services/whatsappService';
@@ -316,66 +316,56 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
       </Head>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
-        {/* Breadcrumb */}
-        <Link href={router.query.from === 'cart' ? '/cart' : '/shop'} className="inline-flex items-center gap-2 text-zinc-500 hover:text-primary transition-colors mb-10 group text-sm font-medium">
-          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> 
-          {router.query.from === 'cart' ? (locale === 'zh' ? '返回购物车' : locale === 'ms' ? 'Kembali ke Troli' : 'Back to Cart') : t.productDetail.backToCollection}
-        </Link>
+        {/* Top Header: Breadcrumb & Share */}
+        <div className="hidden lg:flex items-center justify-between gap-4 mb-8">
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 text-zinc-400 text-sm font-medium overflow-x-auto whitespace-nowrap scrollbar-hide pb-2 flex-1">
+            <Link href="/" className="inline-flex items-center gap-1.5 hover:text-primary transition-colors">
+              <Home size={16} />
+              {locale === 'zh' ? '主页' : locale === 'ms' ? 'Laman Utama' : 'Home Page'}
+            </Link>
+            <ChevronRight size={14} className="text-zinc-600" />
+            <Link href="/shop" className="hover:text-primary transition-colors">
+              {translatedCategory || (locale === 'zh' ? '商店' : locale === 'ms' ? 'Kedai' : 'Shop')}
+            </Link>
+            <ChevronRight size={14} className="text-zinc-600" />
+            <span className="text-zinc-100 truncate max-w-[200px] sm:max-w-xs">{translatedName}</span>
+          </div>
+
+          {/* Share Buttons */}
+          <div className="flex items-center gap-2 pb-2 shrink-0">
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest hidden sm:inline mr-1">Share</span>
+            <button 
+              onClick={(e) => { e.stopPropagation(); handleWhatsAppShare(); }}
+              className="w-8 h-8 rounded-full overflow-hidden hover:scale-110 transition-transform flex items-center justify-center drop-shadow-sm bg-white border border-zinc-700/50"
+              title="Share to WhatsApp"
+            >
+              <img src="/whatsapp-call-icon-psd-editable_314999-3666.avif" alt="WhatsApp" className="w-full h-full object-cover scale-[1.15]" />
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}
+              className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700/50 text-zinc-300 hover:text-white hover:bg-zinc-700 transition-colors flex items-center justify-center"
+              title="Copy Link"
+            >
+              {isCopied ? <Check size={14} className="text-green-500" /> : <LinkIcon size={14} />}
+            </button>
+          </div>
+        </div>
         
-        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 mb-12 items-start bg-white dark:bg-zinc-900 rounded-2xl p-8 md:p-10 border border-border shadow-sm">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12 items-stretch bg-white dark:bg-[#111111] rounded-2xl p-6 lg:p-8 border border-zinc-800/50 shadow-sm">
           
           {/* LEFT: Image Section */}
-          <div className="w-full space-y-4">
-            <div 
-              ref={imageRef}
-              onClick={() => setIsViewerOpen(true)}
-              className="w-full aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 bg-zinc-100 dark:bg-zinc-900 border border-border/50 cursor-zoom-in group relative"
-            >
-              {images.length > 0 ? (
-                <>
-                  <img
-                    src={images[activeImageIdx]}
-                    alt={translatedName}
-                    className="absolute inset-0 z-10 w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
-                    onContextMenu={(e) => e.preventDefault()}
-                    draggable="false"
-                  />
-                  {/* Centered Watermark Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                    <img 
-                      src={settings?.watermarkUrl || "/transparent-Background.png"} 
-                      className="w-[70%] h-[70%] object-contain opacity-30 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700" 
-                      alt="" 
-                      draggable={false}
-                    />
-                  </div>
-                </>
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-zinc-500">
-                  <Package size={64} />
-                </div>
-              )}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
-                <div className="bg-white/20 backdrop-blur-md p-4 rounded-full text-white">
-                  <Maximize2 size={32} />
-                </div>
-              </div>
-              {hasDiscount && (
-                <div className="absolute top-4 left-4 bg-primary text-zinc-900 px-3 py-1.5 rounded-xl font-black text-xs shadow-xl animate-bounce z-20">
-                  {t.productDetail.sale}
-                </div>
-              )}
-            </div>
-
-            {/* Thumbnails */}
-            {images.length > 1 && (
-              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="relative w-full lg:h-full">
+            <div className="static lg:absolute lg:inset-0 flex gap-4 h-full">
+              {/* Vertical Thumbnails */}
+              {images.length > 1 && (
+                <div className="flex flex-col gap-4 overflow-y-auto scrollbar-hide shrink-0 h-full max-h-[500px] lg:max-h-none pb-2">
                 {images.map((img: string, idx: number) => (
                   <button
                     key={idx}
                     onClick={() => setActiveImageIdx(idx)}
-                    className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
-                      activeImageIdx === idx ? 'border-primary shadow-lg scale-105' : 'border-transparent opacity-60 hover:opacity-100'
+                    className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all shrink-0 bg-zinc-900 ${
+                      activeImageIdx === idx ? 'border-primary shadow-[0_0_15px_rgba(234,179,8,0.4)] scale-105' : 'border-transparent opacity-60 hover:opacity-100'
                     }`}
                   >
                     <img src={img} className="w-full h-full object-cover" />
@@ -383,20 +373,56 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                 ))}
               </div>
             )}
+
+            {/* Main Image */}
+            <div 
+              ref={imageRef}
+              onClick={() => setIsViewerOpen(true)}
+              className="flex-1 aspect-square lg:aspect-auto lg:h-full min-h-0 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-white border border-zinc-200 dark:border-zinc-200 cursor-zoom-in group relative"
+            >
+              {images.length > 0 ? (
+                <>
+                  <img
+                    src={images[activeImageIdx]}
+                    alt={translatedName}
+                    className="absolute inset-0 z-10 w-full h-full object-contain transition-transform duration-700 group-hover:scale-[1.02] p-2 md:p-4"
+                    onContextMenu={(e) => e.preventDefault()}
+                    draggable="false"
+                  />
+                  {/* Centered Watermark Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                    <img 
+                      src={settings?.watermarkUrl || "/transparent-Background.png"} 
+                      className="w-[70%] h-[70%] object-contain opacity-10 select-none mix-blend-multiply transition-all duration-700" 
+                      alt="" 
+                      draggable={false}
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-zinc-400">
+                  <Package size={64} />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none z-30">
+                <div className="bg-black/50 backdrop-blur-md p-4 rounded-full text-white">
+                  <Maximize2 size={32} />
+                </div>
+              </div>
+            </div>
+          </div>
           </div>
 
           {/* RIGHT: Info Section */}
-          <div className="w-full flex flex-col justify-start">
-            <div className="flex flex-col justify-start mb-8">
-              
-              
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-normal leading-tight mb-4">
+          <div className="w-full flex flex-col h-full">
+            <div className="flex flex-col justify-start mb-4">
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-normal leading-tight mb-2 line-clamp-2">
                 {translatedName}
               </h1>
             </div>
 
             {/* Unified Pricing Card (Shopee Style) */}
-            <div className="rounded-2xl p-2 mb-8 space-y-8">
+            <div className="mb-4 space-y-4">
               
               {/* Dynamic Price Header */}
               {isSeller ? (() => {
@@ -408,37 +434,37 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                 const currentLabels = labelsMap[locale as 'en' | 'zh' | 'ms'] || labelsMap.en;
 
                 return (
-                  <div className="relative flex flex-col justify-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] py-4 px-5 rounded-xl overflow-hidden">
-                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-3">
+                  <div className="relative flex flex-col justify-center">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2 px-1">
                       {currentLabels.title}
                     </p>
-                    <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left text-[11px] border-collapse min-w-[320px]">
+                    <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm">
+                      <div className="overflow-x-auto scrollbar-hide">
+                        <table className="w-full text-left text-[10px] sm:text-[11px] border-collapse min-w-[280px]">
                           <thead>
                             <tr className="bg-zinc-50 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 font-extrabold border-b border-zinc-200 dark:border-zinc-800">
-                              <th className="px-4 py-2.5">Variant</th>
-                              <th className="px-4 py-2.5">{currentLabels.original}</th>
-                              <th className="px-4 py-2.5">{currentLabels.promo}</th>
-                              <th className="px-4 py-2.5">{currentLabels.seller}</th>
-                              <th className="px-4 py-2.5 text-right">{currentLabels.discount}</th>
+                              <th className="px-2 sm:px-4 py-2.5">Variant</th>
+                              <th className="px-2 sm:px-4 py-2.5">{currentLabels.original}</th>
+                              <th className="px-2 sm:px-4 py-2.5">{currentLabels.promo}</th>
+                              <th className="px-2 sm:px-4 py-2.5">{currentLabels.seller}</th>
+                              <th className="px-2 sm:px-4 py-2.5 text-right">{currentLabels.discount}</th>
                             </tr>
                           </thead>
                           <tbody>
                             <tr className={`font-bold text-foreground border-b border-zinc-100 dark:border-zinc-800/50 ${selectedVariant === 'Single' ? 'bg-primary/5' : ''}`}>
-                              <td className="px-4 py-3">Single</td>
-                              <td className="px-4 py-3 text-zinc-400 dark:text-zinc-500 line-through">RM {product.price.toFixed(2)}</td>
-                              <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">{product.promotion !== null && product.promotion !== undefined && product.promotion < product.price ? `RM ${product.promotion.toFixed(2)}` : '-'}</td>
-                              <td className="px-4 py-3 text-primary font-extrabold">{product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0 ? `RM ${product.sellerPrice.toFixed(2)}` : '-'}</td>
-                              <td className="px-4 py-3 text-green-500 font-extrabold text-right">{product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0 && product.sellerPrice < product.price ? `RM ${(product.price - product.sellerPrice).toFixed(2)}` : '-'}</td>
+                              <td className="px-2 sm:px-4 py-3">Single</td>
+                              <td className="px-2 sm:px-4 py-3 text-zinc-400 dark:text-zinc-500 line-through">RM {product.price.toFixed(2)}</td>
+                              <td className="px-2 sm:px-4 py-3 text-zinc-500 dark:text-zinc-400">{product.promotion !== null && product.promotion !== undefined && product.promotion < product.price ? `RM ${product.promotion.toFixed(2)}` : '-'}</td>
+                              <td className="px-2 sm:px-4 py-3 text-primary font-extrabold">{product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0 ? `RM ${product.sellerPrice.toFixed(2)}` : '-'}</td>
+                              <td className="px-2 sm:px-4 py-3 text-green-500 font-extrabold text-right">{product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0 && product.sellerPrice < product.price ? `RM ${(product.price - product.sellerPrice).toFixed(2)}` : '-'}</td>
                             </tr>
                             {hasBoxPricing && (
                               <tr className={`font-bold text-foreground ${selectedVariant === 'Box' ? 'bg-primary/5' : ''}`}>
-                                <td className="px-4 py-3">Box</td>
-                                <td className="px-4 py-3 text-zinc-400 dark:text-zinc-500 line-through">RM {product.boxPrice!.toFixed(2)}</td>
-                                <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">{product.boxPromotion !== null && product.boxPromotion !== undefined && product.boxPromotion < product.boxPrice! ? `RM ${product.boxPromotion.toFixed(2)}` : '-'}</td>
-                                <td className="px-4 py-3 text-primary font-extrabold">{product.boxSellerPrice !== null && product.boxSellerPrice !== undefined && product.boxSellerPrice > 0 ? `RM ${product.boxSellerPrice.toFixed(2)}` : '-'}</td>
-                                <td className="px-4 py-3 text-green-500 font-extrabold text-right">{product.boxSellerPrice !== null && product.boxSellerPrice !== undefined && product.boxSellerPrice > 0 && product.boxSellerPrice < product.boxPrice! ? `RM ${(product.boxPrice! - product.boxSellerPrice).toFixed(2)}` : '-'}</td>
+                                <td className="px-2 sm:px-4 py-3">Box</td>
+                                <td className="px-2 sm:px-4 py-3 text-zinc-400 dark:text-zinc-500 line-through">RM {product.boxPrice!.toFixed(2)}</td>
+                                <td className="px-2 sm:px-4 py-3 text-zinc-500 dark:text-zinc-400">{product.boxPromotion !== null && product.boxPromotion !== undefined && product.boxPromotion < product.boxPrice! ? `RM ${product.boxPromotion.toFixed(2)}` : '-'}</td>
+                                <td className="px-2 sm:px-4 py-3 text-primary font-extrabold">{product.boxSellerPrice !== null && product.boxSellerPrice !== undefined && product.boxSellerPrice > 0 ? `RM ${product.boxSellerPrice.toFixed(2)}` : '-'}</td>
+                                <td className="px-2 sm:px-4 py-3 text-green-500 font-extrabold text-right">{product.boxSellerPrice !== null && product.boxSellerPrice !== undefined && product.boxSellerPrice > 0 && product.boxSellerPrice < product.boxPrice! ? `RM ${(product.boxPrice! - product.boxSellerPrice).toFixed(2)}` : '-'}</td>
                               </tr>
                             )}
                           </tbody>
@@ -466,7 +492,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                   )}
 
                   {/* Active Price Range or Specific */}
-                  <span className="text-3xl sm:text-4xl font-bold text-primary tracking-tight">
+                  <span className="text-2xl sm:text-3xl font-bold text-primary tracking-tight">
                     {currentDisplayPrice ? (
                       `RM ${currentDisplayPrice.toFixed(2)}`
                     ) : (
@@ -492,134 +518,193 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
               </div>
 
               )}
+              {/* Divider removed as requested */}
+
               <div className={cn(
-                "flex flex-col gap-6 transition-colors duration-300",
+                "flex flex-col gap-4 transition-colors duration-300",
                 showVariantError ? "bg-red-50/50 dark:bg-red-950/20 p-4 -mx-4 rounded-xl border border-red-100 dark:border-red-900/30" : ""
               )}>
-              {/* Options Selector */}
-              {hasBoxPricing && (
-                <div className="flex flex-row items-center gap-4">
-                  <span className="text-sm font-medium text-zinc-400 w-16">
-                    {locale === 'zh' ? '选项' : locale === 'ms' ? 'Pilihan' : 'Option'}:
+                {/* Options Selector */}
+                {hasBoxPricing && (
+                  <div className="flex flex-col gap-3">
+                    <span className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
+                      Variation
+                    </span>
+                    <div className="flex flex-wrap gap-4">
+                      <button
+                        onClick={() => {
+                          setSelectedVariant('Single');
+                          setLocalQty(1);
+                          setShowVariantError(false);
+                        }}
+                        className={`flex flex-row items-center justify-center px-6 py-2.5 rounded-lg transition-all relative overflow-hidden border ${selectedVariant === 'Single' ? 'border-primary bg-white' : 'border-zinc-800 bg-[#111111] hover:border-zinc-700'}`}
+                      >
+                        <span className={`text-sm relative z-10 ${selectedVariant === 'Single' ? 'text-black font-medium' : 'text-zinc-400 font-medium'}`}>
+                          {locale === 'zh' ? '单品' : locale === 'ms' ? 'Satu' : 'Single Item'}
+                        </span>
+                        {selectedVariant === 'Single' && (
+                          <>
+                            <div className="absolute bottom-0 right-0 w-0 h-0 border-solid border-b-[24px] border-l-[24px] border-b-primary border-l-transparent border-t-0 border-r-0 z-0" />
+                            <Check size={12} className="absolute bottom-[2px] right-[2px] text-white stroke-[4] z-10" />
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedVariant('Box');
+                          setLocalQty(1);
+                          setShowVariantError(false);
+                        }}
+                        className={`flex flex-row items-center justify-center px-6 py-2.5 rounded-lg transition-all relative overflow-hidden border ${selectedVariant === 'Box' ? 'border-primary bg-white' : 'border-zinc-800 bg-[#111111] hover:border-zinc-700'}`}
+                      >
+                        <div className="flex items-center gap-2 relative z-10">
+                          <span className={`text-sm ${selectedVariant === 'Box' ? 'text-black font-medium' : 'text-zinc-400 font-medium'}`}>
+                            {locale === 'zh' ? '整盒' : locale === 'ms' ? 'Kotak' : 'Per Box'}
+                          </span>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-md ${selectedVariant === 'Box' ? 'bg-zinc-100 text-zinc-500' : 'bg-[#1a1a1a] text-zinc-500'}`}>
+                            {product.itemsPerBox} {locale === 'zh' ? '件' : locale === 'ms' ? 'Items' : 'Items'}
+                          </span>
+                        </div>
+                        {selectedVariant === 'Box' && (
+                          <>
+                            <div className="absolute bottom-0 right-0 w-0 h-0 border-solid border-b-[24px] border-l-[24px] border-b-primary border-l-transparent border-t-0 border-r-0 z-0" />
+                            <Check size={12} className="absolute bottom-[2px] right-[2px] text-white stroke-[4] z-10" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Quantity */}
+                <div className="flex flex-col gap-3">
+                  <span className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
+                    Quantity
                   </span>
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      onClick={() => {
-                        setSelectedVariant('Single');
-                        setLocalQty(1);
-                        setShowVariantError(false);
-                      }}
-                      className={`px-5 py-2.5 rounded-md text-sm font-medium transition-all relative overflow-hidden ${selectedVariant === 'Single' ? 'border-2 border-primary text-black bg-white dark:bg-white shadow-sm' : 'border border-zinc-300 dark:border-zinc-700 text-zinc-500 hover:border-primary hover:text-primary'}`}
-                    >
-                      {locale === 'zh' ? '单品' : locale === 'ms' ? 'Satu' : 'Single Item'}
-                      {selectedVariant === 'Single' && (
-                        <div className="absolute bottom-0 right-0 w-6 h-6 bg-primary flex items-end justify-end" style={{ clipPath: 'polygon(100% 0, 0% 100%, 100% 100%)' }}>
-                          <Check size={10} className="text-white mb-[1px] mr-[1px]" strokeWidth={4} />
-                        </div>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedVariant('Box');
-                        setLocalQty(1);
-                        setShowVariantError(false);
-                      }}
-                      className={`px-5 py-2.5 rounded-md text-sm font-medium transition-all relative overflow-hidden flex items-center gap-2 ${selectedVariant === 'Box' ? 'border-2 border-primary text-black bg-white dark:bg-white shadow-sm' : 'border border-zinc-300 dark:border-zinc-700 text-zinc-500 hover:border-primary hover:text-primary'}`}
-                    >
-                      {locale === 'zh' ? '整盒' : locale === 'ms' ? 'Kotak' : 'Per Box'}
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-sm ${selectedVariant === 'Box' ? 'bg-primary/20 text-black' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500'}`}>
-                        {product.itemsPerBox} {locale === 'zh' ? '件' : locale === 'ms' ? 'Item' : 'Items'}
-                      </span>
-                      {selectedVariant === 'Box' && (
-                        <div className="absolute bottom-0 right-0 w-6 h-6 bg-primary flex items-end justify-end" style={{ clipPath: 'polygon(100% 0, 0% 100%, 100% 100%)' }}>
-                          <Check size={10} className="text-white mb-[1px] mr-[1px]" strokeWidth={4} />
-                        </div>
-                      )}
-                    </button>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center border border-zinc-800 rounded-xl overflow-hidden bg-[#111111] h-12">
+                      <button 
+                        onClick={decrement}
+                        disabled={localQty <= 1 || !selectedVariant}
+                        className="w-12 h-12 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <Minus size={14} />
+                      </button>
+                      <span className="w-12 text-center font-semibold text-sm text-white h-12 flex items-center justify-center border-x border-zinc-800 bg-[#111111]">{selectedVariant ? localQty : 0}</span>
+                      <button 
+                        onClick={increment}
+                        disabled={localQty >= currentMaxAvailable || !selectedVariant}
+                        className="w-12 h-12 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              )}
 
-              {/* Quantity */}
-              <div className="flex flex-row items-center gap-4">
-                <span className="text-sm font-medium text-zinc-400 w-16">
-                  {locale === 'zh' ? '数量' : locale === 'ms' ? 'Kuantiti' : 'Quantity'}:
-                </span>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center border border-zinc-300 dark:border-zinc-700 rounded-xl w-fit overflow-hidden">
-                    <button 
-                      onClick={decrement}
-                      disabled={localQty <= 1 || !selectedVariant}
-                      className="w-10 h-10 flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all text-zinc-600 dark:text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed border-r border-zinc-300 dark:border-zinc-700"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className="w-14 text-center font-bold text-base bg-white dark:bg-zinc-950 h-10 flex items-center justify-center">{selectedVariant ? localQty : 0}</span>
-                    <button 
-                      onClick={increment}
-                      disabled={localQty >= currentMaxAvailable || !selectedVariant}
-                      className="w-10 h-10 flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all text-zinc-600 dark:text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed border-l border-zinc-300 dark:border-zinc-700"
-                    >
-                      <Plus size={16} />
-                    </button>
+                {/* Availability */}
+                <div className="flex items-center gap-2 text-zinc-500 mt-1">
+                  <CheckCircle size={14} className={trueRemainingStock > 0 ? "text-green-500" : "text-red-500"} />
+                  <span className="text-xs font-medium">{trueRemainingStock} {t.productDetail.inStockSuffix} — Ready to deliver</span>
+                </div>
+
+                {showVariantError && (
+                  <div className="text-red-500 text-sm font-medium">
+                    {locale === 'zh' ? '请先选择商品选项' : locale === 'ms' ? 'Sila pilih variasi produk dahulu' : 'Please select product variation first'}
+                  </div>
+                )}
+                
+                {/* Guarantees Box */}
+                <div className="mt-2 bg-[#171717] border border-zinc-800/80 rounded-[14px] py-4 px-4 grid grid-cols-2 gap-y-4 md:flex md:flex-row items-center md:justify-between shadow-sm w-full">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-[#262626] flex items-center justify-center shrink-0">
+                      <ShieldCheck size={14} className="text-zinc-300" strokeWidth={1.5} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">100% Original</span>
+                      <span className="text-[9px] md:text-[10px] text-zinc-400 whitespace-nowrap leading-tight">Products</span>
+                    </div>
                   </div>
                   
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-[#262626] flex items-center justify-center shrink-0">
+                      <Truck size={14} className="text-zinc-300" strokeWidth={1.5} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">Fast Delivery</span>
+                      <span className="text-[9px] md:text-[10px] text-zinc-400 whitespace-nowrap leading-tight">Nationwide</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-[#262626] flex items-center justify-center shrink-0">
+                      <Award size={14} className="text-zinc-300" strokeWidth={1.5} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">Top Quality</span>
+                      <span className="text-[9px] md:text-[10px] text-zinc-400 whitespace-nowrap leading-tight">Guaranteed</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-[#262626] flex items-center justify-center shrink-0">
+                      <Headset size={14} className="text-zinc-300" strokeWidth={1.5} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">Support</span>
+                      <span className="text-[9px] md:text-[10px] text-zinc-400 whitespace-nowrap italic leading-tight">24/7</span>
+                    </div>
+                  </div>
                 </div>
+
               </div>
 
-              {/* Availability */}
-              <div className="flex items-center gap-2 text-zinc-500 mt-2">
-                <CheckCircle size={16} className={trueRemainingStock > 0 ? "text-green-500" : "text-red-500"} />
-                <span className="text-sm font-medium">{trueRemainingStock} {t.productDetail.inStockSuffix}</span>
-              </div>
+              {/* Action Buttons */}
+              <div className="pt-4 flex flex-col gap-4 w-full mt-auto">
+                <div className="flex flex-col-reverse md:flex-row items-center gap-3 md:gap-4 w-full">
+                  <button
+                    onClick={handleAddToCart}
+                    className="w-full md:flex-1 h-[56px] bg-white text-black rounded-full font-black text-[15px] hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm"
+                  >
+                    ADD TO CART
+                  </button>
 
-              {showVariantError && (
-                <div className="text-red-500 text-sm font-medium">
-                  {locale === 'zh' ? '请先选择商品选项' : locale === 'ms' ? 'Sila pilih variasi produk dahulu' : 'Please select product variation first'}
+                  <button
+                    onClick={handleBuyNow}
+                    className="w-full md:flex-1 h-[56px] bg-primary text-black rounded-full font-black text-[15px] hover:brightness-110 transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98]"
+                  >
+                    BUY NOW
+                  </button>
                 </div>
-              )}
-              </div>
 
-              {/* Action Buttons (Shopee Style) */}
-              <div className="pt-4 flex items-center gap-3 w-full">
-                <button
-                  onClick={handleAddToCart}
-                  className="flex-1 h-[54px] bg-white text-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl font-medium text-base hover:bg-zinc-50 transition-all flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm"
-                >
-                  <ShoppingCart size={18} /> {t.productDetail.addToCart}
-                </button>
-
-                <button
-                  onClick={handleBuyNow}
-                  className="flex-1 h-[54px] bg-primary text-zinc-900 rounded-xl font-bold text-base hover:brightness-110 transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98]"
-                >
-                  {locale === 'zh' ? '立即购买' : locale === 'ms' ? 'Beli Sekarang' : 'Buy Now'}
-                </button>
+                {/* Mobile Share Function */}
+                <div className="flex flex-col lg:hidden mt-2">
+                  <div className="w-full h-px bg-zinc-800/50 mb-4" />
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-sm font-bold text-zinc-400">Share this product</span>
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleWhatsAppShare(); }}
+                        className="w-10 h-10 rounded-full overflow-hidden hover:scale-110 transition-transform flex items-center justify-center drop-shadow-sm bg-white border border-zinc-700/50"
+                        title="Share to WhatsApp"
+                      >
+                        <img src="/whatsapp-call-icon-psd-editable_314999-3666.avif" alt="WhatsApp" className="w-full h-full object-cover scale-[1.15]" />
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}
+                        className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700/50 text-zinc-300 hover:text-white hover:bg-zinc-700 transition-colors flex items-center justify-center"
+                        title="Copy Link"
+                      >
+                        {isCopied ? <Check size={16} className="text-green-500" /> : <LinkIcon size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
             </div>
 
-            {/* Footer Row: Share */}
-            <div className="flex items-center justify-end w-full pt-4 mt-2 border-t border-zinc-100 dark:border-zinc-800/50">
-              {/* Share Feature */}
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-medium text-zinc-400">Share:</span>
-                <button 
-                  onClick={handleWhatsAppShare}
-                  className="w-8 h-8 rounded-full hover:scale-110 transition-transform flex items-center justify-center overflow-hidden drop-shadow-sm"
-                  title="Share to WhatsApp"
-                >
-                  <img src="/whatsapp-call-icon-psd-editable_314999-3666.avif" alt="WhatsApp" className="w-full h-full object-contain" />
-                </button>
-                <button 
-                  onClick={handleCopyLink}
-                  className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-foreground transition-colors flex items-center justify-center"
-                  title="Copy Link"
-                >
-                  {isCopied ? <Check size={16} className="text-green-500" /> : <LinkIcon size={16} />}
-                </button>
-              </div>
-            </div>
+            {/* Removed the old footer row because share features are now overlaid on the image */}
           </div>
         </div>
 

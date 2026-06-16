@@ -11,11 +11,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { phone, password } = req.body;
 
     if (!phone || !password) {
-      return res.status(400).json({ message: 'Phone and password are required' });
+      return res.status(400).json({ message: 'Phone/Email and password are required' });
     }
 
-    const customer = await (prisma as any).customer.findUnique({
-      where: { phone },
+    const customer = await (prisma as any).customer.findFirst({
+      where: {
+        OR: [
+          { phone: phone },
+          { email: phone } // we use `phone` variable for the input string which might be email
+        ]
+      },
       include: { sellerLevel: true }
     });
 

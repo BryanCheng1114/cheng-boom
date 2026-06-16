@@ -8,21 +8,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { name, phone, password, address } = req.body;
+    const { name, phone, email, password, address } = req.body;
 
-    if (!name || !phone || !password) {
-      return res.status(400).json({ message: 'Name, phone and password are required' });
+    if (!name || !password || (!phone && !email)) {
+      return res.status(400).json({ message: 'Name, password, and either phone or email are required' });
     }
 
     // Check if customer already exists
-    const existingCustomer = await (prisma as any).customer.findUnique({
-      where: { phone },
-    });
+    let existingCustomer = null;
+    if (phone) {
+      existingCustomer = await (prisma as any).customer.findUnique({
+        where: { phone },
+      });
+    } else if (email) {
+      existingCustomer = await (prisma as any).customer.findUnique({
+        where: { email },
+      });
+    }
 
     if (existingCustomer && existingCustomer.password) {
       return res.status(400).json({ 
-        code: 'PHONE_EXISTS', 
-        message: 'An account with this phone number already exists.' 
+        code: 'USER_EXISTS', 
+        message: 'An account with this phone number or email already exists.' 
       });
     }
 
@@ -32,9 +39,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (existingCustomer) {
       // If they were a guest, upgrade them to a member
       customer = await (prisma as any).customer.update({
-        where: { phone },
+        where: { id: existingCustomer.id },
         data: {
           name,
+          email: email || existingCustomer.email,
+          phone: phone || existingCustomer.phone,
           password: hashedPassword,
           address: address || existingCustomer.address,
           role: existingCustomer.role === 'Seller' ? 'Seller' : 'Member', // Don't demote sellers
@@ -45,7 +54,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       customer = await (prisma as any).customer.create({
         data: {
           name,
-          phone,
+          phone: phone || null,
+          email: email || null,
           password: hashedPassword,
           address,
           role: 'Member',

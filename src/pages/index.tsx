@@ -670,62 +670,62 @@ export default function Home() {
       </section>
 
       {/* ===== SECTION 5: Feature Highlights ===== */}
-      <section className="bg-white dark:bg-black py-16 md:py-32 transition-colors duration-500">
-        <div className="max-w-screen-xl mx-auto px-6 sm:px-12 md:px-16 lg:px-24">
+      <section className="bg-[#F9F9F9] dark:bg-black py-16 md:py-24 transition-colors duration-500">
+        <div className="w-full mx-auto px-6 sm:px-12 md:px-16 lg:px-24">
           <div className="text-center mb-10 md:mb-16">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-zinc-900 dark:text-white leading-tight tracking-tight">{t.features?.title || 'What We Guarantee'}</h2>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-serif text-zinc-900 dark:text-white leading-tight tracking-tight">{t.features?.title || 'What We Guarantee'}</h2>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 md:gap-8 lg:gap-12 text-center">
             
             {/* Feature 1 */}
-            <div className="flex flex-col items-center justify-center py-8 px-4 bg-[#FAFAFA] dark:bg-zinc-900/50 rounded-xl group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-              <div className="mb-4 text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800 dark:group-hover:text-zinc-300">
-                <FileCheck size={32} strokeWidth={1.5} />
+            <div className="flex flex-col items-center justify-center w-full mx-auto aspect-square md:aspect-auto p-3 sm:p-4 md:p-8 lg:p-10 bg-[#FAFAFA] dark:bg-zinc-900/50 rounded-xl group transition-all duration-300 shadow-sm md:shadow-none hover:shadow-md md:hover:shadow-sm hover:-translate-y-0.5 md:hover:-translate-y-0.5">
+              <div className="mb-2 md:mb-6 text-zinc-400 md:text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800 dark:group-hover:text-zinc-300">
+                <FileCheck strokeWidth={1.5} className="w-10 h-10 md:w-14 md:h-14" />
               </div>
-              <h3 className="text-[13px] sm:text-sm font-bold text-zinc-900 dark:text-white mb-2 tracking-tight">
+              <h3 className="text-[13px] sm:text-sm md:text-[17px] font-bold text-zinc-900 dark:text-white mb-1 md:mb-3 tracking-tight leading-tight">
                 {t.features?.licensed || 'Fully Licensed'}
               </h3>
-              <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 leading-snug max-w-[180px]">
+              <p className="text-[11px] sm:text-xs md:text-[15px] text-zinc-500 dark:text-zinc-400 leading-tight md:leading-relaxed max-w-[160px] md:max-w-[260px]">
                 {t.features?.licensedDesc || '100% legal & certified'}
               </p>
             </div>
 
             {/* Feature 2 */}
-            <div className="flex flex-col items-center justify-center py-8 px-4 bg-[#FAFAFA] dark:bg-zinc-900/50 rounded-xl group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-              <div className="mb-4 text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800 dark:group-hover:text-zinc-300">
-                <ShieldCheck size={32} strokeWidth={1.5} />
+            <div className="flex flex-col items-center justify-center w-full mx-auto aspect-square md:aspect-auto p-3 sm:p-4 md:p-8 lg:p-10 bg-[#FAFAFA] dark:bg-zinc-900/50 rounded-xl group transition-all duration-300 shadow-sm md:shadow-none hover:shadow-md md:hover:shadow-sm hover:-translate-y-0.5 md:hover:-translate-y-0.5">
+              <div className="mb-2 md:mb-6 text-zinc-400 md:text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800 dark:group-hover:text-zinc-300">
+                <ShieldCheck strokeWidth={1.5} className="w-10 h-10 md:w-14 md:h-14" />
               </div>
-              <h3 className="text-[13px] sm:text-sm font-bold text-zinc-900 dark:text-white mb-2 tracking-tight">
+              <h3 className="text-[13px] sm:text-sm md:text-[17px] font-bold text-zinc-900 dark:text-white mb-1 md:mb-3 tracking-tight leading-tight">
                 {t.features?.safety || 'Safety Approved'}
               </h3>
-              <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 leading-snug max-w-[180px]">
+              <p className="text-[11px] sm:text-xs md:text-[15px] text-zinc-500 dark:text-zinc-400 leading-tight md:leading-relaxed max-w-[160px] md:max-w-[260px]">
                 {t.features?.safetyDesc || 'Tested & secure'}
               </p>
             </div>
 
             {/* Feature 3 */}
-            <div className="flex flex-col items-center justify-center py-8 px-4 bg-[#FAFAFA] dark:bg-zinc-900/50 rounded-xl group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-              <div className="mb-4 text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800 dark:group-hover:text-zinc-300">
-                <Headphones size={32} strokeWidth={1.5} />
+            <div className="flex flex-col items-center justify-center w-full mx-auto aspect-square md:aspect-auto p-3 sm:p-4 md:p-8 lg:p-10 bg-[#FAFAFA] dark:bg-zinc-900/50 rounded-xl group transition-all duration-300 shadow-sm md:shadow-none hover:shadow-md md:hover:shadow-sm hover:-translate-y-0.5 md:hover:-translate-y-0.5">
+              <div className="mb-2 md:mb-6 text-zinc-400 md:text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800 dark:group-hover:text-zinc-300">
+                <Headphones strokeWidth={1.5} className="w-10 h-10 md:w-14 md:h-14" />
               </div>
-              <h3 className="text-[13px] sm:text-sm font-bold text-zinc-900 dark:text-white mb-2 tracking-tight">
+              <h3 className="text-[13px] sm:text-sm md:text-[17px] font-bold text-zinc-900 dark:text-white mb-1 md:mb-3 tracking-tight leading-tight">
                 {t.features?.support || 'Expert Support'}
               </h3>
-              <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 leading-snug max-w-[180px]">
+              <p className="text-[11px] sm:text-xs md:text-[15px] text-zinc-500 dark:text-zinc-400 leading-tight md:leading-relaxed max-w-[160px] md:max-w-[260px]">
                 {t.features?.supportDesc || 'Always here to help'}
               </p>
             </div>
 
             {/* Feature 4 */}
-            <div className="flex flex-col items-center justify-center py-8 px-4 bg-[#FAFAFA] dark:bg-zinc-900/50 rounded-xl group transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-              <div className="mb-4 text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800 dark:group-hover:text-zinc-300">
-                <Truck size={32} strokeWidth={1.5} />
+            <div className="flex flex-col items-center justify-center w-full mx-auto aspect-square md:aspect-auto p-3 sm:p-4 md:p-8 lg:p-10 bg-[#FAFAFA] dark:bg-zinc-900/50 rounded-xl group transition-all duration-300 shadow-sm md:shadow-none hover:shadow-md md:hover:shadow-sm hover:-translate-y-0.5 md:hover:-translate-y-0.5">
+              <div className="mb-2 md:mb-6 text-zinc-400 md:text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800 dark:group-hover:text-zinc-300">
+                <Truck strokeWidth={1.5} className="w-10 h-10 md:w-14 md:h-14" />
               </div>
-              <h3 className="text-[13px] sm:text-sm font-bold text-zinc-900 dark:text-white mb-2 tracking-tight">
+              <h3 className="text-[13px] sm:text-sm md:text-[17px] font-bold text-zinc-900 dark:text-white mb-1 md:mb-3 tracking-tight leading-tight">
                 {t.features?.fastDelivery || 'Fast Delivery'}
               </h3>
-              <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 leading-snug max-w-[180px]">
+              <p className="text-[11px] sm:text-xs md:text-[15px] text-zinc-500 dark:text-zinc-400 leading-tight md:leading-relaxed max-w-[160px] md:max-w-[260px]">
                 {t.features?.fastDeliveryDesc || 'Nationwide secure shipping'}
               </p>
             </div>

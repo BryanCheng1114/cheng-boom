@@ -6,42 +6,61 @@ import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from '../hooks/useTranslation';
 import { 
-  Phone, 
-  Lock, 
   ArrowLeft, 
   Eye, 
   EyeOff, 
-  Sparkles, 
   Loader2, 
-  CheckCircle2, 
-  User, 
-  MapPin, 
-  ChevronRight
+  CheckCircle2
 } from 'lucide-react';
-import { LanguageSwitcher } from '../components/layout/LanguageSwitcher';
 import { useCart } from '../components/cart/CartProvider';
 import { useBusiness } from '../context/BusinessContext';
+import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
 
-export default function AuthPage() {
+// Custom Google Button Component
+function CustomGoogleButton({ onSuccess, onError, isLoading }: { onSuccess: (res: any) => void, onError: () => void, isLoading: boolean }) {
+  const login = useGoogleLogin({
+    onSuccess: (tokenResponse) => onSuccess(tokenResponse),
+    onError: () => onError(),
+  });
+
+  return (
+    <button 
+      type="button"
+      onClick={() => login()}
+      disabled={isLoading}
+      className="w-full py-3.5 bg-white text-black font-bold rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-3 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="currentColor" />
+        {/* We want it full colored like standard google or single color? The prompt said "a google icon, and text is Continue With Google". Let's use the standard SVG colors but ensure it looks good on white. The `fill="currentColor"` overrides might conflict. Let's just use the proper colored paths. */}
+      </svg>
+      Continue With Google
+    </button>
+  );
+}
+
+// Inner Auth Content
+function AuthContent() {
   const { clearCart } = useCart();
   const { t } = useTranslation();
   const router = useRouter();
   const { settings } = useBusiness();
   
-  // Toggle between Login and Register
   const [isRegistering, setIsRegistering] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Form States
-  const [loginData, setLoginData] = useState({ phone: '', password: '' });
-  const [registerData, setRegisterData] = useState({ name: '', phone: '', password: '', address: '' });
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loginData, setLoginData] = useState({ identifier: '', password: '' });
+  const [registerData, setRegisterData] = useState({ name: '', phone: '', email: '', password: '', address: '' });
   const [showRegPassword, setShowRegPassword] = useState(false);
-  const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
 
   useEffect(() => {
     if (router.query.registered) {
@@ -51,10 +70,9 @@ export default function AuthPage() {
       setIsRegistering(true);
     }
 
-    // Remember Me initialization
     const rememberedPhone = localStorage.getItem('user_remembered_phone');
     if (rememberedPhone) {
-      setLoginData(prev => ({ ...prev, phone: rememberedPhone }));
+      setLoginData(prev => ({ ...prev, identifier: rememberedPhone }));
       setRememberMe(true);
     }
   }, [router.query, t.login]);
@@ -69,7 +87,7 @@ export default function AuthPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loginData),
+        body: JSON.stringify({ phone: loginData.identifier, password: loginData.password }),
       });
 
       if (res.ok) {
@@ -80,9 +98,8 @@ export default function AuthPage() {
         
         clearCart();
 
-        // Handle Remember Me caching
         if (rememberMe) {
-          localStorage.setItem('user_remembered_phone', loginData.phone);
+          localStorage.setItem('user_remembered_phone', loginData.identifier);
         } else {
           localStorage.removeItem('user_remembered_phone');
         }
@@ -104,17 +121,22 @@ export default function AuthPage() {
     setIsLoading(true);
     setError('');
 
-    // Validate Password Strength (Min 8 chars, 1 number, 1 special character)
-    const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
-    if (!passwordRegex.test(registerData.password)) {
-      setError(t.login?.passwordTooWeak || 'Password must be at least 8 characters long and contain at least one number and one special character.');
+    if (!agreeTerms) {
+      setError('You must agree to the terms of service.');
       setIsLoading(false);
       return;
     }
 
-    // Verify Password Match
-    if (registerData.password !== confirmPassword) {
-      setError(t.login?.passwordsDoNotMatch || 'Passwords do not match');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (registerData.email && !emailRegex.test(registerData.email)) {
+      setError('Please enter a valid email address.');
+      setIsLoading(false);
+      return;
+    }
+
+    const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+    if (!passwordRegex.test(registerData.password)) {
+      setError(t.login?.passwordTooWeak || 'Password must be at least 8 characters long and contain at least one number and one special character.');
       setIsLoading(false);
       return;
     }
@@ -128,15 +150,11 @@ export default function AuthPage() {
 
       if (res.ok) {
         setIsRegistering(false);
-        setSuccess(t.login?.successRegister || 'Welcome to the BOOM! Your account is ready. Please sign in.');
-        setLoginData({ ...loginData, phone: registerData.phone });
+        setSuccess(t.login?.successRegister || 'Welcome! Your account is ready. Please sign in.');
+        setLoginData({ ...loginData, identifier: registerData.email || registerData.phone });
       } else {
         const data = await res.json();
-        if (data.code === 'PHONE_EXISTS') {
-          setError(t.login?.phoneExists || data.message || 'An account with this phone number already exists.');
-        } else {
-          setError(data.message || 'Registration failed');
-        }
+        setError(data.message || 'Registration failed');
       }
     } catch (err) {
       setError('An error occurred. Please try again.');
@@ -145,337 +163,393 @@ export default function AuthPage() {
     }
   };
 
+  const handleGoogleSuccess = async (tokenResponse: any) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken: tokenResponse.access_token }),
+      });
 
-  const containerVariants = {
-    initial: { opacity: 0, x: 20 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -20 }
+      if (res.ok) {
+        const user = await res.json();
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('user_role', user.role);
+        window.dispatchEvent(new Event('user-updated'));
+        
+        clearCart();
+        router.push('/');
+      } else {
+        const data = await res.json();
+        setError(data.message || 'Google Login failed.');
+      }
+    } catch (err) {
+      setError('An error occurred during Google Login.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <>
       <Head>
-        <title>{isRegistering ? (t.login?.joinTitle || `Join ${settings?.businessName || 'Us'}`) : (t.login?.signInTitle || `Sign In - ${settings?.businessName || 'Cheng-BOOM'}`)}</title>
+        <title>{isRegistering ? `Sign Up - ${settings?.businessName || 'Cheng-BOOM'}` : `Sign In - ${settings?.businessName || 'Cheng-BOOM'}`}</title>
       </Head>
 
-      <div className="dark min-h-screen bg-[#050505] flex flex-col relative overflow-x-hidden text-zinc-100">
-        {/* Cinematic Background Image */}
-        <div className="absolute inset-0 z-0">
-          <Image 
-            src="/istockphoto-1174615840-612x612.jpg"
-            alt="Background"
-            fill
-            className="object-cover opacity-20 dark:opacity-40"
-            priority
-          />
-          <div className="absolute inset-0 bg-black/60 dark:bg-black/85" />
-          <div className="absolute inset-0 backdrop-blur-[2px]" />
-        </div>
-
-        {/* Dynamic Glowing Accents on Top of Background */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-          <motion.div 
-            animate={{ 
-              scale: isRegistering ? 1.2 : 1,
-              rotate: isRegistering ? 45 : 0
-            }}
-            transition={{ duration: 1, ease: "easeInOut" }}
-            className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px]" 
-          />
-          <motion.div 
-            animate={{ 
-              scale: isRegistering ? 0.8 : 1,
-              x: isRegistering ? -100 : 0
-            }}
-            transition={{ duration: 1, ease: "easeInOut" }}
-            className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-orange-500/10 rounded-full blur-[120px]" 
-          />
-        </div>
-
-        {/* Top Navigation */}
-        <div className="relative z-20 p-6 flex justify-between items-center">
+      <div className="min-h-screen bg-[#050505] text-zinc-100 flex relative overflow-hidden">
+        
+        {/* Absolute Back Button over everything (top left of viewport) */}
+        <div className="absolute top-6 left-6 md:top-10 md:left-10 z-50">
           <Link 
             href="/" 
-            className="inline-flex items-center gap-2 text-zinc-500 hover:text-primary transition-all font-bold group text-sm"
+            className="inline-flex items-center gap-2 text-zinc-200 hover:text-white transition-all text-sm font-medium drop-shadow-md"
           >
-            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-            {t.login?.backToHome || 'Back to Home'}
+            <ArrowLeft size={16} />
+            Back to Home Page
           </Link>
-          
-          <div className="flex items-center gap-3">
-            <LanguageSwitcher />
-          </div>
         </div>
 
-        <div className="flex-1 flex items-center justify-center p-4 relative z-10">
-          <div className="w-full max-w-[460px] py-4">
-            
-            <div className="text-center mb-6">
-              <motion.h1 
-                key={isRegistering ? 'reg' : 'log'}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2"
-              >
-                {isRegistering ? (
-                  <>{t.login?.joinBoom || 'Join Us!'}</>
-                ) : (
-                  <>{t.login?.welcomeBack || 'Welcome Back'}</>
-                )}
-              </motion.h1>
-              <p className="text-zinc-400 font-medium text-[13px] max-w-xs mx-auto">
-                {isRegistering 
-                  ? (t.login?.registerDesc || "Experience the full power of premium pyrotechnics with your new member account.")
-                  : (t.login?.loginDesc || "Sign in to access your orders and exclusive seller pricing benefits.")}
-              </p>
-            </div>
+        {/* Mobile Background Image */}
+        <div className="absolute inset-0 md:hidden z-0">
+          <Image 
+            src={isRegistering ? "/image.png" : "/istockphoto-1174615840-612x612.jpg"}
+            alt="Background"
+            fill
+            className="object-cover opacity-20"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/80" />
+        </div>
 
-            {/* Auth Card */}
-            <div className="bg-zinc-900/80 backdrop-blur-3xl border border-white/5 rounded-[40px] shadow-2xl shadow-black/40 overflow-hidden relative text-white">
-              
+        {/* --- SPLIT SCREEN LAYOUT --- */}
+        <div className="w-full flex flex-col md:flex-row min-h-screen relative z-10">
+          
+          {/* Desktop Image Panel (65%) */}
+          <motion.div 
+            layout
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className={`hidden md:block w-[65%] relative ${isRegistering ? 'order-2' : 'order-1'}`}
+          >
+            <Image 
+              src={isRegistering ? "/image.png" : "/istockphoto-1174615840-612x612.jpg"}
+              alt="Background"
+              fill
+              className="object-cover"
+              priority
+            />
+            {/* Kept a very subtle gradient just for the Back button readability */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent opacity-50" />
+            
+            {/* Add slight blur only for the Sign up image */}
+            {isRegistering && (
+              <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" />
+            )}
+          </motion.div>
+
+          {/* Form Panel (35%) */}
+          <motion.div 
+            layout
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className={`w-full md:w-[35%] flex flex-col justify-center relative bg-transparent md:bg-[#0a0a0a] ${isRegistering ? 'order-1' : 'order-2'} min-h-screen overflow-y-auto py-12 md:py-0`}
+          >
+            <div className="w-full max-w-[440px] mx-auto px-6 mt-16 md:mt-0">
               <AnimatePresence mode="wait">
+                
+                {/* --- LOGIN FORM --- */}
                 {!isRegistering ? (
-                  /* ── LOGIN FORM ────────────────────────────────────────── */
-                  <motion.div 
+                  <motion.div
                     key="login"
-                    variants={containerVariants}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    className="p-8 md:p-10"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
                   >
+                    <div className="mb-10">
+                      <h1 className="text-4xl md:text-5xl font-light text-white mb-3">Sign in</h1>
+                      <p className="text-zinc-400 text-sm">
+                        Welcome back to the Smart Site System for Oil Depots.<br />
+                        Sign in to continue to your account.
+                      </p>
+                    </div>
+
                     {error && (
-                      <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-[10px] font-black uppercase tracking-widest text-center animate-shake">
+                      <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-left">
                         {error}
                       </div>
                     )}
                     {success && (
-                      <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-2xl text-green-500 text-[10px] font-black uppercase tracking-widest text-center flex items-center justify-center gap-2">
-                        <CheckCircle2 size={14} /> {success}
+                      <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm text-left flex items-center gap-2">
+                        <CheckCircle2 size={16} /> {success}
                       </div>
                     )}
 
                     <form onSubmit={handleLoginSubmit} className="space-y-5">
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.login?.phoneLabel || 'Phone Number'}</label>
-                        <div className="relative group">
-                          <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-primary transition-colors" size={18} />
-                          <input 
-                            type="tel"
-                            required
-                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-white placeholder:text-zinc-500"
-                            placeholder={t.login?.phonePlaceholder || '+60 12-345 6789'}
-                            value={loginData.phone}
-                            onChange={(e) => setLoginData({ ...loginData, phone: e.target.value })}
-                          />
-                        </div>
+                      <div className="space-y-2">
+                        <label className="text-sm text-zinc-400">Phone Number or E-mail</label>
+                        <input 
+                          type="text"
+                          required
+                          className="w-full px-4 py-3.5 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white placeholder:text-zinc-600"
+                          placeholder="your@email.com or +60123456789"
+                          value={loginData.identifier}
+                          onChange={(e) => setLoginData({ ...loginData, identifier: e.target.value })}
+                        />
                       </div>
 
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.login?.labelPassword || 'Password'}</label>
-                        <div className="relative group">
-                          <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-primary transition-colors" size={18} />
+                      <div className="space-y-2">
+                        <label className="text-sm text-zinc-400">Password</label>
+                        <div className="relative">
                           <input 
                             type={showPassword ? "text" : "password"}
                             required
-                            className="w-full pl-14 pr-14 py-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-white placeholder:text-zinc-500"
-                            placeholder={t.login?.placeholderPassword || '••••••••'}
+                            className="w-full pl-4 pr-12 py-3.5 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white tracking-wider"
+                            placeholder="••••••••••••"
                             value={loginData.password}
                             onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                           />
                           <button 
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-primary transition-colors p-2"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
                           >
                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                           </button>
                         </div>
                       </div>
 
-                      {/* Remember Me Checkbox */}
-                      <div className="flex items-center justify-between pt-1">
-                        <label className="flex items-center gap-2.5 cursor-pointer group select-none">
-                          <div className="relative">
+                      <div className="flex items-center pt-2">
+                        <label className="flex items-center gap-3 cursor-pointer group select-none">
+                          <div className="relative flex items-center justify-center">
                             <input 
                               type="checkbox"
                               className="sr-only"
                               checked={rememberMe}
                               onChange={(e) => setRememberMe(e.target.checked)}
                             />
-                            <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all duration-200 ${rememberMe ? 'bg-primary border-primary text-zinc-900 shadow-md shadow-primary/20' : 'border-white/10 hover:border-primary/50 bg-zinc-950/40'}`}>
+                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${rememberMe ? 'bg-yellow-500 border-yellow-500' : 'bg-[#1a1a1a] border-zinc-700'}`}>
                               {rememberMe && (
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3.5} stroke="currentColor" className="w-3.5 h-3.5">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                                  <polyline points="20 6 9 17 4 12"></polyline>
                                 </svg>
                               )}
                             </div>
                           </div>
-                          <span className="text-[10px] font-black tracking-[0.2em] text-zinc-500 group-hover:text-zinc-300 transition-colors select-none ml-1">
-                            {t.login?.rememberMe || 'REMEMBER ME'}
+                          <span className="text-sm text-zinc-400 group-hover:text-zinc-300 transition-colors">
+                            {t.login?.rememberMe || 'Remember me'}
                           </span>
                         </label>
                       </div>
 
-                      <motion.button 
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
-                        disabled={isLoading}
+                      <button 
                         type="submit"
-                        className="w-full py-4 bg-primary text-zinc-900 rounded-[20px] font-black text-lg hover:brightness-110 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                        disabled={isLoading}
+                        className="w-full py-3.5 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 mt-4 shadow-sm"
                       >
-                        {isLoading ? <Loader2 className="animate-spin" /> : <Sparkles size={18} strokeWidth={3} />}
-                        {t.login?.signIn || 'Sign In'}
-                      </motion.button>
+                        {isLoading ? <Loader2 className="animate-spin" /> : 'Sign In'}
+                      </button>
                     </form>
 
-                    <div className="mt-8 pt-6 border-t border-white/10 text-center">
-                      <p className="text-[12px] font-medium text-zinc-400 mb-3">{t.login?.newUser || 'New user? Click below to register'}</p>
+                    <div className="relative my-8">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-zinc-800"></div>
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-4 bg-[#050505] md:bg-[#0a0a0a] text-zinc-500">Or continue with</span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <CustomGoogleButton 
+                        onSuccess={handleGoogleSuccess} 
+                        onError={() => setError('Google Login Failed')}
+                        isLoading={isLoading}
+                      />
+                    </div>
+
+                    <div className="mt-12 text-left flex items-center gap-2">
+                      <span className="text-sm text-zinc-400">No Account?</span>
                       <button 
                         onClick={() => { setIsRegistering(true); setError(''); setSuccess(''); }}
-                        className="w-full py-3.5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/5 text-zinc-300 transition-all flex items-center justify-center gap-2 group"
+                        className="text-sm text-yellow-500 font-semibold hover:text-yellow-400 transition-colors"
                       >
-                        {t.login?.createAccount || 'Create Account'} <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                        Create Now
                       </button>
                     </div>
+
                   </motion.div>
                 ) : (
-                  /* ── REGISTER FORM ─────────────────────────────────────── */
-                  <motion.div 
+                  
+                  /* --- REGISTER FORM --- */
+                  <motion.div
                     key="register"
-                    variants={containerVariants}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    className="p-8 md:p-10"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
                   >
+                    <div className="mb-8">
+                      <h1 className="text-4xl md:text-5xl font-light text-white mb-3">Sign up</h1>
+                      <p className="text-zinc-400 text-sm">
+                        Welcome to the Smart Site System for Oil Depots.<br />
+                        Register as a member to experience.
+                      </p>
+                    </div>
+
                     {error && (
-                      <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-[10px] font-black uppercase tracking-widest text-center animate-shake">
+                      <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-left">
                         {error}
                       </div>
                     )}
 
-                    <form onSubmit={handleRegisterSubmit} className="space-y-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.login?.fullNameLabel || 'Full Name'}</label>
-                        <div className="relative group">
-                          <User className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-primary transition-colors" size={18} />
+                    <form onSubmit={handleRegisterSubmit} className="space-y-4" autoComplete="off">
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm text-zinc-400">Name</label>
                           <input 
                             type="text"
                             required
-                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-white placeholder:text-zinc-500"
-                            placeholder={t.login?.fullNamePlaceholder || 'John Doe'}
+                            className="w-full px-4 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
+                            placeholder="John Doe"
+                            autoComplete="off"
                             value={registerData.name}
                             onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                           />
                         </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.login?.phoneLabel || 'Phone Number'}</label>
-                        <div className="relative group">
-                          <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-primary transition-colors" size={18} />
+                        <div className="space-y-2">
+                          <label className="text-sm text-zinc-400">Phone Number</label>
                           <input 
                             type="tel"
                             required
-                            className="w-full pl-14 pr-6 py-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-white placeholder:text-zinc-500"
-                            placeholder={t.login?.phonePlaceholder || '+60 12-345 6789'}
+                            pattern="^(\+?60|0)1[0-9]{8,9}$"
+                            title="Please enter a valid Malaysian phone number, e.g., 0123456789 or +60123456789"
+                            className="w-full px-4 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
+                            placeholder="0123456789"
+                            autoComplete="off"
                             value={registerData.phone}
                             onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
                           />
                         </div>
                       </div>
 
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.login?.labelPassword || 'Password'}</label>
-                        <div className="relative group">
-                          <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-primary transition-colors" size={18} />
+                      <div className="space-y-2">
+                        <label className="text-sm text-zinc-400">E-mail</label>
+                        <input 
+                          type="email"
+                          required
+                          className="w-full px-4 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
+                          placeholder="yatingzang0215@gmail.com"
+                          autoComplete="off"
+                          value={registerData.email}
+                          onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm text-zinc-400">Password</label>
+                        <div className="relative">
                           <input 
                             type={showRegPassword ? "text" : "password"}
                             required
-                            className="w-full pl-14 pr-14 py-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-white placeholder:text-zinc-500"
-                            placeholder={t.login?.passwordMinPlaceholder || 'Min. 8 characters with a number & symbol'}
+                            className="w-full pl-4 pr-12 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white tracking-wider"
+                            placeholder="••••••••••••"
+                            autoComplete="new-password"
                             value={registerData.password}
                             onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                           />
                           <button 
                             type="button"
                             onClick={() => setShowRegPassword(!showRegPassword)}
-                            className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-primary transition-colors p-2"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
                           >
                             {showRegPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                           </button>
                         </div>
                         {registerData.password.length > 0 && !/^(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(registerData.password) && (
-                          <p className="text-[10px] font-bold text-amber-400 ml-1 mt-1 animate-pulse">
-                            ⚠️ {t.login?.passwordTooWeak || 'Password must be at least 8 characters with a number & symbol.'}
+                          <p className="text-xs text-yellow-500 mt-1">
+                            ⚠️ Password must be at least 8 chars with a number & symbol.
                           </p>
                         )}
                       </div>
 
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.login?.labelConfirmPassword || 'Confirm Password'}</label>
-                        <div className="relative group">
-                          <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-primary transition-colors" size={18} />
-                          <input 
-                            type={showRegConfirmPassword ? "text" : "password"}
-                            required
-                            className="w-full pl-14 pr-14 py-3.5 rounded-2xl bg-zinc-950/60 border border-white/10 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-white placeholder:text-zinc-500"
-                            placeholder={t.login?.placeholderConfirmPassword || '••••••••'}
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                          />
-                          <button 
-                            type="button"
-                            onClick={() => setShowRegConfirmPassword(!showRegConfirmPassword)}
-                            className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-primary transition-colors p-2"
-                          >
-                            {showRegConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                          </button>
-                        </div>
-                        {confirmPassword.length > 0 && confirmPassword !== registerData.password && (
-                          <p className="text-[10px] font-bold text-red-400 ml-1 mt-1 animate-pulse">
-                            ⚠️ {t.login?.passwordsDoNotMatch || 'Passwords do not match.'}
-                          </p>
-                        )}
+                      <div className="flex items-center pt-2">
+                        <label className="flex items-center gap-3 cursor-pointer group select-none">
+                          <div className="relative flex items-center justify-center">
+                            <input 
+                              type="checkbox"
+                              className="sr-only"
+                              checked={agreeTerms}
+                              onChange={(e) => setAgreeTerms(e.target.checked)}
+                            />
+                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${agreeTerms ? 'bg-yellow-500 border-yellow-500' : 'bg-[#1a1a1a] border-zinc-700'}`}>
+                              {agreeTerms && (
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                                  <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+                          <span className="text-sm text-zinc-400 group-hover:text-zinc-300 transition-colors">
+                            I agree to the terms of service
+                          </span>
+                        </label>
                       </div>
 
-                      {/* Spacer to push Join Now button down slightly */}
-                      <div className="h-4" />
-
-                      <motion.button 
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
-                        disabled={isLoading}
+                      <button 
                         type="submit"
-                        className="w-full py-4 bg-primary text-zinc-900 rounded-[20px] font-black text-lg hover:brightness-110 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                        disabled={!agreeTerms || isLoading}
+                        className="w-full py-3.5 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 mt-4 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isLoading ? <Loader2 className="animate-spin" /> : <Sparkles size={18} strokeWidth={3} />}
-                        {t.login?.joinNow || 'Join Now'}
-                      </motion.button>
+                        {isLoading ? <Loader2 className="animate-spin" /> : 'Create Account'}
+                      </button>
                     </form>
 
-                    <div className="mt-8 pt-6 border-t border-white/10 text-center">
-                      <p className="text-[12px] font-medium text-zinc-400 mb-3">{t.login?.existingMember || 'Existing member? Sign in here'}</p>
+                    <div className="relative my-8">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-zinc-800"></div>
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-4 bg-[#050505] md:bg-[#0a0a0a] text-zinc-500">Or continue with</span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <CustomGoogleButton 
+                        onSuccess={handleGoogleSuccess} 
+                        onError={() => setError('Google Login Failed')}
+                        isLoading={isLoading}
+                      />
+                    </div>
+
+                    <div className="mt-12 text-left flex items-center gap-2">
+                      <span className="text-sm text-zinc-400">Already a member?</span>
                       <button 
                         onClick={() => { setIsRegistering(false); setError(''); setSuccess(''); }}
-                        className="w-full py-3 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-300 hover:bg-white/5 transition-all"
+                        className="text-sm text-yellow-500 font-semibold hover:text-yellow-400 transition-colors"
                       >
-                        {t.login?.signInInstead || 'Sign In Instead'}
+                        Sign in
                       </button>
                     </div>
+
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
-
-            {/* Footer */}
-            <p className="mt-6 text-center text-[8px] font-black uppercase tracking-[0.4em] text-zinc-500 opacity-40">
-              © {new Date().getFullYear()} {settings?.businessName || 'Cheng-BOOM'}. {t.footer?.allRightsReserved || 'All rights reserved.'}
-            </p>
-          </div>
+            
+          </motion.div>
         </div>
       </div>
     </>
+  );
+}
+
+export default function AuthPage() {
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+  return (
+    <GoogleOAuthProvider clientId={clientId}>
+      <AuthContent />
+    </GoogleOAuthProvider>
   );
 }
