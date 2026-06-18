@@ -223,17 +223,6 @@ export function Footer() {
             )}
           </div>
 
-          {/* Mobile Language Toggle */}
-          <div>
-            <button 
-              onClick={toggleLanguage}
-              className="w-full flex items-center py-4 text-zinc-900 dark:text-white font-bold text-[15px] tracking-normal"
-            >
-              <Globe size={20} strokeWidth={1.5} className="mr-3 text-zinc-900 dark:text-zinc-400" />
-              <span>{locale === 'zh' ? '马来西亚/中文' : 'Malaysia/English'}</span>
-            </button>
-          </div>
-
         </div>
 
         {/* ===== DESKTOP FOOTER GRID ===== */}
@@ -365,7 +354,7 @@ export function Footer() {
             </div>
 
             <div className="pt-4">
-              <h4 className="text-white font-bold text-sm mb-3">Instant Access</h4>
+              <h4 className="text-white font-bold text-sm mb-3">{t.footer?.instantAccess || 'Instant Access'}</h4>
               <div className="p-4 border border-white/10 rounded-xl bg-black/20 max-w-sm flex items-center gap-5 hover:bg-black/30 transition-colors">
                 <div className="p-2 bg-white rounded-xl shrink-0">
                   <QRCodeCanvas 
@@ -376,8 +365,8 @@ export function Footer() {
                   />
                 </div>
                 <div className="flex flex-col justify-center">
-                  <span className="text-white font-bold text-base mb-1.5">Visit Website</span>
-                  <span className="text-xs leading-relaxed text-[#b0b0b0]">Scan this QR code with your phone to quickly access our store anytime.</span>
+                  <span className="text-white font-bold text-base mb-1.5">{t.footer?.visitWebsite || 'Visit Website'}</span>
+                  <span className="text-xs leading-relaxed text-[#b0b0b0]">{t.footer?.scanQrCode || 'Scan this QR code with your phone to quickly access our store anytime.'}</span>
                 </div>
               </div>
             </div>
@@ -401,9 +390,9 @@ export function Footer() {
             
             <button 
               onClick={toggleLanguage}
-              className="hidden md:flex items-center gap-2.5 text-zinc-900 dark:text-white hover:text-zinc-600 dark:hover:text-gray-300 transition-colors group shrink-0"
+              className="flex items-center gap-2.5 text-zinc-900 dark:text-white hover:text-zinc-600 dark:hover:text-gray-300 transition-colors group shrink-0"
             >
-              <span className="text-sm font-bold">{locale === 'zh' ? '马来西亚/中文' : 'Malaysia/English'}</span>
+              <span className="text-sm font-bold">{locale === 'zh' ? 'EN / 中文' : 'EN / 中文'}</span>
             </button>
           </div>
         </div>

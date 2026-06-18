@@ -85,7 +85,7 @@
     "emptyTitle": "Your Cart is Empty",
     "emptyDesc": "Looks like you haven't added any fireworks yet!",
     "startShopping": "Start Shopping",
-    "title": "Your Cart",
+    "title": "My Shopping Cart",
     "items": "items",
     "clear": "Clear Cart",
     "summary": "Order Summary",
@@ -209,7 +209,7 @@
     "formSuccess": "Message sent successfully! Our team will contact you shortly."
   },
   "cart": {
-    "title": "Cart",
+    "title": "My Shopping Cart",
     "selection": "Selection",
     "items": "items",
     "continueShopping": "Continue Shopping",
@@ -320,7 +320,18 @@
     "labelConfirmPassword": "Confirm Password",
     "placeholderConfirmPassword": "••••••••",
     "passwordTooWeak": "Password must be at least 8 characters, including a number and a symbol.",
-    "passwordsDoNotMatch": "Passwords do not match."
+    "passwordsDoNotMatch": "Passwords do not match.",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "your@email.com",
+    "orContinueWith": "Or continue with",
+    "continueWithGoogle": "Continue With Google",
+    "agreeTerms": "I agree to the terms of service",
+    "loginError": "Login failed. Please check your credentials.",
+    "registerError": "Registration failed",
+    "googleError": "Google Login failed.",
+    "genericError": "An error occurred. Please try again.",
+    "invalidEmail": "Please enter a valid email address.",
+    "agreeTermsError": "You must agree to the terms of service."
   },
   "admin": {
     "loginTitle": "Admin Portal",
@@ -355,7 +366,10 @@
     "email": "E-mail",
     "callUs": "Call us",
     "followUs": "Follow Us",
-    "notice": "Notice: There is no payment gateway available on this website. All transactions are handled separately."
+    "notice": "Notice: There is no payment gateway available on this website. All transactions are handled separately.",
+    "instantAccess": "Instant Access",
+    "visitWebsite": "Visit Website",
+    "scanQrCode": "Scan this QR code with your phone to quickly access our store anytime."
   },
   "products": {
     "pw-1": { "name": "Thunder Crackers 100x", "desc": "Extremely loud crackling strings of mini firecrackers." },

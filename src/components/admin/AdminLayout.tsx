@@ -172,7 +172,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
       {/* Main Content Area */}
       <motion.main 
         animate={{ marginLeft: isCollapsed ? 80 : 280 }} 
-        className="flex-1 min-h-screen p-8 transition-all duration-300 ease-in-out bg-[#f8f9fc]"
+        className="flex-1 min-h-screen p-8 transition-all duration-300 ease-in-out bg-white"
       >
         <header className="mb-8">
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
@@ -186,7 +186,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
       </motion.main>
 
       <style jsx global>{`
-        body { font-family: 'Outfit', sans-serif; background-color: #f8f9fc; overflow-x: hidden; }
+        body { font-family: 'Outfit', sans-serif; background-color: #ffffff; overflow-x: hidden; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.1); border-radius: 20px; }

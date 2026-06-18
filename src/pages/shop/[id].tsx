@@ -340,7 +340,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
           {/* Share Buttons */}
           <div className="flex items-center gap-2 pb-2 shrink-0">
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest hidden sm:inline mr-1">Share</span>
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest hidden sm:inline mr-1">{locale === 'zh' ? '分享' : locale === 'ms' ? 'Kongsi' : 'Share'}</span>
             <button 
               onClick={(e) => { e.stopPropagation(); handleWhatsAppShare(); }}
               className="w-8 h-8 rounded-full overflow-hidden hover:scale-110 transition-transform flex items-center justify-center drop-shadow-sm bg-white border border-zinc-700/50"
@@ -534,7 +534,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                 {hasBoxPricing && (
                   <div className="flex flex-col gap-3">
                     <span className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
-                      Variation
+                    {locale === 'zh' ? '选项' : locale === 'ms' ? 'Variasi' : 'Variation'}
                     </span>
                     <div className="flex flex-wrap gap-4">
                       <button
@@ -585,7 +585,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                 {/* Quantity */}
                 <div className="flex flex-col gap-3">
                   <span className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
-                    Quantity
+                    {locale === 'zh' ? '数量' : locale === 'ms' ? 'Kuantiti' : 'Quantity'}
                   </span>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center border border-zinc-800 rounded-xl overflow-hidden bg-[#111111] h-12">
@@ -611,7 +611,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                 {/* Availability */}
                 <div className="flex items-center gap-2 text-zinc-500 mt-1">
                   <CheckCircle size={14} className={trueRemainingStock > 0 ? "text-green-500" : "text-red-500"} />
-                  <span className="text-xs font-medium">{trueRemainingStock} {t.productDetail.inStockSuffix} — Ready to deliver</span>
+                  <span className="text-xs font-medium">{trueRemainingStock} {locale === 'zh' ? '件库存 — 现货供应' : locale === 'ms' ? 'unit dalam stok — Sedia untuk dihantar' : 'units in stock — Ready to deliver'}</span>
                 </div>
 
                 {showVariantError && (
@@ -627,8 +627,8 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                       <ShieldCheck size={14} className="text-zinc-300" strokeWidth={1.5} />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">100% Original</span>
-                      <span className="text-[9px] md:text-[10px] text-zinc-400 whitespace-nowrap leading-tight">Products</span>
+                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">{locale === 'zh' ? '100% 正品' : locale === 'ms' ? '100% Asli' : '100% Original'}</span>
+                      <span className="text-[9px] md:text-[10px] text-zinc-400 whitespace-nowrap leading-tight">{locale === 'zh' ? '产品' : locale === 'ms' ? 'Produk' : 'Products'}</span>
                     </div>
                   </div>
                   
@@ -637,8 +637,8 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                       <Truck size={14} className="text-zinc-300" strokeWidth={1.5} />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">Fast Delivery</span>
-                      <span className="text-[9px] md:text-[10px] text-zinc-400 whitespace-nowrap leading-tight">Nationwide</span>
+                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">{locale === 'zh' ? '快速发货' : locale === 'ms' ? 'Penghantaran Pantas' : 'Fast Delivery'}</span>
+                      <span className="text-[9px] md:text-[10px] text-zinc-400 whitespace-nowrap leading-tight">{locale === 'zh' ? '全马各地' : locale === 'ms' ? 'Seluruh Negara' : 'Nationwide'}</span>
                     </div>
                   </div>
                   
@@ -647,8 +647,8 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                       <Award size={14} className="text-zinc-300" strokeWidth={1.5} />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">Top Quality</span>
-                      <span className="text-[9px] md:text-[10px] text-zinc-400 whitespace-nowrap leading-tight">Guaranteed</span>
+                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">{locale === 'zh' ? '顶级品质' : locale === 'ms' ? 'Kualiti Terbaik' : 'Top Quality'}</span>
+                      <span className="text-[9px] md:text-[10px] text-zinc-400 whitespace-nowrap leading-tight">{locale === 'zh' ? '保证' : locale === 'ms' ? 'Dijamin' : 'Guaranteed'}</span>
                     </div>
                   </div>
                   
@@ -657,7 +657,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                       <Headset size={14} className="text-zinc-300" strokeWidth={1.5} />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">Support</span>
+                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">{locale === 'zh' ? '全天候支持' : locale === 'ms' ? 'Sokongan' : 'Support'}</span>
                       <span className="text-[9px] md:text-[10px] text-zinc-400 whitespace-nowrap italic leading-tight">24/7</span>
                     </div>
                   </div>
@@ -672,14 +672,14 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                     onClick={handleAddToCart}
                     className="w-full md:flex-1 h-[56px] bg-white text-black rounded-full font-black text-[15px] hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm"
                   >
-                    ADD TO CART
+                    {t.productDetail?.addToCart || (locale === 'zh' ? '加入购物车' : locale === 'ms' ? 'Tambah ke Troli' : 'ADD TO CART')}
                   </button>
 
                   <button
                     onClick={handleBuyNow}
                     className="w-full md:flex-1 h-[56px] bg-primary text-black rounded-full font-black text-[15px] hover:brightness-110 transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98]"
                   >
-                    BUY NOW
+                    {locale === 'zh' ? '立即购买' : locale === 'ms' ? 'Beli Sekarang' : 'BUY NOW'}
                   </button>
                 </div>
 
@@ -687,7 +687,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                 <div className="flex flex-col lg:hidden mt-2">
                   <div className="w-full h-px bg-zinc-800/50 mb-4" />
                   <div className="flex items-center justify-between px-1">
-                    <span className="text-sm font-bold text-zinc-400">Share this product</span>
+                    <span className="text-sm font-bold text-zinc-400">{locale === 'zh' ? '分享此产品' : locale === 'ms' ? 'Kongsi produk ini' : 'Share this product'}</span>
                     <div className="flex items-center gap-3">
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleWhatsAppShare(); }}

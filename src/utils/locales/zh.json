@@ -321,7 +321,18 @@
     "labelConfirmPassword": "确认密码",
     "placeholderConfirmPassword": "••••••••",
     "passwordTooWeak": "密码必须至少为 8 位字符，并包含一个数字和一个符号。",
-    "passwordsDoNotMatch": "密码不匹配。"
+    "passwordsDoNotMatch": "密码不匹配。",
+    "emailLabel": "电子邮件",
+    "emailPlaceholder": "your@email.com",
+    "orContinueWith": "或使用以下方式继续",
+    "continueWithGoogle": "使用 Google 账号继续",
+    "agreeTerms": "我同意服务条款",
+    "loginError": "登录失败，请检查您的凭证。",
+    "registerError": "注册失败",
+    "googleError": "Google 登录失败。",
+    "genericError": "发生错误，请重试。",
+    "invalidEmail": "请输入有效的电子邮件地址。",
+    "agreeTermsError": "您必须同意服务条款。"
   },
   "admin": {
     "loginTitle": "管理员门户",
@@ -357,7 +368,10 @@
     "email": "电子邮箱",
     "callUs": "致电我们",
     "followUs": "关注我们",
-    "notice": "注意：本网站不提供在线支付网关。所有交易均单独处理。"
+    "notice": "注意：本网站不提供在线支付网关。所有交易均单独处理。",
+    "instantAccess": "即时访问",
+    "visitWebsite": "访问网站",
+    "scanQrCode": "使用手机扫描此二维码即可随时快速访问我们的商店。"
   },
   "products": {
     "pw-1": { "name": "雷霆炮竹 100x", "desc": "极响的迷你炮竹串。" },

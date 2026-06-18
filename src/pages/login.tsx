@@ -17,7 +17,7 @@ import { useBusiness } from '../context/BusinessContext';
 import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
 
 // Custom Google Button Component
-function CustomGoogleButton({ onSuccess, onError, isLoading }: { onSuccess: (res: any) => void, onError: () => void, isLoading: boolean }) {
+function CustomGoogleButton({ onSuccess, onError, isLoading, text }: { onSuccess: (res: any) => void, onError: () => void, isLoading: boolean, text?: string }) {
   const login = useGoogleLogin({
     onSuccess: (tokenResponse) => onSuccess(tokenResponse),
     onError: () => onError(),
@@ -38,7 +38,7 @@ function CustomGoogleButton({ onSuccess, onError, isLoading }: { onSuccess: (res
         <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="currentColor" />
         {/* We want it full colored like standard google or single color? The prompt said "a google icon, and text is Continue With Google". Let's use the standard SVG colors but ensure it looks good on white. The `fill="currentColor"` overrides might conflict. Let's just use the proper colored paths. */}
       </svg>
-      Continue With Google
+      {text || 'Continue With Google'}
     </button>
   );
 }
@@ -107,10 +107,10 @@ function AuthContent() {
         router.push('/');
       } else {
         const data = await res.json();
-        setError(data.message || 'Login failed. Please check your credentials.');
+        setError(data.message || t.login?.loginError || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError(t.login?.genericError || 'An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -122,14 +122,14 @@ function AuthContent() {
     setError('');
 
     if (!agreeTerms) {
-      setError('You must agree to the terms of service.');
+      setError(t.login?.agreeTermsError || 'You must agree to the terms of service.');
       setIsLoading(false);
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (registerData.email && !emailRegex.test(registerData.email)) {
-      setError('Please enter a valid email address.');
+      setError(t.login?.invalidEmail || 'Please enter a valid email address.');
       setIsLoading(false);
       return;
     }
@@ -154,10 +154,10 @@ function AuthContent() {
         setLoginData({ ...loginData, identifier: registerData.email || registerData.phone });
       } else {
         const data = await res.json();
-        setError(data.message || 'Registration failed');
+        setError(data.message || t.login?.registerError || 'Registration failed');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError(t.login?.genericError || 'An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -183,10 +183,10 @@ function AuthContent() {
         router.push('/');
       } else {
         const data = await res.json();
-        setError(data.message || 'Google Login failed.');
+        setError(data.message || t.login?.googleError || 'Google Login failed.');
       }
     } catch (err) {
-      setError('An error occurred during Google Login.');
+      setError(t.login?.genericError || 'An error occurred during Google Login.');
     } finally {
       setIsLoading(false);
     }
@@ -207,7 +207,7 @@ function AuthContent() {
             className="inline-flex items-center gap-2 text-zinc-200 hover:text-white transition-all text-sm font-medium drop-shadow-md"
           >
             <ArrowLeft size={16} />
-            Back to Home Page
+            {t.login?.backToHome || 'Back to Home Page'}
           </Link>
         </div>
 
@@ -269,10 +269,9 @@ function AuthContent() {
                     transition={{ duration: 0.3 }}
                   >
                     <div className="mb-10">
-                      <h1 className="text-4xl md:text-5xl font-light text-white mb-3">Sign in</h1>
-                      <p className="text-zinc-400 text-sm">
-                        Welcome back to the Smart Site System for Oil Depots.<br />
-                        Sign in to continue to your account.
+                      <h1 className="text-4xl md:text-5xl font-light text-white mb-3">{t.login?.signIn || 'Sign in'}</h1>
+                      <p className="text-zinc-400 text-sm whitespace-pre-line">
+                        {t.login?.loginDesc || 'Sign in to access your orders and exclusive seller pricing benefits.'}
                       </p>
                     </div>
 
@@ -289,19 +288,19 @@ function AuthContent() {
 
                     <form onSubmit={handleLoginSubmit} className="space-y-5">
                       <div className="space-y-2">
-                        <label className="text-sm text-zinc-400">Phone Number or E-mail</label>
+                        <label className="text-sm text-zinc-400">{t.login?.labelAccount || 'Phone Number or E-mail'}</label>
                         <input 
                           type="text"
                           required
                           className="w-full px-4 py-3.5 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white placeholder:text-zinc-600"
-                          placeholder="your@email.com or +60123456789"
+                          placeholder={t.login?.placeholderAccount || "your@email.com or +60123456789"}
                           value={loginData.identifier}
                           onChange={(e) => setLoginData({ ...loginData, identifier: e.target.value })}
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-sm text-zinc-400">Password</label>
+                        <label className="text-sm text-zinc-400">{t.login?.labelPassword || 'Password'}</label>
                         <div className="relative">
                           <input 
                             type={showPassword ? "text" : "password"}
@@ -349,7 +348,7 @@ function AuthContent() {
                         disabled={isLoading}
                         className="w-full py-3.5 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 mt-4 shadow-sm"
                       >
-                        {isLoading ? <Loader2 className="animate-spin" /> : 'Sign In'}
+                        {isLoading ? <Loader2 className="animate-spin" /> : (t.login?.signIn || 'Sign In')}
                       </button>
                     </form>
 
@@ -358,25 +357,26 @@ function AuthContent() {
                         <div className="w-full border-t border-zinc-800"></div>
                       </div>
                       <div className="relative flex justify-center text-sm">
-                        <span className="px-4 bg-[#050505] md:bg-[#0a0a0a] text-zinc-500">Or continue with</span>
+                        <span className="px-4 bg-[#050505] md:bg-[#0a0a0a] text-zinc-500">{t.login?.orContinueWith || 'Or continue with'}</span>
                       </div>
                     </div>
 
                     <div className="flex justify-center">
                       <CustomGoogleButton 
                         onSuccess={handleGoogleSuccess} 
-                        onError={() => setError('Google Login Failed')}
+                        onError={() => setError(t.login?.googleError || 'Google Login Failed')}
                         isLoading={isLoading}
+                        text={t.login?.continueWithGoogle || 'Continue With Google'}
                       />
                     </div>
 
                     <div className="mt-12 text-left flex items-center gap-2">
-                      <span className="text-sm text-zinc-400">No Account?</span>
+                      <span className="text-sm text-zinc-400">{t.login?.noAccount || 'No Account?'}</span>
                       <button 
                         onClick={() => { setIsRegistering(true); setError(''); setSuccess(''); }}
                         className="text-sm text-yellow-500 font-semibold hover:text-yellow-400 transition-colors"
                       >
-                        Create Now
+                        {t.login?.createAccount || 'Create Now'}
                       </button>
                     </div>
 
@@ -392,10 +392,9 @@ function AuthContent() {
                     transition={{ duration: 0.3 }}
                   >
                     <div className="mb-8">
-                      <h1 className="text-4xl md:text-5xl font-light text-white mb-3">Sign up</h1>
-                      <p className="text-zinc-400 text-sm">
-                        Welcome to the Smart Site System for Oil Depots.<br />
-                        Register as a member to experience.
+                      <h1 className="text-4xl md:text-5xl font-light text-white mb-3">{t.login?.joinBoom || 'Sign up'}</h1>
+                      <p className="text-zinc-400 text-sm whitespace-pre-line">
+                        {t.login?.registerDesc || 'Welcome to the Smart Site System for Oil Depots.\nRegister as a member to experience.'}
                       </p>
                     </div>
 
@@ -409,26 +408,26 @@ function AuthContent() {
                       
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm text-zinc-400">Name</label>
+                          <label className="text-sm text-zinc-400">{t.login?.fullNameLabel || 'Name'}</label>
                           <input 
                             type="text"
                             required
                             className="w-full px-4 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
-                            placeholder="John Doe"
+                            placeholder={t.login?.fullNamePlaceholder || 'John Doe'}
                             autoComplete="off"
                             value={registerData.name}
                             onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm text-zinc-400">Phone Number</label>
+                          <label className="text-sm text-zinc-400">{t.login?.phoneLabel || 'Phone Number'}</label>
                           <input 
                             type="tel"
                             required
                             pattern="^(\+?60|0)1[0-9]{8,9}$"
                             title="Please enter a valid Malaysian phone number, e.g., 0123456789 or +60123456789"
                             className="w-full px-4 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
-                            placeholder="0123456789"
+                            placeholder={t.login?.phonePlaceholder || '0123456789'}
                             autoComplete="off"
                             value={registerData.phone}
                             onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
@@ -437,12 +436,12 @@ function AuthContent() {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-sm text-zinc-400">E-mail</label>
+                        <label className="text-sm text-zinc-400">{t.login?.emailLabel || 'E-mail'}</label>
                         <input 
                           type="email"
                           required
                           className="w-full px-4 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
-                          placeholder="yatingzang0215@gmail.com"
+                          placeholder={t.login?.emailPlaceholder || 'yatingzang0215@gmail.com'}
                           autoComplete="off"
                           value={registerData.email}
                           onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
@@ -450,7 +449,7 @@ function AuthContent() {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-sm text-zinc-400">Password</label>
+                        <label className="text-sm text-zinc-400">{t.login?.labelPassword || 'Password'}</label>
                         <div className="relative">
                           <input 
                             type={showRegPassword ? "text" : "password"}
@@ -471,7 +470,7 @@ function AuthContent() {
                         </div>
                         {registerData.password.length > 0 && !/^(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(registerData.password) && (
                           <p className="text-xs text-yellow-500 mt-1">
-                            ⚠️ Password must be at least 8 chars with a number & symbol.
+                            ⚠️ {t.login?.passwordMinPlaceholder || 'Password must be at least 8 chars with a number & symbol.'}
                           </p>
                         )}
                       </div>
@@ -494,7 +493,7 @@ function AuthContent() {
                             </div>
                           </div>
                           <span className="text-sm text-zinc-400 group-hover:text-zinc-300 transition-colors">
-                            I agree to the terms of service
+                            {t.login?.agreeTerms || 'I agree to the terms of service'}
                           </span>
                         </label>
                       </div>
@@ -504,7 +503,7 @@ function AuthContent() {
                         disabled={!agreeTerms || isLoading}
                         className="w-full py-3.5 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 mt-4 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isLoading ? <Loader2 className="animate-spin" /> : 'Create Account'}
+                        {isLoading ? <Loader2 className="animate-spin" /> : (t.login?.createAccount || 'Create Account')}
                       </button>
                     </form>
 
@@ -513,25 +512,26 @@ function AuthContent() {
                         <div className="w-full border-t border-zinc-800"></div>
                       </div>
                       <div className="relative flex justify-center text-sm">
-                        <span className="px-4 bg-[#050505] md:bg-[#0a0a0a] text-zinc-500">Or continue with</span>
+                        <span className="px-4 bg-[#050505] md:bg-[#0a0a0a] text-zinc-500">{t.login?.orContinueWith || 'Or continue with'}</span>
                       </div>
                     </div>
 
                     <div className="flex justify-center">
                       <CustomGoogleButton 
                         onSuccess={handleGoogleSuccess} 
-                        onError={() => setError('Google Login Failed')}
+                        onError={() => setError(t.login?.googleError || 'Google Login Failed')}
                         isLoading={isLoading}
+                        text={t.login?.continueWithGoogle || 'Continue With Google'}
                       />
                     </div>
 
                     <div className="mt-12 text-left flex items-center gap-2">
-                      <span className="text-sm text-zinc-400">Already a member?</span>
+                      <span className="text-sm text-zinc-400">{t.login?.existingMember || 'Already a member?'}</span>
                       <button 
                         onClick={() => { setIsRegistering(false); setError(''); setSuccess(''); }}
                         className="text-sm text-yellow-500 font-semibold hover:text-yellow-400 transition-colors"
                       >
-                        Sign in
+                        {t.login?.signInInstead || 'Sign in'}
                       </button>
                     </div>
 
