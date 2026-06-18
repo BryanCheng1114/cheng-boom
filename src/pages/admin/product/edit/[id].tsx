@@ -251,7 +251,7 @@ const EditProductPage = () => {
           <Link href="/admin/product" className="p-3 hover:bg-zinc-500/10 text-zinc-500 rounded-full transition-all">
             <ChevronLeft size={24} />
           </Link>
-          <h1 className="text-3xl font-black italic uppercase tracking-tight dark:text-white text-zinc-900">{t('modify_product')}</h1>
+          <h1 className="text-3xl font-black italic uppercase tracking-tight  text-zinc-900">{t('modify_product')}</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -263,7 +263,7 @@ const EditProductPage = () => {
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="px-6 py-3 rounded-xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-xs uppercase tracking-widest"
+                className="px-6 py-3 rounded-xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 transition-all text-xs uppercase tracking-widest"
               >
                 <option value="Live">{t('live_products')}</option>
                 <option value="Hold">{t('hold')}</option>
@@ -273,7 +273,7 @@ const EditProductPage = () => {
           </div>
 
           {/* Image Section */}
-          <div className="bg-white dark:bg-zinc-900/40 p-8 rounded-[48px] border dark:border-white/10 border-zinc-100 shadow-xl">
+          <div className="bg-white  p-8 rounded-[48px] border  border-zinc-100 shadow-xl">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-yellow-500/10 text-yellow-500 rounded-lg"><ImageIcon size={18} /></div>
               <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t('visual_assets')}</h2>
@@ -282,7 +282,7 @@ const EditProductPage = () => {
             <div className="space-y-6">
               <div 
                 onClick={() => fileInputRef.current?.click()}
-                className="h-48 border-2 border-dashed rounded-[32px] flex flex-col items-center justify-center gap-4 dark:bg-black/20 bg-zinc-50 dark:border-white/10 border-zinc-200 cursor-pointer hover:border-yellow-500/50 transition-all group"
+                className="h-48 border-2 border-dashed rounded-[32px] flex flex-col items-center justify-center gap-4  bg-zinc-50  border-zinc-200 cursor-pointer hover:border-yellow-500/50 transition-all group"
               >
                 <div className="p-4 bg-zinc-950 rounded-2xl text-zinc-500 group-hover:text-yellow-500 transition-colors">
                   <Upload size={32} />
@@ -309,7 +309,7 @@ const EditProductPage = () => {
                     className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"
                   >
                     {previews.map((src, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border dark:border-white/10 group">
+                      <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border  group">
                         <img src={src} className="w-full h-full object-cover" />
                         <button 
                           type="button"
@@ -323,7 +323,7 @@ const EditProductPage = () => {
                     <button 
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="aspect-square rounded-2xl border-2 border-dashed dark:border-white/5 flex flex-col items-center justify-center text-zinc-500 hover:text-yellow-500 hover:border-yellow-500/50 transition-all"
+                      className="aspect-square rounded-2xl border-2 border-dashed  flex flex-col items-center justify-center text-zinc-500 hover:text-yellow-500 hover:border-yellow-500/50 transition-all"
                     >
                       <PlusIcon size={20} />
                       <span className="text-[8px] font-black uppercase tracking-widest mt-2">{t('add_more')}</span>
@@ -350,7 +350,7 @@ const EditProductPage = () => {
                     href="https://youtube.com"
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[10px] font-black uppercase tracking-widest text-yellow-500 hover:text-yellow-600 dark:hover:text-yellow-400 transition-all flex items-center gap-1 hover:gap-2 group"
+                    className="text-[10px] font-black uppercase tracking-widest text-yellow-500 hover:text-yellow-600 :text-yellow-400 transition-all flex items-center gap-1 hover:gap-2 group"
                   >
                     {t('open_youtube')} <ChevronRight size={12} strokeWidth={3} className="opacity-70 group-hover:opacity-100 transition-opacity" />
                   </a>
@@ -395,7 +395,7 @@ const EditProductPage = () => {
                   name="videoUrl"
                   value={formData.videoUrl}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all"
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 transition-all"
                   placeholder="https://youtube.com/watch?v=..."
                 />
               </div>
@@ -403,7 +403,7 @@ const EditProductPage = () => {
           </div>
 
           {/* Basic Info */}
-          <div className="bg-white dark:bg-zinc-900/40 p-8 rounded-[48px] border dark:border-white/10 border-zinc-100 shadow-xl">
+          <div className="bg-white  p-8 rounded-[48px] border  border-zinc-100 shadow-xl">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg"><Info size={18} /></div>
               <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t('product_identity')}</h2>
@@ -418,7 +418,7 @@ const EditProductPage = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
                   placeholder="e.g. Thunder Clap"
                   required
                 />
@@ -431,7 +431,7 @@ const EditProductPage = () => {
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm cursor-pointer"
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 transition-all text-sm cursor-pointer"
                   required
                 >
                   <option value="">{t('choose_category')}</option>
@@ -453,7 +453,7 @@ const EditProductPage = () => {
                     name="code"
                     value={formData.code}
                     readOnly
-                    className="flex-1 px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-zinc-500 text-zinc-400 cursor-not-allowed transition-all text-sm opacity-70" 
+                    className="flex-1 px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-400 cursor-not-allowed transition-all text-sm opacity-70" 
                     placeholder="e.g. TC00001"
                   />
                 </div>
@@ -467,7 +467,7 @@ const EditProductPage = () => {
                   name="nameZh"
                   value={formData.nameZh || ''}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
                   placeholder="e.g. 雷霆万钧"
                 />
               </div>
@@ -481,7 +481,7 @@ const EditProductPage = () => {
                     name="description"
                     value={formData.description}
                     onChange={handleChange}
-                    className="w-full px-6 py-4 rounded-2xl border outline-none font-medium leading-relaxed min-h-[140px] dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                    className="w-full px-6 py-4 rounded-2xl border outline-none font-medium leading-relaxed min-h-[140px]  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
                     placeholder="Detailed English description..."
                     required
                   />
@@ -493,7 +493,7 @@ const EditProductPage = () => {
                     name="descriptionZh"
                     value={formData.descriptionZh || ''}
                     onChange={handleChange}
-                    className="w-full px-6 py-4 rounded-2xl border outline-none font-medium leading-relaxed min-h-[140px] dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                    className="w-full px-6 py-4 rounded-2xl border outline-none font-medium leading-relaxed min-h-[140px]  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
                     placeholder="中文描述..."
                   />
                 </div>
@@ -504,7 +504,7 @@ const EditProductPage = () => {
           </div>
 
           {/* Inventory & Commerce */}
-          <div className="bg-white dark:bg-zinc-900/40 p-8 rounded-[48px] border dark:border-white/10 border-zinc-100 shadow-xl">
+          <div className="bg-white  p-8 rounded-[48px] border  border-zinc-100 shadow-xl">
             {/* Single Item Section */}
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-lg"><DollarSign size={18} /></div>
@@ -523,7 +523,7 @@ const EditProductPage = () => {
                   name="stock"
                   value={formData.stock}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 text-sm" 
                   required
                 />
               </div>
@@ -539,7 +539,7 @@ const EditProductPage = () => {
                   name="price"
                   value={formData.price}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 text-sm" 
                   placeholder="0.00"
                   required
                 />
@@ -556,7 +556,7 @@ const EditProductPage = () => {
                   name="sellerPrice"
                   value={formData.sellerPrice}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 text-sm" 
                   placeholder="Optional"
                 />
               </div>
@@ -572,14 +572,14 @@ const EditProductPage = () => {
                   name="promotion"
                   value={formData.promotion}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-red-500 text-sm" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-red-500 text-sm" 
                   placeholder="Optional"
                 />
               </div>
             </div>
 
             {/* Per Box Section */}
-            <div className="flex items-center gap-3 mb-6 pt-8 border-t border-zinc-200 dark:border-zinc-800">
+            <div className="flex items-center gap-3 mb-6 pt-8 border-t border-zinc-200 ">
               <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg"><Package size={18} /></div>
               <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t('inventory_commerce')} - Per Box</h2>
             </div>
@@ -596,7 +596,7 @@ const EditProductPage = () => {
                   name="itemsPerBox"
                   value={formData.itemsPerBox}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 text-sm" 
                   placeholder="Optional"
                 />
               </div>
@@ -612,7 +612,7 @@ const EditProductPage = () => {
                   name="boxPrice"
                   value={formData.boxPrice}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 text-sm" 
                   placeholder="0.00 (Optional)"
                 />
               </div>
@@ -628,7 +628,7 @@ const EditProductPage = () => {
                   name="boxSellerPrice"
                   value={formData.boxSellerPrice}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 text-sm" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 text-sm" 
                   placeholder="Optional"
                 />
               </div>
@@ -644,7 +644,7 @@ const EditProductPage = () => {
                   name="boxPromotion"
                   value={formData.boxPromotion}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-red-500 text-sm" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-red-500 text-sm" 
                   placeholder="Optional"
                 />
               </div>

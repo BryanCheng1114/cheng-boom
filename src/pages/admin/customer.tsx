@@ -114,7 +114,7 @@ const CustomerPage = () => {
           <div className="flex flex-wrap gap-10">
             <div>
               <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">{t('total_customers')}</p>
-              <h4 className="text-4xl font-black italic dark:text-white text-zinc-900 leading-none">{customers.length}</h4>
+              <h4 className="text-4xl font-black italic  text-zinc-900 leading-none">{customers.length}</h4>
             </div>
             <div className="pl-10 border-l border-zinc-500/10">
               <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">{t('sellers')}</p>
@@ -146,7 +146,7 @@ const CustomerPage = () => {
               placeholder={t('search_customers_placeholder')}
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="w-full pl-14 pr-6 py-4 bg-zinc-500/5 border border-zinc-500/10 rounded-2xl outline-none focus:border-yellow-500/50 transition-all dark:text-white font-bold text-sm shadow-sm"
+              className="w-full pl-14 pr-6 py-4 bg-zinc-500/5 border border-zinc-500/10 rounded-2xl outline-none focus:border-yellow-500/50 transition-all  font-bold text-sm shadow-sm"
             />
           </div>
           <div className="flex items-center gap-2 px-6 py-4 bg-zinc-500/5 border border-zinc-500/10 rounded-2xl relative shadow-sm">
@@ -154,12 +154,12 @@ const CustomerPage = () => {
             <select 
               value={roleFilter}
               onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }}
-              className="bg-transparent outline-none dark:text-white text-zinc-900 font-bold text-sm pr-10 appearance-none cursor-pointer"
+              className="bg-transparent outline-none  text-zinc-900 font-bold text-sm pr-10 appearance-none cursor-pointer"
             >
-              <option value="All" className="dark:bg-zinc-900 bg-white">{t('all_roles')}</option>
-              <option value="Seller" className="dark:bg-zinc-900 bg-white">{t('sellers')}</option>
-              <option value="Member" className="dark:bg-zinc-900 bg-white">{t('members')}</option>
-              <option value="Guest" className="dark:bg-zinc-900 bg-white">{t('guests')}</option>
+              <option value="All" className=" bg-white">{t('all_roles')}</option>
+              <option value="Seller" className=" bg-white">{t('sellers')}</option>
+              <option value="Member" className=" bg-white">{t('members')}</option>
+              <option value="Guest" className=" bg-white">{t('guests')}</option>
             </select>
             <div className="absolute right-5 pointer-events-none text-zinc-500">
               <ChevronRight size={14} className="rotate-90" />
@@ -168,11 +168,11 @@ const CustomerPage = () => {
         </div>
 
         {/* Customer Table */}
-        <div className="border dark:border-white/10 border-zinc-100 rounded-[48px] overflow-hidden shadow-2xl dark:bg-zinc-900/40 bg-white group/table">
+        <div className="border  border-zinc-100 rounded-[48px] overflow-hidden shadow-2xl  bg-white group/table">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
-                <tr className="border-b dark:border-white/5 border-zinc-100 bg-zinc-500/5">
+                <tr className="border-b  border-zinc-100 bg-zinc-500/5">
                   <th 
                     onClick={() => handleSort('name')}
                     className="p-8 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
@@ -212,12 +212,12 @@ const CustomerPage = () => {
                   >
                     <td className="p-8">
                       <div className="flex flex-col">
-                        <span className="font-bold text-base dark:text-white text-zinc-900 group-hover/row:text-yellow-500 transition-colors">{c.name}</span>
+                        <span className="font-bold text-base  text-zinc-900 group-hover/row:text-yellow-500 transition-colors">{c.name}</span>
                         <span className="text-[10px] text-zinc-500 font-bold tracking-widest uppercase">ID: {c.id}</span>
                       </div>
                     </td>
                     <td className="p-8">
-                      <div className="flex items-center gap-2 text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                      <div className="flex items-center gap-2 text-xs font-bold text-zinc-500 ">
                         <Phone size={14} className="text-zinc-500" />
                         {c.phone}
                       </div>
@@ -246,7 +246,7 @@ const CustomerPage = () => {
           </div>
 
           {/* Pagination Footer */}
-          <div className="p-8 border-t dark:border-white/5 border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-500/5">
+          <div className="p-8 border-t  border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-500/5">
             <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
               {t('showing')} {sortedCustomers.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} {t('to')} {Math.min(currentPage * itemsPerPage, sortedCustomers.length)} {t('of')} {customers.length} {t('records')}
             </p>

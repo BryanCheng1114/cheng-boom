@@ -115,7 +115,7 @@ const OrdersPage = () => {
           <div className="flex flex-wrap gap-10">
             <div>
               <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">{t('orders')}</p>
-              <h4 className="text-4xl font-black italic dark:text-white text-zinc-900 leading-none">{orders.length}</h4>
+              <h4 className="text-4xl font-black italic  text-zinc-900 leading-none">{orders.length}</h4>
             </div>
             <div className="pl-10 border-l border-zinc-500/10">
               <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">{t('incoming')}</p>
@@ -153,7 +153,7 @@ const OrdersPage = () => {
               placeholder={t('search_placeholder')}
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="w-full pl-14 pr-6 py-4 bg-zinc-500/5 border border-zinc-500/10 rounded-2xl outline-none focus:border-yellow-500/50 transition-all dark:text-white font-bold text-sm shadow-sm"
+              className="w-full pl-14 pr-6 py-4 bg-zinc-500/5 border border-zinc-500/10 rounded-2xl outline-none focus:border-yellow-500/50 transition-all  font-bold text-sm shadow-sm"
             />
           </div>
           <div className="flex items-center gap-2 px-6 py-4 bg-zinc-500/5 border border-zinc-500/10 rounded-2xl relative shadow-sm">
@@ -161,14 +161,14 @@ const OrdersPage = () => {
             <select 
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-              className="bg-transparent outline-none dark:text-white text-zinc-900 font-bold text-sm pr-10 appearance-none cursor-pointer"
+              className="bg-transparent outline-none  text-zinc-900 font-bold text-sm pr-10 appearance-none cursor-pointer"
             >
-              <option value="All" className="dark:bg-zinc-900 bg-white">{t('all_status')}</option>
-              <option value="Pending" className="dark:bg-zinc-900 bg-white">{t('incoming')}</option>
-              <option value="In Process" className="dark:bg-zinc-900 bg-white">{t('processing')}</option>
-              <option value="Delivering" className="dark:bg-zinc-900 bg-white">{t('out_for_delivery')}</option>
-              <option value="Completed" className="dark:bg-zinc-900 bg-white">{t('fulfilled')}</option>
-              <option value="Cancelled" className="dark:bg-zinc-900 bg-white">{t('cancelled')}</option>
+              <option value="All" className=" bg-white">{t('all_status')}</option>
+              <option value="Pending" className=" bg-white">{t('incoming')}</option>
+              <option value="In Process" className=" bg-white">{t('processing')}</option>
+              <option value="Delivering" className=" bg-white">{t('out_for_delivery')}</option>
+              <option value="Completed" className=" bg-white">{t('fulfilled')}</option>
+              <option value="Cancelled" className=" bg-white">{t('cancelled')}</option>
             </select>
             <div className="absolute right-5 pointer-events-none text-zinc-500">
               <ChevronRight size={14} className="rotate-90" />
@@ -177,11 +177,11 @@ const OrdersPage = () => {
         </div>
 
         {/* Table Section */}
-        <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[48px] overflow-hidden shadow-2xl">
+        <div className="bg-white  border border-zinc-200  rounded-[48px] overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
-                <tr className="border-b dark:border-white/5 border-zinc-100 bg-zinc-500/5">
+                <tr className="border-b  border-zinc-100 bg-zinc-500/5">
                   <th onClick={() => handleSort('id')} className="p-8 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer hover:text-yellow-500 transition-colors group/header">
                     <div className="flex items-center gap-2">
                       {t('order_id')} 
@@ -227,14 +227,14 @@ const OrdersPage = () => {
                           <Package size={22} />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-sm font-black dark:text-white text-zinc-900 font-mono">#{order.id.slice(-8).toUpperCase()}</span>
+                          <span className="text-sm font-black  text-zinc-900 font-mono">#{order.id.slice(-8).toUpperCase()}</span>
                           <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-tighter">{t('click_to_manage')}</span>
                         </div>
                       </div>
                     </td>
                     <td className="p-8">
                       <div className="flex flex-col text-left">
-                        <span className="text-sm font-bold dark:text-white text-zinc-900">{order.customer?.name}</span>
+                        <span className="text-sm font-bold  text-zinc-900">{order.customer?.name}</span>
                         <span className="text-[10px] text-zinc-500 font-medium">{order.customer?.phone}</span>
                       </div>
                     </td>
@@ -273,7 +273,7 @@ const OrdersPage = () => {
           </div>
 
           {/* Table Footer - Standardized Summary */}
-          <div className="p-8 border-t dark:border-white/5 border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-500/5">
+          <div className="p-8 border-t  border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-500/5">
             <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
               {t('showing')} {paginatedOrders.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} {t('to')} {Math.min(currentPage * itemsPerPage, sortedOrders.length)} {t('of')} {orders.length} {t('records')}
             </p>

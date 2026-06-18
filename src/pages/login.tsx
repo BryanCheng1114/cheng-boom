@@ -214,9 +214,10 @@ function AuthContent() {
         {/* Mobile Background Image */}
         <div className="absolute inset-0 md:hidden z-0">
           <Image 
-            src={isRegistering ? "/image.png" : "/istockphoto-1174615840-612x612.jpg"}
+            src={isRegistering ? "/image.png" : "/login_signin.jpg"}
             alt="Background"
             fill
+            sizes="100vw"
             className="object-cover opacity-20"
             priority
           />
@@ -233,9 +234,10 @@ function AuthContent() {
             className={`hidden md:block w-[65%] relative ${isRegistering ? 'order-2' : 'order-1'}`}
           >
             <Image 
-              src={isRegistering ? "/image.png" : "/istockphoto-1174615840-612x612.jpg"}
+              src={isRegistering ? "/image.png" : "/login_signin.jpg"}
               alt="Background"
               fill
+              sizes="65vw"
               className="object-cover"
               priority
             />

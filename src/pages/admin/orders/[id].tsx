@@ -152,13 +152,13 @@ const OrderDetailsPage = () => {
           <div className={viewOnly ? "xl:col-span-3 space-y-8" : "xl:col-span-2 space-y-8"}>
             
             {/* Items Card */}
-            <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] shadow-xl overflow-hidden">
-              <div className="p-8 border-b dark:border-white/5 border-zinc-100 flex items-center justify-between bg-zinc-500/5">
+            <div className="bg-white  border border-zinc-200  rounded-[40px] shadow-xl overflow-hidden">
+              <div className="p-8 border-b  border-zinc-100 flex items-center justify-between bg-zinc-500/5">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-yellow-500 flex items-center justify-center text-zinc-900">
                     <Package size={20} />
                   </div>
-                  <h3 className="text-xl font-black italic uppercase dark:text-white text-zinc-900">{t('order_contents')}</h3>
+                  <h3 className="text-xl font-black italic uppercase  text-zinc-900">{t('order_contents')}</h3>
                 </div>
                 <span className="text-xs font-black text-zinc-500 uppercase tracking-widest">{order.items.length} {t('items')}</span>
               </div>
@@ -175,7 +175,7 @@ const OrderDetailsPage = () => {
                         )}
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-base font-black dark:text-white text-zinc-900 leading-tight">{item.name}</h4>
+                        <h4 className="text-base font-black  text-zinc-900 leading-tight">{item.name}</h4>
                         <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
                           RM {item.price.toFixed(2)} × {item.quantity}
                         </p>
@@ -187,12 +187,12 @@ const OrderDetailsPage = () => {
                   ))}
                 </div>
 
-                <div className="mt-10 pt-8 border-t border-zinc-100 dark:border-white/5 space-y-4">
+                <div className="mt-10 pt-8 border-t border-zinc-100  space-y-4">
                   <div className="flex justify-between items-center text-zinc-500 uppercase font-black text-[10px] tracking-widest">
                     <span>{t('subtotal')}</span>
                     <span>RM {order.totalAmount.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between items-center text-2xl font-black italic dark:text-white text-zinc-900">
+                  <div className="flex justify-between items-center text-2xl font-black italic  text-zinc-900">
                     <span>{t('total_amount')}</span>
                     <span className="text-yellow-500">RM {order.totalAmount.toFixed(2)}</span>
                   </div>
@@ -202,50 +202,50 @@ const OrderDetailsPage = () => {
 
             {/* Customer & Fulfillment Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] p-8 shadow-xl">
+              <div className="bg-white  border border-zinc-200  rounded-[40px] p-8 shadow-xl">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-xl bg-zinc-500/5 flex items-center justify-center text-zinc-500">
                     <User size={20} />
                   </div>
-                  <h3 className="text-sm font-black italic uppercase dark:text-white text-zinc-900">{t('customer_info')}</h3>
+                  <h3 className="text-sm font-black italic uppercase  text-zinc-900">{t('customer_info')}</h3>
                 </div>
                 <div className="space-y-4">
                   <div>
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('name')}</p>
-                    <p className="font-bold text-zinc-900 dark:text-white">{order.customer?.name}</p>
+                    <p className="font-bold text-zinc-900 ">{order.customer?.name}</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('contact')}</p>
-                    <p className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                    <p className="font-bold text-zinc-900  flex items-center gap-2">
                       <Phone size={14} className="text-primary" /> {order.customer?.phone}
                     </p>
                   </div>
                   <div>
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('shipping_address')}</p>
-                    <p className="font-bold text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                    <p className="font-bold text-sm text-zinc-500  leading-relaxed">
                       {order.deliveryAddress || order.customer?.address || 'No address provided'}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] p-8 shadow-xl">
+              <div className="bg-white  border border-zinc-200  rounded-[40px] p-8 shadow-xl">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-xl bg-zinc-500/5 flex items-center justify-center text-zinc-500">
                     <Truck size={20} />
                   </div>
-                  <h3 className="text-sm font-black italic uppercase dark:text-white text-zinc-900">{t('fulfillment_details')}</h3>
+                  <h3 className="text-sm font-black italic uppercase  text-zinc-900">{t('fulfillment_details')}</h3>
                 </div>
                 <div className="space-y-4">
                   <div>
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('payment_method')}</p>
-                    <p className="font-bold text-zinc-900 dark:text-white flex items-center gap-2 capitalize">
+                    <p className="font-bold text-zinc-900  flex items-center gap-2 capitalize">
                       <CreditCard size={14} className="text-primary" /> {order.paymentMethod || order.customer?.preferredPayment || 'Manual'}
                     </p>
                   </div>
                   <div>
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('fulfillment_mode')}</p>
-                    <p className="font-bold text-zinc-900 dark:text-white flex items-center gap-2 capitalize">
+                    <p className="font-bold text-zinc-900  flex items-center gap-2 capitalize">
                       <Package size={14} className="text-primary" /> {order.fulfillmentMode || order.deliveryMode || order.customer?.orderMode || 'Delivery'}
                     </p>
                   </div>
@@ -255,7 +255,7 @@ const OrderDetailsPage = () => {
                       <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('payment_receipt') || 'Payment Receipt'}</p>
                       <button 
                         onClick={() => window.open(order.paymentReceiptUrl, '_blank')}
-                        className="font-bold text-yellow-500 hover:text-yellow-600 dark:text-yellow-400 dark:hover:text-yellow-500 flex items-center gap-2 transition-colors focus:outline-none"
+                        className="font-bold text-yellow-500 hover:text-yellow-600  :text-yellow-500 flex items-center gap-2 transition-colors focus:outline-none"
                       >
                         <ExternalLink size={14} /> 
                         <span className="underline decoration-2 underline-offset-4">{t('view_receipt') || 'View Receipt'}</span>
@@ -279,12 +279,12 @@ const OrderDetailsPage = () => {
           {/* Sidebar (Status Management) */}
           {!viewOnly && (
             <div className="space-y-8">
-            <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] p-8 shadow-2xl sticky top-8">
+            <div className="bg-white  border border-zinc-200  rounded-[40px] p-8 shadow-2xl sticky top-8">
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-10 h-10 rounded-xl bg-zinc-500/5 flex items-center justify-center text-zinc-500">
                   <Zap size={20} />
                 </div>
-                <h3 className="text-sm font-black italic uppercase dark:text-white text-zinc-900">{t('order_control')}</h3>
+                <h3 className="text-sm font-black italic uppercase  text-zinc-900">{t('order_control')}</h3>
               </div>
 
               <div className="space-y-6">
@@ -312,7 +312,7 @@ const OrderDetailsPage = () => {
                           </div>
                           <span className={cn(
                             "text-xs font-black uppercase tracking-widest",
-                            newStatus === status.value ? "text-zinc-900 dark:text-white" : "text-zinc-500"
+                            newStatus === status.value ? "text-zinc-900 " : "text-zinc-500"
                           )}>
                             {status.label}
                           </span>
@@ -341,7 +341,7 @@ const OrderDetailsPage = () => {
                     <Calendar size={14} className="text-zinc-500" />
                     <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('order_placed')}</span>
                   </div>
-                  <p className="text-xs font-bold text-zinc-900 dark:text-white ml-5">
+                  <p className="text-xs font-bold text-zinc-900  ml-5">
                     {new Date(order.createdAt).toLocaleString([], { dateStyle: 'full', timeStyle: 'short' })}
                   </p>
                 </div>

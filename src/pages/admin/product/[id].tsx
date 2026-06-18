@@ -144,7 +144,7 @@ const AdminProductDetail = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
           <Link
             href="/admin/product"
-            className="group flex items-center gap-3 text-zinc-500 hover:dark:text-white hover:text-zinc-800 transition-colors"
+            className="group flex items-center gap-3 text-zinc-500 hover: hover:text-zinc-800 transition-colors"
           >
             <div className="p-2.5 bg-zinc-500/10 rounded-xl group-hover:bg-zinc-500/20 transition-all">
               <ChevronLeft size={18} />
@@ -156,19 +156,19 @@ const AdminProductDetail = () => {
             <Link
               href={`/shop/${product.id}`}
               target="_blank"
-              className="flex items-center gap-2 px-5 py-2.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-600 dark:text-yellow-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500/20 transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-600  rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500/20 transition-all"
             >
               <ExternalLink size={14} /> {t('view_live_store')}
             </Link>
             <Link
               href={`/admin/product/edit/${product.id}`}
-              className="flex items-center gap-2 px-5 py-2.5 bg-zinc-500/10 border border-zinc-500/20 text-zinc-600 dark:text-zinc-300 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-500/20 transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 bg-zinc-500/10 border border-zinc-500/20 text-zinc-600  rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-500/20 transition-all"
             >
               <Edit size={14} /> {t('edit_product')}
             </Link>
             <button
               onClick={() => setShowDeleteModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/20 transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-600  rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/20 transition-all"
             >
               <Trash2 size={14} /> {t('delete')}
             </button>
@@ -180,7 +180,7 @@ const AdminProductDetail = () => {
 
           {/* LEFT — Image Gallery */}
           <div className="flex flex-col gap-4 h-full">
-            <div className="flex-1 min-h-0 rounded-[40px] overflow-hidden dark:bg-zinc-900/40 bg-zinc-100 border dark:border-white/5 border-zinc-200 relative group shadow-2xl cursor-zoom-in" onClick={() => product.images?.[activeImageIdx] && setLightboxOpen(true)}>
+            <div className="flex-1 min-h-0 rounded-[40px] overflow-hidden  bg-zinc-100 border  border-zinc-200 relative group shadow-2xl cursor-zoom-in" onClick={() => product.images?.[activeImageIdx] && setLightboxOpen(true)}>
               {product.images && product.images[activeImageIdx] ? (
                 <>
                   <img
@@ -222,18 +222,18 @@ const AdminProductDetail = () => {
           <div className="flex flex-col gap-5">
 
             {/* Identity Card */}
-            <div className="dark:bg-zinc-900/40 bg-zinc-50 p-8 rounded-[32px] border dark:border-white/5 border-zinc-200 shadow-xl relative overflow-hidden">
+            <div className=" bg-zinc-50 p-8 rounded-[32px] border  border-zinc-200 shadow-xl relative overflow-hidden">
               <div className="absolute -bottom-4 -right-4 opacity-[0.04]">
-                <Package size={140} className="dark:text-white text-zinc-900" />
+                <Package size={140} className=" text-zinc-900" />
               </div>
               <div className="relative z-10">
                 <div className="flex flex-wrap items-center gap-4 mt-8">
-                  <div className="flex items-center gap-2 px-4 py-2.5 bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 rounded-2xl border border-yellow-500/20 shadow-sm">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-yellow-500/10 text-yellow-600  rounded-2xl border border-yellow-500/20 shadow-sm">
                     <Tag size={16} className="text-yellow-500" />
                     <span className="font-semibold">{getTranslatedCategory(product.category)}</span>
                   </div>
                 </div>
-                <h1 className="text-4xl font-black italic uppercase tracking-tight dark:text-white text-zinc-900 leading-tight mt-4">
+                <h1 className="text-4xl font-black italic uppercase tracking-tight  text-zinc-900 leading-tight mt-4">
                   {getTranslatedText(product.name, product.nameZh, product.nameMs)}
                 </h1>
                 <p className="text-zinc-500 font-medium text-lg mt-2 font-mono">#{product.code}</p>
@@ -242,16 +242,16 @@ const AdminProductDetail = () => {
 
             {/* Stock & Visibility */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="dark:bg-zinc-900/40 bg-zinc-50 p-6 rounded-[24px] border dark:border-white/5 border-zinc-200">
+              <div className=" bg-zinc-50 p-6 rounded-[24px] border  border-zinc-200">
                 <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
                   <Package size={11} className="text-blue-500" /> {t('stock_level')}
                 </p>
-                <p className="text-3xl font-black italic dark:text-white text-zinc-900">
+                <p className="text-3xl font-black italic  text-zinc-900">
                   {product.stock}
                   <span className="text-xs not-italic font-bold text-zinc-500 uppercase ml-1.5">{t('units')}</span>
                 </p>
               </div>
-              <div className="dark:bg-zinc-900/40 bg-zinc-50 p-6 rounded-[24px] border dark:border-white/5 border-zinc-200">
+              <div className=" bg-zinc-50 p-6 rounded-[24px] border  border-zinc-200">
                 <div className="flex items-center gap-3 mb-5">
                   <div className={`p-2 rounded-xl ${
                     product.status === 'Live' ? 'bg-emerald-500/10 text-emerald-500' :
@@ -275,11 +275,11 @@ const AdminProductDetail = () => {
             </div>
 
             {/* Pricing */}
-            <div className="dark:bg-zinc-900/40 bg-zinc-50 p-8 rounded-[32px] border dark:border-white/5 border-zinc-200 shadow-xl">
+            <div className=" bg-zinc-50 p-8 rounded-[32px] border  border-zinc-200 shadow-xl">
               <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-5 flex items-center gap-1.5">
                 <DollarSign size={11} className="text-yellow-500" /> {t('pricing_structure')}
               </p>
-              <div className="mb-5 pb-5 border-b dark:border-white/5 border-zinc-200 flex items-end justify-between">
+              <div className="mb-5 pb-5 border-b  border-zinc-200 flex items-end justify-between">
                 <div>
                   <p className="text-[9px] text-zinc-400 font-black uppercase tracking-widest mb-1">{t('active_price')}</p>
                   <h2 className="text-5xl font-black italic text-yellow-500 tracking-tighter">RM {activePrice.toFixed(2)}</h2>
@@ -294,7 +294,7 @@ const AdminProductDetail = () => {
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
                   <span className="text-zinc-500">{t('original_price').replace(' (RM)', '')}</span>
-                  <span className={hasPromotion ? 'line-through text-zinc-400 dark:text-zinc-600' : 'dark:text-zinc-300 text-zinc-700'}>RM {product.price.toFixed(2)}</span>
+                  <span className={hasPromotion ? 'line-through text-zinc-400 ' : ' text-zinc-700'}>RM {product.price.toFixed(2)}</span>
                 </div>
                 {product.sellerPrice !== null && product.sellerPrice !== undefined && (
                   <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
@@ -315,23 +315,23 @@ const AdminProductDetail = () => {
 
         {/* Bottom: Description + Video */}
         <div className="space-y-6">
-          <div className="dark:bg-zinc-900/40 bg-zinc-50 p-10 rounded-[40px] border dark:border-white/5 border-zinc-200 shadow-xl">
+          <div className=" bg-zinc-50 p-10 rounded-[40px] border  border-zinc-200 shadow-xl">
             <div className="flex items-center gap-3 mb-5">
               <div className="p-2 bg-yellow-500/10 text-yellow-500 rounded-xl"><Info size={16} /></div>
               <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('item_description')}</h4>
             </div>
-            <p className="dark:text-zinc-400 text-zinc-600 font-medium leading-relaxed text-sm whitespace-pre-wrap">
+            <p className=" text-zinc-600 font-medium leading-relaxed text-sm whitespace-pre-wrap">
               {getTranslatedText(product.description, product.descriptionZh, product.descriptionMs) || t('no_description')}
             </p>
-            <div className="mt-8 pt-6 border-t dark:border-white/5 border-zinc-200 flex items-center gap-3 text-[9px] font-black uppercase tracking-widest text-zinc-500">
+            <div className="mt-8 pt-6 border-t  border-zinc-200 flex items-center gap-3 text-[9px] font-black uppercase tracking-widest text-zinc-500">
               <Clock size={12} />
               <span>{t('last_updated')}: {new Date().toLocaleDateString()}</span>
             </div>
           </div>
 
           {embedUrl && (
-            <div className="dark:bg-zinc-900/40 bg-zinc-50 rounded-[40px] overflow-hidden border dark:border-white/5 border-zinc-200 shadow-xl">
-              <div className="px-10 py-6 border-b dark:border-white/5 border-zinc-200 flex items-center gap-3">
+            <div className=" bg-zinc-50 rounded-[40px] overflow-hidden border  border-zinc-200 shadow-xl">
+              <div className="px-10 py-6 border-b  border-zinc-200 flex items-center gap-3">
                 <div className="p-2 bg-red-500/10 text-red-500 rounded-xl"><VideoIcon size={16} /></div>
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('live_demonstration')}</h3>
               </div>
@@ -438,30 +438,30 @@ const AdminProductDetail = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden relative"
+              className="bg-white  border border-zinc-200  rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden relative"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-center p-6 border-b border-zinc-100 dark:border-zinc-800/50">
-                <h3 className="text-lg font-black text-zinc-900 dark:text-white">
+              <div className="flex justify-between items-center p-6 border-b border-zinc-100 ">
+                <h3 className="text-lg font-black text-zinc-900 ">
                   {t('delete')}
                 </h3>
                 <button 
                   onClick={() => setShowDeleteModal(false)}
-                  className="text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors p-1"
+                  className="text-zinc-400 hover:text-zinc-900 :text-white transition-colors p-1"
                 >
                   <X size={20} />
                 </button>
               </div>
               
               <div className="p-6 text-left">
-                <p className="text-zinc-600 dark:text-zinc-300 font-medium">
+                <p className="text-zinc-600  font-medium">
                   {t('confirm_delete_product')}
                 </p>
                 
                 <div className="mt-8 flex gap-3">
                   <button
                     onClick={() => setShowDeleteModal(false)}
-                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white transition-colors"
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-zinc-100 hover:bg-zinc-200  :bg-zinc-700 text-zinc-900  transition-colors"
                   >
                     {t('cancel')}
                   </button>

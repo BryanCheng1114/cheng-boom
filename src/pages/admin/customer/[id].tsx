@@ -117,12 +117,12 @@ const CustomerDetailsPage = () => {
           
           {/* ---- Left Sidebar: Profile Info ---- */}
           <div className="space-y-6">
-            <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/5 rounded-[40px] p-8 shadow-xl">
+            <div className="bg-white  border border-zinc-200  rounded-[40px] p-8 shadow-xl">
               <div className="flex flex-col items-center text-center mb-8">
                 <div className="w-24 h-24 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-[32px] flex items-center justify-center text-yellow-500 border border-yellow-500/20 shadow-inner mb-6">
                   <span className="font-black italic text-4xl">{customer.name.charAt(0)}</span>
                 </div>
-                <h2 className="text-2xl font-black italic dark:text-white text-zinc-900 mb-1">{customer.name}</h2>
+                <h2 className="text-2xl font-black italic  text-zinc-900 mb-1">{customer.name}</h2>
                 <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${
                   customer.role === 'Seller' ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' : 'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'
                 }`}>
@@ -131,14 +131,14 @@ const CustomerDetailsPage = () => {
                 </div>
               </div>
 
-              <div className="space-y-6 border-t dark:border-white/5 border-zinc-100 pt-8">
+              <div className="space-y-6 border-t  border-zinc-100 pt-8">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-xl bg-zinc-500/5 flex items-center justify-center text-zinc-500">
                     <Phone size={18} />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('phone')}</span>
-                    <span className="text-sm font-bold dark:text-white text-zinc-900">{customer.phone}</span>
+                    <span className="text-sm font-bold  text-zinc-900">{customer.phone}</span>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -147,7 +147,7 @@ const CustomerDetailsPage = () => {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('address')}</span>
-                    <span className="text-sm font-bold dark:text-white text-zinc-900 leading-relaxed">
+                    <span className="text-sm font-bold  text-zinc-900 leading-relaxed">
                       {customer.address || t('no_address_provided')}
                     </span>
                   </div>
@@ -158,7 +158,7 @@ const CustomerDetailsPage = () => {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('registered_since')}</span>
-                    <span className="text-sm font-bold dark:text-white text-zinc-900">
+                    <span className="text-sm font-bold  text-zinc-900">
                       {new Date(customer.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
                     </span>
                   </div>
@@ -194,7 +194,7 @@ const CustomerDetailsPage = () => {
           {/* ---- Right Main Area: Order History ---- */}
           <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center justify-between px-2">
-              <h3 className="text-xl font-black italic uppercase tracking-tight dark:text-white text-zinc-900">{t('order_history')}</h3>
+              <h3 className="text-xl font-black italic uppercase tracking-tight  text-zinc-900">{t('order_history')}</h3>
               <div className="px-4 py-1.5 rounded-full bg-yellow-500/10 text-yellow-500 text-[10px] font-black uppercase tracking-widest border border-yellow-500/20">
                 {t('latest_activity')}
               </div>
@@ -216,7 +216,7 @@ const CustomerDetailsPage = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1 }}
-                    className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-md cursor-pointer group transition-all hover:border-yellow-500/50"
+                    className="bg-white  border border-zinc-200  rounded-2xl overflow-hidden shadow-sm hover:shadow-md cursor-pointer group transition-all hover:border-yellow-500/50"
                   >
                     <div className="p-4 flex flex-wrap items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
@@ -225,14 +225,14 @@ const CustomerDetailsPage = () => {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{t('order_id')}</span>
-                          <span className="text-sm font-bold dark:text-white text-zinc-900 font-mono">{order.id.slice(-8).toUpperCase()}</span>
+                          <span className="text-sm font-bold  text-zinc-900 font-mono">{order.id.slice(-8).toUpperCase()}</span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-6">
                         <div className="flex flex-col text-right hidden sm:flex">
                           <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{t('date')}</span>
-                          <span className="text-xs font-bold dark:text-zinc-300 text-zinc-600">{new Date(order.createdAt).toLocaleDateString()}</span>
+                          <span className="text-xs font-bold  text-zinc-600">{new Date(order.createdAt).toLocaleDateString()}</span>
                         </div>
                         <div className="flex flex-col text-right">
                           <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{t('status')}</span>
@@ -272,14 +272,14 @@ const CustomerDetailsPage = () => {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl w-full max-w-sm shadow-xl overflow-hidden relative"
+              className="bg-white  border border-zinc-200  rounded-2xl w-full max-w-sm shadow-xl overflow-hidden relative"
             >
               <div className="p-6">
-                <h3 className="text-lg font-bold dark:text-white text-zinc-900 mb-2">
+                <h3 className="text-lg font-bold  text-zinc-900 mb-2">
                   {t('confirmation_dialog')}
                 </h3>
                 
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6 leading-relaxed">
+                <p className="text-sm text-zinc-500  mb-6 leading-relaxed">
                   {t('promote_confirm_1')} <span className="font-semibold text-foreground">{customer.name}</span>{t('promote_confirm_2')}
                 </p>
                 
@@ -287,7 +287,7 @@ const CustomerDetailsPage = () => {
                   <button
                     onClick={() => setIsPromoteModalOpen(false)}
                     disabled={isPromoting}
-                    className="px-4 py-2 rounded-lg font-semibold text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50"
+                    className="px-4 py-2 rounded-lg font-semibold text-sm bg-zinc-100  text-zinc-600  hover:bg-zinc-200 :bg-zinc-700 transition-colors disabled:opacity-50"
                   >
                     {t('cancel')}
                   </button>

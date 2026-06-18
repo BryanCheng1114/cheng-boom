@@ -260,7 +260,7 @@ const EditCategoryPage = () => {
             <Link href="/admin/product" className="p-3 hover:bg-zinc-500/10 text-zinc-500 rounded-full transition-all">
               <ChevronLeft size={24} />
             </Link>
-            <h1 className="text-3xl font-black italic uppercase tracking-tight dark:text-white text-zinc-900">Edit Category</h1>
+            <h1 className="text-3xl font-black italic uppercase tracking-tight  text-zinc-900">Edit Category</h1>
           </div>
           <button 
             type="button"
@@ -276,14 +276,14 @@ const EditCategoryPage = () => {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-zinc-900/40 p-12 rounded-[48px] border dark:border-white/10 border-zinc-100 shadow-xl text-center space-y-6"
+            className="bg-white  p-12 rounded-[48px] border  border-zinc-100 shadow-xl text-center space-y-6"
           >
             <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-[28px] flex items-center justify-center mx-auto border border-green-500/20">
               <CheckCircle size={40} />
             </div>
             <div className="space-y-2">
-              <h4 className="text-2xl font-black italic uppercase tracking-tight dark:text-white text-zinc-900">Category Updated</h4>
-              <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-md mx-auto">
+              <h4 className="text-2xl font-black italic uppercase tracking-tight  text-zinc-900">Category Updated</h4>
+              <p className="text-zinc-500  text-sm max-w-md mx-auto">
                 {formData.name} has been updated successfully.
               </p>
             </div>
@@ -297,14 +297,14 @@ const EditCategoryPage = () => {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-8">
             {errorMsg && (
-              <div className="flex items-center gap-3 p-5 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 dark:text-red-400 text-sm font-semibold">
+              <div className="flex items-center gap-3 p-5 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500  text-sm font-semibold">
                 <AlertTriangle size={18} className="shrink-0" />
                 {errorMsg}
               </div>
             )}
 
             {/* Visual Assets */}
-            <div className="bg-white dark:bg-zinc-900/40 p-8 rounded-[48px] border dark:border-white/10 border-zinc-100 shadow-xl">
+            <div className="bg-white  p-8 rounded-[48px] border  border-zinc-100 shadow-xl">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-yellow-500/10 text-yellow-500 rounded-lg">
                   <ImageIcon size={18} />
@@ -316,7 +316,7 @@ const EditCategoryPage = () => {
                 {/* Banner Image */}
                 <div className="space-y-2">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('upload_banner') || 'Banner Image'}</h4>
-                  <div className="relative h-72 border-2 border-dashed rounded-[32px] flex flex-col items-center justify-center gap-4 dark:bg-black/20 bg-zinc-50 dark:border-white/10 border-zinc-200 overflow-hidden">
+                  <div className="relative h-72 border-2 border-dashed rounded-[32px] flex flex-col items-center justify-center gap-4  bg-zinc-50  border-zinc-200 overflow-hidden">
                     {preview ? (
                       <>
                         <img src={preview} className="w-full h-full object-cover" />
@@ -361,7 +361,7 @@ const EditCategoryPage = () => {
                 {/* Transparent Image */}
                 <div className="space-y-2">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">Transparent Image</h4>
-                  <div className="relative h-72 border-2 border-dashed rounded-[32px] flex flex-col items-center justify-center gap-4 dark:bg-black/20 bg-zinc-50 dark:border-white/10 border-zinc-200 overflow-hidden">
+                  <div className="relative h-72 border-2 border-dashed rounded-[32px] flex flex-col items-center justify-center gap-4  bg-zinc-50  border-zinc-200 overflow-hidden">
                     {transparentPreview ? (
                       <>
                         <div className="absolute inset-0 bg-zinc-800" />
@@ -407,7 +407,7 @@ const EditCategoryPage = () => {
             </div>
 
             {/* Category Identity */}
-            <div className="bg-white dark:bg-zinc-900/40 p-8 rounded-[48px] border dark:border-white/10 border-zinc-100 shadow-xl">
+            <div className="bg-white  p-8 rounded-[48px] border  border-zinc-100 shadow-xl">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg">
                   <Info size={18} />
@@ -426,7 +426,7 @@ const EditCategoryPage = () => {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="e.g. Skyline"
-                    className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm"
+                    className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 transition-all text-sm"
                   />
                 </div>
 
@@ -441,7 +441,7 @@ const EditCategoryPage = () => {
                       value={formData.code}
                       onChange={handleChange}
                       placeholder="e.g. FW00001"
-                      className="flex-1 px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm"
+                      className="flex-1 px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 transition-all text-sm"
                     />
                     <button
                       type="button"
@@ -462,7 +462,7 @@ const EditCategoryPage = () => {
                     value={formData.nameZh}
                     onChange={handleChange}
                     placeholder="e.g. 高空烟花"
-                    className="w-full px-6 py-4 rounded-2xl border outline-none font-bold dark:bg-zinc-950 bg-zinc-100 dark:border-white/5 border-zinc-200 dark:text-white text-zinc-900 focus:border-yellow-500 transition-all text-sm"
+                    className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 transition-all text-sm"
                   />
                 </div>
               </div>
@@ -473,7 +473,7 @@ const EditCategoryPage = () => {
                 type="button" 
                 onClick={() => router.push('/admin/product')}
                 disabled={isLoading}
-                className="w-1/3 py-4 bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-[24px] font-bold text-sm hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer"
+                className="w-1/3 py-4 bg-zinc-200  text-zinc-600  rounded-[24px] font-bold text-sm hover:bg-zinc-300 :bg-zinc-700 transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer"
               >
                 {t('cancel')}
               </button>

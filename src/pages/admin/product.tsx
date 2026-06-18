@@ -440,7 +440,7 @@ const ProductPage = () => {
             </AnimatePresence>
             <Link 
               href="/admin/product/category"
-              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:brightness-110 shadow-xl transition-all border border-zinc-200 dark:border-zinc-700/60"
+              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-white  text-zinc-900  rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-50 :bg-zinc-700 hover:brightness-110 shadow-xl transition-all border border-zinc-200 "
             >
               <Plus size={18} strokeWidth={3} />
               {t('add_new_category')}
@@ -455,7 +455,7 @@ const ProductPage = () => {
             <div className="relative">
               <button
                 onClick={() => setShowDownloadMenu(v => !v)}
-                className="flex items-center justify-center gap-2 p-4 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-700 shadow-xl transition-all border border-zinc-200 dark:border-zinc-700/60"
+                className="flex items-center justify-center gap-2 p-4 bg-white  text-zinc-900  rounded-2xl hover:bg-zinc-50 :bg-zinc-700 shadow-xl transition-all border border-zinc-200 "
                 title="Download Inventory"
               >
                 <Download size={18} strokeWidth={3} />
@@ -471,15 +471,15 @@ const ProductPage = () => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.95 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-2xl shadow-2xl z-20"
+                      className="absolute right-0 top-full mt-2 w-52 bg-white  border border-zinc-200  rounded-2xl shadow-2xl z-20"
                     >
-                      <button onClick={downloadCSV} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors rounded-t-2xl">
+                      <button onClick={downloadCSV} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700  hover:bg-zinc-50 :bg-zinc-800 transition-colors rounded-t-2xl">
                         <FileText size={15} className="text-blue-500" /> {t('export_csv')}
                       </button>
-                      <button onClick={downloadExcel} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors border-t border-zinc-100 dark:border-white/5">
+                      <button onClick={downloadExcel} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700  hover:bg-zinc-50 :bg-zinc-800 transition-colors border-t border-zinc-100 ">
                         <Table size={15} className="text-green-500" /> {t('export_excel')}
                       </button>
-                      <button onClick={downloadPDF} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors border-t border-zinc-100 dark:border-white/5 rounded-b-2xl">
+                      <button onClick={downloadPDF} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700  hover:bg-zinc-50 :bg-zinc-800 transition-colors border-t border-zinc-100  rounded-b-2xl">
                         <FileSpreadsheet size={15} className="text-red-500" /> 
                         <span className="flex-1 text-left">{t('export_pdf')}</span>
                         <div 
@@ -490,7 +490,7 @@ const ProductPage = () => {
                         >
                           <HelpCircle size={14} className="text-zinc-400 hover:text-yellow-500 transition-colors" />
                           {showPdfTooltip && (
-                            <div className="absolute bottom-full right-0 mb-2 w-56 bg-zinc-900 dark:bg-zinc-950 border border-white/10 rounded-2xl p-4 shadow-2xl z-50 pointer-events-none">
+                            <div className="absolute bottom-full right-0 mb-2 w-56 bg-zinc-900  border border-white/10 rounded-2xl p-4 shadow-2xl z-50 pointer-events-none">
                               <p className="text-[10px] font-bold text-zinc-300 leading-relaxed">
                                 {t('pdf_english_only')}
                               </p>
@@ -515,7 +515,7 @@ const ProductPage = () => {
               placeholder={t('search_placeholder')}
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="w-full pl-12 pr-4 py-3 bg-zinc-500/5 border border-zinc-500/10 rounded-2xl outline-none focus:border-yellow-500/50 transition-all dark:text-white font-bold text-sm"
+              className="w-full pl-12 pr-4 py-3 bg-zinc-500/5 border border-zinc-500/10 rounded-2xl outline-none focus:border-yellow-500/50 transition-all  font-bold text-sm"
             />
           </div>
           <div className="flex flex-wrap items-center gap-4">
@@ -524,11 +524,11 @@ const ProductPage = () => {
               <select 
                 value={categoryFilter}
                 onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1); }}
-                className="bg-transparent outline-none dark:text-white text-zinc-900 font-bold text-sm pr-8 appearance-none cursor-pointer"
+                className="bg-transparent outline-none  text-zinc-900 font-bold text-sm pr-8 appearance-none cursor-pointer"
               >
-                <option value="All" className="dark:bg-zinc-900 bg-white">{t('all_categories')}</option>
+                <option value="All" className=" bg-white">{t('all_categories')}</option>
                 {categories.map(cat => (
-                  <option key={cat.id} value={cat.name} className="dark:bg-zinc-900 bg-white">
+                  <option key={cat.id} value={cat.name} className=" bg-white">
                     {getLocalizedCategoryName(cat)}
                   </option>
                 ))}
@@ -543,14 +543,14 @@ const ProductPage = () => {
               <select 
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-                className="bg-transparent outline-none dark:text-white text-zinc-900 font-bold text-sm pr-8 appearance-none cursor-pointer"
+                className="bg-transparent outline-none  text-zinc-900 font-bold text-sm pr-8 appearance-none cursor-pointer"
               >
-                <option value="All" className="dark:bg-zinc-900 bg-white">{t('all_status') || 'All Status'}</option>
-                <option value="Live" className="dark:bg-zinc-900 bg-white">{t('status_live') || 'Live'}</option>
-                <option value="Hold" className="dark:bg-zinc-900 bg-white">{t('status_hold') || 'Hold'}</option>
-                <option value="Deactive" className="dark:bg-zinc-900 bg-white">{t('status_deactive') || 'Deactive'}</option>
-                <option value="Low Stock" className="dark:bg-zinc-900 bg-white">{t('low_stock')}</option>
-                <option value="Out of Stock" className="dark:bg-zinc-900 bg-white">{t('out_of_stock')}</option>
+                <option value="All" className=" bg-white">{t('all_status') || 'All Status'}</option>
+                <option value="Live" className=" bg-white">{t('status_live') || 'Live'}</option>
+                <option value="Hold" className=" bg-white">{t('status_hold') || 'Hold'}</option>
+                <option value="Deactive" className=" bg-white">{t('status_deactive') || 'Deactive'}</option>
+                <option value="Low Stock" className=" bg-white">{t('low_stock')}</option>
+                <option value="Out of Stock" className=" bg-white">{t('out_of_stock')}</option>
               </select>
               <div className="absolute right-4 pointer-events-none text-zinc-500">
                 <ChevronRight size={14} className="rotate-90" />
@@ -560,11 +560,11 @@ const ProductPage = () => {
         </div>
 
         {/* Product Table */}
-        <div className="border dark:border-white/10 border-zinc-100 rounded-[40px] overflow-hidden shadow-2xl dark:bg-zinc-900/20 bg-white">
+        <div className="border  border-zinc-100 rounded-[40px] overflow-hidden shadow-2xl  bg-white">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
-                <tr className="border-b dark:border-white/5 border-zinc-100 bg-zinc-500/5">
+                <tr className="border-b  border-zinc-100 bg-zinc-500/5">
                   <th className="p-6 w-16">
                     <button 
                       onClick={handleSelectAll}
@@ -650,10 +650,10 @@ const ProductPage = () => {
                             )}
                           </div>
                           <div className="flex flex-col">
-                            <span className="font-bold text-sm dark:text-white text-zinc-900 group-hover:text-yellow-500 transition-colors line-clamp-1">{p.name}</span>
+                            <span className="font-bold text-sm  text-zinc-900 group-hover:text-yellow-500 transition-colors line-clamp-1">{p.name}</span>
                             <div className="flex items-center gap-2 mt-0.5">
                               {p.code && (
-                                <span className="text-[9px] bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 px-1.5 py-0.5 rounded font-black tracking-wider uppercase shrink-0">{p.code}</span>
+                                <span className="text-[9px] bg-yellow-500/10 text-yellow-600  px-1.5 py-0.5 rounded font-black tracking-wider uppercase shrink-0">{p.code}</span>
                               )}
                             </div>
                           </div>
@@ -670,7 +670,7 @@ const ProductPage = () => {
                             type="number" 
                             value={editValues.stock} 
                             onChange={e => setEditValues({ ...editValues, stock: parseInt(e.target.value) || 0 })}
-                            className="w-20 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white px-2 py-1 rounded text-center border border-zinc-300 dark:border-zinc-600 outline-none focus:border-yellow-500 dark:focus:border-yellow-500"
+                            className="w-20 bg-zinc-100  text-zinc-900  px-2 py-1 rounded text-center border border-zinc-300  outline-none focus:border-yellow-500 :border-yellow-500"
                             onClick={e => e.stopPropagation()}
                           />
                         ) : (
@@ -687,7 +687,7 @@ const ProductPage = () => {
                                 step="0.01"
                                 value={editValues.price} 
                                 onChange={e => setEditValues({ ...editValues, price: parseFloat(e.target.value) || 0 })}
-                                className="w-24 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white px-2 py-1 rounded border border-zinc-300 dark:border-zinc-600 outline-none focus:border-yellow-500 dark:focus:border-yellow-500 font-bold"
+                                className="w-24 bg-zinc-100  text-zinc-900  px-2 py-1 rounded border border-zinc-300  outline-none focus:border-yellow-500 :border-yellow-500 font-bold"
                               />
                             </div>
                             {hasPromotion && (
@@ -713,7 +713,7 @@ const ProductPage = () => {
                             onChange={(e) => handleStatusChange(p, e.target.value)}
                             onBlur={() => setEditingStatusId(null)}
                             onClick={e => e.stopPropagation()}
-                            className="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white px-2 py-1 rounded border border-zinc-300 dark:border-zinc-600 outline-none text-[10px] font-black uppercase tracking-widest cursor-pointer"
+                            className="bg-zinc-100  text-zinc-900  px-2 py-1 rounded border border-zinc-300  outline-none text-[10px] font-black uppercase tracking-widest cursor-pointer"
                           >
                             <option value="Live">{t('status_live')}</option>
                             <option value="Hold">{t('status_hold')}</option>
@@ -727,10 +727,10 @@ const ProductPage = () => {
                               setCurrentPage(1);
                             }}
                             className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer hover:scale-105 hover:brightness-110 ${
-                            p.stock <= 0 ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20' :
-                            p.stock < 10 ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20' :
-                            p.status === 'Live' ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20' :
-                            p.status === 'Hold' ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20' :
+                            p.stock <= 0 ? 'bg-red-500/10 text-red-600  border border-red-500/20' :
+                            p.stock < 10 ? 'bg-yellow-500/10 text-yellow-600  border border-yellow-500/20' :
+                            p.status === 'Live' ? 'bg-green-500/10 text-green-600  border border-green-500/20' :
+                            p.status === 'Hold' ? 'bg-orange-500/10 text-orange-600  border border-orange-500/20' :
                             'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'
                           }`}>
                             <div className={`w-1.5 h-1.5 rounded-full shadow-sm ${
@@ -778,7 +778,7 @@ const ProductPage = () => {
           </div>
 
           {/* Pagination Footer */}
-          <div className="p-6 border-t dark:border-white/5 border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-500/5">
+          <div className="p-6 border-t  border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-500/5">
             <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
               {t('showing')} {paginatedProducts.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} {t('to')} {Math.min(currentPage * itemsPerPage, sortedProducts.length)} {t('of')} {products.length} {t('records')}
             </p>
@@ -900,7 +900,7 @@ const ProductPage = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-6xl max-h-[85vh] flex flex-col bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-white/10 rounded-[40px] shadow-2xl overflow-hidden"
+              className="relative w-full max-w-6xl max-h-[85vh] flex flex-col bg-zinc-50  border border-zinc-200  rounded-[40px] shadow-2xl overflow-hidden"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-8 border-b border-yellow-600/30 bg-yellow-500 shrink-0">
@@ -927,13 +927,13 @@ const ProductPage = () => {
                       <div 
                         key={cat.id} 
                         onClick={() => router.push(`/admin/product/category/edit/${cat.id}`)}
-                        className="relative aspect-[4/5] rounded-3xl overflow-hidden group cursor-pointer border border-zinc-200 dark:border-white/5 shadow-xl"
+                        className="relative aspect-[4/5] rounded-3xl overflow-hidden group cursor-pointer border border-zinc-200  shadow-xl"
                       >
-                        <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-900">
+                        <div className="absolute inset-0 bg-zinc-100 ">
                           {cat.image ? (
                             <img src={cat.image} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-zinc-300 dark:text-zinc-800"><ImageIcon size={48} /></div>
+                            <div className="w-full h-full flex items-center justify-center text-zinc-300 "><ImageIcon size={48} /></div>
                           )}
                         </div>
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90 group-hover:opacity-100 transition-opacity" />
@@ -948,11 +948,11 @@ const ProductPage = () => {
                       </div>
                     );
                   })}
-                  <Link href="/admin/product/category" className="relative aspect-[4/5] rounded-3xl overflow-hidden group cursor-pointer border border-dashed border-zinc-300 dark:border-zinc-700 hover:border-yellow-500 dark:hover:border-yellow-500 transition-colors flex flex-col items-center justify-center bg-zinc-100/50 dark:bg-zinc-900/50 hover:bg-yellow-500/5 dark:hover:bg-yellow-500/10 shadow-sm">
-                    <div className="w-16 h-16 rounded-full bg-zinc-200 dark:bg-zinc-800 group-hover:bg-yellow-500 group-hover:text-zinc-900 flex items-center justify-center text-zinc-400 dark:text-zinc-500 transition-all shadow-sm">
+                  <Link href="/admin/product/category" className="relative aspect-[4/5] rounded-3xl overflow-hidden group cursor-pointer border border-dashed border-zinc-300  hover:border-yellow-500 :border-yellow-500 transition-colors flex flex-col items-center justify-center bg-zinc-100/50  hover:bg-yellow-500/5 :bg-yellow-500/10 shadow-sm">
+                    <div className="w-16 h-16 rounded-full bg-zinc-200  group-hover:bg-yellow-500 group-hover:text-zinc-900 flex items-center justify-center text-zinc-400  transition-all shadow-sm">
                       <Plus size={24} strokeWidth={3} />
                     </div>
-                    <p className="mt-4 text-xs font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 group-hover:text-yellow-600 dark:group-hover:text-yellow-500">{t('add_new_category')}</p>
+                    <p className="mt-4 text-xs font-black uppercase tracking-widest text-zinc-500  group-hover:text-yellow-600 :text-yellow-500">{t('add_new_category')}</p>
                   </Link>
                 </div>
               </div>
@@ -974,13 +974,13 @@ const ProductPage = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-sm bg-white dark:bg-zinc-900 border dark:border-white/10 border-zinc-200 rounded-[48px] p-12 text-center shadow-2xl"
+              className="relative w-full max-w-sm bg-white  border  border-zinc-200 rounded-[48px] p-12 text-center shadow-2xl"
             >
               <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-[28px] flex items-center justify-center mx-auto mb-8 border border-green-500/20">
                 <CheckCircle size={40} />
               </div>
-              <h3 className="text-3xl font-black italic uppercase tracking-tight mb-4 dark:text-white text-black">Success</h3>
-              <p className="text-zinc-500 dark:text-zinc-400 font-medium mb-10 leading-relaxed">
+              <h3 className="text-3xl font-black italic uppercase tracking-tight mb-4  text-black">Success</h3>
+              <p className="text-zinc-500  font-medium mb-10 leading-relaxed">
                 You have successfully updated the info.
               </p>
               <button 

@@ -107,7 +107,7 @@ const DashboardPage = () => {
               animate={{ opacity: 1, y: 0 }} 
               transition={{ delay: i * 0.1 }} 
               onClick={() => stat.href && router.push(stat.href)}
-              className="dark:bg-zinc-900/40 bg-white border dark:border-white/5 border-zinc-100 rounded-[32px] p-7 transition-all duration-500 group shadow-lg hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+              className=" bg-white border  border-zinc-100 rounded-[32px] p-7 transition-all duration-500 group shadow-lg hover:shadow-xl hover:-translate-y-1 cursor-pointer"
             >
               <div className="flex items-center justify-between mb-6">
                 <div className={`p-4 rounded-[20px] ${stat.bg} ${stat.color}`}>
@@ -116,7 +116,7 @@ const DashboardPage = () => {
                 <ArrowUpRight size={20} className="text-zinc-500 opacity-0 group-hover:opacity-100 transition-all group-hover:-translate-y-1 group-hover:translate-x-1" />
               </div>
               <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">{stat.label}</p>
-              <h3 className="text-3xl font-black italic tracking-tight mb-2 dark:text-white text-zinc-900">{isLoading ? '---' : stat.value}</h3>
+              <h3 className="text-3xl font-black italic tracking-tight mb-2  text-zinc-900">{isLoading ? '---' : stat.value}</h3>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{stat.sub}</p>
@@ -136,7 +136,7 @@ const DashboardPage = () => {
             </Link>
           </div>
           
-          <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] overflow-hidden shadow-2xl">
+          <div className="bg-white  border border-zinc-200  rounded-[40px] overflow-hidden shadow-2xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
@@ -153,10 +153,10 @@ const DashboardPage = () => {
                   ) : stats.recentOrders.map((order: any) => (
                     <tr key={order.id} className="group hover:bg-zinc-500/5 transition-colors cursor-pointer" onClick={() => router.push(`/admin/orders/${order.id}`)}>
                       <td className="p-6">
-                        <span className="text-xs font-black dark:text-white text-zinc-900 font-mono">#{order.id.slice(-6).toUpperCase()}</span>
+                        <span className="text-xs font-black  text-zinc-900 font-mono">#{order.id.slice(-6).toUpperCase()}</span>
                       </td>
                       <td className="p-6">
-                        <span className="text-xs font-bold dark:text-white text-zinc-900">{order.customer?.name}</span>
+                        <span className="text-xs font-bold  text-zinc-900">{order.customer?.name}</span>
                       </td>
                       <td className="p-6">
                         <span className="text-sm font-black text-yellow-500 italic">RM {order.totalAmount.toFixed(2)}</span>
@@ -192,10 +192,10 @@ const DashboardPage = () => {
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden"
+              className="relative w-full max-w-lg bg-white  border border-zinc-200  rounded-3xl shadow-2xl overflow-hidden"
             >
               {/* Header */}
-              <div className="flex justify-between items-center p-6 border-b border-zinc-100 dark:border-zinc-800/50">
+              <div className="flex justify-between items-center p-6 border-b border-zinc-100 ">
                 <div className="flex items-center gap-3 text-yellow-500">
                   <h3 className="text-xl font-black text-foreground uppercase tracking-wider">
                     {locale === 'zh' ? '欢迎回来' : locale === 'ms' ? 'Selamat Kembali' : 'Welcome Back'}
@@ -212,7 +212,7 @@ const DashboardPage = () => {
               {/* Body */}
               <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
                 {/* Date */}
-                <div className="flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl">
+                <div className="flex items-center gap-3 p-4 bg-zinc-50  rounded-2xl">
                   <div className="p-3 bg-blue-500/10 text-blue-500 rounded-xl">
                     <Calendar size={20} />
                   </div>
@@ -235,7 +235,7 @@ const DashboardPage = () => {
                         {soldOutItems.map(p => (
                           <li key={p.id} className="flex items-start gap-2">
                             <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-500 shrink-0 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
-                            <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{p.name}</span>
+                            <span className="text-sm font-bold text-zinc-700 ">{p.name}</span>
                           </li>
                         ))}
                       </ul>
@@ -255,9 +255,9 @@ const DashboardPage = () => {
                           <li key={p.id} className="flex items-start justify-between gap-2">
                             <div className="flex items-start gap-2">
                               <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
-                              <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{p.name}</span>
+                              <span className="text-sm font-bold text-zinc-700 ">{p.name}</span>
                             </div>
-                            <span className="text-xs font-black text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-lg shrink-0">
+                            <span className="text-xs font-black text-amber-600  bg-amber-500/10 px-2 py-1 rounded-lg shrink-0">
                               {p.stock} left
                             </span>
                           </li>
@@ -269,7 +269,7 @@ const DashboardPage = () => {
               </div>
 
               {/* Footer */}
-              <div className="p-6 border-t border-zinc-100 dark:border-zinc-800/50">
+              <div className="p-6 border-t border-zinc-100 ">
                 <button
                   onClick={() => setShowWelcomeModal(false)}
                   className="w-full py-4 bg-yellow-500 hover:bg-yellow-600 text-white rounded-2xl font-black uppercase tracking-widest transition-colors shadow-lg shadow-yellow-500/20"

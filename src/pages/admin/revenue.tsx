@@ -144,7 +144,7 @@ export default function RevenuePage() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-xl">
+        <div className="bg-white  border border-zinc-200  p-4 rounded-2xl shadow-xl">
           <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">{label}</p>
           <p className="text-lg font-black italic text-primary">
             RM {payload[0].value.toFixed(2)}
@@ -174,7 +174,7 @@ export default function RevenuePage() {
               initial={{ opacity: 0, y: 20 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ delay: i * 0.1 }} 
-              className="dark:bg-zinc-900/40 bg-white border dark:border-white/5 border-zinc-100 rounded-[32px] p-7 transition-all duration-500 hover:shadow-xl hover:-translate-y-1"
+              className=" bg-white border  border-zinc-100 rounded-[32px] p-7 transition-all duration-500 hover:shadow-xl hover:-translate-y-1"
             >
               <div className="flex items-center justify-between mb-6">
                 <div className={`p-4 rounded-[20px] ${stat.bg} ${stat.color}`}>
@@ -182,7 +182,7 @@ export default function RevenuePage() {
                 </div>
               </div>
               <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">{stat.label}</p>
-              <h3 className="text-3xl font-black italic tracking-tight mb-2 dark:text-white text-zinc-900">
+              <h3 className="text-3xl font-black italic tracking-tight mb-2  text-zinc-900">
                 {isLoading ? '---' : stat.value}
               </h3>
             </motion.div>
@@ -191,7 +191,7 @@ export default function RevenuePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Chart */}
-          <div className="lg:col-span-2 bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] p-8 shadow-2xl">
+          <div className="lg:col-span-2 bg-white  border border-zinc-200  rounded-[40px] p-8 shadow-2xl">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
               <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
                 <BarChart3 size={16} /> {t('daily_revenue') || 'Daily Revenue'}
@@ -200,7 +200,7 @@ export default function RevenuePage() {
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 text-sm font-bold text-zinc-700 dark:text-zinc-300 rounded-xl px-4 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all cursor-pointer"
+                className="bg-zinc-50  border border-zinc-200  text-sm font-bold text-zinc-700  rounded-xl px-4 py-2 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all cursor-pointer"
               >
                 <option value="30days">{t('last_30_days') || 'Last 30 Days'}</option>
                 {availableMonths.map(m => (
@@ -254,7 +254,7 @@ export default function RevenuePage() {
           </div>
 
           {/* Top Products */}
-          <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] p-8 shadow-2xl flex flex-col">
+          <div className="bg-white  border border-zinc-200  rounded-[40px] p-8 shadow-2xl flex flex-col">
             <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-8 flex items-center gap-2">
               <TrendingUp size={16} /> {t('top_selling_products') || 'Top Selling Products'}
             </h3>
@@ -273,11 +273,11 @@ export default function RevenuePage() {
                 topProducts.map((product, index) => (
                   <div key={index} className="flex items-center justify-between group">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-sm font-black text-zinc-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                      <div className="w-10 h-10 rounded-2xl bg-zinc-100  flex items-center justify-center text-sm font-black text-zinc-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                         #{index + 1}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-zinc-900 dark:text-white line-clamp-1 group-hover:text-primary transition-colors">
+                        <p className="text-sm font-bold text-zinc-900  line-clamp-1 group-hover:text-primary transition-colors">
                           {product.name}
                         </p>
                         <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mt-1">

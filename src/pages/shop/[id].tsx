@@ -325,9 +325,15 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
               {locale === 'zh' ? '主页' : locale === 'ms' ? 'Laman Utama' : 'Home Page'}
             </Link>
             <ChevronRight size={14} className="text-zinc-600" />
-            <Link href="/shop" className="hover:text-primary transition-colors">
-              {translatedCategory || (locale === 'zh' ? '商店' : locale === 'ms' ? 'Kedai' : 'Shop')}
-            </Link>
+            {router.query.from === 'cart' ? (
+              <Link href="/cart" className="hover:text-primary transition-colors">
+                {locale === 'zh' ? '购物车' : locale === 'ms' ? 'Troli Beli-belah Saya' : 'My Shopping Cart'}
+              </Link>
+            ) : (
+              <Link href={`/shop?category=${catKey}`} className="hover:text-primary transition-colors">
+                {translatedCategory || (locale === 'zh' ? '商店' : locale === 'ms' ? 'Kedai' : 'Shop')}
+              </Link>
+            )}
             <ChevronRight size={14} className="text-zinc-600" />
             <span className="text-zinc-100 truncate max-w-[200px] sm:max-w-xs">{translatedName}</span>
           </div>

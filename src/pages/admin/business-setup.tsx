@@ -184,17 +184,17 @@ const BusinessSetupPage = () => {
         
         {/* Header Description */}
         <div>
-          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{t('system_preferences')}</h1>
-          <p className="text-zinc-500 dark:text-zinc-400 font-medium mt-2">{t('system_preferences_desc')}</p>
+          <h1 className="text-3xl font-black text-zinc-900  tracking-tight">{t('system_preferences')}</h1>
+          <p className="text-zinc-500  font-medium mt-2">{t('system_preferences_desc')}</p>
         </div>
         
         {/* Branding Section */}
-        <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] p-8 shadow-xl">
+        <div className="bg-white  border border-zinc-200  rounded-[40px] p-8 shadow-xl">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center text-yellow-500">
               <ImageIcon size={20} />
             </div>
-            <h2 className="text-xl font-black italic uppercase dark:text-white text-zinc-900">{t('branding')}</h2>
+            <h2 className="text-xl font-black italic uppercase  text-zinc-900">{t('branding')}</h2>
           </div>
 
           <div className="flex flex-col gap-8">
@@ -206,7 +206,7 @@ const BusinessSetupPage = () => {
                   name="businessName"
                   value={formData.businessName || ''}
                   onChange={handleChange}
-                  className="w-full bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-yellow-500 transition-colors dark:text-white"
+                  className="w-full bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-yellow-500 transition-colors "
                   placeholder="e.g. Cheng-BOOM"
                 />
               </div>
@@ -229,10 +229,10 @@ const BusinessSetupPage = () => {
                       <select
                         value={formData.businessFont || 'Impact'}
                         onChange={(e) => setFormData({ ...formData, businessFont: e.target.value })}
-                        className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white text-sm font-bold px-4 py-3 rounded-2xl focus:outline-none focus:border-yellow-500 transition-colors"
+                        className="w-full bg-zinc-100  border border-zinc-300  text-zinc-900  text-sm font-bold px-4 py-3 rounded-2xl focus:outline-none focus:border-yellow-500 transition-colors"
                       >
                         {FONTS.map(f => (
-                          <option key={f.name} value={f.name} className="bg-white dark:bg-zinc-800">{f.label} — {f.name}</option>
+                          <option key={f.name} value={f.name} className="bg-white ">{f.label} — {f.name}</option>
                         ))}
                       </select>
                     </div>
@@ -285,7 +285,7 @@ const BusinessSetupPage = () => {
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">{t('transparent_logo')}</label>
                 <div className="relative">
                   <HelpCircle size={12} className="text-zinc-400 cursor-help" />
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 p-3 bg-zinc-800 dark:bg-zinc-700 text-white text-xs font-medium rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-center shadow-xl">
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 p-3 bg-zinc-800  text-white text-xs font-medium rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-center shadow-xl">
                     {t('transparent_logo_tooltip')}
                   </div>
                 </div>
@@ -318,12 +318,12 @@ const BusinessSetupPage = () => {
         </div>
 
         {/* Payment Settings Section */}
-        <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] p-8 shadow-xl">
+        <div className="bg-white  border border-zinc-200  rounded-[40px] p-8 shadow-xl">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
               <CreditCard size={20} />
             </div>
-            <h2 className="text-xl font-black italic uppercase dark:text-white text-zinc-900">{t('payment_settings') || 'Payment Settings'}</h2>
+            <h2 className="text-xl font-black italic uppercase  text-zinc-900">{t('payment_settings') || 'Payment Settings'}</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -333,7 +333,7 @@ const BusinessSetupPage = () => {
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">{t('bank_transfer_image') || 'Bank Transfer Details / QR'}</label>
                 <div className="relative">
                   <HelpCircle size={12} className="text-zinc-400 cursor-help" />
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 p-3 bg-zinc-800 dark:bg-zinc-700 text-white text-xs font-medium rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-center shadow-xl">
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 p-3 bg-zinc-800  text-white text-xs font-medium rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-center shadow-xl">
                     {t('bank_transfer_tooltip') || 'Upload a clear image of your bank account details or bank QR code for customers.'}
                   </div>
                 </div>
@@ -368,7 +368,7 @@ const BusinessSetupPage = () => {
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">{t('tng_duitnow_image') || 'TNG DuitNow QR'}</label>
                 <div className="relative">
                   <HelpCircle size={12} className="text-zinc-400 cursor-help" />
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 p-3 bg-zinc-800 dark:bg-zinc-700 text-white text-xs font-medium rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-center shadow-xl">
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 p-3 bg-zinc-800  text-white text-xs font-medium rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-center shadow-xl">
                     {t('tng_duitnow_tooltip') || 'Upload your TNG DuitNow QR Code. Customers will scan this to pay.'}
                   </div>
                 </div>
@@ -400,12 +400,12 @@ const BusinessSetupPage = () => {
         </div>
 
         {/* Business Information Section */}
-        <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] p-8 shadow-xl">
+        <div className="bg-white  border border-zinc-200  rounded-[40px] p-8 shadow-xl">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
               <Building size={20} />
             </div>
-            <h2 className="text-xl font-black italic uppercase dark:text-white text-zinc-900">{t('business_information')}</h2>
+            <h2 className="text-xl font-black italic uppercase  text-zinc-900">{t('business_information')}</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -415,16 +415,16 @@ const BusinessSetupPage = () => {
                 <select 
                   value={formData.phone?.startsWith('+65') ? '+65' : '+60'}
                   onChange={(e) => setFormData({...formData, phone: e.target.value + (formData.phone?.replace(/^\+6[05]/, '') || '')})}
-                  className="w-28 bg-zinc-500/5 dark:bg-zinc-900 border border-zinc-500/20 rounded-2xl px-3 py-3 text-sm font-bold focus:outline-none focus:border-blue-500 dark:text-white"
+                  className="w-28 bg-zinc-500/5  border border-zinc-500/20 rounded-2xl px-3 py-3 text-sm font-bold focus:outline-none focus:border-blue-500 "
                 >
-                  <option value="+60" className="dark:bg-zinc-900">🇲🇾 +60</option>
-                  <option value="+65" className="dark:bg-zinc-900">🇸🇬 +65</option>
+                  <option value="+60" className="">🇲🇾 +60</option>
+                  <option value="+65" className="">🇸🇬 +65</option>
                 </select>
                 <input 
                   type="text" 
                   value={formData.phone?.replace(/^\+6[05]/, '') || ''} 
                   onChange={(e) => setFormData({...formData, phone: (formData.phone?.startsWith('+65') ? '+65' : '+60') + e.target.value})} 
-                  className={`flex-1 bg-zinc-500/5 border ${errors.phone ? 'border-red-500' : 'border-zinc-500/20'} rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-500 dark:text-white`} 
+                  className={`flex-1 bg-zinc-500/5 border ${errors.phone ? 'border-red-500' : 'border-zinc-500/20'} rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-500 `} 
                   placeholder="123456789"
                 />
               </div>
@@ -432,7 +432,7 @@ const BusinessSetupPage = () => {
             </div>
             <div>
               <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2 flex items-center gap-2"><Mail size={12}/> {t('email_address')}</label>
-              <input type="email" name="email" value={formData.email || ''} onChange={handleChange} className={`w-full bg-zinc-500/5 border ${errors.email ? 'border-red-500' : 'border-zinc-500/20'} rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-500 dark:text-white`} />
+              <input type="email" name="email" value={formData.email || ''} onChange={handleChange} className={`w-full bg-zinc-500/5 border ${errors.email ? 'border-red-500' : 'border-zinc-500/20'} rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-500 `} />
               {errors.email && <p className="text-red-500 text-xs font-bold mt-2">{errors.email}</p>}
             </div>
             <div>
@@ -441,16 +441,16 @@ const BusinessSetupPage = () => {
                 <select 
                   value={formData.whatsapp?.startsWith('+65') ? '+65' : '+60'}
                   onChange={(e) => setFormData({...formData, whatsapp: e.target.value + (formData.whatsapp?.replace(/^\+6[05]/, '') || '')})}
-                  className="w-28 bg-zinc-500/5 dark:bg-zinc-900 border border-zinc-500/20 rounded-2xl px-3 py-3 text-sm font-bold focus:outline-none focus:border-green-500 dark:text-white"
+                  className="w-28 bg-zinc-500/5  border border-zinc-500/20 rounded-2xl px-3 py-3 text-sm font-bold focus:outline-none focus:border-green-500 "
                 >
-                  <option value="+60" className="dark:bg-zinc-900">🇲🇾 +60</option>
-                  <option value="+65" className="dark:bg-zinc-900">🇸🇬 +65</option>
+                  <option value="+60" className="">🇲🇾 +60</option>
+                  <option value="+65" className="">🇸🇬 +65</option>
                 </select>
                 <input 
                   type="text" 
                   value={formData.whatsapp?.replace(/^\+6[05]/, '') || ''} 
                   onChange={(e) => setFormData({...formData, whatsapp: (formData.whatsapp?.startsWith('+65') ? '+65' : '+60') + e.target.value})} 
-                  className={`flex-1 bg-zinc-500/5 border ${errors.whatsapp ? 'border-red-500' : 'border-zinc-500/20'} rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-green-500 dark:text-white`} 
+                  className={`flex-1 bg-zinc-500/5 border ${errors.whatsapp ? 'border-red-500' : 'border-zinc-500/20'} rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-green-500 `} 
                   placeholder="123456789"
                 />
               </div>
@@ -458,18 +458,18 @@ const BusinessSetupPage = () => {
             </div>
             <div className="md:col-span-2">
               <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2 flex items-center gap-2"><MapPin size={12}/> {t('full_address')}</label>
-              <textarea name="address" value={formData.address || ''} onChange={handleChange} rows={3} className="w-full bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-500 dark:text-white resize-none" />
+              <textarea name="address" value={formData.address || ''} onChange={handleChange} rows={3} className="w-full bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-500  resize-none" />
             </div>
           </div>
         </div>
 
         {/* Social Media Section */}
-        <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] p-8 shadow-xl">
+        <div className="bg-white  border border-zinc-200  rounded-[40px] p-8 shadow-xl">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-500">
               <Share2 size={20} />
             </div>
-            <h2 className="text-xl font-black italic uppercase dark:text-white text-zinc-900">{t('social_media_links')}</h2>
+            <h2 className="text-xl font-black italic uppercase  text-zinc-900">{t('social_media_links')}</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -481,7 +481,7 @@ const BusinessSetupPage = () => {
                 value={formData.facebook || ''} 
                 onChange={handleChange} 
                 placeholder="e.g. chengboom.fireworks" 
-                className="w-full bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-pink-500 dark:text-white" 
+                className="w-full bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-pink-500 " 
               />
             </div>
             <div>
@@ -492,7 +492,7 @@ const BusinessSetupPage = () => {
                 value={formData.instagram || ''} 
                 onChange={handleChange} 
                 placeholder="e.g. @chengboom" 
-                className="w-full bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-pink-500 dark:text-white" 
+                className="w-full bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-pink-500 " 
               />
             </div>
             <div>
@@ -503,19 +503,19 @@ const BusinessSetupPage = () => {
                 value={formData.tiktok || ''} 
                 onChange={handleChange} 
                 placeholder="e.g. @chengboom" 
-                className="w-full bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-pink-500 dark:text-white" 
+                className="w-full bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-pink-500 " 
               />
             </div>
           </div>
         </div>
 
         {/* Promote Us Section */}
-        <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/10 rounded-[40px] p-8 shadow-xl">
+        <div className="bg-white  border border-zinc-200  rounded-[40px] p-8 shadow-xl">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
               <QrCode size={20} />
             </div>
-            <h2 className="text-xl font-black italic uppercase dark:text-white text-zinc-900">{t('promote_business') || 'Promote Your Business'}</h2>
+            <h2 className="text-xl font-black italic uppercase  text-zinc-900">{t('promote_business') || 'Promote Your Business'}</h2>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -524,12 +524,12 @@ const BusinessSetupPage = () => {
               <div>
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">{t('website_link') || 'Website Link'}</label>
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-4 text-sm font-bold text-zinc-600 dark:text-zinc-300 truncate">
+                  <div className="flex-1 bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-4 text-sm font-bold text-zinc-600  truncate">
                     {websiteUrl}
                   </div>
                   <button 
                     onClick={() => window.open(websiteUrl, '_blank')}
-                    className="w-14 h-14 bg-zinc-500/5 hover:bg-zinc-500/10 border border-zinc-500/20 rounded-2xl flex items-center justify-center text-zinc-600 dark:text-zinc-300 transition-colors"
+                    className="w-14 h-14 bg-zinc-500/5 hover:bg-zinc-500/10 border border-zinc-500/20 rounded-2xl flex items-center justify-center text-zinc-600  transition-colors"
                     title={t('open_website') || 'Open Website'}
                   >
                     <ExternalLink size={20} />
@@ -540,7 +540,7 @@ const BusinessSetupPage = () => {
               <div className="flex flex-col sm:flex-row items-center gap-3">
                 <button 
                   onClick={handleCopyLink}
-                  className="w-full sm:flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                  className="w-full sm:flex-1 py-4 bg-zinc-100  hover:bg-zinc-200 :bg-zinc-700 text-zinc-900  rounded-2xl font-black text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
                 >
                   {copySuccess ? <CheckCircle2 size={16} className="text-green-500" /> : <Copy size={16} />}
                   {copySuccess ? (t('copied') || 'Copied!') : (t('copy_link') || 'Copy Link')}
@@ -557,8 +557,8 @@ const BusinessSetupPage = () => {
               <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 flex items-start gap-3">
                 <HelpCircle size={16} className="text-blue-500 mt-0.5 shrink-0" />
                 <div className="space-y-1">
-                  <p className="text-xs font-bold text-blue-600 dark:text-blue-400">QR Code Tip</p>
-                  <p className="text-[10px] font-medium text-blue-600/80 dark:text-blue-400/80 leading-relaxed">
+                  <p className="text-xs font-bold text-blue-600 ">QR Code Tip</p>
+                  <p className="text-[10px] font-medium text-blue-600/80  leading-relaxed">
                     This QR Code links directly to your storefront. It <strong>never expires</strong> and you can freely print it, share it on social media, or show it to customers in person.
                   </p>
                 </div>
@@ -598,7 +598,7 @@ const BusinessSetupPage = () => {
               <div className="flex items-center gap-2 w-full max-w-[250px] relative z-10">
                 <button 
                   onClick={handleDownloadQR}
-                  className="flex-1 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-zinc-900  text-white  rounded-xl font-black text-xs uppercase tracking-widest hover:bg-zinc-800 :bg-zinc-200 transition-colors flex items-center justify-center gap-2"
                 >
                   <Download size={16} />
                   {t('download_qr') || 'Download QR'}
@@ -606,7 +606,7 @@ const BusinessSetupPage = () => {
                 <button 
                   onClick={handleRefreshQR}
                   disabled={isRefreshingQR}
-                  className="w-12 h-12 flex-shrink-0 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:text-purple-500 dark:hover:text-purple-400 rounded-xl flex items-center justify-center transition-colors disabled:opacity-50"
+                  className="w-12 h-12 flex-shrink-0 bg-white  border border-zinc-200  text-zinc-600  hover:text-purple-500 :text-purple-400 rounded-xl flex items-center justify-center transition-colors disabled:opacity-50"
                   title="Refresh QR"
                 >
                   <RefreshCw size={16} className={isRefreshingQR ? "animate-spin" : ""} />
@@ -619,7 +619,7 @@ const BusinessSetupPage = () => {
 
       {/* Sticky Bottom Action Bar */}
       <div className={`fixed bottom-0 left-0 right-0 md:left-64 z-40 p-4 transition-transform duration-500 ${isDirty ? 'translate-y-0' : 'translate-y-full'}`}>
-        <div className="max-w-4xl mx-auto bg-zinc-900/90 dark:bg-zinc-800/90 backdrop-blur-xl border border-zinc-700/50 rounded-3xl p-4 flex items-center justify-between shadow-2xl">
+        <div className="max-w-4xl mx-auto bg-zinc-900/90  backdrop-blur-xl border border-zinc-700/50 rounded-3xl p-4 flex items-center justify-between shadow-2xl">
           <div className="flex items-center gap-3 px-4">
             <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
             <span className="text-white font-bold text-sm">{t('unsaved_changes')}</span>
@@ -628,7 +628,7 @@ const BusinessSetupPage = () => {
             <button
               onClick={handleCancel}
               disabled={isSaving}
-              className="px-6 py-3 bg-zinc-800 dark:bg-zinc-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-zinc-700 dark:hover:bg-zinc-600 transition-all flex items-center gap-2 disabled:opacity-50"
+              className="px-6 py-3 bg-zinc-800  text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-zinc-700 :bg-zinc-600 transition-all flex items-center gap-2 disabled:opacity-50"
             >
               <Undo2 size={16} />
               {t('discard')}
@@ -652,23 +652,23 @@ const BusinessSetupPage = () => {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => setShowSuccessModal(false)}
           />
-          <div className="relative w-full max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl p-8 text-center animate-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-sm bg-white  border border-zinc-200  rounded-3xl shadow-2xl p-8 text-center animate-in zoom-in-95 duration-200">
             <button 
               onClick={() => setShowSuccessModal(false)}
-              className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 :text-zinc-200 transition-colors rounded-full hover:bg-zinc-100 :bg-zinc-800"
             >
               <X size={20} />
             </button>
             <div className="mx-auto w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-6">
               <CheckCircle2 size={32} />
             </div>
-            <h3 className="text-2xl font-black text-zinc-900 dark:text-white mb-2">{t('saved_successfully')}</h3>
-            <p className="text-zinc-500 dark:text-zinc-400 font-medium mb-8">
+            <h3 className="text-2xl font-black text-zinc-900  mb-2">{t('saved_successfully')}</h3>
+            <p className="text-zinc-500  font-medium mb-8">
               {t('saved_successfully_desc')}
             </p>
             <button
               onClick={() => setShowSuccessModal(false)}
-              className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+              className="w-full py-4 bg-zinc-900  text-white  rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-zinc-800 :bg-zinc-200 transition-colors"
             >
               {t('close')}
             </button>
