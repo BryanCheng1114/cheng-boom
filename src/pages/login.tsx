@@ -548,7 +548,7 @@ function AuthContent() {
 }
 
 export default function AuthPage() {
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'missing_client_id';
   return (
     <GoogleOAuthProvider clientId={clientId}>
       <AuthContent />

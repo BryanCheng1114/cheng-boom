@@ -197,13 +197,13 @@ const DashboardPage = () => {
               {/* Header */}
               <div className="flex justify-between items-center p-6 border-b border-zinc-100 ">
                 <div className="flex items-center gap-3 text-yellow-500">
-                  <h3 className="text-xl font-black text-foreground uppercase tracking-wider">
+                  <h3 className="text-xl font-black text-zinc-900 uppercase tracking-wider">
                     {locale === 'zh' ? '欢迎回来' : locale === 'ms' ? 'Selamat Kembali' : 'Welcome Back'}
                   </h3>
                 </div>
                 <button 
                   onClick={() => setShowWelcomeModal(false)}
-                  className="text-zinc-400 hover:text-foreground transition-colors p-1"
+                  className="text-zinc-400 hover:text-zinc-900 transition-colors p-1 bg-zinc-100 hover:bg-zinc-200 rounded-full"
                 >
                   <X size={20} />
                 </button>
@@ -212,13 +212,13 @@ const DashboardPage = () => {
               {/* Body */}
               <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
                 {/* Date */}
-                <div className="flex items-center gap-3 p-4 bg-zinc-50  rounded-2xl">
-                  <div className="p-3 bg-blue-500/10 text-blue-500 rounded-xl">
-                    <Calendar size={20} />
+                <div className="flex items-center gap-4 p-5 bg-zinc-50 border border-zinc-100 rounded-2xl shadow-sm">
+                  <div className="p-3.5 bg-blue-500/10 text-blue-600 rounded-xl">
+                    <Calendar size={24} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">{locale === 'zh' ? '今天的日期' : locale === 'ms' ? 'Tarikh Hari Ini' : 'Today\'s Date'}</p>
-                    <p className="text-lg font-black text-foreground">
+                    <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-0.5">{locale === 'zh' ? '今天的日期' : locale === 'ms' ? 'Tarikh Hari Ini' : 'Today\'s Date'}</p>
+                    <p className="text-lg font-black text-zinc-900">
                       {new Intl.DateTimeFormat(locale === 'ms' ? 'ms-MY' : locale === 'zh' ? 'zh-CN' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(new Date())}
                     </p>
                   </div>
@@ -269,10 +269,10 @@ const DashboardPage = () => {
               </div>
 
               {/* Footer */}
-              <div className="p-6 border-t border-zinc-100 ">
+              <div className="p-6 border-t border-zinc-100 bg-zinc-50">
                 <button
                   onClick={() => setShowWelcomeModal(false)}
-                  className="w-full py-4 bg-yellow-500 hover:bg-yellow-600 text-white rounded-2xl font-black uppercase tracking-widest transition-colors shadow-lg shadow-yellow-500/20"
+                  className="w-full py-4 bg-yellow-500 hover:bg-yellow-400 text-zinc-900 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg shadow-yellow-500/20 hover:shadow-yellow-500/40 hover:-translate-y-0.5"
                 >
                   {locale === 'zh' ? '继续' : locale === 'ms' ? 'Teruskan' : 'Continue'}
                 </button>
