@@ -8,45 +8,75 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { name, phone, email, password, address } = req.body;
+    const { name, phone, email, password, address, otp } = req.body;
 
-    if (!name || !password || (!phone && !email)) {
-      return res.status(400).json({ message: 'Name, password, and either phone or email are required' });
+    // Both phone and email are now mandatory
+    if (!name || !password || !phone || !email || !otp) {
+      return res.status(400).json({ message: 'Name, phone, email, password, and OTP are required' });
     }
 
-    // Check if customer already exists
-    let existingCustomer = null;
+    // Check if customer already exists (as Member/Seller)
+    const existingCustomerByEmail = await (prisma as any).customer.findUnique({
+      where: { email },
+    });
+    
+    let existingCustomerByPhone = null;
     if (phone) {
-      existingCustomer = await (prisma as any).customer.findUnique({
+      existingCustomerByPhone = await (prisma as any).customer.findUnique({
         where: { phone },
       });
-    } else if (email) {
-      existingCustomer = await (prisma as any).customer.findUnique({
-        where: { email },
-      });
     }
 
-    if (existingCustomer && existingCustomer.password) {
+    // If an account with this email or phone exists and has a password, they are already registered
+    if (existingCustomerByEmail && existingCustomerByEmail.password) {
       return res.status(400).json({ 
         code: 'USER_EXISTS', 
-        message: 'An account with this phone number or email already exists.' 
+        message: 'An account with this email already exists.' 
+      });
+    }
+    
+    if (existingCustomerByPhone && existingCustomerByPhone.password) {
+      return res.status(400).json({ 
+        code: 'USER_EXISTS', 
+        message: 'An account with this phone number already exists.' 
       });
     }
 
+    // Verify OTP
+    const otpRecord = await (prisma as any).otpVerification.findUnique({
+      where: { email }
+    });
+
+    if (!otpRecord) {
+      return res.status(400).json({ message: 'No OTP requested for this email. Please request a new code.' });
+    }
+
+    if (otpRecord.otp !== otp) {
+      return res.status(400).json({ message: 'Invalid OTP code.' });
+    }
+
+    if (new Date() > otpRecord.expiresAt) {
+      return res.status(400).json({ message: 'OTP has expired. Please request a new code.' });
+    }
+
+    // OTP is valid, proceed to hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Prefer using the existing guest record by email or phone to upgrade
+    const existingCustomerToUpgrade = existingCustomerByEmail || existingCustomerByPhone;
+
     let customer;
-    if (existingCustomer) {
+    if (existingCustomerToUpgrade) {
       // If they were a guest, upgrade them to a member
       customer = await (prisma as any).customer.update({
-        where: { id: existingCustomer.id },
+        where: { id: existingCustomerToUpgrade.id },
         data: {
           name,
-          email: email || existingCustomer.email,
-          phone: phone || existingCustomer.phone,
+          email,
+          phone,
           password: hashedPassword,
-          address: address || existingCustomer.address,
-          role: existingCustomer.role === 'Seller' ? 'Seller' : 'Member', // Don't demote sellers
+          address: address || existingCustomerToUpgrade.address,
+          role: existingCustomerToUpgrade.role === 'Seller' ? 'Seller' : 'Member', // Don't demote sellers
         },
       });
     } else {
@@ -54,14 +84,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       customer = await (prisma as any).customer.create({
         data: {
           name,
-          phone: phone || null,
-          email: email || null,
+          phone,
+          email,
           password: hashedPassword,
           address,
           role: 'Member',
         },
       });
     }
+
+    // Delete the used OTP
+    await (prisma as any).otpVerification.delete({
+      where: { email }
+    });
 
     // Return user info (omit password)
     const { password: _, ...userWithoutPassword } = customer;
@@ -71,3 +106,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ message: 'Internal server error' });
   }
 }
+

@@ -61,6 +61,9 @@ function AuthContent() {
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+  
+  const [regStep, setRegStep] = useState<'form' | 'otp'>('form');
+  const [otpValues, setOtpValues] = useState(['', '', '', '', '', '']);
 
   useEffect(() => {
     if (router.query.registered) {
@@ -142,14 +145,49 @@ function AuthContent() {
     }
 
     try {
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: registerData.email }),
+      });
+
+      if (res.ok) {
+        setRegStep('otp');
+        setSuccess('OTP has been sent to your email.');
+      } else {
+        const data = await res.json();
+        setError(data.message || 'Failed to send OTP');
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyAndRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    const otpString = otpValues.join('');
+    if (otpString.length !== 6) {
+      setError('Please enter the 6-digit OTP.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(registerData),
+        body: JSON.stringify({ ...registerData, otp: otpString }),
       });
 
       if (res.ok) {
         setIsRegistering(false);
+        setRegStep('form');
+        setOtpValues(['', '', '', '', '', '']);
         setSuccess(t.login?.successRegister || 'Welcome! Your account is ready. Please sign in.');
         setLoginData({ ...loginData, identifier: registerData.email || registerData.phone });
       } else {
@@ -373,7 +411,7 @@ function AuthContent() {
                     <div className="mt-12 text-left flex items-center gap-2">
                       <span className="text-sm text-zinc-400">{t.login?.noAccount || 'No Account?'}</span>
                       <button 
-                        onClick={() => { setIsRegistering(true); setError(''); setSuccess(''); }}
+                        onClick={() => { setIsRegistering(true); setError(''); setSuccess(''); setRegStep('form'); }}
                         className="text-sm text-yellow-500 font-semibold hover:text-yellow-400 transition-colors"
                       >
                         {t.login?.createAccount || 'Create Now'}
@@ -404,136 +442,191 @@ function AuthContent() {
                       </div>
                     )}
 
-                    <form onSubmit={handleRegisterSubmit} className="space-y-4" autoComplete="off">
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-sm text-zinc-400">{t.login?.fullNameLabel || 'Name'}</label>
-                          <input 
-                            type="text"
-                            required
-                            className="w-full px-4 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
-                            placeholder={t.login?.fullNamePlaceholder || 'John Doe'}
-                            autoComplete="off"
-                            value={registerData.name}
-                            onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm text-zinc-400">{t.login?.phoneLabel || 'Phone Number'}</label>
-                          <input 
-                            type="tel"
-                            required
-                            pattern="^(\+?60|0)1[0-9]{8,9}$"
-                            title="Please enter a valid Malaysian phone number, e.g., 0123456789 or +60123456789"
-                            className="w-full px-4 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
-                            placeholder={t.login?.phonePlaceholder || '0123456789'}
-                            autoComplete="off"
-                            value={registerData.phone}
-                            onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm text-zinc-400">{t.login?.emailLabel || 'E-mail'}</label>
-                        <input 
-                          type="email"
-                          required
-                          className="w-full px-4 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
-                          placeholder={t.login?.emailPlaceholder || 'yatingzang0215@gmail.com'}
-                          autoComplete="off"
-                          value={registerData.email}
-                          onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm text-zinc-400">{t.login?.labelPassword || 'Password'}</label>
-                        <div className="relative">
-                          <input 
-                            type={showRegPassword ? "text" : "password"}
-                            required
-                            className="w-full pl-4 pr-12 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white tracking-wider"
-                            placeholder="••••••••••••"
-                            autoComplete="new-password"
-                            value={registerData.password}
-                            onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                          />
-                          <button 
-                            type="button"
-                            onClick={() => setShowRegPassword(!showRegPassword)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
-                          >
-                            {showRegPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                          </button>
-                        </div>
-                        {registerData.password.length > 0 && !/^(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(registerData.password) && (
-                          <p className="text-xs text-yellow-500 mt-1">
-                            ⚠️ {t.login?.passwordMinPlaceholder || 'Password must be at least 8 chars with a number & symbol.'}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center pt-2">
-                        <label className="flex items-center gap-3 cursor-pointer group select-none">
-                          <div className="relative flex items-center justify-center">
-                            <input 
-                              type="checkbox"
-                              className="sr-only"
-                              checked={agreeTerms}
-                              onChange={(e) => setAgreeTerms(e.target.checked)}
-                            />
-                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${agreeTerms ? 'bg-yellow-500 border-yellow-500' : 'bg-[#1a1a1a] border-zinc-700'}`}>
-                              {agreeTerms && (
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                                  <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                              )}
+                    {regStep === 'form' ? (
+                      <>
+                        <form onSubmit={handleRegisterSubmit} className="space-y-4" autoComplete="off">
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <label className="text-sm text-zinc-400">{t.login?.fullNameLabel || 'Name'}</label>
+                              <input 
+                                type="text"
+                                required
+                                className="w-full px-4 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
+                                placeholder={t.login?.fullNamePlaceholder || 'John Doe'}
+                                autoComplete="off"
+                                value={registerData.name}
+                                onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-sm text-zinc-400">{t.login?.phoneLabel || 'Phone Number'}</label>
+                              <input 
+                                type="tel"
+                                required
+                                pattern="^(\+?60|0)1[0-9]{8,9}$"
+                                title="Please enter a valid Malaysian phone number, e.g., 0123456789 or +60123456789"
+                                className="w-full px-4 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
+                                placeholder={t.login?.phonePlaceholder || '0123456789'}
+                                autoComplete="off"
+                                value={registerData.phone}
+                                onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
+                              />
                             </div>
                           </div>
-                          <span className="text-sm text-zinc-400 group-hover:text-zinc-300 transition-colors">
-                            {t.login?.agreeTerms || 'I agree to the terms of service'}
-                          </span>
-                        </label>
-                      </div>
 
-                      <button 
-                        type="submit"
-                        disabled={!agreeTerms || isLoading}
-                        className="w-full py-3.5 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 mt-4 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isLoading ? <Loader2 className="animate-spin" /> : (t.login?.createAccount || 'Create Account')}
-                      </button>
-                    </form>
+                          <div className="space-y-2">
+                            <label className="text-sm text-zinc-400">{t.login?.emailLabel || 'E-mail'}</label>
+                            <input 
+                              type="email"
+                              required
+                              className="w-full px-4 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
+                              placeholder={t.login?.emailPlaceholder || 'yatingzang0215@gmail.com'}
+                              autoComplete="off"
+                              value={registerData.email}
+                              onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                            />
+                          </div>
 
-                    <div className="relative my-8">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-zinc-800"></div>
-                      </div>
-                      <div className="relative flex justify-center text-sm">
-                        <span className="px-4 bg-[#050505] md:bg-[#0a0a0a] text-zinc-500">{t.login?.orContinueWith || 'Or continue with'}</span>
-                      </div>
-                    </div>
+                          <div className="space-y-2">
+                            <label className="text-sm text-zinc-400">{t.login?.labelPassword || 'Password'}</label>
+                            <div className="relative">
+                              <input 
+                                type={showRegPassword ? "text" : "password"}
+                                required
+                                className="w-full pl-4 pr-12 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white tracking-wider"
+                                placeholder="••••••••••••"
+                                autoComplete="new-password"
+                                value={registerData.password}
+                                onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                              />
+                              <button 
+                                type="button"
+                                onClick={() => setShowRegPassword(!showRegPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                              >
+                                {showRegPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                              </button>
+                            </div>
+                            {registerData.password.length > 0 && !/^(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(registerData.password) && (
+                              <p className="text-xs text-yellow-500 mt-1">
+                                ⚠️ {t.login?.passwordMinPlaceholder || 'Password must be at least 8 chars with a number & symbol.'}
+                              </p>
+                            )}
+                          </div>
 
-                    <div className="flex justify-center">
-                      <CustomGoogleButton 
-                        onSuccess={handleGoogleSuccess} 
-                        onError={() => setError(t.login?.googleError || 'Google Login Failed')}
-                        isLoading={isLoading}
-                        text={t.login?.continueWithGoogle || 'Continue With Google'}
-                      />
-                    </div>
+                          <div className="flex items-center pt-2">
+                            <label className="flex items-center gap-3 cursor-pointer group select-none">
+                              <div className="relative flex items-center justify-center">
+                                <input 
+                                  type="checkbox"
+                                  className="sr-only"
+                                  checked={agreeTerms}
+                                  onChange={(e) => setAgreeTerms(e.target.checked)}
+                                />
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${agreeTerms ? 'bg-yellow-500 border-yellow-500' : 'bg-[#1a1a1a] border-zinc-700'}`}>
+                                  {agreeTerms && (
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                                      <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="text-sm text-zinc-400 group-hover:text-zinc-300 transition-colors">
+                                {t.login?.agreeTerms || 'I agree to the terms of service'}
+                              </span>
+                            </label>
+                          </div>
 
-                    <div className="mt-12 text-left flex items-center gap-2">
-                      <span className="text-sm text-zinc-400">{t.login?.existingMember || 'Already a member?'}</span>
-                      <button 
-                        onClick={() => { setIsRegistering(false); setError(''); setSuccess(''); }}
-                        className="text-sm text-yellow-500 font-semibold hover:text-yellow-400 transition-colors"
-                      >
-                        {t.login?.signInInstead || 'Sign in'}
-                      </button>
-                    </div>
+                          <button 
+                            type="submit"
+                            disabled={!agreeTerms || isLoading}
+                            className="w-full py-3.5 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 mt-4 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isLoading ? <Loader2 className="animate-spin" /> : (t.login?.createAccount || 'Create Account')}
+                          </button>
+                        </form>
+
+                        <div className="relative my-8">
+                          <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-zinc-800"></div>
+                          </div>
+                          <div className="relative flex justify-center text-sm">
+                            <span className="px-4 bg-[#050505] md:bg-[#0a0a0a] text-zinc-500">{t.login?.orContinueWith || 'Or continue with'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-center">
+                          <CustomGoogleButton 
+                            onSuccess={handleGoogleSuccess} 
+                            onError={() => setError(t.login?.googleError || 'Google Login Failed')}
+                            isLoading={isLoading}
+                            text={t.login?.continueWithGoogle || 'Continue With Google'}
+                          />
+                        </div>
+
+                        <div className="mt-12 text-left flex items-center gap-2">
+                          <span className="text-sm text-zinc-400">{t.login?.existingMember || 'Already a member?'}</span>
+                          <button 
+                            onClick={() => { setIsRegistering(false); setError(''); setSuccess(''); setRegStep('form'); }}
+                            className="text-sm text-yellow-500 font-semibold hover:text-yellow-400 transition-colors"
+                          >
+                            {t.login?.signInInstead || 'Sign in'}
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <form onSubmit={handleVerifyAndRegister} className="space-y-6 mt-4">
+                        <div className="mb-6">
+                          <p className="text-zinc-400 text-sm">
+                            We've sent a 6-digit verification code to <span className="text-white font-medium">{registerData.email}</span>
+                          </p>
+                        </div>
+                        <div className="flex justify-center gap-2 sm:gap-3">
+                          {otpValues.map((digit, index) => (
+                            <input
+                              key={index}
+                              id={`otp-${index}`}
+                              type="text"
+                              inputMode="numeric"
+                              maxLength={1}
+                              className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl font-bold rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
+                              value={digit}
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9]/g, '');
+                                const newOtp = [...otpValues];
+                                newOtp[index] = val;
+                                setOtpValues(newOtp);
+                                if (val && index < 5) {
+                                  document.getElementById(`otp-${index + 1}`)?.focus();
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Backspace' && !otpValues[index] && index > 0) {
+                                  document.getElementById(`otp-${index - 1}`)?.focus();
+                                }
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <button 
+                          type="submit"
+                          disabled={isLoading || otpValues.join('').length !== 6}
+                          className="w-full py-3.5 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 mt-8 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isLoading ? <Loader2 className="animate-spin" /> : 'Verify & Create Account'}
+                        </button>
+                        <div className="mt-6 text-center">
+                          <button 
+                            type="button"
+                            onClick={() => setRegStep('form')}
+                            className="text-sm text-zinc-500 hover:text-white transition-colors"
+                          >
+                            Back to Registration
+                          </button>
+                        </div>
+                      </form>
+                    )}
 
                   </motion.div>
                 )}
