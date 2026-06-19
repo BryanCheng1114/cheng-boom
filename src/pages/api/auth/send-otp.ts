@@ -82,7 +82,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await transporter.sendMail(mailOptions);
 
-    return res.status(200).json({ message: 'OTP sent successfully' });
+    return res.status(200).json({ 
+      message: 'OTP sent successfully',
+      expiresAt: expiresAt.toISOString()
+    });
   } catch (error) {
     console.error('OTP Send error:', error);
     return res.status(500).json({ message: 'Internal server error while sending OTP' });

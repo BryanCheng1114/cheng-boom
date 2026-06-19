@@ -64,6 +64,29 @@ function AuthContent() {
   
   const [regStep, setRegStep] = useState<'form' | 'otp'>('form');
   const [otpValues, setOtpValues] = useState(['', '', '', '', '', '']);
+  const [otpExpiresAt, setOtpExpiresAt] = useState<Date | null>(null);
+  const [timeLeft, setTimeLeft] = useState(0);
+
+  useEffect(() => {
+    if (regStep === 'otp' && otpExpiresAt) {
+      const interval = setInterval(() => {
+        const diff = Math.floor((otpExpiresAt.getTime() - Date.now()) / 1000);
+        if (diff <= 0) {
+          setTimeLeft(0);
+          clearInterval(interval);
+        } else {
+          setTimeLeft(diff);
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [regStep, otpExpiresAt]);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
 
   useEffect(() => {
     if (router.query.registered) {
@@ -152,11 +175,40 @@ function AuthContent() {
       });
 
       if (res.ok) {
+        const data = await res.json();
         setRegStep('otp');
+        setOtpExpiresAt(new Date(data.expiresAt));
         setSuccess('OTP has been sent to your email.');
       } else {
         const data = await res.json();
         setError(data.message || 'Failed to send OTP');
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: registerData.email }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setOtpExpiresAt(new Date(data.expiresAt));
+        setOtpValues(['', '', '', '', '', '']);
+        setSuccess('OTP has been resent to your email.');
+      } else {
+        const data = await res.json();
+        setError(data.message || 'Failed to resend OTP');
       }
     } catch (err) {
       setError('An error occurred. Please try again.');
@@ -252,14 +304,14 @@ function AuthContent() {
         {/* Mobile Background Image */}
         <div className="absolute inset-0 md:hidden z-0">
           <Image 
-            src={isRegistering ? "/image.png" : "/login_signin.jpg"}
+            src="/login_signin.jpg"
             alt="Background"
             fill
             sizes="100vw"
-            className="object-cover opacity-20"
+            className="object-cover opacity-40"
             priority
           />
-          <div className="absolute inset-0 bg-black/80" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent" />
         </div>
 
         {/* --- SPLIT SCREEN LAYOUT --- */}
@@ -272,7 +324,7 @@ function AuthContent() {
             className={`hidden md:block w-[65%] relative ${isRegistering ? 'order-2' : 'order-1'}`}
           >
             <Image 
-              src={isRegistering ? "/image.png" : "/login_signin.jpg"}
+              src="/login_signin.jpg"
               alt="Background"
               fill
               sizes="65vw"
@@ -292,9 +344,9 @@ function AuthContent() {
           <motion.div 
             layout
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className={`w-full md:w-[35%] flex flex-col justify-center relative bg-transparent md:bg-[#0a0a0a] ${isRegistering ? 'order-1' : 'order-2'} min-h-screen overflow-y-auto py-12 md:py-0`}
+            className={`w-full md:w-[35%] flex flex-col ${regStep === 'otp' ? 'justify-center' : 'justify-start md:justify-center'} relative bg-transparent md:bg-[#0a0a0a] ${isRegistering ? 'order-1' : 'order-2'} min-h-screen overflow-y-auto ${regStep === 'otp' ? 'py-12 md:py-0' : 'pt-[100px] pb-12 md:py-0'}`}
           >
-            <div className="w-full max-w-[440px] mx-auto px-6 mt-16 md:mt-0">
+            <div className="w-full max-w-[440px] mx-auto px-6 mt-4 md:mt-0">
               <AnimatePresence mode="wait">
                 
                 {/* --- LOGIN FORM --- */}
@@ -429,21 +481,20 @@ function AuthContent() {
                     exit={{ opacity: 0, x: 20 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="mb-8">
-                      <h1 className="text-4xl md:text-5xl font-light text-white mb-3">{t.login?.joinBoom || 'Sign up'}</h1>
-                      <p className="text-zinc-400 text-sm whitespace-pre-line">
-                        {t.login?.registerDesc || 'Welcome to the Smart Site System for Oil Depots.\nRegister as a member to experience.'}
-                      </p>
-                    </div>
-
-                    {error && (
-                      <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-left">
-                        {error}
-                      </div>
-                    )}
-
                     {regStep === 'form' ? (
                       <>
+                        <div className="mb-8">
+                          <h1 className="text-4xl md:text-5xl font-light text-white mb-3">{t.login?.joinBoom || 'Sign up'}</h1>
+                          <p className="text-zinc-400 text-sm whitespace-pre-line">
+                            {t.login?.registerDesc || 'Welcome to the Smart Site System for Oil Depots.\nRegister as a member to experience.'}
+                          </p>
+                        </div>
+
+                        {error && (
+                          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-left">
+                            {error}
+                          </div>
+                        )}
                         <form onSubmit={handleRegisterSubmit} className="space-y-4" autoComplete="off">
                           
                           <div className="grid grid-cols-2 gap-4">
@@ -576,53 +627,99 @@ function AuthContent() {
                         </div>
                       </>
                     ) : (
-                      <form onSubmit={handleVerifyAndRegister} className="space-y-6 mt-4">
-                        <div className="mb-6">
+                      <form onSubmit={handleVerifyAndRegister} className="space-y-6 mt-4 w-full">
+                        <div className="mb-6 text-center">
+                          <h1 className="text-3xl md:text-4xl font-light text-white mb-3">Account Verification</h1>
                           <p className="text-zinc-400 text-sm">
-                            We've sent a 6-digit verification code to <span className="text-white font-medium">{registerData.email}</span>
+                            Enter Otp code send to <span className="text-white font-medium">{registerData.email}</span>
                           </p>
                         </div>
-                        <div className="flex justify-center gap-2 sm:gap-3">
-                          {otpValues.map((digit, index) => (
-                            <input
-                              key={index}
-                              id={`otp-${index}`}
-                              type="text"
-                              inputMode="numeric"
-                              maxLength={1}
-                              className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl font-bold rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
-                              value={digit}
-                              onChange={(e) => {
-                                const val = e.target.value.replace(/[^0-9]/g, '');
-                                const newOtp = [...otpValues];
-                                newOtp[index] = val;
-                                setOtpValues(newOtp);
-                                if (val && index < 5) {
-                                  document.getElementById(`otp-${index + 1}`)?.focus();
-                                }
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Backspace' && !otpValues[index] && index > 0) {
-                                  document.getElementById(`otp-${index - 1}`)?.focus();
-                                }
-                              }}
-                            />
-                          ))}
+                        
+                        {error && (
+                          <div className="flex items-start gap-3 bg-[#1a1a1a]/80 backdrop-blur-md border border-zinc-800 border-t-[3px] border-t-red-500 p-4 mb-6 rounded-b-lg shadow-lg">
+                            <div className="text-red-500 mt-0.5 flex-shrink-0">
+                              <svg viewBox="0 0 24 24" fill="currentColor" className="w-[18px] h-[18px]">
+                                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <p className="text-[13px] text-zinc-300 font-medium leading-relaxed text-left">
+                              {error}
+                            </p>
+                          </div>
+                        )}
+                        
+                        <div className="w-full">
+                          <div className="flex justify-end mb-2 w-full">
+                            <span className="text-sm font-medium text-yellow-500">
+                              {formatTime(timeLeft)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between gap-2 w-full">
+                            {otpValues.map((digit, index) => (
+                              <input
+                                key={index}
+                                id={`otp-${index}`}
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                autoFocus={index === 0}
+                                maxLength={1}
+                                className="w-full aspect-square text-center text-2xl font-bold rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
+                                value={digit}
+                                onChange={(e) => {
+                                  const val = e.target.value.replace(/[^0-9]/g, '');
+                                  const newOtp = [...otpValues];
+                                  newOtp[index] = val;
+                                  setOtpValues(newOtp);
+                                  if (val && index < 5) {
+                                    document.getElementById(`otp-${index + 1}`)?.focus();
+                                  }
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Backspace' && !otpValues[index] && index > 0) {
+                                    document.getElementById(`otp-${index - 1}`)?.focus();
+                                  }
+                                }}
+                              />
+                            ))}
+                          </div>
                         </div>
+
                         <button 
                           type="submit"
-                          disabled={isLoading || otpValues.join('').length !== 6}
+                          disabled={isLoading || otpValues.join('').length !== 6 || timeLeft === 0}
                           className="w-full py-3.5 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 mt-8 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {isLoading ? <Loader2 className="animate-spin" /> : 'Verify & Create Account'}
+                          {isLoading ? <Loader2 className="animate-spin" /> : 'Verify'}
                         </button>
-                        <div className="mt-6 text-center">
+
+                        <div className="mt-4 text-center text-sm text-zinc-400 flex items-center justify-center gap-2">
+                          <span>Didn't receive the email?</span>
+                          <button
+                            type="button"
+                            onClick={handleResendOtp}
+                            disabled={isLoading || timeLeft > 540} // disable for first 60s
+                            className="text-yellow-500 font-medium flex items-center gap-1 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Click to resend
+                          </button>
+                        </div>
+
+                        <div className="mt-8 text-center border-t border-zinc-800 pt-6">
                           <button 
                             type="button"
-                            onClick={() => setRegStep('form')}
-                            className="text-sm text-zinc-500 hover:text-white transition-colors"
+                            onClick={() => {
+                              setIsRegistering(false); 
+                              setRegStep('form');
+                              setError('');
+                              setSuccess('');
+                            }}
+                            className="text-sm text-zinc-500 hover:text-white transition-colors flex items-center justify-center gap-1 w-full"
                           >
-                            Back to Registration
+                            <ArrowLeft size={14} /> Back to Sign In
                           </button>
                         </div>
                       </form>

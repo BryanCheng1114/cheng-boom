@@ -88,7 +88,7 @@ export default function Home() {
         if (res.ok) {
           const data = await res.json();
           if (data.length > 0) {
-            setCategories(data);
+            setCategories(data.filter((c: any) => c.status !== 'Hold'));
           } else {
             setCategories(mockCategories);
           }

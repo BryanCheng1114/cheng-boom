@@ -49,6 +49,7 @@ model Category {
   nameMs           String?  // Malay name translation
   image            String?  // Image for homepage display
   transparentImage String?  // Image with transparent background for app bar
+  status           String   @default("Live") // "Live" or "Hold"
   createdAt        DateTime @default(now())
 }
 

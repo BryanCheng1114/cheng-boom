@@ -68,7 +68,7 @@ export default function Shop() {
           (p.stock !== undefined && p.stock > 0)
         );
         setAllProducts(activeProducts);
-        setCategories(catData);
+        setCategories(catData.filter((c: any) => c.status !== 'Hold'));
       } catch (err) {
         console.error('Failed to fetch data:', err);
       } finally {

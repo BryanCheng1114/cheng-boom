@@ -45,7 +45,7 @@ export function Footer() {
     fetch('/api/categories')
       .then(res => res.json())
       .then(data => {
-        if (data.length > 0) setCategories(data);
+        if (data.length > 0) setCategories(data.filter((c: any) => c.status !== 'Hold'));
       })
       .catch(() => {});
   }, []);

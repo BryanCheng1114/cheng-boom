@@ -14,7 +14,8 @@ import {
   Building,
   Award,
   TrendingUp,
-  Sidebar
+  Sidebar,
+  Layers
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from '../../context/LanguageContext';
@@ -22,9 +23,10 @@ import { useLanguage } from '../../context/LanguageContext';
 interface AdminLayoutProps {
   children: React.ReactNode;
   title: string;
+  headerActions?: React.ReactNode;
 }
 
-const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
+const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, headerActions }) => {
   const router = useRouter();
   const { t, language, setLanguage } = useLanguage();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -52,6 +54,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
   const navItems = [
     { name: t('dashboard') || 'Dashboard', key: 'dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: t('revenue') || 'Revenue', key: 'revenue', path: '/admin/revenue', icon: TrendingUp },
+    { name: t('category') || 'Category', key: 'category', path: '/admin/category', icon: Layers },
     { name: t('inventory') || 'Inventory', path: '/admin/product', icon: Package },
     { name: t('orders') || 'Orders', path: '/admin/orders', icon: ShoppingBag },
     { name: t('customers') || 'Customers', path: '/admin/customer', icon: Users },
@@ -174,10 +177,15 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
         animate={{ marginLeft: isCollapsed ? 80 : 280 }} 
         className="flex-1 min-h-screen p-8 transition-all duration-300 ease-in-out bg-white"
       >
-        <header className="mb-8">
+        <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
             <h1 className="text-3xl font-bold tracking-tight text-zinc-900">{title}</h1>
           </motion.div>
+          {headerActions && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+              {headerActions}
+            </motion.div>
+          )}
         </header>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="w-full">

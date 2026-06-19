@@ -205,7 +205,7 @@ export function Navbar() {
     fetch('/api/categories')
       .then(res => res.json())
       .then(data => {
-        if (data.length > 0) setCategories(data);
+        if (data.length > 0) setCategories(data.filter((c: any) => c.status !== 'Hold'));
       })
       .catch(() => {});
   }, []);
@@ -531,6 +531,13 @@ export function Navbar() {
                           <span className="py-2 pl-2 mb-1 text-[12px] font-bold tracking-widest text-white/40 uppercase">
                             {locale === 'zh' ? '商品类别' : 'Categories'}
                           </span>
+                          <Link
+                            href="/shop"
+                            onClick={() => setMobileOpen(false)}
+                            className="py-3 pl-2 text-[16px] font-semibold text-yellow-400 hover:text-yellow-300 transition-colors"
+                          >
+                            {locale === 'zh' ? '所有分类' : 'All Categories'}
+                          </Link>
                           {(categories.length > 0 ? categories : []).map((category) => {
                             const key = category.code || category.key || category.name.toLowerCase().replace(/\s+/g, '');
                             let label = category.name;

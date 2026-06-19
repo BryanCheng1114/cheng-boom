@@ -27,7 +27,9 @@ import {
   FileSpreadsheet,
   FileText,
   Table,
-  HelpCircle
+  HelpCircle,
+  UploadCloud,
+  FolderArchive
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import Link from 'next/link';
@@ -46,15 +48,15 @@ const ProductPage = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({ key: '', direction: null });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 15;
 
   // Selection States
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Category Modal State
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   // Fast Action States
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
@@ -62,6 +64,9 @@ const ProductPage = () => {
   const [isSavingFastAction, setIsSavingFastAction] = useState(false);
   const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const [showBulkGuideModal, setShowBulkGuideModal] = useState(false);
+  const [selectedGuideImage, setSelectedGuideImage] = useState<string | null>(null);
   const [showPdfTooltip, setShowPdfTooltip] = useState(false);
 
   // Success Modal State
@@ -128,6 +133,35 @@ const ProductPage = () => {
     XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
     XLSX.writeFile(wb, 'inventory.xlsx');
     setShowDownloadMenu(false);
+  };
+
+  const downloadBulkTemplate = async () => {
+    const XLSX = await import('xlsx');
+    const templateData = [{
+      'Code*': 'FW001',
+      'Name_EN*': 'Example Firework',
+      'Name_ZH': '示例烟花',
+      'Category*': 'Cakes',
+      'Description_EN*': 'A beautiful 25 shot cake.',
+      'Description_ZH': '美丽的25发烟花。',
+      'Video_URL': 'https://youtube.com/watch?v=...',
+      'Stock*': 100,
+      'Price*': 99.90,
+      'Promotion_Price': 89.90,
+      'Seller_Price': 79.90,
+      'Items_Per_Box': 24,
+      'Box_Price': 2000.00,
+      'Box_Seller_Price': 1800.00,
+      'Box_Promotion_Price': 1900.00,
+      'Status': 'Live',
+      'Image_Filename*': 'firework1.png'
+    }];
+    
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Bulk Upload Template');
+    XLSX.writeFile(wb, 'product_bulk_upload_template.xlsx');
+    setShowAddMenu(false);
   };
 
   const downloadPDF = async () => {
@@ -319,12 +353,33 @@ const ProductPage = () => {
         setSelectedIds([]);
         setShowBulkDeleteModal(false);
       } else {
-        alert('Failed to delete selected products');
+        setSelectedIds([]);
+        setShowBulkDeleteModal(false);
       }
     } catch (error) {
       console.error(error);
     } finally {
       setIsBulkDeleting(false);
+    }
+  };
+
+  const handleDeleteSingle = async () => {
+    if (!productToDelete) return;
+    setIsDeleting(true);
+    try {
+      const response = await fetch('/api/products', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [productToDelete.id] }),
+      });
+      if (response.ok) {
+        setProducts(products.filter(p => p.id !== productToDelete.id));
+        setProductToDelete(null);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -387,185 +442,316 @@ const ProductPage = () => {
     return sortConfig.direction === 'asc' ? <ChevronRight size={12} className="rotate-[-90deg] text-yellow-500" /> : <ChevronRight size={12} className="rotate-[90deg] text-yellow-500" />;
   };
 
+  const headerActions = (
+    <div className="flex items-center gap-4 w-full md:w-auto">
+      <AnimatePresence>
+        {selectedIds.length > 0 && (
+          <motion.button 
+            initial={{ opacity: 0, scale: 0.9, x: 20 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.9, x: 20 }}
+            onClick={() => setShowBulkDeleteModal(true)}
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-red-500 text-white rounded-full font-bold text-[14px] tracking-wide hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all"
+          >
+            <Trash2 size={16} />
+            {t('delete_selected')} ({selectedIds.length})
+          </motion.button>
+        )}
+      </AnimatePresence>
+      {/* Add New Product Dropdown */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => setShowBulkGuideModal(true)}
+          className="w-11 h-11 rounded-full flex items-center justify-center bg-zinc-100 text-zinc-500 hover:text-yellow-500 hover:bg-yellow-500/10 transition-colors shadow-inner"
+          title="Bulk Upload Guide"
+        >
+          <HelpCircle size={20} />
+        </button>
+        <div className="relative">
+          <button
+            onClick={() => setShowAddMenu(v => !v)}
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-yellow-500 rounded-full text-[14px] font-bold text-zinc-800 tracking-wide hover:brightness-110 shadow-lg shadow-yellow-500/20 transition-all h-11"
+          >
+            <Plus size={16} strokeWidth={3} />
+            {t('add_new_product')}
+          </button>
+          <AnimatePresence>
+            {showAddMenu && (
+              <>
+                {/* Click-away backdrop */}
+                <div className="fixed inset-0 z-10" onClick={() => setShowAddMenu(false)} />
+              <motion.div
+                initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="absolute right-0 top-full mt-2 w-56 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-20 overflow-hidden"
+              >
+                <div className="flex flex-col">
+                  <Link 
+                    href="/admin/product/upload" 
+                    onClick={() => setShowAddMenu(false)}
+                    className="flex items-center gap-3 px-5 py-4 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 transition-colors"
+                  >
+                    <Upload size={16} className="text-blue-500" /> Upload Single Item
+                  </Link>
+                  <Link 
+                    href="/admin/product/bulk-upload" 
+                    onClick={() => setShowAddMenu(false)}
+                    className="flex items-center gap-3 px-5 py-4 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 transition-colors"
+                  >
+                    <Package size={16} className="text-yellow-500" /> Bulk Upload
+                  </Link>
+                  <div className="h-px bg-zinc-100 my-1 mx-2"></div>
+                  <button 
+                    onClick={downloadBulkTemplate} 
+                    className="w-full flex items-center gap-3 px-5 py-4 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 transition-colors"
+                  >
+                    <Download size={16} className="text-emerald-500" /> Download Template
+                  </button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Download Button */}
+      <div className="relative">
+        <button
+          onClick={() => setShowDownloadMenu(v => !v)}
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-zinc-900 rounded-full hover:bg-zinc-50 shadow-sm transition-all border border-zinc-200"
+          title="Download Inventory"
+        >
+          <Download size={16} strokeWidth={3} />
+        </button>
+        <AnimatePresence>
+          {showDownloadMenu && (
+            <>
+              {/* Click-away backdrop */}
+              <div className="fixed inset-0 z-10" onClick={() => setShowDownloadMenu(false)} />
+              <motion.div
+                initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="absolute right-0 top-full mt-2 w-52 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-20"
+              >
+                <button onClick={downloadCSV} className="w-full flex items-center gap-3 px-5 py-4 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 transition-colors rounded-t-2xl">
+                  <FileText size={16} className="text-blue-500" /> {t('export_csv')}
+                </button>
+                <button onClick={downloadExcel} className="w-full flex items-center gap-3 px-5 py-4 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 transition-colors border-t border-zinc-100">
+                  <Table size={16} className="text-green-500" /> {t('export_excel')}
+                </button>
+                <button onClick={downloadPDF} className="w-full flex items-center gap-3 px-5 py-4 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 transition-colors border-t border-zinc-100 rounded-b-2xl">
+                  <FileSpreadsheet size={16} className="text-red-500" /> 
+                  <span className="flex-1 text-left">{t('export_pdf')}</span>
+                  <div 
+                    className="relative"
+                    onMouseEnter={() => setShowPdfTooltip(true)}
+                    onMouseLeave={() => setShowPdfTooltip(false)}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <HelpCircle size={14} className="text-zinc-400 hover:text-yellow-500 transition-colors" />
+                    {showPdfTooltip && (
+                      <div className="absolute bottom-full right-0 mb-2 w-56 bg-zinc-900 border border-white/10 rounded-2xl p-4 shadow-2xl z-50 pointer-events-none">
+                        <p className="text-[10px] font-bold text-zinc-300 leading-relaxed">
+                          {t('pdf_english_only')}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+
   return (
-    <AdminLayout title={t('inventory')}>
+    <AdminLayout title={t('inventory')} headerActions={headerActions}>
       <div className="space-y-6">
-        {/* Header Stats */}
-        <div className="flex flex-col xl:flex-row gap-6 items-start xl:items-center justify-between">
-          <div className="flex flex-wrap gap-8 items-center">
-            <div>
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('live_products')}</p>
-              <h4 className="text-3xl font-black italic text-green-500">
+        {/* KPI Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          <div 
+            onClick={() => { setStatusFilter('Live'); setCurrentPage(1); }}
+            className="bg-white border border-zinc-100 rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 group shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg cursor-pointer hover:border-[#10b981]/30"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-[#10b981]">
+                  <CheckCircle size={18} strokeWidth={2.5} />
+                </div>
+                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('live_products')}</span>
+              </div>
+              <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+            </div>
+            <div className="flex items-end gap-3 mt-4">
+              <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
                 {products.filter(p => p.status === 'Live').length}
-              </h4>
+              </h3>
+              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">Available on store</p>
             </div>
-            <div className="pl-8 border-l border-zinc-500/10">
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('hold')}</p>
-              <h4 className="text-3xl font-black italic text-orange-500">
+          </div>
+
+          <div 
+            onClick={() => { setStatusFilter('Hold'); setCurrentPage(1); }}
+            className="bg-white border border-zinc-100 rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 group shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg cursor-pointer hover:border-[#f59e0b]/30"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-[#f59e0b]">
+                  <AlertTriangle size={18} strokeWidth={2.5} />
+                </div>
+                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('hold')}</span>
+              </div>
+              <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+            </div>
+            <div className="flex items-end gap-3 mt-4">
+              <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
                 {products.filter(p => p.status === 'Hold').length}
-              </h4>
+              </h3>
+              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">Awaiting action</p>
             </div>
-            <div className="pl-8 border-l border-zinc-500/10">
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('deactive')}</p>
-              <h4 className="text-3xl font-black italic text-zinc-500">
+          </div>
+
+          <div 
+            onClick={() => { setStatusFilter('Deactive'); setCurrentPage(1); }}
+            className="bg-white border border-zinc-100 rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 group shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg cursor-pointer hover:border-zinc-300"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-zinc-400">
+                  <X size={18} strokeWidth={2.5} />
+                </div>
+                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('deactive')}</span>
+              </div>
+              <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+            </div>
+            <div className="flex items-end gap-3 mt-4">
+              <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
                 {products.filter(p => p.status === 'Deactive').length}
-              </h4>
+              </h3>
+              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">Unpublished items</p>
             </div>
-            <button
-              onClick={() => setShowCategoryModal(true)} 
-              className="pl-8 border-l border-zinc-500/10 text-left hover:opacity-70 transition-opacity group cursor-pointer outline-none"
-            >
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1 group-hover:text-yellow-500 transition-colors">{t('categories')}</p>
-              <h4 className="text-3xl font-black italic text-yellow-500 group-hover:scale-105 transition-transform origin-left">
-                {categories.length}
-              </h4>
-            </button>
-
           </div>
+
+          <div 
+            onClick={() => { setStatusFilter('Low Stock'); setCurrentPage(1); }}
+            className="bg-white border border-zinc-100 rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 group shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg cursor-pointer hover:border-orange-500/30"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-orange-500">
+                  <AlertTriangle size={18} strokeWidth={2.5} />
+                </div>
+                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">Low Stock</span>
+              </div>
+              <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+            </div>
+            <div className="flex items-end gap-3 mt-4">
+              <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
+                {products.filter(p => p.stock > 0 && p.stock < 10).length}
+              </h3>
+              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">Below 10 items</p>
+            </div>
+          </div>
+
+          <div 
+            onClick={() => { setStatusFilter('Out of Stock'); setCurrentPage(1); }}
+            className="bg-white border border-zinc-100 rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 group shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg cursor-pointer hover:border-red-500/30"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-red-500">
+                  <X size={18} strokeWidth={2.5} />
+                </div>
+                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">Out of Stock</span>
+              </div>
+              <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+            </div>
+            <div className="flex items-end gap-3 mt-4">
+              <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
+                {products.filter(p => p.stock <= 0).length}
+              </h3>
+              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">0 items left</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Unified Table Section */}
+        <div className="mt-8">
+          <h3 className="text-xl font-bold text-zinc-800 tracking-wide px-2 mb-6">Inventory List</h3>
           
-          <div className="flex items-center gap-4 w-full md:w-auto">
-            <AnimatePresence>
-              {selectedIds.length > 0 && (
-                <motion.button 
-                  initial={{ opacity: 0, scale: 0.9, x: 20 }}
-                  animate={{ opacity: 1, scale: 1, x: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, x: 20 }}
-                  onClick={() => setShowBulkDeleteModal(true)}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-red-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 shadow-xl shadow-red-500/20 transition-all"
-                >
-                  <Trash2 size={18} />
-                  {t('delete_selected')} ({selectedIds.length})
-                </motion.button>
-              )}
-            </AnimatePresence>
-            <Link 
-              href="/admin/product/category"
-              className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-white  text-zinc-900  rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-50 :bg-zinc-700 hover:brightness-110 shadow-xl transition-all border border-zinc-200 "
-            >
-              <Plus size={18} strokeWidth={3} />
-              {t('add_new_category')}
-            </Link>
-
-            <Link href="/admin/product/upload" className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-yellow-500 text-zinc-950 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:brightness-110 shadow-xl shadow-yellow-500/20 transition-all">
-              <Plus size={18} strokeWidth={3} />
-              {t('add_new_product')}
-            </Link>
-
-            {/* Download Button */}
-            <div className="relative">
-              <button
-                onClick={() => setShowDownloadMenu(v => !v)}
-                className="flex items-center justify-center gap-2 p-4 bg-white  text-zinc-900  rounded-2xl hover:bg-zinc-50 :bg-zinc-700 shadow-xl transition-all border border-zinc-200 "
-                title="Download Inventory"
-              >
-                <Download size={18} strokeWidth={3} />
-                <ChevronDown size={14} strokeWidth={3} />
-              </button>
-              <AnimatePresence>
-                {showDownloadMenu && (
-                  <>
-                    {/* Click-away backdrop */}
-                    <div className="fixed inset-0 z-10" onClick={() => setShowDownloadMenu(false)} />
-                    <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute right-0 top-full mt-2 w-52 bg-white  border border-zinc-200  rounded-2xl shadow-2xl z-20"
-                    >
-                      <button onClick={downloadCSV} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700  hover:bg-zinc-50 :bg-zinc-800 transition-colors rounded-t-2xl">
-                        <FileText size={15} className="text-blue-500" /> {t('export_csv')}
-                      </button>
-                      <button onClick={downloadExcel} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700  hover:bg-zinc-50 :bg-zinc-800 transition-colors border-t border-zinc-100 ">
-                        <Table size={15} className="text-green-500" /> {t('export_excel')}
-                      </button>
-                      <button onClick={downloadPDF} className="w-full flex items-center gap-3 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-700  hover:bg-zinc-50 :bg-zinc-800 transition-colors border-t border-zinc-100  rounded-b-2xl">
-                        <FileSpreadsheet size={15} className="text-red-500" /> 
-                        <span className="flex-1 text-left">{t('export_pdf')}</span>
-                        <div 
-                          className="relative"
-                          onMouseEnter={() => setShowPdfTooltip(true)}
-                          onMouseLeave={() => setShowPdfTooltip(false)}
-                          onClick={e => e.stopPropagation()}
-                        >
-                          <HelpCircle size={14} className="text-zinc-400 hover:text-yellow-500 transition-colors" />
-                          {showPdfTooltip && (
-                            <div className="absolute bottom-full right-0 mb-2 w-56 bg-zinc-900  border border-white/10 rounded-2xl p-4 shadow-2xl z-50 pointer-events-none">
-                              <p className="text-[10px] font-bold text-zinc-300 leading-relaxed">
-                                {t('pdf_english_only')}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </button>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-        </div>
-
-        {/* Toolbar: Search & Filters */}
-        <div className="flex flex-col md:flex-row gap-4 p-4 bg-zinc-500/5 rounded-3xl border border-zinc-500/10 backdrop-blur-sm">
-          <div className="flex-1 relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-yellow-500 transition-colors" size={18} />
-            <input 
-              type="text" 
-              placeholder={t('search_placeholder')}
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="w-full pl-12 pr-4 py-3 bg-zinc-500/5 border border-zinc-500/10 rounded-2xl outline-none focus:border-yellow-500/50 transition-all  font-bold text-sm"
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 px-4 py-3 bg-zinc-500/5 border border-zinc-500/10 rounded-2xl relative">
-              <Filter size={16} className="text-zinc-500" />
-              <select 
-                value={categoryFilter}
-                onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1); }}
-                className="bg-transparent outline-none  text-zinc-900 font-bold text-sm pr-8 appearance-none cursor-pointer"
-              >
-                <option value="All" className=" bg-white">{t('all_categories')}</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.name} className=" bg-white">
-                    {getLocalizedCategoryName(cat)}
-                  </option>
+          <div className="bg-white border border-zinc-100 rounded-[40px] shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
+            
+            {/* Top Toolbar */}
+            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between p-6 pb-4 border-b border-zinc-100">
+              {/* Filter Pills */}
+              <div className="flex flex-wrap items-center gap-2">
+                {[
+                  { id: 'All', label: 'All', count: products.length },
+                  { id: 'Live', label: 'Live', count: products.filter(p => p.status === 'Live' && p.stock >= 10).length },
+                  { id: 'Hold', label: 'Hold', count: products.filter(p => p.status === 'Hold' && p.stock >= 10).length },
+                  { id: 'Deactive', label: 'Deactive', count: products.filter(p => p.status === 'Deactive' && p.stock >= 10).length },
+                  { id: 'Low Stock', label: 'Low stock', count: products.filter(p => p.stock > 0 && p.stock < 10).length },
+                  { id: 'Out of Stock', label: 'Out of stock', count: products.filter(p => p.stock <= 0).length },
+                ].map(filter => (
+                  <button
+                    key={filter.id}
+                    onClick={() => { setStatusFilter(filter.id); setCurrentPage(1); }}
+                    className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all ${
+                      statusFilter === filter.id 
+                        ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' 
+                        : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700'
+                    }`}
+                  >
+                    {filter.label} <span className="opacity-70 font-medium ml-1">({filter.count})</span>
+                  </button>
                 ))}
-              </select>
-              <div className="absolute right-4 pointer-events-none text-zinc-500">
-                <ChevronRight size={14} className="rotate-90" />
+              </div>
+
+              {/* Right side: Search & Category */}
+              <div className="flex flex-1 lg:flex-none items-center gap-3 w-full lg:w-auto">
+                <div className="relative flex-1 lg:w-64 group">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+                  <input 
+                    type="text" 
+                    placeholder={t('search_placeholder')}
+                    value={searchTerm}
+                    onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                    className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-full outline-none focus:border-blue-500 focus:bg-white transition-all text-[13px] font-bold text-zinc-700"
+                  />
+                </div>
+
+                <div className="relative group">
+                  <select 
+                    value={categoryFilter}
+                    onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1); }}
+                    className="appearance-none bg-zinc-50 border border-zinc-200 text-[13px] font-bold text-zinc-700 rounded-full pl-5 pr-10 py-2.5 outline-none focus:border-blue-500 focus:bg-white hover:border-zinc-300 cursor-pointer transition-all"
+                  >
+                    <option value="All">{t('all_categories')}</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.name}>
+                        {getLocalizedCategoryName(cat)}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-zinc-400 group-hover:text-zinc-600 transition-colors">
+                    <ChevronDown size={14} strokeWidth={2.5} />
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 px-4 py-3 bg-zinc-500/5 border border-zinc-500/10 rounded-2xl relative">
-              <Filter size={16} className="text-zinc-500" />
-              <select 
-                value={statusFilter}
-                onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-                className="bg-transparent outline-none  text-zinc-900 font-bold text-sm pr-8 appearance-none cursor-pointer"
-              >
-                <option value="All" className=" bg-white">{t('all_status') || 'All Status'}</option>
-                <option value="Live" className=" bg-white">{t('status_live') || 'Live'}</option>
-                <option value="Hold" className=" bg-white">{t('status_hold') || 'Hold'}</option>
-                <option value="Deactive" className=" bg-white">{t('status_deactive') || 'Deactive'}</option>
-                <option value="Low Stock" className=" bg-white">{t('low_stock')}</option>
-                <option value="Out of Stock" className=" bg-white">{t('out_of_stock')}</option>
-              </select>
-              <div className="absolute right-4 pointer-events-none text-zinc-500">
-                <ChevronRight size={14} className="rotate-90" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Product Table */}
-        <div className="border  border-zinc-100 rounded-[40px] overflow-hidden shadow-2xl  bg-white">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[1000px]">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
-                <tr className="border-b  border-zinc-100 bg-zinc-500/5">
-                  <th className="p-6 w-16">
+                <tr className="border-b border-zinc-100 bg-zinc-100">
+                  <th className="px-4 py-3 w-16">
                     <button 
                       onClick={handleSelectAll}
                       className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
@@ -578,36 +764,41 @@ const ProductPage = () => {
                     </button>
                   </th>
                   <th 
+                    className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
+                  >
+                    Product ID
+                  </th>
+                  <th 
                     onClick={() => handleSort('name')}
-                    className="p-6 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
+                    className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
                   >
                     <div className="flex items-center gap-2">{t('products')} <SortIndicator column="name" /></div>
                   </th>
                   <th 
                     onClick={() => handleSort('category')}
-                    className="p-6 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
+                    className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
                   >
                     <div className="flex items-center gap-2">{t('all_categories')} <SortIndicator column="category" /></div>
                   </th>
                   <th 
                     onClick={() => handleSort('stock')}
-                    className="p-6 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors text-center"
+                    className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors text-center"
                   >
                     <div className="flex items-center justify-center gap-2">{t('stock')} <SortIndicator column="stock" /></div>
                   </th>
                   <th 
                     onClick={() => handleSort('price_active')}
-                    className="p-6 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
+                    className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
                   >
                     <div className="flex items-center gap-2">{t('price')} <SortIndicator column="price_active" /></div>
                   </th>
                   <th 
                     onClick={() => handleSort('status')}
-                    className="p-6 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
+                    className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
                   >
                     <div className="flex items-center gap-2">{t('status')} <SortIndicator column="status" /></div>
                   </th>
-                  <th className="p-6"></th>
+                  <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-500/5">
@@ -628,7 +819,7 @@ const ProductPage = () => {
                       className={`group hover:bg-zinc-500/5 transition-colors cursor-pointer ${isSelected ? 'bg-yellow-500/5' : ''}`} 
                       onClick={() => router.push(`/admin/product/${p.id}`)}
                     >
-                      <td className="p-6" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <button 
                           onClick={(e) => toggleSelect(p.id, e)}
                           className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
@@ -640,31 +831,29 @@ const ProductPage = () => {
                           {isSelected && <Check size={14} strokeWidth={4} />}
                         </button>
                       </td>
-                      <td className="p-6">
+                      <td className="px-4 py-3">
+                        {p.code && (
+                          <span className="text-[12px] font-bold text-zinc-500">#{p.code}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-zinc-500/10 rounded-xl overflow-hidden flex items-center justify-center text-zinc-500 border border-white/5 shrink-0">
+                          <div className="w-10 h-10 bg-zinc-500/10 rounded-xl overflow-hidden flex items-center justify-center text-zinc-500 border border-white/5 shrink-0">
                             {p.images && p.images[0] ? (
                               <img src={p.images[0]} className="w-full h-full object-cover" />
                             ) : (
                               <ImageIcon size={20} />
                             )}
                           </div>
-                          <div className="flex flex-col">
-                            <span className="font-bold text-sm  text-zinc-900 group-hover:text-yellow-500 transition-colors line-clamp-1">{p.name}</span>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              {p.code && (
-                                <span className="text-[9px] bg-yellow-500/10 text-yellow-600  px-1.5 py-0.5 rounded font-black tracking-wider uppercase shrink-0">{p.code}</span>
-                              )}
-                            </div>
-                          </div>
+                          <span className="font-bold text-sm text-zinc-900 group-hover:text-yellow-500 transition-colors line-clamp-1">{p.name}</span>
                         </div>
                       </td>
-                      <td className="p-6">
+                      <td className="px-4 py-3">
                         <span className="px-3 py-1 bg-zinc-500/10 rounded-full text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                           {getLocalizedCategoryName(categories.find(c => c.name === p.category) ?? { name: p.category })}
                         </span>
                       </td>
-                      <td className="p-6 text-center text-xs font-black text-zinc-400" onDoubleClick={(e) => { e.stopPropagation(); handleEditStart(p); }} onClick={(e) => e.stopPropagation()}>
+                      <td className="px-4 py-3 text-center text-xs font-black text-zinc-400" onDoubleClick={(e) => { e.stopPropagation(); handleEditStart(p); }} onClick={(e) => e.stopPropagation()}>
                         {editingProduct === p.id ? (
                           <input 
                             type="number" 
@@ -677,7 +866,7 @@ const ProductPage = () => {
                           p.stock
                         )}
                       </td>
-                      <td className="p-6" onDoubleClick={(e) => { e.stopPropagation(); handleEditStart(p); }} onClick={(e) => e.stopPropagation()}>
+                      <td className="px-4 py-3" onDoubleClick={(e) => { e.stopPropagation(); handleEditStart(p); }} onClick={(e) => e.stopPropagation()}>
                         {editingProduct === p.id ? (
                           <div className="flex flex-col gap-1" onClick={e => e.stopPropagation()}>
                             <div className="flex items-center gap-1">
@@ -705,7 +894,7 @@ const ProductPage = () => {
                           </div>
                         )}
                       </td>
-                      <td className="p-6" onDoubleClick={(e) => { e.stopPropagation(); setEditingStatusId(p.id); }} onClick={(e) => e.stopPropagation()}>
+                      <td className="px-4 py-3" onDoubleClick={(e) => { e.stopPropagation(); setEditingStatusId(p.id); }} onClick={(e) => e.stopPropagation()}>
                         {editingStatusId === p.id ? (
                           <select
                             autoFocus
@@ -746,7 +935,7 @@ const ProductPage = () => {
                           </div>
                         )}
                       </td>
-                      <td className="p-6 text-right relative" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-4 py-3 text-right relative" onClick={(e) => e.stopPropagation()}>
                         {editingProduct === p.id ? (
                           <div className="flex items-center justify-end gap-2">
                             <button
@@ -768,7 +957,15 @@ const ProductPage = () => {
                               {t('confirm')}
                             </button>
                           </div>
-                        ) : null}
+                        ) : (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setProductToDelete(p); }}
+                            className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                            title="Delete Product"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
@@ -778,7 +975,7 @@ const ProductPage = () => {
           </div>
 
           {/* Pagination Footer */}
-          <div className="p-6 border-t  border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-500/5">
+          <div className="p-6 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-100">
             <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
               {t('showing')} {paginatedProducts.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} {t('to')} {Math.min(currentPage * itemsPerPage, sortedProducts.length)} {t('of')} {products.length} {t('records')}
             </p>
@@ -837,6 +1034,7 @@ const ProductPage = () => {
           </div>
         </div>
       </div>
+    </div>
 
       {/* Bulk Delete Confirmation Modal */}
       <AnimatePresence>
@@ -886,80 +1084,57 @@ const ProductPage = () => {
         )}
       </AnimatePresence>
 
-
-      {/* Category Overview Modal */}
+      {/* Single Delete Confirmation Modal */}
       <AnimatePresence>
-        {showCategoryModal && (
+        {productToDelete && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowCategoryModal(false)}
+              onClick={() => setProductToDelete(null)}
               className="absolute inset-0 bg-black/80 backdrop-blur-md"
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-6xl max-h-[85vh] flex flex-col bg-zinc-50  border border-zinc-200  rounded-[40px] shadow-2xl overflow-hidden"
+              className="relative w-full max-w-lg bg-zinc-900 border border-white/10 rounded-[48px] p-12 text-center shadow-2xl"
             >
-              {/* Header */}
-              <div className="flex items-center justify-between p-8 border-b border-yellow-600/30 bg-yellow-500 shrink-0">
-                <div className="flex items-center gap-4">
-                  <div>
-                    <h3 className="text-2xl font-black uppercase tracking-tight text-black">{t('category_overview')}</h3>
-                    <p className="text-[10px] font-bold text-black/60 uppercase tracking-widest mt-1">{t('total')} {categories.length} {t('categories')}</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setShowCategoryModal(false)}
-                  className="w-10 h-10 bg-black/5 hover:bg-black/10 text-black/70 hover:text-black rounded-full flex items-center justify-center transition-all"
-                >
-                  <X size={20} />
-                </button>
+              <div className="w-20 h-20 bg-red-500/10 text-red-500 rounded-[28px] flex items-center justify-center mx-auto mb-8 border border-red-500/20">
+                <AlertTriangle size={40} />
               </div>
-
-              {/* Body */}
-              <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-                  {categories.map(cat => {
-                    const count = products.filter(p => p.category === cat.name).length;
-                    return (
-                      <div 
-                        key={cat.id} 
-                        onClick={() => router.push(`/admin/product/category/edit/${cat.id}`)}
-                        className="relative aspect-[4/5] rounded-3xl overflow-hidden group cursor-pointer border border-zinc-200  shadow-xl"
-                      >
-                        <div className="absolute inset-0 bg-zinc-100 ">
-                          {cat.image ? (
-                            <img src={cat.image} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-zinc-300 "><ImageIcon size={48} /></div>
-                          )}
-                        </div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90 group-hover:opacity-100 transition-opacity" />
-                        
-                        <div className="absolute inset-x-0 bottom-0 p-5 flex flex-col items-start translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                          <h4 className="text-sm font-bold text-white mb-2 group-hover:text-yellow-400 transition-colors drop-shadow-xl truncate w-full">{getLocalizedCategoryName(cat)}</h4>
-                          <div className="inline-flex items-end gap-1 mt-auto pt-1">
-                            <span className="text-2xl font-black text-yellow-500 leading-none">{count}</span>
-                            <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest pb-0.5">{t('items')}</span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <Link href="/admin/product/category" className="relative aspect-[4/5] rounded-3xl overflow-hidden group cursor-pointer border border-dashed border-zinc-300  hover:border-yellow-500 :border-yellow-500 transition-colors flex flex-col items-center justify-center bg-zinc-100/50  hover:bg-yellow-500/5 :bg-yellow-500/10 shadow-sm">
-                    <div className="w-16 h-16 rounded-full bg-zinc-200  group-hover:bg-yellow-500 group-hover:text-zinc-900 flex items-center justify-center text-zinc-400  transition-all shadow-sm">
-                      <Plus size={24} strokeWidth={3} />
-                    </div>
-                    <p className="mt-4 text-xs font-black uppercase tracking-widest text-zinc-500  group-hover:text-yellow-600 :text-yellow-500">{t('add_new_category')}</p>
-                  </Link>
-                </div>
+              <h3 className="text-3xl font-black italic uppercase tracking-tight mb-4 text-white">Permanent Deletion</h3>
+              <p className="text-zinc-400 font-medium mb-10 leading-relaxed">
+                You will forever delete <span className="text-white font-bold">{getLocalizedName(productToDelete)}</span>. It won't be recoverable.
+              </p>
+              
+              <div className="flex gap-4">
+                <button 
+                  disabled={isDeleting}
+                  onClick={() => setProductToDelete(null)}
+                  className="flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-white/5 border border-white/10 text-zinc-500 hover:bg-white/10 transition-all"
+                >
+                  {t('cancel')}
+                </button>
+                <button 
+                  disabled={isDeleting}
+                  onClick={handleDeleteSingle}
+                  className="flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-red-500 text-white hover:bg-red-600 shadow-xl shadow-red-500/20 transition-all flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? (
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>{t('confirm')}</>
+                  )}
+                </button>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
+
+      {/* Category Overview Modal */}
+
 
       {/* Success Modal */}
       <AnimatePresence>
@@ -993,6 +1168,174 @@ const ProductPage = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Bulk Upload Guide Modal */}
+      <AnimatePresence>
+        {showBulkGuideModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="bg-white border border-zinc-200 rounded-[32px] w-full max-w-4xl shadow-2xl overflow-hidden relative max-h-[90vh] overflow-y-auto"
+            >
+              <div className="p-8 md:p-10">
+                <div className="flex items-center justify-between mb-8 pb-6 border-b border-zinc-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-yellow-500/20 text-yellow-600 rounded-xl">
+                      <HelpCircle size={24} strokeWidth={2.5} />
+                    </div>
+                    <h3 className="text-2xl font-black italic tracking-tight text-zinc-900">
+                      Bulk Upload Guidance
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setShowBulkGuideModal(false)}
+                    className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200 transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                <div className="space-y-12">
+                  <div className="max-w-2xl text-zinc-600 font-medium">
+                    <p>
+                      Welcome to the Bulk Upload guide. Our bulk import system allows you to easily upload hundreds of products and their corresponding images simultaneously using a single ZIP archive. Follow these professional guidelines to ensure a flawless data import experience.
+                    </p>
+                  </div>
+
+                  {/* Step 1 */}
+                  <div className="flex flex-col md:flex-row gap-8 items-center">
+                    <div 
+                      className="w-full md:w-1/2 bg-zinc-100 rounded-2xl border border-zinc-200 flex items-center justify-center relative overflow-hidden p-2 cursor-pointer hover:border-yellow-500 transition-colors group"
+                      onClick={() => setSelectedGuideImage("/excel.png")}
+                    >
+                      <img src="/excel.png" alt="Excel Template Example" className="w-full h-auto object-contain rounded-xl shadow-md group-hover:scale-[1.02] transition-transform duration-300" />
+                    </div>
+                    
+                    <div className="w-full md:w-1/2 space-y-3">
+                      <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 font-black text-xs mb-2 shadow-sm border border-blue-500/20">1</div>
+                      <h4 className="text-2xl font-black italic text-zinc-900">Prepare the Excel Template</h4>
+                      <div className="text-sm text-zinc-500 space-y-3 font-medium">
+                        <p>Begin by downloading the official template from the Products page.</p>
+                        <ul className="list-disc pl-5 space-y-2">
+                          <li>Fill in all the required columns (marked with an asterisk <span className="text-red-500 font-bold">*</span>).</li>
+                          <li>For the <span className="font-bold text-zinc-700">Image_Filename</span> column, input the exact filename of your image (e.g., <code className="bg-zinc-100 px-2 py-0.5 rounded text-xs text-pink-600 font-mono">firework-01.png</code>).</li>
+                          <li>Ensure the spelling and file extension (.png, .jpg) matches your actual image file perfectly.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 2 */}
+                  <div className="flex flex-col md:flex-row-reverse gap-8 items-center">
+                    <div 
+                      className="w-full md:w-1/2 bg-zinc-100 rounded-2xl border border-zinc-200 flex items-center justify-center relative overflow-hidden p-2 cursor-pointer hover:border-yellow-500 transition-colors group"
+                      onClick={() => setSelectedGuideImage("/zip.png")}
+                    >
+                      <img src="/zip.png" alt="Folder Structure Example" className="w-full h-auto object-contain rounded-xl shadow-md group-hover:scale-[1.02] transition-transform duration-300" />
+                    </div>
+                    
+                    <div className="w-full md:w-1/2 space-y-3">
+                      <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-yellow-500/10 text-yellow-600 font-black text-xs mb-2 shadow-sm border border-yellow-500/20">2</div>
+                      <h4 className="text-2xl font-black italic text-zinc-900">Package the ZIP Archive</h4>
+                      <div className="text-sm text-zinc-500 space-y-3 font-medium">
+                        <p>Consolidate your filled template and all product images into a single folder.</p>
+                        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-xs text-yellow-800">
+                          <span className="font-bold">Note on Folders:</span> Our system utilizes a smart-scan engine. Folder names do not matter. We automatically search all directories within your ZIP archive to match filenames perfectly.
+                        </div>
+                        <ul className="list-disc pl-5 space-y-2">
+                          <li>Create a new folder on your computer.</li>
+                          <li>Move your completed `.xlsx` template and all related image files into this folder.</li>
+                          <li>Right-click the folder and select <span className="font-bold text-zinc-700">Compress to ZIP file</span>.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 3 */}
+                  <div className="flex flex-col md:flex-row gap-8 items-center">
+                    <div 
+                      className="w-full md:w-1/2 bg-zinc-100 rounded-2xl border border-zinc-200 flex items-center justify-center relative overflow-hidden p-2 cursor-pointer hover:border-green-500 transition-colors group"
+                      onClick={() => setSelectedGuideImage("/validation.png")}
+                    >
+                      <img src="/validation.png" alt="Validation Example" className="w-full h-auto object-contain rounded-xl shadow-md group-hover:scale-[1.02] transition-transform duration-300" />
+                    </div>
+                    
+                    <div className="w-full md:w-1/2 space-y-3">
+                      <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-500/10 text-green-600 font-black text-xs mb-2 shadow-sm border border-green-500/20">3</div>
+                      <h4 className="text-2xl font-black italic text-zinc-900">Upload and Verify</h4>
+                      <div className="text-sm text-zinc-500 space-y-3 font-medium">
+                        <p>Navigate to the Bulk Upload page and drop your newly created `.zip` package.</p>
+                        <ul className="list-disc pl-5 space-y-2">
+                          <li>The system will extract and analyze your ZIP package locally.</li>
+                          <li>A preview table will appear showing exactly how your products will look.</li>
+                          <li>Review any validation errors highlighted in red.</li>
+                          <li>Click <span className="font-bold text-zinc-700">Confirm Import</span> to permanently save the products to the database.</li>
+                        </ul>
+                      </div>
+                      
+                      <div className="pt-4">
+                        <Link 
+                          href="/admin/product/bulk-upload" 
+                          onClick={() => setShowBulkGuideModal(false)}
+                          className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-zinc-900 text-white rounded-full font-bold uppercase tracking-widest text-[10px] hover:scale-105 transition-transform shadow-xl shadow-zinc-900/20"
+                        >
+                          <UploadCloud size={14} /> Go to Bulk Upload
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-10 flex justify-end">
+                  <button 
+                    onClick={() => setShowBulkGuideModal(false)}
+                    className="px-8 py-3.5 bg-yellow-500 text-zinc-900 rounded-full font-black uppercase tracking-widest text-xs hover:brightness-110 shadow-lg shadow-yellow-500/20 transition-all flex items-center gap-2"
+                  >
+                    Got it
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Guide Image Preview Modal */}
+      <AnimatePresence>
+        {selectedGuideImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedGuideImage(null)}
+            className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl cursor-zoom-out"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative max-w-[90vw] max-h-[90vh] bg-zinc-900 rounded-2xl overflow-hidden flex items-center justify-center border border-zinc-800"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img src={selectedGuideImage} alt="Preview" className="w-full h-full object-contain" />
+            </motion.div>
+            <button
+              onClick={() => setSelectedGuideImage(null)}
+              className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </AdminLayout>
   );
 };
