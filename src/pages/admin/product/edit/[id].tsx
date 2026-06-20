@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Image as ImageIcon, Video, Package, Tag, Info, DollarSign, Save, X, Upload, Plus as PlusIcon, HelpCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Image as ImageIcon, Video, Package, Tag, Info, DollarSign, Save, X, Upload, Plus as PlusIcon, HelpCircle, Activity } from 'lucide-react';
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import Link from 'next/link';
 import { useLanguage } from '../../../../context/LanguageContext';
@@ -255,22 +255,7 @@ const EditProductPage = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Status Badge */}
-          <div className="flex justify-end">
-            <div className="flex items-center gap-4">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('listing_status')}</label>
-              <select 
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="px-6 py-3 rounded-xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 transition-all text-xs uppercase tracking-widest"
-              >
-                <option value="Live">{t('live_products')}</option>
-                <option value="Hold">{t('hold')}</option>
-                <option value="Deactive">{t('deactive')}</option>
-              </select>
-            </div>
-          </div>
+
 
           {/* Image Section */}
           <div className="bg-white  p-8 rounded-[48px] border  border-zinc-100 shadow-xl">
@@ -418,20 +403,33 @@ const EditProductPage = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold bg-zinc-100 border-zinc-200 text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
                   placeholder="e.g. Thunder Clap"
                   required
                 />
               </div>
 
+              {/* Chinese Translation */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('chinese_translation')}</label>
+                <input 
+                  type="text" 
+                  name="nameZh"
+                  value={formData.nameZh || ''}
+                  onChange={handleChange}
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold bg-zinc-100 border-zinc-200 text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                  placeholder="e.g. 雷霆万钧"
+                />
+              </div>
+
               {/* Category Select */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('category')} *</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('categories')} *</label>
                 <select 
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 transition-all text-sm cursor-pointer"
+                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold bg-zinc-100 border-zinc-200 text-zinc-900 focus:border-yellow-500 transition-all text-sm cursor-pointer"
                   required
                 >
                   <option value="">{t('choose_category')}</option>
@@ -446,33 +444,25 @@ const EditProductPage = () => {
 
               {/* Product Code */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('product_code')}</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('category_code')}</label>
                 <div className="flex gap-2">
                   <input 
                     type="text" 
                     name="code"
                     value={formData.code}
                     readOnly
-                    className="flex-1 px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-400 cursor-not-allowed transition-all text-sm opacity-70" 
+                    className="flex-1 px-6 py-4 rounded-2xl border outline-none font-bold bg-zinc-100 border-zinc-200 text-zinc-400 cursor-not-allowed transition-all text-sm opacity-70" 
                     placeholder="e.g. TC00001"
                   />
+                  <button
+                    type="button"
+                    onClick={handleAutoGenerateCode}
+                    className="px-6 py-4 bg-zinc-200 hover:bg-zinc-300 text-zinc-900 hover:text-yellow-500 font-bold text-[10px] uppercase tracking-wider rounded-2xl transition-all border border-zinc-300/50 cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+                  >
+                    <span>{t('auto_gen')}</span>
+                  </button>
                 </div>
               </div>
-
-              {/* Chinese Translation */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-4">{t('chinese_translation')}</label>
-                <input 
-                  type="text" 
-                  name="nameZh"
-                  value={formData.nameZh || ''}
-                  onChange={handleChange}
-                  className="w-full px-6 py-4 rounded-2xl border outline-none font-bold  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
-                  placeholder="e.g. 雷霆万钧"
-                />
-              </div>
-
-
 
               <div className="md:col-span-2 space-y-8 mt-4">
                 <div className="space-y-2">
@@ -481,7 +471,7 @@ const EditProductPage = () => {
                     name="description"
                     value={formData.description}
                     onChange={handleChange}
-                    className="w-full px-6 py-4 rounded-2xl border outline-none font-medium leading-relaxed min-h-[140px]  bg-zinc-100  border-zinc-200  text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
+                    className="w-full px-6 py-4 rounded-2xl border outline-none font-medium leading-relaxed min-h-[140px] bg-zinc-100 border-zinc-200 text-zinc-900 focus:border-yellow-500 transition-all text-sm" 
                     placeholder="Detailed English description..."
                     required
                   />
@@ -651,13 +641,53 @@ const EditProductPage = () => {
             </div>
           </div>
 
-          <div className="flex gap-4">
+          {/* Listing Status */}
+          <div className="bg-white p-8 rounded-[48px] border border-zinc-100 shadow-xl">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-purple-500/10 text-purple-500 rounded-lg"><Activity size={18} /></div>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t('listing_status')}</h2>
+            </div>
+            
+            <div className="flex items-center p-2 bg-zinc-100/80 rounded-full relative w-full border border-zinc-200/50">
+              {['Live', 'Hold', 'Deactive'].map((status) => {
+                const isActive = formData.status === status;
+                return (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, status }))}
+                    className={`flex-1 py-4 px-6 rounded-full font-black uppercase tracking-widest text-xs relative z-10 transition-colors duration-300 ${
+                      isActive 
+                        ? status === 'Live' ? 'text-green-700' : status === 'Hold' ? 'text-orange-700' : 'text-red-700'
+                        : 'text-zinc-400 hover:text-zinc-600'
+                    }`}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="statusSwitchEdit"
+                        className={`absolute inset-0 rounded-full shadow-md ${
+                          status === 'Live' ? 'bg-white border-2 border-green-500 shadow-green-500/20' :
+                          status === 'Hold' ? 'bg-white border-2 border-orange-500 shadow-orange-500/20' :
+                          'bg-white border-2 border-red-500 shadow-red-500/20'
+                        }`}
+                        transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                        style={{ zIndex: -1 }}
+                      />
+                    )}
+                    {t(status === 'Live' ? 'live_products' : status === 'Hold' ? 'hold' : 'deactive')}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 pt-4">
             <button
               type="button"
               onClick={() => router.push('/admin/product')}
-              className="flex-1 py-6 bg-zinc-500/10 text-zinc-500 rounded-3xl font-black uppercase tracking-widest text-xs hover:bg-zinc-500/20 transition-all"
+              className="w-1/3 py-4 bg-zinc-200 text-zinc-600 rounded-[24px] font-bold text-sm hover:bg-zinc-300 transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer"
             >
-              {t('cancel_changes')}
+              Cancel
             </button>
             <button
               type="submit"
@@ -665,10 +695,13 @@ const EditProductPage = () => {
                 JSON.stringify(formData) === JSON.stringify(initialFormData) &&
                 JSON.stringify(uploadedImages) === JSON.stringify(initialImages)
               )}
-              className="flex-[2] py-6 bg-yellow-500 text-zinc-950 rounded-3xl font-black uppercase tracking-[0.5em] text-xs hover:brightness-110 transition-all shadow-2xl shadow-yellow-500/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-4"
+              className="w-2/3 py-5 bg-yellow-500 text-zinc-950 rounded-[24px] font-bold text-sm hover:brightness-110 transition-all shadow-2xl shadow-yellow-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Save size={18} />
-              {isSaving ? t('saving') : t('update_product_listing')}
+              {isSaving ? (
+                <div className="w-5 h-5 border-2 border-zinc-950/20 border-t-zinc-950 rounded-full animate-spin" />
+              ) : (
+                "Confirm Update"
+              )}
             </button>
           </div>
         </form>

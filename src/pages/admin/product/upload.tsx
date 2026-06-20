@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Image as ImageIcon, Video, Package, Tag, Info, DollarSign, X, Upload, Plus as PlusIcon, HelpCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Image as ImageIcon, Video, Package, Tag, Info, DollarSign, X, Upload, Plus as PlusIcon, HelpCircle, Activity } from 'lucide-react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import Link from 'next/link';
 import { useLanguage } from '../../../context/LanguageContext';
@@ -41,6 +41,7 @@ const UploadProductPage = () => {
     itemsPerBox: '',
     boxSellerPrice: '',
     boxPromotion: '',
+    status: 'Live',
   });
 
   const handleAutoGenerateCode = async () => {
@@ -592,6 +593,46 @@ const UploadProductPage = () => {
                   placeholder="Optional"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Listing Status */}
+          <div className="bg-white p-8 rounded-[48px] border border-zinc-100 shadow-xl">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-purple-500/10 text-purple-500 rounded-lg"><Activity size={18} /></div>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t('listing_status')}</h2>
+            </div>
+            
+            <div className="flex items-center p-2 bg-zinc-100/80 rounded-full relative w-full border border-zinc-200/50">
+              {['Live', 'Hold', 'Deactive'].map((status) => {
+                const isActive = formData.status === status;
+                return (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, status }))}
+                    className={`flex-1 py-4 px-6 rounded-full font-black uppercase tracking-widest text-xs relative z-10 transition-colors duration-300 ${
+                      isActive 
+                        ? status === 'Live' ? 'text-green-700' : status === 'Hold' ? 'text-orange-700' : 'text-red-700'
+                        : 'text-zinc-400 hover:text-zinc-600'
+                    }`}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="statusSwitchUpload"
+                        className={`absolute inset-0 rounded-full shadow-md ${
+                          status === 'Live' ? 'bg-white border-2 border-green-500 shadow-green-500/20' :
+                          status === 'Hold' ? 'bg-white border-2 border-orange-500 shadow-orange-500/20' :
+                          'bg-white border-2 border-red-500 shadow-red-500/20'
+                        }`}
+                        transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                        style={{ zIndex: -1 }}
+                      />
+                    )}
+                    {t(status === 'Live' ? 'live_products' : status === 'Hold' ? 'hold' : 'deactive')}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

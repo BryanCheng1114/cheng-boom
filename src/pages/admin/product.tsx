@@ -34,12 +34,14 @@ import {
 import AdminLayout from '../../components/admin/AdminLayout';
 import Link from 'next/link';
 import { useLanguage } from '../../context/LanguageContext';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const ProductPage = () => {
   const router = useRouter();
   const { t, language } = useLanguage();
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   // Management States
@@ -66,6 +68,7 @@ const ProductPage = () => {
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [showBulkGuideModal, setShowBulkGuideModal] = useState(false);
+  const [showQuickEditGuide, setShowQuickEditGuide] = useState(false);
   const [selectedGuideImage, setSelectedGuideImage] = useState<string | null>(null);
   const [showPdfTooltip, setShowPdfTooltip] = useState(false);
 
@@ -232,16 +235,19 @@ const ProductPage = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [prodRes, catRes] = await Promise.all([
+      const [prodRes, catRes, orderRes] = await Promise.all([
         fetch('/api/products'),
-        fetch('/api/categories')
+        fetch('/api/categories'),
+        fetch('/api/orders')
       ]);
-      const [prodData, catData] = await Promise.all([
+      const [prodData, catData, orderData] = await Promise.all([
         prodRes.json(),
-        catRes.json()
+        catRes.json(),
+        orderRes.json()
       ]);
       setProducts(Array.isArray(prodData) ? prodData : []);
       setCategories(Array.isArray(catData) ? catData : []);
+      setOrders(Array.isArray(orderData) ? orderData : []);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -265,6 +271,55 @@ const ProductPage = () => {
       router.replace('/admin/product', undefined, { shallow: true });
     }
   }, [router.query.updated, router]);
+
+  // Data processing for charts
+  const stockData = useMemo(() => {
+    let available = 0, lowStock = 0, outOfStock = 0;
+    products.forEach(p => {
+      if (p.stock >= 10) available++;
+      else if (p.stock > 0 && p.stock < 10) lowStock++;
+      else outOfStock++;
+    });
+    return [
+      { name: t('available_products') || 'Available Products', value: available, color: '#1e1b4b' }, // very dark blue
+      { name: t('low_stock') || 'Low Stock', value: lowStock, color: '#3b82f6' }, // blue
+      { name: t('out_of_stock') || 'Out of Stock', value: outOfStock, color: '#93c5fd' }, // light blue
+    ];
+  }, [products, t]);
+
+  const salesData = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    const salesMap: Record<string, { name: string, sold: number }> = {};
+    
+    // Initialize
+    products.forEach(p => {
+      salesMap[p.id] = { name: getLocalizedName(p), sold: 0 };
+    });
+
+    orders.forEach(order => {
+      const orderDate = new Date(order.createdAt);
+      if (orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear && order.status !== 'Cancelled') {
+        order.items?.forEach((item: any) => {
+          if (salesMap[item.productId]) {
+            salesMap[item.productId].sold += item.quantity;
+          } else {
+            salesMap[item.productId] = { name: item.name, sold: item.quantity };
+          }
+        });
+      }
+    });
+
+    const sortedSales = Object.values(salesMap).sort((a, b) => b.sold - a.sold);
+    
+    // Get top 6
+    return sortedSales.slice(0, 6).map(item => ({
+      name: item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name,
+      sold: item.sold
+    })).reverse();
+  }, [orders, products]);
 
   // Filtering Logic
   const filteredProducts = useMemo(() => {
@@ -682,6 +737,109 @@ const ProductPage = () => {
           </div>
         </div>
 
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          
+          {/* Best & Least Selling Products */}
+          <div className="bg-white border border-zinc-100 rounded-3xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col h-[400px]">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-[14px] font-bold text-zinc-800 tracking-wide">Best &amp; Least Selling Products</h3>
+            </div>
+            <p className="text-[12px] font-medium text-zinc-500 mb-8">See which products sold the most and the least this month</p>
+            
+            <div className="flex-1 w-full relative">
+              {salesData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={salesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f4f4f5" />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: '#a1a1aa', fontSize: 10, fontWeight: 600 }}
+                      dy={10}
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: '#a1a1aa', fontSize: 10, fontWeight: 600 }} 
+                    />
+                    <Tooltip 
+                      cursor={{ fill: 'transparent' }}
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontWeight: 'bold' }}
+                      labelStyle={{ color: '#52525b', marginBottom: '4px' }}
+                    />
+                    <Bar dataKey="sold" radius={[6, 6, 6, 6]} barSize={24}>
+                      {salesData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={index === salesData.length - 1 ? '#4f46e5' : '#e0e7ff'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <p className="text-sm font-bold text-zinc-400">No sales data for this month</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Product Stock Overview */}
+          <div className="bg-white border border-zinc-100 rounded-3xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col h-[400px]">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-[14px] font-bold text-zinc-800 tracking-wide">Product Stock Overview</h3>
+            </div>
+            <p className="text-[12px] font-medium text-zinc-500 mb-8">Monitor which products are available, running low, or sold out</p>
+            
+            <div className="flex-1 w-full flex items-center justify-center relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={stockData}
+                    cx="40%"
+                    cy="50%"
+                    innerRadius={80}
+                    outerRadius={110}
+                    paddingAngle={2}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {stockData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontWeight: 'bold' }}
+                    itemStyle={{ fontWeight: 'bold', color: '#18181b' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              
+              {/* Total inner text */}
+              <div className="absolute left-[40%] top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
+                  {products.length}
+                </span>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total</span>
+              </div>
+
+              {/* Legend */}
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-6">
+                {stockData.map((entry, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <div className="w-6 h-2 rounded-full" style={{ backgroundColor: entry.color }}></div>
+                    <div className="flex flex-col">
+                      <span className="text-[12px] font-bold text-zinc-800">{entry.name}</span>
+                      <span className="text-[14px] font-extrabold text-zinc-500">{entry.value}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+        </div>
+
         {/* Unified Table Section */}
         <div className="mt-8">
           <h3 className="text-xl font-bold text-zinc-800 tracking-wide px-2 mb-6">Inventory List</h3>
@@ -716,6 +874,13 @@ const ProductPage = () => {
 
               {/* Right side: Search & Category */}
               <div className="flex flex-1 lg:flex-none items-center gap-3 w-full lg:w-auto">
+                <button
+                  onClick={() => setShowQuickEditGuide(true)}
+                  className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-blue-500 hover:bg-blue-500/10 transition-colors shrink-0"
+                  title="Quick Action Guide"
+                >
+                  <HelpCircle size={18} />
+                </button>
                 <div className="relative flex-1 lg:w-64 group">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-blue-500 transition-colors" size={16} />
                   <input 
@@ -817,7 +982,7 @@ const ProductPage = () => {
                     <tr 
                       key={p.id} 
                       className={`group hover:bg-zinc-500/5 transition-colors cursor-pointer ${isSelected ? 'bg-yellow-500/5' : ''}`} 
-                      onClick={() => router.push(`/admin/product/${p.id}`)}
+                      onClick={() => router.push(`/admin/product/edit/${p.id}`)}
                     >
                       <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <button 
@@ -1332,6 +1497,80 @@ const ProductPage = () => {
             >
               <X size={24} />
             </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Quick Edit Guide Modal */}
+      <AnimatePresence>
+        {showQuickEditGuide && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowQuickEditGuide(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="w-full max-w-lg bg-white rounded-[32px] shadow-2xl overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                    <HelpCircle size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-zinc-900">Quick Action Guide</h3>
+                    <p className="text-sm font-medium text-zinc-500">Inline Editing Shortcuts</p>
+                  </div>
+                </div>
+                
+                <div className="bg-zinc-50 rounded-2xl p-6 border border-zinc-100">
+                  <div 
+                    className="mb-6 bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm flex items-center justify-center p-2 cursor-pointer hover:border-blue-500 transition-colors group"
+                    onClick={() => setSelectedGuideImage("/quickaction.png")}
+                  >
+                    <img src="/quickaction.png" alt="Quick Action Preview" className="w-full h-auto rounded-lg object-contain group-hover:scale-[1.02] transition-transform duration-300" />
+                  </div>
+                  <p className="text-sm text-zinc-600 leading-relaxed font-medium">
+                    You don't need to leave this page to make simple updates. To quickly edit an item:
+                  </p>
+                  <ul className="mt-4 space-y-3">
+                    <li className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-[10px] font-black text-zinc-600">1</span>
+                      </div>
+                      <span className="text-sm text-zinc-700 font-medium"><strong className="text-zinc-900">Double-click</strong> directly on the <strong className="text-zinc-900">Stock, Price, or Status</strong> cells in the inventory table below.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-[10px] font-black text-zinc-600">2</span>
+                      </div>
+                      <span className="text-sm text-zinc-700 font-medium">Type your new value or select the new status from the dropdown.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-[10px] font-black text-zinc-600">3</span>
+                      </div>
+                      <span className="text-sm text-zinc-700 font-medium">Hit <strong className="text-zinc-900 bg-zinc-200 px-1.5 py-0.5 rounded text-xs">Enter</strong> or click the green Save icon to instantly apply your changes!</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="mt-8 flex justify-end">
+                  <button 
+                    onClick={() => setShowQuickEditGuide(false)}
+                    className="px-8 py-3.5 bg-blue-500 text-white rounded-full font-black uppercase tracking-widest text-xs hover:brightness-110 shadow-lg shadow-blue-500/20 transition-all"
+                  >
+                    Got it, Thanks!
+                  </button>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
