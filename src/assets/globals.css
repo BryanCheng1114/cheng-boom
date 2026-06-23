@@ -23,28 +23,7 @@
 
 @layer base {
   :root {
-    /* Dark Mode by default */
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 45 93% 47%;
-    --primary-foreground: 0 85.7% 97.3%;
-    --secondary: 0 84.2% 60.2%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --radius: 0.5rem;
-  }
-
-  .light {
+    /* Light Mode by default */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
@@ -62,6 +41,27 @@
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 45 93% 47%;
+    --primary-foreground: 0 85.7% 97.3%;
+    --secondary: 0 84.2% 60.2%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
   }
 }
 
@@ -129,6 +129,66 @@
 @keyframes bounce-subtle {
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-3px); }
+}
+
+/* ── Chinese New Year Animations ── */
+@keyframes lanternSwing {
+  0%, 100% { transform: rotate(-6deg) translateY(0px); }
+  50%       { transform: rotate(6deg) translateY(-8px); }
+}
+
+@keyframes lanternSwingR {
+  0%, 100% { transform: rotate(6deg) translateY(0px); }
+  50%       { transform: rotate(-6deg) translateY(-8px); }
+}
+
+@keyframes cnyFadeUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cnyFadeDown {
+  from { opacity: 0; transform: translateY(-30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cnyGlow {
+  0%, 100% { text-shadow: 0 0 20px rgba(251,191,36,0.4), 0 0 60px rgba(251,191,36,0.2); }
+  50%       { text-shadow: 0 0 40px rgba(251,191,36,0.8), 0 0 100px rgba(251,191,36,0.4), 0 0 160px rgba(239,68,68,0.2); }
+}
+
+@keyframes cnyFloat {
+  0%, 100% { transform: translateY(0px) rotate(-4deg); }
+  50%       { transform: translateY(-16px) rotate(4deg); }
+}
+
+@keyframes redFlicker {
+  0%, 100% { opacity: 1; }
+  92%       { opacity: 1; }
+  93%       { opacity: 0.85; }
+  94%       { opacity: 1; }
+  96%       { opacity: 0.9; }
+  97%       { opacity: 1; }
+}
+
+@keyframes cnySparkRise {
+  0%   { transform: translateY(0) scale(1) rotate(0deg);   opacity: 0.9; }
+  100% { transform: translateY(-160px) scale(0) rotate(180deg); opacity: 0; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes borderGlow {
+  0%, 100% { border-color: rgba(251,191,36,0.3); box-shadow: 0 0 10px rgba(251,191,36,0.1); }
+  50%       { border-color: rgba(251,191,36,0.7); box-shadow: 0 0 25px rgba(251,191,36,0.3); }
+}
+
+@keyframes scrollDot {
+  0%   { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(10px); }
 }
 
 .animate-fade-in-up {

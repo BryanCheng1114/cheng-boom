@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useState, useRef, useEffect } from 'react';
 import { prisma } from '../../lib/prisma';
 import { useCart } from '../../components/cart/CartProvider';
-import { ArrowLeft, ShoppingCart, Plus, Minus, CheckCircle, Maximize2, X, Loader2, Package, User, Phone, CreditCard, MapPin, Check, MessageCircle, HelpCircle, Zap, Share2, Link as LinkIcon, Home, ChevronRight, ShieldCheck, Truck, Award, Headset } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Plus, Minus, CheckCircle, Maximize2, X, Loader2, Package, User, Phone, CreditCard, MapPin, Check, MessageCircle, HelpCircle, Zap, Share2, Link as LinkIcon, Home, ChevronRight, ShieldCheck, Truck, Award, Headset , Heart} from 'lucide-react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { SharedCheckoutModal } from '../../components/checkout/SharedCheckoutModal';
 import { generateWhatsAppLink, OrderDetails } from '../../services/whatsappService';
@@ -40,6 +40,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   const [selectedVariant, setSelectedVariant] = useState<'Single' | 'Box' | null>(null);
   const [showVariantError, setShowVariantError] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState<'description' | 'video'>('description');
 
 
   const cartItemIdSingle = `${product?.id}-Single`;
@@ -314,10 +315,12 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
         <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : ''} />
         <meta property="og:type" content="product" />
       </Head>
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="min-h-screen bg-white pt-6">
         
         {/* Top Header: Breadcrumb & Share */}
-        <div className="hidden lg:flex items-center justify-between gap-4 mb-8">
+        <div className="w-full hidden lg:block">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
+
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-zinc-400 text-sm font-medium overflow-x-auto whitespace-nowrap scrollbar-hide pb-2 flex-1">
             <Link href="/" className="inline-flex items-center gap-1.5 hover:text-primary transition-colors">
@@ -330,35 +333,24 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                 {locale === 'zh' ? '购物车' : locale === 'ms' ? 'Troli Beli-belah Saya' : 'My Shopping Cart'}
               </Link>
             ) : (
-              <Link href={`/shop?category=${catKey}`} className="hover:text-primary transition-colors">
-                {translatedCategory || (locale === 'zh' ? '商店' : locale === 'ms' ? 'Kedai' : 'Shop')}
-              </Link>
+              <>
+                <Link href="/shop" className="hover:text-primary transition-colors">
+                  {locale === 'zh' ? '所有分类' : locale === 'ms' ? 'Semua Kategori' : 'All Categories'}
+                </Link>
+                <ChevronRight size={14} className="text-zinc-600" />
+                <Link href={`/shop?category=${catKey}`} className="hover:text-primary transition-colors">
+                  {translatedCategory || (locale === 'zh' ? '商店' : locale === 'ms' ? 'Kedai' : 'Shop')}
+                </Link>
+              </>
             )}
             <ChevronRight size={14} className="text-zinc-600" />
-            <span className="text-zinc-100 truncate max-w-[200px] sm:max-w-xs">{translatedName}</span>
+            <span className="text-zinc-900 font-bold truncate max-w-[200px] sm:max-w-xs">{translatedName}</span>
           </div>
 
-          {/* Share Buttons */}
-          <div className="flex items-center gap-2 pb-2 shrink-0">
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest hidden sm:inline mr-1">{locale === 'zh' ? '分享' : locale === 'ms' ? 'Kongsi' : 'Share'}</span>
-            <button 
-              onClick={(e) => { e.stopPropagation(); handleWhatsAppShare(); }}
-              className="w-8 h-8 rounded-full overflow-hidden hover:scale-110 transition-transform flex items-center justify-center drop-shadow-sm bg-white border border-zinc-700/50"
-              title="Share to WhatsApp"
-            >
-              <img src="/whatsapp-call-icon-psd-editable_314999-3666.avif" alt="WhatsApp" className="w-full h-full object-cover scale-[1.15]" />
-            </button>
-            <button 
-              onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}
-              className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700/50 text-zinc-300 hover:text-white hover:bg-zinc-700 transition-colors flex items-center justify-center"
-              title="Copy Link"
-            >
-              {isCopied ? <Check size={14} className="text-green-500" /> : <LinkIcon size={14} />}
-            </button>
-          </div>
-        </div>
-        
-        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12 items-stretch bg-white dark:bg-[#111111] rounded-2xl p-6 lg:p-8 border border-zinc-800/50 shadow-sm">
+                  </div>
+      </div>
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12 items-start">
           
           {/* LEFT: Image Section */}
           <div className="relative w-full lg:h-full">
@@ -370,8 +362,8 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                   <button
                     key={idx}
                     onClick={() => setActiveImageIdx(idx)}
-                    className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all shrink-0 bg-zinc-900 ${
-                      activeImageIdx === idx ? 'border-primary shadow-[0_0_15px_rgba(234,179,8,0.4)] scale-105' : 'border-transparent opacity-60 hover:opacity-100'
+                    className={`relative w-20 h-20 rounded-none overflow-hidden border-2 transition-all shrink-0 bg-zinc-900 ${
+                      activeImageIdx === idx ? 'border-zinc-800 scale-105 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'
                     }`}
                   >
                     <img src={img} className="w-full h-full object-cover" />
@@ -384,14 +376,14 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
             <div 
               ref={imageRef}
               onClick={() => setIsViewerOpen(true)}
-              className="flex-1 aspect-square lg:aspect-auto lg:h-full min-h-0 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-white border border-zinc-200 dark:border-zinc-200 cursor-zoom-in group relative"
+              className="flex-1 aspect-square min-h-0 rounded-xl overflow-hidden bg-[#f9f9f9] border-none cursor-zoom-in group relative"
             >
               {images.length > 0 ? (
                 <>
                   <img
                     src={images[activeImageIdx]}
                     alt={translatedName}
-                    className="absolute inset-0 z-10 w-full h-full object-contain transition-transform duration-700 group-hover:scale-[1.02] p-2 md:p-4"
+                    className="absolute inset-0 z-10 w-full h-full object-contain transition-transform duration-700 group-hover:scale-[1.02] p-8 mix-blend-multiply"
                     onContextMenu={(e) => e.preventDefault()}
                     draggable="false"
                   />
@@ -410,10 +402,31 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                   <Package size={64} />
                 </div>
               )}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none z-30">
+              <div className="absolute top-4 left-4 z-40 bg-white border border-zinc-200 text-zinc-600 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
+                  Best Seller
+                </div>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none z-30">
                 <div className="bg-black/50 backdrop-blur-md p-4 rounded-full text-white">
                   <Maximize2 size={32} />
                 </div>
+              </div>
+              {/* Share Buttons inside Image */}
+              <div className="absolute bottom-4 right-4 z-40 flex items-center gap-2 bg-white/50 backdrop-blur-sm px-3 py-2 rounded-full border border-white/60 shadow-sm">
+                <span className="text-[10px] font-bold text-zinc-700 uppercase tracking-widest hidden sm:inline mr-1">{locale === 'zh' ? '分享' : locale === 'ms' ? 'Kongsi' : 'Share'}</span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleWhatsAppShare(); }}
+                  className="w-8 h-8 rounded-full overflow-hidden hover:scale-110 transition-transform flex items-center justify-center drop-shadow-sm bg-white border border-zinc-700/50"
+                  title="Share to WhatsApp"
+                >
+                  <img src="/whatsapp-call-icon-psd-editable_314999-3666.avif" alt="WhatsApp" className="w-full h-full object-cover scale-[1.15]" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}
+                  className="w-8 h-8 rounded-full bg-zinc-100 border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200 transition-colors flex items-center justify-center"
+                  title="Copy Link"
+                >
+                  {isCopied ? <Check size={14} className="text-green-500" /> : <LinkIcon size={14} />}
+                </button>
               </div>
             </div>
           </div>
@@ -422,7 +435,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
           {/* RIGHT: Info Section */}
           <div className="w-full flex flex-col h-full">
             <div className="flex flex-col justify-start mb-4">
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-normal leading-tight mb-2 line-clamp-2">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif text-[#222222] tracking-tight leading-tight mb-2 font-normal">
                 {translatedName}
               </h1>
             </div>
@@ -444,11 +457,11 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                     <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2 px-1">
                       {currentLabels.title}
                     </p>
-                    <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm">
+                    <div className="overflow-hidden rounded-lg border border-zinc-200  bg-white  shadow-sm">
                       <div className="overflow-x-auto scrollbar-hide">
                         <table className="w-full text-left text-[10px] sm:text-[11px] border-collapse min-w-[280px]">
                           <thead>
-                            <tr className="bg-zinc-50 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 font-extrabold border-b border-zinc-200 dark:border-zinc-800">
+                            <tr className="bg-zinc-50  text-zinc-500  font-extrabold border-b border-zinc-200 ">
                               <th className="px-2 sm:px-4 py-2.5">Variant</th>
                               <th className="px-2 sm:px-4 py-2.5">{currentLabels.original}</th>
                               <th className="px-2 sm:px-4 py-2.5">{currentLabels.promo}</th>
@@ -457,18 +470,18 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                             </tr>
                           </thead>
                           <tbody>
-                            <tr className={`font-bold text-foreground border-b border-zinc-100 dark:border-zinc-800/50 ${selectedVariant === 'Single' ? 'bg-primary/5' : ''}`}>
+                            <tr className={`font-bold text-foreground border-b border-zinc-100  ${selectedVariant === 'Single' ? 'bg-primary/5' : ''}`}>
                               <td className="px-2 sm:px-4 py-3">Single</td>
-                              <td className="px-2 sm:px-4 py-3 text-zinc-400 dark:text-zinc-500 line-through">RM {product.price.toFixed(2)}</td>
-                              <td className="px-2 sm:px-4 py-3 text-zinc-500 dark:text-zinc-400">{product.promotion !== null && product.promotion !== undefined && product.promotion < product.price ? `RM ${product.promotion.toFixed(2)}` : '-'}</td>
+                              <td className="px-2 sm:px-4 py-3 text-zinc-400  line-through">RM {product.price.toFixed(2)}</td>
+                              <td className="px-2 sm:px-4 py-3 text-zinc-500 ">{product.promotion !== null && product.promotion !== undefined && product.promotion < product.price ? `RM ${product.promotion.toFixed(2)}` : '-'}</td>
                               <td className="px-2 sm:px-4 py-3 text-primary font-extrabold">{product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0 ? `RM ${product.sellerPrice.toFixed(2)}` : '-'}</td>
                               <td className="px-2 sm:px-4 py-3 text-green-500 font-extrabold text-right">{product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0 && product.sellerPrice < product.price ? `RM ${(product.price - product.sellerPrice).toFixed(2)}` : '-'}</td>
                             </tr>
                             {hasBoxPricing && (
                               <tr className={`font-bold text-foreground ${selectedVariant === 'Box' ? 'bg-primary/5' : ''}`}>
                                 <td className="px-2 sm:px-4 py-3">Box</td>
-                                <td className="px-2 sm:px-4 py-3 text-zinc-400 dark:text-zinc-500 line-through">RM {product.boxPrice!.toFixed(2)}</td>
-                                <td className="px-2 sm:px-4 py-3 text-zinc-500 dark:text-zinc-400">{product.boxPromotion !== null && product.boxPromotion !== undefined && product.boxPromotion < product.boxPrice! ? `RM ${product.boxPromotion.toFixed(2)}` : '-'}</td>
+                                <td className="px-2 sm:px-4 py-3 text-zinc-400  line-through">RM {product.boxPrice!.toFixed(2)}</td>
+                                <td className="px-2 sm:px-4 py-3 text-zinc-500 ">{product.boxPromotion !== null && product.boxPromotion !== undefined && product.boxPromotion < product.boxPrice! ? `RM ${product.boxPromotion.toFixed(2)}` : '-'}</td>
                                 <td className="px-2 sm:px-4 py-3 text-primary font-extrabold">{product.boxSellerPrice !== null && product.boxSellerPrice !== undefined && product.boxSellerPrice > 0 ? `RM ${product.boxSellerPrice.toFixed(2)}` : '-'}</td>
                                 <td className="px-2 sm:px-4 py-3 text-green-500 font-extrabold text-right">{product.boxSellerPrice !== null && product.boxSellerPrice !== undefined && product.boxSellerPrice > 0 && product.boxSellerPrice < product.boxPrice! ? `RM ${(product.boxPrice! - product.boxSellerPrice).toFixed(2)}` : '-'}</td>
                               </tr>
@@ -533,27 +546,19 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                 {/* Options Selector */}
                 {hasBoxPricing && (
                   <div className="flex flex-col gap-3">
-                    <span className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
-                    {locale === 'zh' ? '选项' : locale === 'ms' ? 'Variasi' : 'Variation'}
+                    <span className="text-sm font-bold text-zinc-900 mb-2">
+                    {locale === 'zh' ? '选项' : locale === 'ms' ? 'Saiz' : 'Size:'}
                     </span>
-                    <div className="flex flex-wrap gap-4">
+                    <div className="grid grid-cols-2 gap-3 w-full">
                       <button
                         onClick={() => {
                           setSelectedVariant('Single');
                           setLocalQty(1);
                           setShowVariantError(false);
                         }}
-                        className={`flex flex-row items-center justify-center px-6 py-2.5 rounded-lg transition-all relative overflow-hidden border ${selectedVariant === 'Single' ? 'border-primary bg-white' : 'border-zinc-800 bg-[#111111] hover:border-zinc-700'}`}
+                        className={`h-12 rounded-full border transition-all flex items-center justify-center text-sm font-bold ${selectedVariant === 'Single' ? 'border-orange-300 bg-orange-50 text-orange-900 shadow-sm' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
                       >
-                        <span className={`text-sm relative z-10 ${selectedVariant === 'Single' ? 'text-black font-medium' : 'text-zinc-400 font-medium'}`}>
-                          {locale === 'zh' ? '单品' : locale === 'ms' ? 'Satu' : 'Single Item'}
-                        </span>
-                        {selectedVariant === 'Single' && (
-                          <>
-                            <div className="absolute bottom-0 right-0 w-0 h-0 border-solid border-b-[24px] border-l-[24px] border-b-primary border-l-transparent border-t-0 border-r-0 z-0" />
-                            <Check size={12} className="absolute bottom-[2px] right-[2px] text-white stroke-[4] z-10" />
-                          </>
-                        )}
+                        {locale === 'zh' ? '单品' : locale === 'ms' ? 'Satu' : 'Single'}
                       </button>
                       <button
                         onClick={() => {
@@ -561,131 +566,93 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                           setLocalQty(1);
                           setShowVariantError(false);
                         }}
-                        className={`flex flex-row items-center justify-center px-6 py-2.5 rounded-lg transition-all relative overflow-hidden border ${selectedVariant === 'Box' ? 'border-primary bg-white' : 'border-zinc-800 bg-[#111111] hover:border-zinc-700'}`}
+                        className={`h-12 rounded-full border transition-all flex items-center justify-center text-sm font-bold ${selectedVariant === 'Box' ? 'border-orange-300 bg-orange-50 text-orange-900 shadow-sm' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
                       >
-                        <div className="flex items-center gap-2 relative z-10">
-                          <span className={`text-sm ${selectedVariant === 'Box' ? 'text-black font-medium' : 'text-zinc-400 font-medium'}`}>
-                            {locale === 'zh' ? '整盒' : locale === 'ms' ? 'Kotak' : 'Per Box'}
-                          </span>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-md ${selectedVariant === 'Box' ? 'bg-zinc-100 text-zinc-500' : 'bg-[#1a1a1a] text-zinc-500'}`}>
-                            {product.itemsPerBox} {locale === 'zh' ? '件' : locale === 'ms' ? 'Items' : 'Items'}
-                          </span>
-                        </div>
-                        {selectedVariant === 'Box' && (
-                          <>
-                            <div className="absolute bottom-0 right-0 w-0 h-0 border-solid border-b-[24px] border-l-[24px] border-b-primary border-l-transparent border-t-0 border-r-0 z-0" />
-                            <Check size={12} className="absolute bottom-[2px] right-[2px] text-white stroke-[4] z-10" />
-                          </>
-                        )}
+                        Box ({product.itemsPerBox} Items)
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* Quantity */}
-                <div className="flex flex-col gap-3">
-                  <span className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
-                    {locale === 'zh' ? '数量' : locale === 'ms' ? 'Kuantiti' : 'Quantity'}
-                  </span>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center border border-zinc-800 rounded-xl overflow-hidden bg-[#111111] h-12">
-                      <button 
-                        onClick={decrement}
-                        disabled={localQty <= 1 || !selectedVariant}
-                        className="w-12 h-12 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        <Minus size={14} />
-                      </button>
-                      <span className="w-12 text-center font-semibold text-sm text-white h-12 flex items-center justify-center border-x border-zinc-800 bg-[#111111]">{selectedVariant ? localQty : 0}</span>
-                      <button 
-                        onClick={increment}
-                        disabled={localQty >= currentMaxAvailable || !selectedVariant}
-                        className="w-12 h-12 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        <Plus size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Availability */}
-                <div className="flex items-center gap-2 text-zinc-500 mt-1">
-                  <CheckCircle size={14} className={trueRemainingStock > 0 ? "text-green-500" : "text-red-500"} />
-                  <span className="text-xs font-medium">{trueRemainingStock} {locale === 'zh' ? '件库存 — 现货供应' : locale === 'ms' ? 'unit dalam stok — Sedia untuk dihantar' : 'units in stock — Ready to deliver'}</span>
-                </div>
-
-                {showVariantError && (
-                  <div className="text-red-500 text-sm font-medium">
-                    {locale === 'zh' ? '请先选择商品选项' : locale === 'ms' ? 'Sila pilih variasi produk dahulu' : 'Please select product variation first'}
-                  </div>
-                )}
                 
-                {/* Guarantees Box */}
-                <div className="mt-2 bg-[#171717] border border-zinc-800/80 rounded-[14px] py-4 px-4 grid grid-cols-2 gap-y-4 md:flex md:flex-row items-center md:justify-between shadow-sm w-full">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-[#262626] flex items-center justify-center shrink-0">
-                      <ShieldCheck size={14} className="text-zinc-300" strokeWidth={1.5} />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">{locale === 'zh' ? '100% 正品' : locale === 'ms' ? '100% Asli' : '100% Original'}</span>
-                      <span className="text-[9px] md:text-[10px] text-zinc-400 whitespace-nowrap leading-tight">{locale === 'zh' ? '产品' : locale === 'ms' ? 'Produk' : 'Products'}</span>
-                    </div>
+                {/* Unified Action Row */}
+                <div className="flex items-center gap-3 w-full mt-6 pb-6 border-b border-zinc-100">
+                  {/* Quantity selector */}
+                  <div className="flex items-center justify-between w-[150px] bg-white rounded-full border border-zinc-200 shadow-sm px-2 py-1.5 shrink-0" onClick={(e) => e.preventDefault()}>
+                    <button 
+                      onClick={decrement}
+                      disabled={localQty <= 1 || !selectedVariant}
+                      className="w-[36px] h-[36px] shrink-0 rounded-full border-2 border-zinc-300 bg-white flex items-center justify-center text-zinc-600 hover:border-zinc-900 hover:text-zinc-900 hover:bg-zinc-50 active:scale-90 transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
+                    >
+                      <Minus size={14} strokeWidth={3} />
+                    </button>
+                    <span className="flex-1 text-center font-bold text-[15px] text-zinc-900 select-none tabular-nums">{selectedVariant ? localQty : 0}</span>
+                    <button 
+                      onClick={increment}
+                      disabled={localQty >= currentMaxAvailable || !selectedVariant}
+                      className="w-[36px] h-[36px] shrink-0 rounded-full bg-zinc-900 border-2 border-zinc-900 flex items-center justify-center text-white hover:bg-primary hover:border-primary hover:text-zinc-900 active:scale-90 transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
+                    >
+                      <Plus size={14} strokeWidth={3} />
+                    </button>
                   </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-[#262626] flex items-center justify-center shrink-0">
-                      <Truck size={14} className="text-zinc-300" strokeWidth={1.5} />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">{locale === 'zh' ? '快速发货' : locale === 'ms' ? 'Penghantaran Pantas' : 'Fast Delivery'}</span>
-                      <span className="text-[9px] md:text-[10px] text-zinc-400 whitespace-nowrap leading-tight">{locale === 'zh' ? '全马各地' : locale === 'ms' ? 'Seluruh Negara' : 'Nationwide'}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-[#262626] flex items-center justify-center shrink-0">
-                      <Award size={14} className="text-zinc-300" strokeWidth={1.5} />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">{locale === 'zh' ? '顶级品质' : locale === 'ms' ? 'Kualiti Terbaik' : 'Top Quality'}</span>
-                      <span className="text-[9px] md:text-[10px] text-zinc-400 whitespace-nowrap leading-tight">{locale === 'zh' ? '保证' : locale === 'ms' ? 'Dijamin' : 'Guaranteed'}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-[#262626] flex items-center justify-center shrink-0">
-                      <Headset size={14} className="text-zinc-300" strokeWidth={1.5} />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] md:text-[11px] font-bold text-zinc-100 whitespace-nowrap leading-tight">{locale === 'zh' ? '全天候支持' : locale === 'ms' ? 'Sokongan' : 'Support'}</span>
-                      <span className="text-[9px] md:text-[10px] text-zinc-400 whitespace-nowrap italic leading-tight">24/7</span>
-                    </div>
-                  </div>
-                </div>
 
-              </div>
-
-              {/* Action Buttons */}
-              <div className="pt-4 flex flex-col gap-4 w-full mt-auto">
-                <div className="flex flex-col-reverse md:flex-row items-center gap-3 md:gap-4 w-full">
+                  {/* Add to Cart */}
                   <button
                     onClick={handleAddToCart}
-                    className="w-full md:flex-1 h-[56px] bg-white text-black rounded-full font-black text-[15px] hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm"
+                    className="flex-1 h-[52px] bg-[#3c304a] text-white rounded-full font-semibold text-[13px] tracking-widest hover:brightness-110 transition-all flex items-center justify-center gap-2 active:scale-[0.98] uppercase"
                   >
                     {t.productDetail?.addToCart || (locale === 'zh' ? '加入购物车' : locale === 'ms' ? 'Tambah ke Troli' : 'ADD TO CART')}
                   </button>
 
-                  <button
-                    onClick={handleBuyNow}
-                    className="w-full md:flex-1 h-[56px] bg-primary text-black rounded-full font-black text-[15px] hover:brightness-110 transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98]"
-                  >
-                    {locale === 'zh' ? '立即购买' : locale === 'ms' ? 'Beli Sekarang' : 'BUY NOW'}
-                  </button>
+                  
+                </div>
+
+                {showVariantError && (
+                  <div className="text-red-500 text-sm font-medium mt-2">
+                    {locale === 'zh' ? '请先选择商品选项' : locale === 'ms' ? 'Sila pilih variasi produk dahulu' : 'Please select product variation first'}
+                  </div>
+                )}
+
+                {/* Availability */}
+                <div className="flex items-center justify-center gap-2 text-zinc-500 mt-4 px-2 w-full">
+                  <CheckCircle size={14} className={trueRemainingStock > 0 ? "text-green-500" : "text-red-500"} />
+                  <span className="text-xs font-medium">{trueRemainingStock} {locale === 'zh' ? '件库存 — 现货供应' : locale === 'ms' ? 'unit dalam stok — Sedia untuk dihantar' : 'units in stock — Ready to deliver'}</span>
+                </div>
+
+                {/* Guarantees Box - Borderless style */}
+                <div className="mt-8 bg-[#f9f9f9] rounded-[14px] py-6 px-2 sm:px-4 flex flex-row items-center justify-between w-full">
+                  <div className="flex flex-col items-center gap-2 flex-1 text-center">
+                    <ShieldCheck size={24} className="text-zinc-700" strokeWidth={1.5} />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-medium text-zinc-700 leading-tight">{locale === 'zh' ? '100% 正品' : locale === 'ms' ? '100% Asli' : '100% Original'}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col items-center gap-2 flex-1 text-center">
+                    <Truck size={24} className="text-zinc-700" strokeWidth={1.5} />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-medium text-zinc-700 leading-tight">{locale === 'zh' ? '快速发货' : locale === 'ms' ? 'Pantas' : 'Fast Delivery'}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col items-center gap-2 flex-1 text-center">
+                    <Award size={24} className="text-zinc-700" strokeWidth={1.5} />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-medium text-zinc-700 leading-tight">{locale === 'zh' ? '顶级品质' : locale === 'ms' ? 'Kualiti Terbaik' : 'Top Quality'}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col items-center gap-2 flex-1 text-center">
+                    <Headset size={24} className="text-zinc-700" strokeWidth={1.5} />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-medium text-zinc-700 leading-tight">{locale === 'zh' ? '全天候支持' : locale === 'ms' ? 'Sokongan 24/7' : '24/7 Support'}</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Mobile Share Function */}
                 <div className="flex flex-col lg:hidden mt-2">
-                  <div className="w-full h-px bg-zinc-800/50 mb-4" />
+                  <div className="w-full h-px bg-zinc-200 mb-4" />
                   <div className="flex items-center justify-between px-1">
                     <span className="text-sm font-bold text-zinc-400">{locale === 'zh' ? '分享此产品' : locale === 'ms' ? 'Kongsi produk ini' : 'Share this product'}</span>
                     <div className="flex items-center gap-3">
@@ -698,7 +665,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                       </button>
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}
-                        className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700/50 text-zinc-300 hover:text-white hover:bg-zinc-700 transition-colors flex items-center justify-center"
+                        className="w-10 h-10 rounded-full bg-zinc-100 border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200 transition-colors flex items-center justify-center"
                         title="Copy Link"
                       >
                         {isCopied ? <Check size={16} className="text-green-500" /> : <LinkIcon size={16} />}
@@ -714,58 +681,76 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
           </div>
         </div>
 
-        {/* ── SECTIONS ─────────────────────────────────────────────────── */}
-        
-        <div className="space-y-12">
-          
-          {/* 1. Description Section */}
-          <section className="bg-white dark:bg-zinc-900 rounded-2xl p-8 md:p-10 border border-border shadow-sm">
-            <div className="flex items-center gap-2 mb-8 border-l-4 border-primary pl-4">
-              <h2 className="text-2xl font-bold tracking-tight uppercase">{t.productDetail.description}</h2>
-            </div>
-            
-            <div className="space-y-8">
-              <div className="space-y-2">
-                <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{t.productDetail.productDetails}</h4>
-                <div className="space-y-1 text-sm text-zinc-600 dark:text-zinc-300 font-medium">
-                  <p>{t.productDetail.code}: {product.code?.toUpperCase() || product.id.toUpperCase()}</p>
-                  <p>{t.productDetail.name}: {translatedName}</p>
-                  <p>{t.productDetail.type}: {translatedCategory}</p>
+        {/* ── TABS ─────────────────────────────────────────────────── */}
+        <div className="mt-8 mb-16">
+          {/* Tab Bar */}
+          <div className="flex items-center gap-8 border-b border-zinc-200 overflow-x-auto whitespace-nowrap scrollbar-hide pb-[1px]">
+            <button
+              onClick={() => setActiveTab('description')}
+              className={`pb-4 text-[15px] font-bold transition-colors relative shrink-0 ${
+                activeTab === 'description' ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-700'
+              }`}
+            >
+              {t.productDetail.description || 'Description'}
+              {activeTab === 'description' && (
+                <div className="absolute bottom-[-1px] left-0 w-full h-[2px] bg-zinc-900" />
+              )}
+            </button>
+            {embedUrl && (
+              <button
+                onClick={() => setActiveTab('video')}
+                className={`pb-4 text-[15px] font-bold transition-colors relative shrink-0 ${
+                  activeTab === 'video' ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-700'
+                }`}
+              >
+                {t.productDetail.videoDemo || 'Video Demo'}
+                {activeTab === 'video' && (
+                  <div className="absolute bottom-[-1px] left-0 w-full h-[2px] bg-zinc-900" />
+                )}
+              </button>
+            )}
+          </div>
+
+          {/* Tab Content */}
+          <div className="py-8 min-h-[200px]">
+            {activeTab === 'description' && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{t.productDetail.productDetails}</h4>
+                  <div className="space-y-1 text-sm text-zinc-600 font-medium">
+                    <p>{t.productDetail.code}: {product.code?.toUpperCase() || product.id.toUpperCase()}</p>
+                    <p>{t.productDetail.name}: {translatedName}</p>
+                    <p>{t.productDetail.type}: {translatedCategory}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{t.productDetail.productDescription}</h4>
+                  <div className="text-zinc-600 leading-relaxed space-y-4 max-w-4xl text-[15px]">
+                    {translatedDesc?.split('\n').map((line: string, i: number) => (
+                      <p key={i}>{line}</p>
+                    ))}
+                  </div>
                 </div>
               </div>
-
-              <div className="space-y-2">
-                <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{t.productDetail.productDescription}</h4>
-                <p className="text-sm text-zinc-600 dark:text-zinc-300 font-medium whitespace-pre-wrap">
-                  {translatedDesc}
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* 2. Video Demonstration Section */}
-          {embedUrl && (
-            <section className="bg-white dark:bg-zinc-900 rounded-2xl p-8 md:p-10 border border-border shadow-sm">
-              <div className="flex items-center gap-2 mb-8 border-l-4 border-primary pl-4">
-                <h2 className="text-2xl font-bold tracking-tight uppercase">{t.productDetail.videoDemo}</h2>
-              </div>
-              
-              <div className="w-full">
-                <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border aspect-video bg-black shadow-primary/5">
-                  <iframe 
+            )}
+            {activeTab === 'video' && embedUrl && (
+              <div className="w-full max-w-4xl animate-in fade-in duration-500">
+                <div className="relative rounded-2xl overflow-hidden aspect-video bg-black shadow-sm border border-zinc-200">
+                  <iframe
                     className="w-full h-full"
                     src={embedUrl}
-                    title="YouTube video player" 
-                    frameBorder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    title="YouTube video player"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
                   ></iframe>
                 </div>
               </div>
-            </section>
-          )}
-
+            )}
+          </div>
         </div>
+      </div>
       </div>
       <AnimatePresence>
         {isViewerOpen && images.length > 0 && (

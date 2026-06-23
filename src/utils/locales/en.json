@@ -1,6 +1,6 @@
 {
   "nav": {
-    "home": "Home Page",
+    "home": "Home",
     "shop": "Shop",
     "shopAll": "Shop All",
     "aboutUs": "About Us",
@@ -44,7 +44,7 @@
   },
   "shop": {
     "categoriesDesc": "Find the perfect display for your celebration",
-    "categoriesInfo": "From grand sky displays to festive ground cracklers, explore our curated selection of premium fireworks tailored for every moment of joy.",
+    "categoriesInfo": "Explore our curated selection of premium fireworks, tailored for every moment of joy.",
     "allProductsTitle": "All Products",
     "allProductsDesc": "Browse our entire collection",
     "showing": "Showing",

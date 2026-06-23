@@ -64,18 +64,18 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-[#191919] text-[#b0b0b0] mt-auto border-t border-zinc-800">
+    <footer className="bg-zinc-50 text-zinc-500 mt-auto border-t border-zinc-200">
       {/* Main footer grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 md:py-16 md:bg-transparent bg-white dark:bg-transparent">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 md:py-16">
         
         {/* ===== MOBILE ACCORDION FOOTER ===== */}
-        <div className="md:hidden flex flex-col divide-y divide-zinc-200 dark:divide-zinc-800 border-b border-zinc-200 dark:border-zinc-800 pb-2 mb-6">
+        <div className="md:hidden flex flex-col divide-y divide-zinc-200 border-b border-zinc-200 pb-2 mb-6">
           
           {/* Back to Top */}
           <div className="pb-4 pt-0 flex justify-center">
             <button 
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="flex items-center gap-1.5 text-[14px] text-zinc-500 dark:text-zinc-400 font-medium hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+              className="flex items-center gap-1.5 text-[14px] text-zinc-500 font-medium hover:text-zinc-700 transition-colors"
             >
               {t.footer?.backToTop || 'Back to top'} <ChevronUp size={16} strokeWidth={2} />
             </button>
@@ -85,20 +85,20 @@ export function Footer() {
           <div>
             <button 
               onClick={() => toggleAccordion('support')}
-              className="w-full flex justify-between items-center py-4 text-zinc-900 dark:text-white font-bold text-[15px] tracking-normal capitalize"
+              className="w-full flex justify-between items-center py-4 text-zinc-900 font-bold text-[15px] tracking-normal capitalize"
             >
               <span>{t.footer?.support || 'Support'}</span>
               <ChevronDown 
                  size={20} 
                  strokeWidth={1.5}
-                 className={`text-zinc-900 dark:text-zinc-400 transition-transform duration-300 ${expanded === 'support' ? 'rotate-180' : ''}`} 
+                 className={`text-zinc-900 transition-transform duration-300 ${expanded === 'support' ? 'rotate-180' : ''}`} 
               />
             </button>
             {expanded === 'support' && (
               <ul className="pb-5 space-y-4">
                 {quickLinks.map(({ href, label }) => (
                   <li key={`${href}-${label}`}>
-                    <Link href={href} className="text-[14px] text-zinc-600 dark:text-[#808080] hover:text-zinc-900 transition-colors block">
+                    <Link href={href} className="text-[14px] text-zinc-500 hover:text-zinc-900 transition-colors block">
                       {label}
                     </Link>
                   </li>
@@ -111,13 +111,13 @@ export function Footer() {
           <div>
             <button 
               onClick={() => toggleAccordion('categories')}
-              className="w-full flex justify-between items-center py-4 text-zinc-900 dark:text-white font-bold text-[15px] tracking-normal capitalize"
+              className="w-full flex justify-between items-center py-4 text-zinc-900 font-bold text-[15px] tracking-normal capitalize"
             >
               <span className="capitalize">{(t.footer?.categories || 'Categories').toLowerCase()}</span>
               <ChevronDown 
                  size={20} 
                  strokeWidth={1.5}
-                 className={`text-zinc-900 dark:text-zinc-400 transition-transform duration-300 ${expanded === 'categories' ? 'rotate-180' : ''}`} 
+                 className={`text-zinc-900 transition-transform duration-300 ${expanded === 'categories' ? 'rotate-180' : ''}`} 
               />
             </button>
             {expanded === 'categories' && (
@@ -136,7 +136,7 @@ export function Footer() {
                   else label = (t.shopCategories as any)?.[key] || cat.name;
                   return (
                     <li key={cat.id}>
-                      <Link href={`/shop?category=${key}`} className="text-[14px] text-zinc-600 dark:text-[#808080] hover:text-zinc-900 transition-colors block capitalize">
+                      <Link href={`/shop?category=${key}`} className="text-[14px] text-zinc-500 hover:text-zinc-900 transition-colors block capitalize">
                         {label.toLowerCase()}
                       </Link>
                     </li>
@@ -150,13 +150,13 @@ export function Footer() {
           <div>
             <button 
               onClick={() => toggleAccordion('contact')}
-              className="w-full flex justify-between items-center py-4 text-zinc-900 dark:text-white font-bold text-[15px] tracking-normal capitalize"
+              className="w-full flex justify-between items-center py-4 text-zinc-900 font-bold text-[15px] tracking-normal capitalize"
             >
               <span className="capitalize">{(t.footer?.contactUs || 'Contact Us').toLowerCase()}</span>
               <ChevronDown 
                  size={20} 
                  strokeWidth={1.5}
-                 className={`text-zinc-900 dark:text-zinc-400 transition-transform duration-300 ${expanded === 'contact' ? 'rotate-180' : ''}`} 
+                 className={`text-zinc-900 transition-transform duration-300 ${expanded === 'contact' ? 'rotate-180' : ''}`} 
               />
             </button>
             {expanded === 'contact' && (
@@ -181,13 +181,13 @@ export function Footer() {
           <div>
             <button 
               onClick={() => toggleAccordion('follow')}
-              className="w-full flex justify-between items-center py-4 text-zinc-900 dark:text-white font-bold text-[15px] tracking-normal capitalize"
+              className="w-full flex justify-between items-center py-4 text-zinc-900 font-bold text-[15px] tracking-normal capitalize"
             >
               <span>{t.footer?.followUs || 'Follow Us'}</span>
               <ChevronDown 
                  size={20} 
                  strokeWidth={1.5}
-                 className={`text-zinc-900 dark:text-zinc-400 transition-transform duration-300 ${expanded === 'follow' ? 'rotate-180' : ''}`} 
+                 className={`text-zinc-900 transition-transform duration-300 ${expanded === 'follow' ? 'rotate-180' : ''}`} 
               />
             </button>
             {expanded === 'follow' && (
@@ -230,7 +230,7 @@ export function Footer() {
 
           {/* ---- Column 1: SUPPORT ---- */}
           <div className="space-y-6">
-            <h3 className="text-white font-bold text-base tracking-wide uppercase">
+            <h3 className="text-zinc-900 font-bold text-base tracking-wide uppercase">
               {t.footer?.support || 'SUPPORT'}
             </h3>
             <ul className="space-y-4">
@@ -238,7 +238,7 @@ export function Footer() {
                 <li key={`${href}-${label}`}>
                   <Link
                     href={href}
-                    className="text-sm hover:text-white transition-colors"
+                    className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
                   >
                     {label}
                   </Link>
@@ -249,7 +249,7 @@ export function Footer() {
 
           {/* ---- Column 2: CATEGORIES ---- */}
           <div className="space-y-6">
-            <h3 className="text-white font-bold text-base tracking-wide uppercase">
+            <h3 className="text-zinc-900 font-bold text-base tracking-wide uppercase">
               {t.footer?.categories || 'CATEGORIES'}
             </h3>
             <ul className="space-y-4">
@@ -271,7 +271,7 @@ export function Footer() {
                   <li key={cat.id}>
                     <Link
                       href={`/shop?category=${key}`}
-                      className="text-sm hover:text-white transition-colors"
+                      className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
                     >
                       {label}
                     </Link>
@@ -283,20 +283,20 @@ export function Footer() {
 
           {/* ---- Column 3: CONTACT US ---- */}
           <div className="space-y-6">
-            <h3 className="text-white font-bold text-base tracking-wide uppercase">
+            <h3 className="text-zinc-900 font-bold text-base tracking-wide uppercase">
               {t.footer?.contactUs || 'CONTACT US'}
             </h3>
             <ul className="space-y-4">
               <li>
-                <a href={`mailto:${EMAIL}`} className="text-sm hover:text-white transition-colors flex flex-col group">
-                  <span className="mb-1 text-sm text-[#b0b0b0]">{t.footer?.email || 'E-mail'}</span>
-                  <span className="text-white group-hover:text-gray-300 transition-colors text-base font-medium">{EMAIL}</span>
+                <a href={`mailto:${EMAIL}`} className="text-sm hover:text-zinc-900 transition-colors flex flex-col group">
+                  <span className="mb-1 text-sm text-zinc-400">{t.footer?.email || 'E-mail'}</span>
+                  <span className="text-zinc-800 group-hover:text-zinc-900 transition-colors text-base font-medium">{EMAIL}</span>
                 </a>
               </li>
               <li>
                 <div className="text-sm flex flex-col mt-4">
-                  <span className="mb-1 text-sm text-[#b0b0b0]">{t.footer?.callUs || 'Call us:'}</span>
-                  <span className="text-white text-base font-medium">{DISPLAY_NUMBER}</span>
+                  <span className="mb-1 text-sm text-zinc-400">{t.footer?.callUs || 'Call us:'}</span>
+                  <span className="text-zinc-800 text-base font-medium">{DISPLAY_NUMBER}</span>
                 </div>
               </li>
             </ul>
@@ -304,7 +304,7 @@ export function Footer() {
 
           {/* ---- Column 4: Follow Us ---- */}
           <div className="space-y-6">
-            <h3 className="text-white font-bold text-base tracking-wide uppercase">
+            <h3 className="text-zinc-900 font-bold text-base tracking-wide uppercase">
               {t.footer?.followUs || 'FOLLOW US'}
             </h3>
             <div className="flex items-center gap-4">
@@ -313,7 +313,7 @@ export function Footer() {
                   href={settings.facebook.startsWith('http') ? settings.facebook : `https://facebook.com/${settings.facebook}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white"
+                  className="w-10 h-10 rounded-full bg-zinc-200 hover:bg-zinc-300 flex items-center justify-center transition-colors text-zinc-700"
                 >
                   <FacebookIcon />
                 </a>
@@ -323,7 +323,7 @@ export function Footer() {
                   href={settings.instagram.startsWith('http') ? settings.instagram : `https://instagram.com/${settings.instagram.replace('@', '')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white"
+                  className="w-10 h-10 rounded-full bg-zinc-200 hover:bg-zinc-300 flex items-center justify-center transition-colors text-zinc-700"
                 >
                   <InstagramIcon />
                 </a>
@@ -333,20 +333,20 @@ export function Footer() {
                   href={settings.tiktok.startsWith('http') ? settings.tiktok : `https://tiktok.com/@${settings.tiktok.replace('@', '')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white"
+                  className="w-10 h-10 rounded-full bg-zinc-200 hover:bg-zinc-300 flex items-center justify-center transition-colors text-zinc-700"
                 >
                   <TikTokIcon />
                 </a>
               )}
               {(!settings?.facebook && !settings?.instagram && !settings?.tiktok) && (
                 <>
-                  <a href="#" className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white">
+                  <a href="#" className="w-10 h-10 rounded-full bg-zinc-200 hover:bg-zinc-300 flex items-center justify-center transition-colors text-zinc-700">
                     <FacebookIcon />
                   </a>
-                  <a href="#" className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white">
+                  <a href="#" className="w-10 h-10 rounded-full bg-zinc-200 hover:bg-zinc-300 flex items-center justify-center transition-colors text-zinc-700">
                     <InstagramIcon />
                   </a>
-                  <a href="#" className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white">
+                  <a href="#" className="w-10 h-10 rounded-full bg-zinc-200 hover:bg-zinc-300 flex items-center justify-center transition-colors text-zinc-700">
                     <TikTokIcon />
                   </a>
                 </>
@@ -354,8 +354,8 @@ export function Footer() {
             </div>
 
             <div className="pt-4">
-              <h4 className="text-white font-bold text-sm mb-3">{t.footer?.instantAccess || 'Instant Access'}</h4>
-              <div className="p-4 border border-white/10 rounded-xl bg-black/20 max-w-sm flex items-center gap-5 hover:bg-black/30 transition-colors">
+              <h4 className="text-zinc-900 font-bold text-sm mb-3">{t.footer?.instantAccess || 'Instant Access'}</h4>
+              <div className="p-4 border border-zinc-200 rounded-xl bg-zinc-100 max-w-sm flex items-center gap-5 hover:bg-zinc-150 transition-colors">
                 <div className="p-2 bg-white rounded-xl shrink-0">
                   <QRCodeCanvas 
                     value={siteUrl}
@@ -365,8 +365,8 @@ export function Footer() {
                   />
                 </div>
                 <div className="flex flex-col justify-center">
-                  <span className="text-white font-bold text-base mb-1.5">{t.footer?.visitWebsite || 'Visit Website'}</span>
-                  <span className="text-xs leading-relaxed text-[#b0b0b0]">{t.footer?.scanQrCode || 'Scan this QR code with your phone to quickly access our store anytime.'}</span>
+                  <span className="text-zinc-900 font-bold text-base mb-1.5">{t.footer?.visitWebsite || 'Visit Website'}</span>
+                  <span className="text-xs leading-relaxed text-zinc-500">{t.footer?.scanQrCode || 'Scan this QR code with your phone to quickly access our store anytime.'}</span>
                 </div>
               </div>
             </div>
@@ -376,21 +376,21 @@ export function Footer() {
       </div>
 
       {/* ---- Bottom Bar ---- */}
-      <div className="bg-white dark:bg-[#191919]">
+      <div className="bg-zinc-50 border-t border-zinc-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="pt-6 pb-12 md:pb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 md:border-t md:border-white/10">
+          <div className="pt-6 pb-12 md:pb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 md:border-t md:border-zinc-100">
             <div className="flex flex-col gap-1.5">
-              <p className="text-zinc-900 dark:text-white font-medium text-sm">
+              <p className="text-zinc-800 font-medium text-sm">
                 {t.footer?.copyright ? `${t.footer.copyright} \u00A9 ${new Date().getFullYear()} ${businessName}. ${t.footer.allRightsReserved}` : `Copyright \u00A9 ${new Date().getFullYear()} ${businessName}. All Rights Reserved.`}
               </p>
-              <p className="text-[11px] text-zinc-500 dark:text-[#808080]">
+              <p className="text-[11px] text-zinc-500">
                 {t.footer?.notice || 'Notice: There is no payment gateway available on this website. All transactions are handled separately.'}
               </p>
             </div>
             
             <button 
               onClick={toggleLanguage}
-              className="flex items-center gap-2.5 text-zinc-900 dark:text-white hover:text-zinc-600 dark:hover:text-gray-300 transition-colors group shrink-0"
+              className="flex items-center gap-2.5 text-zinc-800 hover:text-zinc-600 transition-colors group shrink-0"
             >
               <span className="text-sm font-bold">{locale === 'zh' ? 'EN / 中文' : 'EN / 中文'}</span>
             </button>

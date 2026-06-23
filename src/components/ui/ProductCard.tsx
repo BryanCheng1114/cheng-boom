@@ -6,7 +6,7 @@ import { ShoppingCart, Plus, Minus } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useFlyToCart } from './FlyToCartProvider';
 import { useBusiness } from '../../context/BusinessContext';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
 export interface ProductCardProps {
   id: string;
@@ -149,14 +149,16 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
 
 
 
+  const [selectedQty, setSelectedQty] = useState(1);
+
   const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
-    router.push({ pathname: '/shop', query: { ...router.query, buy: id } }, undefined, { shallow: true, scroll: false });
+    router.push({ pathname: '/checkout', query: { buy: id, qty: selectedQty } }, undefined, { shallow: false });
   };
 
   return (
     <Link href={`/shop/${id}`} className="group block h-full">
-      <div className={`relative h-full flex flex-col bg-zinc-50 dark:bg-white/5 rounded-[2rem] overflow-hidden transition-all duration-300 ${isOutOfStock ? 'opacity-75' : ''}`}>
+      <div className={`relative h-full flex flex-col bg-zinc-100 border border-zinc-200 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] rounded-[2rem] overflow-hidden transition-all duration-300 ${isOutOfStock ? 'opacity-75' : ''}`}>
         
         {/* NEW tag */}
 
@@ -187,7 +189,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
         
        <div className="px-3 sm:px-6 pb-3 sm:pb-5 pt-2 flex flex-col flex-1 justify-between gap-2 sm:gap-3">
           <div className="flex flex-col justify-start">
-            <h3 className="font-medium text-[13px] sm:text-[16px] text-foreground transition-colors line-clamp-2 leading-snug tracking-wide h-[38px] sm:h-[46px] overflow-hidden">
+            <h3 className="font-medium text-[13px] sm:text-[16px] text-zinc-900 transition-colors line-clamp-2 leading-snug tracking-wide h-[38px] sm:h-[46px] overflow-hidden">
               {translatedName}
             </h3>
           </div>
@@ -196,14 +198,14 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
             {/* Price Line */}
             <div className="flex flex-col gap-1 sm:gap-1.5 w-full">
               <div className="flex flex-row items-center gap-1 sm:gap-2 whitespace-nowrap overflow-hidden w-full">
-                <span className="font-bold text-foreground tracking-tight truncate shrink-0">
+                <span className="font-bold text-zinc-900 tracking-tight truncate shrink-0">
                   <span className="text-[9px] sm:text-[13px] mr-0.5 font-semibold">RM</span>
                   <span className="text-[13px] sm:text-[19px]">{activePrice.toFixed(2)}</span>
                 </span>
                 {hasDiscount && (
-                  <span className="font-bold text-primary truncate">
-                    <span className="text-[8px] sm:text-[11px] mr-0.5 font-medium">{ct('save')} RM</span>
-                    <span className="text-[10px] sm:text-[14px]">{(strikeThroughPrice! - activePrice).toFixed(2)}</span>
+                  <span className="font-bold text-primary tracking-tight truncate shrink-0 ml-1 sm:ml-2">
+                    <span className="text-[9px] sm:text-[13px] mr-0.5 font-semibold">{ct('save')} RM</span>
+                    <span className="text-[13px] sm:text-[19px]">{(strikeThroughPrice! - activePrice).toFixed(2)}</span>
                   </span>
                 )}
               </div>
@@ -211,17 +213,42 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
             
             {/* Action Buttons */}
             <div className="flex flex-col gap-2 sm:gap-3 mt-1">
+              {/* Quantity Selector */}
+              <div
+                className="flex items-center justify-between w-full bg-white rounded-full border border-zinc-200 shadow-sm px-2 py-1.5"
+                onClick={(e) => e.preventDefault()}
+              >
+                {/* Minus */}
+                <button
+                  disabled={isOutOfStock || selectedQty <= 1}
+                  onClick={(e) => { e.preventDefault(); setSelectedQty(q => Math.max(1, q - 1)); }}
+                  className="w-[26px] h-[26px] sm:w-[32px] sm:h-[32px] shrink-0 rounded-full border-2 border-zinc-300 bg-white flex items-center justify-center text-zinc-600 hover:border-zinc-900 hover:text-zinc-900 hover:bg-zinc-50 active:scale-90 transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
+                >
+                  <Minus size={12} strokeWidth={3} />
+                </button>
+
+                {/* Count */}
+                <span className="flex-1 text-center font-bold text-[13px] sm:text-[15px] text-zinc-900 select-none tabular-nums">
+                  {selectedQty}
+                </span>
+
+                {/* Plus */}
+                <button
+                  disabled={isOutOfStock}
+                  onClick={(e) => { e.preventDefault(); setSelectedQty(q => q + 1); }}
+                  className="w-[26px] h-[26px] sm:w-[32px] sm:h-[32px] shrink-0 rounded-full bg-zinc-900 border-2 border-zinc-900 flex items-center justify-center text-white hover:bg-primary hover:border-primary hover:text-zinc-900 active:scale-90 transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
+                >
+                  <Plus size={12} strokeWidth={3} />
+                </button>
+              </div>
+
               <button
                 onClick={handleBuyNow}
                 disabled={isOutOfStock}
-                className="w-full py-1.5 sm:py-2.5 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-[11px] sm:text-sm transition-all hover:bg-yellow-400 hover:text-zinc-900 dark:hover:bg-yellow-400 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-1.5 sm:py-2.5 rounded-full bg-zinc-900 text-white font-bold text-[11px] sm:text-sm transition-all hover:bg-primary hover:border-primary hover:text-zinc-900 border-[1.5px] border-zinc-900 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {ct('buy')}
               </button>
-
-              <div className="w-full py-1.5 sm:py-2.5 rounded-full bg-transparent border-[1.5px] border-zinc-900 dark:border-white text-zinc-900 dark:text-white font-bold text-[11px] sm:text-sm text-center transition-all hover:bg-yellow-400 hover:text-zinc-900 hover:border-yellow-400 dark:hover:bg-yellow-400 dark:hover:text-zinc-900 dark:hover:border-yellow-400 group-active:scale-[0.98]">
-                {ct('learnMore')}
-              </div>
             </div>
           </div>
         </div>

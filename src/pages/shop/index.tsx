@@ -6,8 +6,6 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { Loader2, ChevronLeft, ChevronRight, X, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import { SharedCheckoutModal } from '../../components/checkout/SharedCheckoutModal';
-
 export default function Shop() {
   const router = useRouter();
   const { t, locale } = useTranslation();
@@ -169,55 +167,56 @@ export default function Shop() {
     return (t.shopCategories as any)[activeCategory] || activeCategory;
   }, [activeCategory, activeCatObj, locale, t]);
 
-  // Sync checkout modal from URL query (derived state)
-  const checkoutProductId = router.isReady ? (router.query.buy as string) : null;
-  const checkoutProduct = checkoutProductId ? allProducts.find(p => p.id === checkoutProductId) : null;
+
 
   return (
-    <>
+    <div className="min-h-screen bg-white">
       <Head>
         <title>{`${t.nav.shop} - Cheng-BOOM`}</title>
         <meta name="description" content="Browse our entire fireworks collection." />
       </Head>
 
-      {checkoutProduct && (
-        <SharedCheckoutModal
-          mode="single"
-          product={checkoutProduct}
-          onClose={() => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { buy, ...restQuery } = router.query;
-            router.push({ pathname: '/shop', query: restQuery }, undefined, { shallow: true, scroll: false });
-          }}
-        />
-      )}
+
 
       {/* ── Page Header & Category Tab Bar ───────────────────────────────── */}
-      <div className="bg-[#0a0a0a]">
+      <div className="bg-white">
         
         {/* ── HERO BANNER ────────────────────────────────────────────────── */}
-        <section className="relative h-[20vh] md:h-[45vh] flex items-center justify-center overflow-hidden pt-12 md:pt-0">
-          <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
-            style={{ backgroundImage: 'url("/shop.jpg")' }}
-          />
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
-          {/* Smooth blend into the section below */}
-          <div className="absolute inset-x-0 bottom-0 h-24 md:h-40 bg-gradient-to-t from-[#0a0a0a] to-transparent z-10" />
-
-          <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mt-6 md:mt-16">
+        <section 
+          className="relative flex flex-col items-center justify-center pt-24 pb-8 md:pt-32 md:pb-12 bg-cover sm:bg-[length:100%_auto] bg-top bg-no-repeat border-b border-zinc-100 bg-[#8b1517]"
+          style={{ backgroundImage: 'url(/shop2.png)' }}
+        >
+          <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-8">
+            <motion.p 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-xs font-bold tracking-[0.2em] uppercase text-white/80 mb-6 drop-shadow-sm"
+            >
+              {t.nav.shop?.toUpperCase() || 'SHOP'}
+            </motion.p>
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-3xl sm:text-4xl md:text-6xl font-black text-white tracking-tighter drop-shadow-[0_10px_50px_rgba(0,0,0,0.5)] uppercase"
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight drop-shadow-md"
             >
               {searchQuery ? `"${searchQuery}"` : activeCategoryLabel}
             </motion.h1>
+            {!searchQuery && (
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-white/90 text-lg md:text-xl max-w-2xl mx-auto font-medium drop-shadow-sm"
+              >
+                {t.shop.categoriesInfo}
+              </motion.p>
+            )}
             {searchQuery && (
               <motion.p 
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-                className="mt-4 text-white/80 text-sm"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+                className="text-white/90 text-lg md:text-xl max-w-2xl mx-auto font-medium drop-shadow-sm"
               >
                 {t.shop.showing}&nbsp;
                 <span className="font-bold text-white">{filteredProducts.length}</span>&nbsp;
@@ -225,18 +224,17 @@ export default function Shop() {
                 {' '}
                 <button
                   onClick={clearSearch}
-                  className="inline-flex items-center gap-1 ml-2 text-xs font-bold text-white hover:underline opacity-70 hover:opacity-100"
+                  className="inline-flex items-center gap-1 ml-2 text-xs font-bold text-white/80 hover:underline opacity-80 hover:opacity-100 hover:text-white drop-shadow-sm"
                 >
                   <X size={12} /> Clear search
                 </button>
               </motion.p>
             )}
           </div>
-        </section>
 
-        {/* ── Category Tab Bar ─────────────────────────────────────────── */}
-        <div className="relative z-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          {/* ── Category Tab Bar ─────────────────────────────────────────── */}
+          <div className="relative z-20 w-full">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-2 md:gap-4">
 
               {/* Left Scroll Button */}
@@ -267,18 +265,18 @@ export default function Shop() {
                 <button
                   onClick={() => handleCategoryClick('all')}
                   className={[
-                    'relative shrink-0 flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full drop-shadow-md',
+                    'relative shrink-0 flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full drop-shadow-sm',
                     activeCategory === 'all'
                       ? 'text-zinc-900'
-                      : 'text-white/90 hover:text-white hover:bg-white/10',
+                      : 'text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-sm',
                   ].join(' ')}
                 >
                   <span className="relative z-10">{t.shopCategories.all}</span>
                   <span className={[
-                    'relative z-10 inline-flex items-center justify-center min-w-[20px] sm:min-w-[24px] h-4 sm:h-5 px-1.5 sm:px-2 rounded-full text-[9px] sm:text-[10px] font-black transition-colors shadow-sm',
+                    'relative z-10 inline-flex items-center justify-center min-w-[20px] sm:min-w-[24px] h-4 sm:h-5 px-1.5 sm:px-2 rounded-full text-[9px] sm:text-[10px] font-black transition-colors',
                     activeCategory === 'all'
-                      ? 'bg-white/90 text-zinc-900 border border-zinc-900/5'
-                      : 'bg-white/10 text-white/70',
+                      ? 'bg-white/90 text-zinc-900 shadow-sm'
+                      : 'bg-white/20 text-white',
                   ].join(' ')}>
                     {allProducts.length}
                   </span>
@@ -311,18 +309,18 @@ export default function Shop() {
                       key={cat.id}
                       onClick={() => handleCategoryClick(key)}
                       className={[
-                        'relative shrink-0 flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full drop-shadow-md',
+                        'relative shrink-0 flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full drop-shadow-sm',
                         isActive
                           ? 'text-zinc-900'
-                          : 'text-white/90 hover:text-white hover:bg-white/10',
+                          : 'text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-sm',
                       ].join(' ')}
                     >
                       <span className="relative z-10">{label}</span>
                       <span className={[
-                        'relative z-10 inline-flex items-center justify-center min-w-[20px] sm:min-w-[24px] h-4 sm:h-5 px-1.5 sm:px-2 rounded-full text-[9px] sm:text-[10px] font-black transition-colors shadow-sm',
+                        'relative z-10 inline-flex items-center justify-center min-w-[20px] sm:min-w-[24px] h-4 sm:h-5 px-1.5 sm:px-2 rounded-full text-[9px] sm:text-[10px] font-black transition-colors',
                         isActive
-                          ? 'bg-white/90 text-zinc-900 border border-zinc-900/5'
-                          : 'bg-white/10 text-white/70',
+                          ? 'bg-white/90 text-zinc-900 shadow-sm'
+                          : 'bg-white/20 text-white',
                       ].join(' ')}>
                         {count}
                       </span>
@@ -360,6 +358,7 @@ export default function Shop() {
             </div>
           </div>
         </div>
+      </section>
       </div>
 
       {/* ── Product Grid ──────────────────────────────────────────────────── */}
@@ -368,25 +367,25 @@ export default function Shop() {
         {/* Top Controls Row */}
         {filteredProducts.length > 0 && !isLoading && (
           <div className="flex flex-row items-center justify-between w-full gap-2 mb-6">
-            <p className="text-[11px] sm:text-sm text-muted-foreground whitespace-nowrap">
+            <p className="text-[11px] sm:text-sm text-zinc-500 whitespace-nowrap">
               {t.shop.showing}&nbsp;
-              <span className="font-bold text-foreground">{filteredProducts.length}</span>&nbsp;
+              <span className="font-bold text-zinc-900">{filteredProducts.length}</span>&nbsp;
               <span className="hidden sm:inline">{t.shop.products}</span>
             </p>
             <div className="flex items-center shrink-0">
-              <span className="text-[11px] sm:text-sm text-muted-foreground mr-1 font-medium">{st('sortBy')}</span>
+              <span className="text-[11px] sm:text-sm text-zinc-500 mr-2 sm:mr-3 font-medium">{st('sortBy')}</span>
               <div className="relative">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="appearance-none bg-transparent hover:text-foreground/80 text-foreground text-[11px] sm:text-sm font-bold py-1 pl-1 pr-5 sm:pl-2 sm:pr-6 transition-colors cursor-pointer outline-none focus:ring-0 focus:outline-none max-w-[120px] sm:max-w-none text-ellipsis"
+                  className="appearance-none bg-zinc-100 hover:bg-zinc-200 text-zinc-900 text-[11px] sm:text-sm font-bold py-1.5 sm:py-2 pl-3 sm:pl-4 pr-8 sm:pr-10 rounded-lg transition-colors cursor-pointer outline-none focus:ring-0 focus:outline-none max-w-[140px] sm:max-w-none text-ellipsis"
                 >
-                  <option className="bg-background text-foreground" value="newest">{st('newest')}</option>
-                  <option className="bg-background text-foreground" value="price-asc">{st('priceAsc')}</option>
-                  <option className="bg-background text-foreground" value="price-desc">{st('priceDesc')}</option>
-                  <option className="bg-background text-foreground" value="name-asc">{st('nameAsc')}</option>
+                  <option className="bg-white text-zinc-900" value="newest">{st('newest')}</option>
+                  <option className="bg-white text-zinc-900" value="price-asc">{st('priceAsc')}</option>
+                  <option className="bg-white text-zinc-900" value="price-desc">{st('priceDesc')}</option>
+                  <option className="bg-white text-zinc-900" value="name-asc">{st('nameAsc')}</option>
                 </select>
-                <ChevronDown size={14} strokeWidth={2.5} className="absolute right-0 sm:right-1 top-1/2 -translate-y-1/2 pointer-events-none text-foreground" />
+                <ChevronDown size={14} strokeWidth={2.5} className="absolute right-2.5 sm:right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500" />
               </div>
             </div>
           </div>
@@ -401,8 +400,8 @@ export default function Shop() {
           /* Empty state */
           <div className="flex flex-col items-center justify-center min-h-[40vh] py-16 sm:py-32 px-4 text-center">
             <div className="text-4xl sm:text-6xl mb-4 sm:mb-6">🔍</div>
-            <h2 className="text-lg sm:text-2xl font-extrabold text-foreground mb-2">{t.shop.notFound}</h2>
-            <p className="text-xs sm:text-base text-muted-foreground mb-6 max-w-[250px] sm:max-w-none mx-auto">{t.shop.noProductsTryAgain}</p>
+            <h2 className="text-lg sm:text-2xl font-extrabold text-zinc-900 mb-2">{t.shop.notFound}</h2>
+            <p className="text-xs sm:text-base text-zinc-500 mb-6 max-w-[250px] sm:max-w-none mx-auto">{t.shop.noProductsTryAgain}</p>
           </div>
         ) : (
           /* Flat grid */
@@ -431,6 +430,6 @@ export default function Shop() {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }

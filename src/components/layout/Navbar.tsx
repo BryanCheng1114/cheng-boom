@@ -214,10 +214,9 @@ export function Navbar() {
   const fontFamily = FONT_MAP[selectedFont] || FONT_MAP['Impact'];
   const businessName = settings?.businessName || 'Cheng-BOOM';
   const profileInitial = user?.name?.trim().charAt(0).toUpperCase() || 'U';
-
-  const isTransparentHeroPage = router.pathname === '/' || router.pathname === '/about' || router.pathname === '/contact' || router.pathname === '/shop' || router.pathname === '/profile';
-  const isTransparent = isTransparentHeroPage && !isScrolled && !mobileOpen && !isShopHovered;
-
+  // Make the navbar fixed on the home page so the background image slides under it.
+  const isTransparentHeroPage = router.pathname === '/';
+  const isTransparent = false;
   return (
     <>
       <nav 
@@ -226,38 +225,41 @@ export function Navbar() {
           isTransparentHeroPage ? "fixed" : "sticky",
           isTransparent
             ? "bg-transparent text-white border-b border-transparent shadow-none"
-            : "bg-[#161617] text-[#f5f5f7] border-b border-white/[0.08] shadow-sm"
+            : "bg-white text-zinc-900 border-b border-zinc-200 shadow-sm"
         )}
       >
-      <div className="mx-auto w-full max-w-[1180px] px-3 sm:px-5 lg:px-6">
+      <div className="mx-auto w-full max-w-[1600px] px-6 md:px-10 lg:px-16">
         <div className="flex h-16 items-center justify-between gap-2 sm:gap-4">
 
-          {/* ---- Brand ---- */}
-          <Link href="/" className="group flex shrink-0 items-center h-full" aria-label={`${businessName} home`}>
-            <span
-              className="block whitespace-nowrap text-[19px] sm:text-[22px] font-black italic leading-none tracking-wider text-white transition-colors duration-300 group-hover:text-yellow-400 group-hover:scale-105 origin-left py-1 pr-1"
-              style={{ fontFamily }}
-              title={businessName}
-            >
-              {businessName}
-            </span>
-          </Link>
-
-          {/* ---- Desktop Nav ---- */}
-          <div className="hidden md:flex flex-1 items-center justify-center gap-1 lg:gap-2 h-full">
-
-            {/* Home Page */}
-            <Link
-              href="/"
-              className={cn(
-                'hidden relative px-3 font-sans text-[15px] font-semibold tracking-wider transition-all duration-300 lg:px-4',
-                isActive('/') 
-                  ? 'text-yellow-400' 
-                  : 'text-white/90 hover:text-yellow-400'
+          {/* ---- Left Side: Brand + Desktop Nav ---- */}
+          <div className="flex flex-1 justify-start items-center h-full gap-8 lg:gap-14">
+            
+            {/* Brand */}
+            <Link href="/" className="flex shrink-0 items-center h-full cursor-pointer py-1" aria-label={`${businessName} home`}>
+              {settings?.logoUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img 
+                  src={settings.logoUrl} 
+                  alt={businessName} 
+                  className="max-h-[32px] sm:max-h-[200px] max-w-[200px] object-contain"
+                />
+              ) : (
+                <span
+                  className={cn(
+                    "block whitespace-nowrap text-[22px] sm:text-[26px] font-medium leading-none tracking-tight pr-2",
+                    isTransparent ? "text-white" : "text-zinc-900"
+                  )}
+                  style={{ fontFamily }}
+                  title={businessName}
+                >
+                  {businessName}
+                </span>
               )}
-            >
-              {t.nav.home}
             </Link>
+
+            {/* Desktop Nav */}
+            <div className="hidden md:flex shrink-0 items-center gap-6 lg:gap-8 h-full">
+
 
             {/* Shop — with mega menu dropdown */}
             <div 
@@ -268,13 +270,13 @@ export function Navbar() {
               <Link
                 href="/shop"
                 className={cn(
-                  'relative h-full flex items-center gap-1 px-3 font-sans text-[15px] font-semibold tracking-wider transition-all duration-300 lg:px-4',
-                  isActivePrefix('/shop') 
-                    ? 'text-yellow-400' 
-                    : 'text-white/90 group-hover/shop:text-yellow-400 after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-yellow-400 after:scale-x-0 group-hover/shop:after:scale-x-100 after:transition-transform after:duration-300'
+                  'relative h-full flex items-center gap-1 font-sans text-[15px] font-medium tracking-normal transition-colors duration-300',
+                  isTransparent
+                    ? 'text-white group-hover/shop:text-white/80'
+                    : 'text-zinc-600 group-hover/shop:text-zinc-900'
                 )}
               >
-                {t.nav.shop}
+                {t.nav.shop} <ChevronDown size={14} className="ml-0.5 opacity-60" />
               </Link>
               
               {/* Dropdown Mega Menu (Full Width) */}
@@ -283,7 +285,7 @@ export function Navbar() {
                   "w-full pb-4 pt-1 transition-all duration-300",
                   isTransparent 
                     ? "bg-transparent border-transparent" 
-                    : "bg-[#161617] border-b border-white/[0.08] shadow-2xl"
+                    : "bg-white border-b border-zinc-200 shadow-xl"
                 )}>
                   <div className="mx-auto w-full max-w-[1400px] overflow-x-auto scrollbar-hide px-4 py-6">
                     <div className="flex items-start justify-center gap-6 sm:gap-8 lg:gap-12 flex-nowrap min-w-max px-2">
@@ -323,7 +325,10 @@ export function Navbar() {
                                 className="max-h-full max-w-full object-contain opacity-85 transition-all duration-300 group-hover/cat:opacity-100 group-hover/cat:scale-110 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
                               />
                             </div>
-                            <span className="text-[14px] lg:text-[15px] font-medium tracking-wide text-white/72 group-hover/cat:text-white transition-colors">
+                            <span className={cn(
+                              "font-sans text-[14px] lg:text-[15px] font-medium tracking-normal transition-colors",
+                              isTransparent ? "text-white/72 group-hover/cat:text-white" : "text-zinc-600 group-hover/cat:text-zinc-900"
+                            )}>
                               {label}
                             </span>
                           </Link>
@@ -339,10 +344,8 @@ export function Navbar() {
             <Link
               href="/about"
               className={cn(
-                'relative h-full flex items-center px-3 font-sans text-[15px] font-semibold tracking-wider transition-all duration-300 lg:px-4',
-                isActive('/about') 
-                  ? 'text-yellow-400' 
-                  : 'text-white/90 hover:text-yellow-400 after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-yellow-400 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300'
+                'relative h-full flex items-center font-sans text-[15px] font-medium tracking-normal transition-colors duration-300',
+                isTransparent ? 'text-white hover:text-white/80' : 'text-zinc-600 hover:text-zinc-900'
               )}
             >
               {t.nav.aboutUs}
@@ -352,23 +355,36 @@ export function Navbar() {
             <Link
               href="/contact"
               className={cn(
-                'relative h-full flex items-center px-3 font-sans text-[15px] font-semibold tracking-wider transition-all duration-300 lg:px-4',
-                isActive('/contact') 
-                  ? 'text-yellow-400' 
-                  : 'text-white/90 hover:text-yellow-400 after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-yellow-400 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300'
+                'relative h-full flex items-center font-sans text-[15px] font-medium tracking-normal transition-colors duration-300',
+                isTransparent ? 'text-white hover:text-white/80' : 'text-zinc-600 hover:text-zinc-900'
               )}
             >
               {t.nav.contact}
             </Link>
+
+            {/* Safety Guide */}
+            <Link
+              href="/safety"
+              className={cn(
+                'relative h-full flex items-center font-sans text-[15px] font-medium tracking-normal transition-colors duration-300',
+                isTransparent ? 'text-white hover:text-white/80' : 'text-zinc-600 hover:text-zinc-900'
+              )}
+            >
+              Safety Guide
+            </Link>
           </div>
+        </div>
 
           {/* ---- Right Actions ---- */}
-          <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+          <div className="flex flex-1 justify-end items-center gap-1 sm:gap-3 h-full">
 
             {/* Search Icon */}
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white group"
+              className={cn(
+                "flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full transition-all duration-300 group",
+                isTransparent ? "text-white/82 hover:bg-white/10 hover:text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+              )}
               aria-label="Search"
             >
               <Search strokeWidth={1.5} className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" />
@@ -378,7 +394,10 @@ export function Navbar() {
             <Link
               id="navbar-cart-btn"
               href="/cart"
-              className="relative flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white group"
+              className={cn(
+                "relative flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full transition-all duration-300 group",
+                isTransparent ? "text-white/82 hover:bg-white/10 hover:text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+              )}
               aria-label="Cart"
             >
               <motion.div
@@ -437,7 +456,12 @@ export function Navbar() {
               {user ? (
                 <Link 
                   href="/profile"
-                  className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-white/15 text-sm sm:text-base font-black text-white ring-1 ring-white/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/25"
+                  className={cn(
+                    "flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-sm sm:text-base font-black ring-1 transition-all duration-300 hover:-translate-y-0.5",
+                    isTransparent
+                      ? "bg-white/15 text-white ring-white/10 hover:bg-white/25"
+                      : "bg-zinc-100 text-zinc-800 ring-zinc-200 hover:bg-zinc-200"
+                  )}
                   aria-label={`${user.name} profile`}
                   title={user.name}
                 >
@@ -446,7 +470,10 @@ export function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white group"
+                  className={cn(
+                    "flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full transition-all duration-300 group",
+                    isTransparent ? "text-white/82 hover:bg-white/10 hover:text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                  )}
                   title="Sign In"
                 >
                   <User strokeWidth={1.5} className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" />
@@ -457,7 +484,10 @@ export function Navbar() {
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="ml-0.5 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-white/82 transition-all duration-300 hover:bg-white/10 hover:text-white md:hidden"
+              className={cn(
+                "ml-0.5 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full transition-all duration-300 md:hidden",
+                isTransparent ? "text-white/82 hover:bg-white/10 hover:text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+              )}
             >
               {mobileOpen ? <X strokeWidth={1.5} className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu strokeWidth={1.5} className="w-5 h-5 sm:w-6 sm:h-6" />}
             </button>
@@ -473,33 +503,42 @@ export function Navbar() {
               exit={{ opacity: 0, scale: 0.85 }}
               transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.35 }}
               style={{ transformOrigin: 'calc(100% - 28px) 32px' }}
-              className="fixed inset-0 z-[200] flex flex-col bg-black md:hidden"
+              className="fixed inset-0 z-[200] flex flex-col bg-white md:hidden"
             >
               {/* Top Header (Matches exactly with Mobile Navbar Header Size) */}
-              <div className="flex h-16 shrink-0 items-center justify-between px-3 sm:px-5">
-                <span
-                  className="block whitespace-nowrap text-[19px] sm:text-[22px] font-black italic leading-none tracking-wider text-white py-1 pr-1"
-                  style={{ fontFamily }}
-                >
-                  {businessName}
-                </span>
+              <div className="flex h-16 shrink-0 items-center justify-between px-3 sm:px-5 border-b border-zinc-100">
+                {settings?.logoUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img 
+                    src={settings.logoUrl} 
+                    alt={businessName} 
+                    className="max-h-[28px] sm:max-h-[32px] max-w-[120px] object-contain"
+                  />
+                ) : (
+                  <span
+                    className="block whitespace-nowrap text-[19px] sm:text-[22px] font-black italic leading-none tracking-wider text-zinc-900 py-1 pr-1"
+                    style={{ fontFamily }}
+                  >
+                    {businessName}
+                  </span>
+                )}
                 
                 <div className="flex shrink-0 items-center gap-1 sm:gap-3">
                   {user ? (
                     <Link 
                       href="/profile" 
                       onClick={() => setMobileOpen(false)} 
-                      className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-white/15 text-sm sm:text-base font-black text-white ring-1 ring-white/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/25"
+                      className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-zinc-100 text-sm sm:text-base font-black text-zinc-800 ring-1 ring-zinc-200 transition-all duration-300 hover:-translate-y-0.5 hover:bg-zinc-200"
                       title={user.name}
                     >
                       {user.name.charAt(0).toUpperCase()}
                     </Link>
                   ) : (
-                    <Link href="/login" onClick={() => setMobileOpen(false)} className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-white/82 hover:bg-white/10 hover:text-white transition-all">
+                    <Link href="/login" onClick={() => setMobileOpen(false)} className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-all">
                       <User className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
                     </Link>
                   )}
-                  <button onClick={() => setMobileOpen(false)} className="ml-0.5 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-white/82 hover:bg-white/10 hover:text-white transition-all">
+                  <button onClick={() => setMobileOpen(false)} className="ml-0.5 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-all">
                     <X className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
                   </button>
                 </div>
@@ -511,11 +550,11 @@ export function Navbar() {
                 <div className="flex flex-col">
                   <button
                     onClick={() => setShopExpanded(!shopExpanded)}
-                    className="flex w-full items-center justify-between py-5 text-left text-[18px] font-semibold text-white transition-colors"
+                    className="flex w-full items-center justify-between py-5 text-left text-[18px] font-semibold text-zinc-900 transition-colors"
                   >
                     <span>{t.nav.shop}</span>
                     <motion.div animate={{ rotate: shopExpanded ? 90 : 0 }}>
-                      <ChevronRight size={20} className="text-white/50" />
+                      <ChevronRight size={20} className="text-zinc-400" />
                     </motion.div>
                   </button>
                   
@@ -528,13 +567,13 @@ export function Navbar() {
                         className="overflow-hidden"
                       >
                         <div className="flex flex-col pb-4">
-                          <span className="py-2 pl-2 mb-1 text-[12px] font-bold tracking-widest text-white/40 uppercase">
+                          <span className="py-2 pl-2 mb-1 text-[12px] font-bold tracking-widest text-zinc-400 uppercase">
                             {locale === 'zh' ? '商品类别' : 'Categories'}
                           </span>
                           <Link
                             href="/shop"
                             onClick={() => setMobileOpen(false)}
-                            className="py-3 pl-2 text-[16px] font-semibold text-yellow-400 hover:text-yellow-300 transition-colors"
+                            className="py-3 pl-2 text-[16px] font-semibold text-yellow-500 hover:text-yellow-600 transition-colors"
                           >
                             {locale === 'zh' ? '所有分类' : 'All Categories'}
                           </Link>
@@ -550,7 +589,7 @@ export function Navbar() {
                                 key={category.id}
                                 href={`/shop?category=${key}`}
                                 onClick={() => setMobileOpen(false)}
-                                className="py-3 pl-2 text-[16px] text-white/70 hover:text-white transition-colors"
+                                className="py-3 pl-2 text-[16px] text-zinc-500 hover:text-zinc-900 transition-colors"
                               >
                                 {label}
                               </Link>
@@ -563,27 +602,36 @@ export function Navbar() {
                 </div>
 
                 {/* End Line Spacer */}
-                <div className="my-4 h-px w-full bg-white/10" />
+                <div className="my-4 h-px w-full bg-zinc-100" />
 
                 {/* About Us */}
                 <Link
                   href="/about"
                   onClick={() => setMobileOpen(false)}
-                  className="py-5 text-[18px] font-semibold text-white transition-colors block w-full text-left"
+                  className="py-5 text-[18px] font-semibold text-zinc-900 transition-colors block w-full text-left"
                 >
                   {t.nav.aboutUs}
+                </Link>
+
+                {/* Safety Guide */}
+                <Link
+                  href="/safety"
+                  onClick={() => setMobileOpen(false)}
+                  className="py-5 text-[18px] font-semibold text-zinc-900 transition-colors block w-full text-left"
+                >
+                  Safety Guide
                 </Link>
 
                 {/* Contact Us */}
                 <Link
                   href="/contact"
                   onClick={() => setMobileOpen(false)}
-                  className="py-5 text-[18px] font-semibold text-white transition-colors block w-full text-left"
+                  className="py-5 text-[18px] font-semibold text-zinc-900 transition-colors block w-full text-left"
                 >
                   {t.nav.contact}
                 </Link>
 
-                <div className="my-2 h-px w-full bg-white/10" />
+                <div className="my-2 h-px w-full bg-zinc-100" />
 
                 {/* My Account */}
                 <button
@@ -591,7 +639,7 @@ export function Navbar() {
                     setMobileOpen(false);
                     router.push(user ? '/profile' : '/login');
                   }}
-                  className="py-5 text-[18px] font-semibold text-white transition-colors flex items-center justify-between w-full text-left"
+                  className="py-5 text-[18px] font-semibold text-zinc-900 transition-colors flex items-center justify-between w-full text-left"
                 >
                   <div className="flex items-center gap-3">
                     <User size={20} />
@@ -604,7 +652,7 @@ export function Navbar() {
                 <div className="flex flex-col">
                   <button
                     onClick={() => setMobileLangExpanded(!mobileLangExpanded)}
-                    className="py-5 text-[18px] font-semibold text-white transition-colors flex items-center justify-between w-full text-left"
+                    className="py-5 text-[18px] font-semibold text-zinc-900 transition-colors flex items-center justify-between w-full text-left"
                   >
                     <div className="flex items-center gap-3">
                       <Globe size={20} />
@@ -627,7 +675,7 @@ export function Navbar() {
                             setMobileOpen(false);
                             setMobileLangExpanded(false);
                           }}
-                          className="py-3 pl-8 text-[16px] font-medium text-white/40 hover:text-white transition-colors w-full text-left flex items-center justify-between"
+                          className="py-3 pl-8 text-[16px] font-medium text-zinc-400 hover:text-zinc-900 transition-colors w-full text-left flex items-center justify-between"
                         >
                           {locale === 'zh' ? 'Malaysia / English' : '马来西亚 / 中文'}
                         </button>
@@ -685,18 +733,27 @@ export function Navbar() {
                 animate={{ y: 0 }}
                 exit={{ y: '-100%', transition: { duration: 0.25 } }}
                 transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="fixed top-0 inset-x-0 z-[200] bg-black text-white flex flex-col max-h-[55vh] shadow-[0_10px_50px_-10px_rgba(0,0,0,0.3)] rounded-b-[2.5rem]"
+                className="fixed top-0 inset-x-0 z-[200] bg-white text-zinc-900 flex flex-col max-h-[55vh] shadow-[0_10px_50px_-10px_rgba(0,0,0,0.15)] rounded-b-[2.5rem] border-b border-zinc-100"
               >
               {/* Top Bar (matches Nike) */}
               <div className="flex h-16 items-center justify-between px-3 sm:px-5 lg:px-6">
                 {/* Brand */}
-                <div className="hidden sm:flex shrink-0 items-center w-[120px]">
-                  <span
-                    className="block whitespace-nowrap text-[19px] sm:text-[22px] font-black italic leading-none tracking-wider text-white"
-                    style={{ fontFamily }}
-                  >
-                    {businessName}
-                  </span>
+                <div className="hidden sm:flex shrink-0 items-center w-[120px] py-1">
+                  {settings?.logoUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img 
+                      src={settings.logoUrl} 
+                      alt={businessName} 
+                      className="max-h-[250px] object-contain"
+                    />
+                  ) : (
+                    <span
+                      className="block whitespace-nowrap text-[22px] font-medium leading-none tracking-tight text-zinc-900"
+                      style={{ fontFamily }}
+                    >
+                      {businessName}
+                    </span>
+                  )}
                 </div>
 
                 {/* Search Input Container */}
@@ -704,7 +761,7 @@ export function Navbar() {
                   <form onSubmit={handleSearchSubmit} className="relative w-full group">
                     <Search
                       size={18}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 group-focus-within:text-white transition-colors"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-700 transition-colors"
                     />
                     <input
                       ref={searchInputRef}
@@ -712,13 +769,13 @@ export function Navbar() {
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       placeholder={st('search')}
-                      className="w-full pl-11 pr-11 py-3 text-[16px] sm:text-[17px] font-medium bg-transparent border-none text-white placeholder:text-white/40 focus:outline-none focus:ring-0 transition-colors"
+                      className="w-full pl-11 pr-11 py-3 text-[16px] sm:text-[17px] font-medium bg-transparent border-none text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-0 transition-colors"
                     />
                     {searchQuery && (
                       <button
                         type="button"
                         onClick={() => setSearchQuery('')}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
                       >
                         <X size={16} strokeWidth={2} />
                       </button>
@@ -730,7 +787,7 @@ export function Navbar() {
                 <div className="flex shrink-0 items-center justify-end sm:w-[120px] ml-3 sm:ml-0">
                   <button
                     onClick={() => setSearchOpen(false)}
-                    className="flex items-center justify-center text-white/90 hover:text-white transition-colors p-1 -mr-1 sm:p-0 sm:mr-0"
+                    className="flex items-center justify-center text-zinc-600 hover:text-zinc-900 transition-colors p-1 -mr-1 sm:p-0 sm:mr-0"
                     aria-label="Cancel"
                   >
                     <span className="hidden sm:block text-[15px] font-semibold">{st('cancel')}</span>
@@ -750,13 +807,13 @@ export function Navbar() {
                       {/* Popular Search Terms */}
                       {hasRecommended && (
                         <div>
-                          <h3 className="text-[13px] sm:text-[14px] font-medium text-white/50 mb-3">{st('popular')}</h3>
+                          <h3 className="text-[13px] sm:text-[14px] font-medium text-zinc-400 mb-3">{st('popular')}</h3>
                           <div className="flex flex-wrap gap-x-3 gap-y-2">
                             {trendingWords.map((word, idx) => (
                               <button
                                 key={`trend-${idx}`}
                                 onClick={() => pickSuggestion(word)}
-                                className="py-1.5 text-white/70 hover:text-white text-[14px] sm:text-[15px] font-medium transition-colors"
+                                className="py-1.5 text-zinc-600 hover:text-zinc-900 text-[14px] sm:text-[15px] font-medium transition-colors"
                               >
                                 {word}
                               </button>
@@ -768,19 +825,19 @@ export function Navbar() {
                       {/* Recent Searches */}
                       {hasHistory && (
                         <div>
-                          <h3 className="text-[13px] sm:text-[14px] font-medium text-white/50 mb-3">{st('recent')}</h3>
+                          <h3 className="text-[13px] sm:text-[14px] font-medium text-zinc-400 mb-3">{st('recent')}</h3>
                           <div className="flex flex-col">
                             {searchHistory.map((item, idx) => (
                               <div key={`hist-${idx}`} className="flex items-center justify-between py-3 group/hist">
                                 <button
                                   onClick={() => pickSuggestion(item)}
-                                  className="flex-1 text-left text-[16px] sm:text-[18px] font-medium text-white/90 hover:text-white transition-colors"
+                                  className="flex-1 text-left text-[16px] sm:text-[18px] font-medium text-zinc-800 hover:text-zinc-900 transition-colors"
                                 >
                                   {item}
                                 </button>
                                 <button
                                   onClick={() => removeHistory(item)}
-                                  className="p-2 text-white/40 hover:text-white transition-colors sm:opacity-0 group-hover/hist:opacity-100"
+                                  className="p-2 text-zinc-300 hover:text-zinc-700 transition-colors sm:opacity-0 group-hover/hist:opacity-100"
                                 >
                                   <X size={18} strokeWidth={1.5} />
                                 </button>
@@ -798,7 +855,7 @@ export function Navbar() {
                       
                       {suggestedCategories.length > 0 && (
                         <div>
-                          <h3 className="text-[13px] sm:text-[14px] font-medium text-white/50 mb-2">{st('categories')}</h3>
+                          <h3 className="text-[13px] sm:text-[14px] font-medium text-zinc-400 mb-2">{st('categories')}</h3>
                           <div className="flex flex-col">
                             {suggestedCategories.map(cat => {
                               const key = cat.code || cat.key || cat.name.toLowerCase().replace(/\s+/g, '');
@@ -809,14 +866,14 @@ export function Navbar() {
                                     setSearchOpen(false);
                                     router.push(`/shop?category=${key}`);
                                   }}
-                                  className="flex items-center gap-3 sm:gap-4 py-2.5 hover:bg-white/10 rounded-xl px-2 -mx-2 transition-colors text-left"
+                                  className="flex items-center gap-3 sm:gap-4 py-2.5 hover:bg-zinc-50 rounded-xl px-2 -mx-2 transition-colors text-left"
                                 >
                                   {(cat.transparentImage || cat.image) && (
-                                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/5 rounded-lg flex items-center justify-center p-1.5 shrink-0">
+                                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-zinc-100 rounded-lg flex items-center justify-center p-1.5 shrink-0">
                                       <img src={cat.transparentImage || cat.image || undefined} alt={cat.name} className="max-w-full max-h-full object-contain drop-shadow-sm" />
                                     </div>
                                   )}
-                                  <span className="text-[15px] sm:text-[16px] font-medium text-white/90">{cat.name}</span>
+                                  <span className="text-[15px] sm:text-[16px] font-medium text-zinc-800">{cat.name}</span>
                                 </button>
                               );
                             })}
@@ -826,22 +883,22 @@ export function Navbar() {
 
                       {suggestedProducts.length > 0 && (
                         <div>
-                          <h3 className="text-[13px] sm:text-[14px] font-medium text-white/50 mb-2">{st('products')}</h3>
+                          <h3 className="text-[13px] sm:text-[14px] font-medium text-zinc-400 mb-2">{st('products')}</h3>
                           <div className="flex flex-col">
                             {suggestedProducts.map(p => (
                               <button
                                 key={p.id}
                                 onClick={() => pickSuggestion(p.name)}
-                                className="flex items-center gap-3 sm:gap-4 py-2.5 hover:bg-white/10 rounded-xl px-2 -mx-2 transition-colors text-left"
+                                className="flex items-center gap-3 sm:gap-4 py-2.5 hover:bg-zinc-50 rounded-xl px-2 -mx-2 transition-colors text-left"
                               >
                                 {p.images?.[0] ? (
-                                  <img src={p.images[0]} alt={p.name} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover bg-white/5 shrink-0" />
+                                  <img src={p.images[0]} alt={p.name} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover bg-zinc-100 shrink-0" />
                                 ) : (
-                                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-white/5 shrink-0 flex items-center justify-center"><Search size={16} className="text-white/40" /></div>
+                                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-zinc-100 shrink-0 flex items-center justify-center"><Search size={16} className="text-zinc-400" /></div>
                                 )}
                                 <div className="flex flex-col overflow-hidden">
-                                  <span className="text-[15px] sm:text-[16px] font-medium text-white/90 truncate">{p.name}</span>
-                                  {p.category && <span className="text-[12px] sm:text-[13px] text-white/50 truncate">{p.category}</span>}
+                                  <span className="text-[15px] sm:text-[16px] font-medium text-zinc-800 truncate">{p.name}</span>
+                                  {p.category && <span className="text-[12px] sm:text-[13px] text-zinc-400 truncate">{p.category}</span>}
                                 </div>
                               </button>
                             ))}
@@ -850,7 +907,7 @@ export function Navbar() {
                       )}
 
                       {suggestedProducts.length === 0 && suggestedCategories.length === 0 && (
-                        <div className="py-12 text-center text-white/50 text-[15px] sm:text-[16px]">
+                        <div className="py-12 text-center text-zinc-400 text-[15px] sm:text-[16px]">
                           {st('noResults')} "{searchQuery}"
                         </div>
                       )}

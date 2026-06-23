@@ -348,7 +348,7 @@ export default function ProfilePage() {
         <title>{`${user.name}'s Profile - Cheng-BOOM`}</title>
       </Head>
 
-      <div className="min-h-screen bg-background relative overflow-hidden dark:bg-zinc-950 pb-20 text-left text-foreground">
+      <div className="min-h-screen bg-background relative overflow-hidden pb-20 text-left text-foreground">
 
 
         <div className="max-w-6xl mx-auto px-4 py-12 relative z-10">
@@ -358,20 +358,20 @@ export default function ProfilePage() {
 
           {/* Breadcrumbs */}
           <div className="hidden md:flex items-center gap-2 text-sm text-zinc-500 mb-6">
-            <button onClick={() => router.push('/')} className="hover:text-white transition-colors">{t.nav?.home || 'HomePage'}</button>
+            <button onClick={() => router.push('/')} className="hover:text-zinc-900 transition-colors">{t.nav?.home || 'HomePage'}</button>
             <span>/</span>
-            <span className="text-white">{t.profilePage?.profileDetails || 'Profile Details'}</span>
+            <span className="text-zinc-900">{t.profilePage?.profileDetails || 'Profile Details'}</span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             {/* Sidebar: Navigation (DJI Style) */}
-            <div className="hidden lg:flex lg:col-span-3 flex-col min-h-[500px] bg-white dark:bg-[#111111] rounded-2xl p-8 shadow-sm">
+            <div className="hidden lg:flex lg:col-span-3 flex-col min-h-[500px] bg-white rounded-2xl p-8 shadow-sm border border-zinc-100">
               <div className="flex flex-col flex-1">
                 {/* Account Overview Header */}
                 <button 
                   onClick={() => setActiveTab('')}
-                  className={`text-left text-sm py-2 mb-6 transition-colors ${activeTab === '' ? 'text-white font-medium' : 'text-zinc-400 hover:text-white'}`}
+                  className={`text-left text-sm py-2 mb-6 transition-colors ${activeTab === '' ? 'text-zinc-900 font-medium' : 'text-zinc-400 hover:text-zinc-900'}`}
                 >
                   <div className="flex items-center gap-3">
                     <User size={18} />
@@ -384,7 +384,7 @@ export default function ProfilePage() {
                   <h4 className="text-xs text-zinc-500 uppercase tracking-widest font-semibold mb-3">{t.profilePage?.ordersHeader || 'Orders'}</h4>
                   <button 
                     onClick={() => setActiveTab('all_orders')}
-                    className={`flex items-center gap-3 w-full text-left text-sm py-2 transition-colors ${activeTab === 'all_orders' ? 'text-white font-medium' : 'text-zinc-400 hover:text-white'}`}
+                    className={`flex items-center gap-3 w-full text-left text-sm py-2 transition-colors ${activeTab === 'all_orders' ? 'text-zinc-900 font-medium' : 'text-zinc-400 hover:text-zinc-900'}`}
                   >
                     <Receipt size={16} /> {t.profilePage?.myOrders || 'My Orders'}
                   </button>
@@ -395,13 +395,13 @@ export default function ProfilePage() {
                   <h4 className="text-xs text-zinc-500 uppercase tracking-widest font-semibold mb-3">{t.profilePage?.accountSettings || 'Account Settings'}</h4>
                   <button 
                     onClick={() => setActiveTab('edit_profile')}
-                    className={`flex items-center gap-3 w-full text-left text-sm py-2 transition-colors ${activeTab === 'edit_profile' ? 'text-white font-medium' : 'text-zinc-400 hover:text-white'}`}
+                    className={`flex items-center gap-3 w-full text-left text-sm py-2 transition-colors ${activeTab === 'edit_profile' ? 'text-zinc-900 font-medium' : 'text-zinc-400 hover:text-zinc-900'}`}
                   >
                     <Edit3 size={16} /> {t.profilePage?.editProfile || 'Edit Profile'}
                   </button>
                   <button 
                     onClick={() => setActiveTab('change_password')}
-                    className={`flex items-center gap-3 w-full text-left text-sm py-2 transition-colors ${activeTab === 'change_password' ? 'text-white font-medium' : 'text-zinc-400 hover:text-white'}`}
+                    className={`flex items-center gap-3 w-full text-left text-sm py-2 transition-colors ${activeTab === 'change_password' ? 'text-zinc-900 font-medium' : 'text-zinc-400 hover:text-zinc-900'}`}
                   >
                     <Lock size={16} /> {t.profilePage?.changePassword || 'Change Password'}
                   </button>
@@ -411,7 +411,7 @@ export default function ProfilePage() {
               {/* Logout Button at bottom */}
               <button 
                 onClick={() => setIsLogoutModalOpen(true)}
-                className="flex items-center gap-3 text-sm text-zinc-500 hover:text-red-500 transition-colors mt-8 pt-6 border-t border-zinc-200 dark:border-white/5"
+                className="flex items-center gap-3 text-sm text-zinc-500 hover:text-red-500 transition-colors mt-8 pt-6 border-t border-zinc-200"
               >
                 <LogOut size={16} />
                 {t.profilePage?.logout || 'Logout'}

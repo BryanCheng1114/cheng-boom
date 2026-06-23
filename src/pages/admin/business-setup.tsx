@@ -326,15 +326,15 @@ const BusinessSetupPage = () => {
             <h2 className="text-xl font-black italic uppercase  text-zinc-900">{t('payment_settings') || 'Payment Settings'}</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 gap-8">
             {/* Bank Transfer Image */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-2 group">
-                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">{t('bank_transfer_image') || 'Bank Transfer Details / QR'}</label>
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">DuitNow & Bank Transfer Details / QR</label>
                 <div className="relative">
                   <HelpCircle size={12} className="text-zinc-400 cursor-help" />
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 p-3 bg-zinc-800  text-white text-xs font-medium rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-center shadow-xl">
-                    {t('bank_transfer_tooltip') || 'Upload a clear image of your bank account details or bank QR code for customers.'}
+                    Upload a clear image of your bank account details or DuitNow QR code for customers.
                   </div>
                 </div>
               </div>
@@ -361,44 +361,9 @@ const BusinessSetupPage = () => {
                 />
               </div>
             </div>
-
-            {/* TNG Duitnow Image */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-2 group">
-                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">{t('tng_duitnow_image') || 'TNG DuitNow QR'}</label>
-                <div className="relative">
-                  <HelpCircle size={12} className="text-zinc-400 cursor-help" />
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 p-3 bg-zinc-800  text-white text-xs font-medium rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-center shadow-xl">
-                    {t('tng_duitnow_tooltip') || 'Upload your TNG DuitNow QR Code. Customers will scan this to pay.'}
-                  </div>
-                </div>
-              </div>
-              <div className="relative aspect-square md:aspect-video bg-zinc-500/5 border-2 border-dashed border-zinc-500/20 rounded-3xl flex flex-col items-center justify-center hover:bg-zinc-500/10 transition-colors overflow-hidden group">
-                {formData.tngDuitnowImage ? (
-                  <>
-                    <img src={formData.tngDuitnowImage} alt="TNG DuitNow Details" className="h-full w-full object-contain p-4" />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                      <span className="text-white font-bold text-xs">{t('change_image') || 'Change Image'}</span>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {isUploading['tngDuitnowImage'] ? <Loader2 className="animate-spin text-zinc-400 mb-2" size={24} /> : <Upload className="text-zinc-400 mb-2" size={24} />}
-                    <span className="text-xs font-bold text-zinc-500">{isUploading['tngDuitnowImage'] ? (t('uploading') || 'Uploading...') : (t('upload_image') || 'Upload Image')}</span>
-                  </>
-                )}
-                <input 
-                  type="file" 
-                  accept="image/*"
-                  onChange={(e) => handleFileUpload(e, 'tngDuitnowImage')}
-                  disabled={isUploading['tngDuitnowImage']}
-                  className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                />
-              </div>
-            </div>
           </div>
         </div>
-
+        
         {/* Business Information Section */}
         <div className="bg-white  border border-zinc-200  rounded-[40px] p-8 shadow-xl">
           <div className="flex items-center gap-3 mb-6">
