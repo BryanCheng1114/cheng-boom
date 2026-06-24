@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from '../hooks/useTranslation';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 
 export default function AdminLogin() {
@@ -76,7 +76,7 @@ export default function AdminLogin() {
         <title>{t.admin?.headTitle || 'Admin Login - Cheng-BOOM'}</title>
       </Head>
 
-      <div className="min-h-screen bg-[#0A1017] flex flex-col md:flex-row text-white font-sans relative overflow-hidden">
+      <div className="min-h-screen bg-white flex flex-col md:flex-row text-zinc-900 font-sans relative overflow-hidden">
         
         {/* Subtle radial gradient background effect on the left side */}
         <div className="absolute top-0 left-0 w-full md:w-[40%] h-full overflow-hidden pointer-events-none">
@@ -84,7 +84,7 @@ export default function AdminLogin() {
         </div>
 
         {/* LEFT SIDE: Form */}
-        <div className="w-full md:w-[40%] flex flex-col p-6 sm:p-8 relative z-10 min-h-screen md:min-h-0 bg-[#0A1017]">
+        <div className="w-full md:w-[40%] flex flex-col p-6 sm:p-8 relative z-10 min-h-screen md:min-h-0 bg-white">
           
           <div className="w-full max-w-[400px] mx-auto flex-1 flex flex-col justify-center pb-20">
             <motion.div
@@ -92,10 +92,10 @@ export default function AdminLogin() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <h1 className="text-4xl font-semibold mb-3">
-                <span className="text-primary">Admin</span> Login
+              <h1 className="text-4xl font-black text-zinc-900 mb-3 tracking-tight">
+                Admin Login
               </h1>
-              <p className="text-zinc-400 text-sm mb-10">
+              <p className="text-zinc-500 text-sm font-medium mb-10">
                 Please enter your credentials to proceed.
               </p>
 
@@ -112,14 +112,14 @@ export default function AdminLogin() {
               >
                 {/* Username Input */}
                 <div className="relative mt-2">
-                  <label className="absolute -top-2.5 left-3 bg-[#0A1017] px-1 text-sm text-zinc-400 z-10 transition-colors">
+                  <label className="absolute -top-2.5 left-3 bg-white px-1 text-[11px] font-black uppercase tracking-widest text-zinc-500 z-10 transition-colors">
                     Username
                   </label>
                   <input 
                     type="text"
                     required
                     disabled={isLoading || loginStatus === 'success'}
-                    className="w-full bg-transparent border border-zinc-700 focus:border-primary rounded-lg px-4 py-3.5 text-white outline-none transition-colors disabled:opacity-50"
+                    className="w-full bg-zinc-50 border border-zinc-200 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 rounded-2xl px-5 py-4 text-zinc-900 font-bold text-sm outline-none transition-all disabled:opacity-50"
                     placeholder="Enter your username"
                     value={formData.username}
                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -127,15 +127,15 @@ export default function AdminLogin() {
                 </div>
 
                 {/* Password Input */}
-                <div className="relative mt-2">
-                  <label className="absolute -top-2.5 left-3 bg-[#0A1017] px-1 text-sm text-zinc-400 z-10 transition-colors">
+                <div className="relative mt-4">
+                  <label className="absolute -top-2.5 left-3 bg-white px-1 text-[11px] font-black uppercase tracking-widest text-zinc-500 z-10 transition-colors">
                     Password
                   </label>
                   <input 
                     type={showPassword ? "text" : "password"}
                     required
                     disabled={isLoading || loginStatus === 'success'}
-                    className="w-full bg-transparent border border-zinc-700 focus:border-primary rounded-lg px-4 py-3.5 text-white outline-none transition-colors tracking-wide disabled:opacity-50"
+                    className="w-full bg-zinc-50 border border-zinc-200 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 rounded-2xl px-5 py-4 text-zinc-900 font-bold text-sm outline-none transition-all tracking-wide disabled:opacity-50"
                     placeholder="Enter password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -144,7 +144,7 @@ export default function AdminLogin() {
                     type="button"
                     disabled={isLoading || loginStatus === 'success'}
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors disabled:opacity-50"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors disabled:opacity-50"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -161,7 +161,7 @@ export default function AdminLogin() {
                         onChange={(e) => setRememberMe(e.target.checked)}
                         disabled={isLoading || loginStatus === 'success'}
                       />
-                      <div className={`w-4 h-4 rounded-[4px] border flex items-center justify-center transition-all duration-200 ${rememberMe ? 'bg-primary border-primary text-black' : 'border-zinc-600 bg-transparent group-hover:border-primary'}`}>
+                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${rememberMe ? 'bg-zinc-900 border-zinc-900 text-white' : 'border-zinc-300 bg-transparent group-hover:border-zinc-900'}`}>
                         {rememberMe && (
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
                             <polyline points="20 6 9 17 4 12"></polyline>
@@ -169,7 +169,7 @@ export default function AdminLogin() {
                         )}
                       </div>
                     </div>
-                    <span className="text-sm text-zinc-400 group-hover:text-zinc-300 transition-colors">
+                    <span className="text-sm font-bold text-zinc-500 group-hover:text-zinc-900 transition-colors">
                       Remember me
                     </span>
                   </label>
@@ -179,7 +179,7 @@ export default function AdminLogin() {
                 <button 
                   type="submit"
                   disabled={isLoading || loginStatus === 'success'}
-                  className="w-full py-3.5 bg-primary text-zinc-900 rounded-lg font-bold text-base hover:brightness-110 transition-all flex items-center justify-center gap-2 mt-2 shadow-lg shadow-primary/20 disabled:opacity-70 disabled:cursor-wait"
+                  className="w-full py-4 bg-zinc-900 text-white rounded-2xl font-black text-sm uppercase tracking-wider hover:bg-zinc-800 transition-all flex items-center justify-center gap-2 mt-4 shadow-xl shadow-zinc-900/20 disabled:opacity-70 disabled:cursor-wait"
                 >
                   {(isLoading || loginStatus === 'success') ? (
                     <>
@@ -191,10 +191,19 @@ export default function AdminLogin() {
               </motion.form>
             </motion.div>
           </div>
+
+          {/* Secure System Footer */}
+          <div className="mt-auto pt-6 text-center text-xs font-bold text-zinc-400 select-none">
+            <div className="flex items-center justify-center gap-1.5 mb-1 text-zinc-500">
+              <ShieldCheck size={14} /> 
+              <span className="uppercase tracking-widest text-[10px]">Secure System Protection</span>
+            </div>
+            &copy; 2026 Cheng-BOOM. All rights reserved.
+          </div>
         </div>
 
         {/* RIGHT SIDE: Image */}
-        <div className="hidden md:block w-[60%] relative bg-zinc-900 border-l border-zinc-800">
+        <div className="hidden md:block w-[60%] relative bg-zinc-100 border-l border-zinc-200">
           <Image 
             src="/adminlogin.jpg"
             alt="Admin Dashboard Preview"
@@ -214,8 +223,8 @@ export default function AdminLogin() {
         input:-webkit-autofill,
         input:-webkit-autofill:hover, 
         input:-webkit-autofill:focus {
-          -webkit-text-fill-color: white;
-          -webkit-box-shadow: 0 0 0px 1000px #0A1017 inset;
+          -webkit-text-fill-color: #18181b;
+          -webkit-box-shadow: 0 0 0px 1000px #f4f4f5 inset;
           transition: background-color 5000s ease-in-out 0s;
         }
       `}</style>

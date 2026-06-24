@@ -183,17 +183,17 @@ export default function Home() {
           <div className="relative z-10 w-full max-w-[1200px] mx-auto h-full flex flex-col justify-center px-8 md:px-12 text-left">
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-2 font-sans">
-              Celebrate New Year!
+              {locale === 'zh' ? '欢庆新年！' : locale === 'ms' ? 'Raikan Tahun Baru!' : 'Celebrate New Year!'}
             </h1>
             <p className="text-xl md:text-2xl font-bold text-white/90 mb-5">
-              2026 - Year of the Horse
+              {locale === 'zh' ? '2026 - 马年大吉' : locale === 'ms' ? '2026 - Tahun Kuda' : '2026 - Year of the Horse'}
             </p>
             <p className="text-lg md:text-xl text-white/80 max-w-lg mb-8 font-medium leading-relaxed">
-              Premium quality fireworks to light up your celebrations with safety, brilliance and unforgettable memories
+              {locale === 'zh' ? '优质烟花点亮您的庆典，带来安全、璀璨且难忘的记忆。' : locale === 'ms' ? 'Bunga api berkualiti premium untuk menerangi sambutan anda dengan keselamatan, kecemerlangan dan kenangan yang tidak dapat dilupakan.' : 'Premium quality fireworks to light up your celebrations with safety, brilliance and unforgettable memories.'}
             </p>
             <div>
               <Link href="/shop" className="inline-flex items-center justify-center px-8 py-3 bg-[#111] hover:bg-black text-white text-[15px] font-semibold rounded-xl transition-colors border border-white/10">
-                Shop Now
+                {locale === 'zh' ? '立即选购' : locale === 'ms' ? 'Beli Sekarang' : 'Shop Now'}
               </Link>
             </div>
           </div>
@@ -211,14 +211,14 @@ export default function Home() {
           
           <div className="relative z-10 w-full max-w-[1200px] mx-auto h-full flex flex-col justify-center items-end px-8 md:px-12 text-right">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-5 font-sans">
-              Join Our <br /> Exclusive Family
+              {locale === 'zh' ? <>加入我们的<br />专属会员</> : locale === 'ms' ? <>Sertai Keluarga<br />Eksklusif Kami</> : <>Join Our <br /> Exclusive Family</>}
             </h1>
             <p className="text-lg md:text-xl text-white/90 max-w-lg mb-8 font-medium">
-              Become a registered member and enjoy exclusive deals and early access to our premium fireworks collection.
+              {locale === 'zh' ? '成为注册会员，享受独家优惠并优先购买我们的优质烟花系列。' : locale === 'ms' ? 'Jadi ahli berdaftar dan nikmati tawaran eksklusif serta akses awal kepada koleksi bunga api premium kami.' : 'Become a registered member and enjoy exclusive deals and early access to our premium fireworks collection.'}
             </p>
             <div>
               <Link href="/login" className="inline-flex items-center justify-center px-8 py-3 bg-[#111] hover:bg-black text-white text-[15px] font-semibold rounded-xl transition-colors border border-white/10">
-                Register Now
+                {locale === 'zh' ? '立即注册' : locale === 'ms' ? 'Daftar Sekarang' : 'Register Now'}
               </Link>
             </div>
           </div>
@@ -236,14 +236,14 @@ export default function Home() {
           
           <div className="relative z-10 w-full max-w-[1200px] mx-auto h-full flex flex-col justify-center px-8 md:px-12 text-left">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-5 font-sans">
-              Spectacular. <br /> And Safe.
+              {locale === 'zh' ? <>璀璨。<br />且安全。</> : locale === 'ms' ? <>Spektakular.<br />Dan Selamat.</> : <>Spectacular. <br /> And Safe.</>}
             </h1>
             <p className="text-lg md:text-xl text-white/90 max-w-lg mb-8 font-medium">
-              Your safety is our priority. Read our comprehensive safety guide to ensure a secure pyrotechnic experience.
+              {locale === 'zh' ? '您的安全是我们的首要任务。阅读我们全面的安全指南，确保安全的烟花体验。' : locale === 'ms' ? 'Keselamatan anda adalah keutamaan kami. Baca panduan keselamatan komprehensif kami untuk memastikan pengalaman piroteknik yang selamat.' : 'Your safety is our priority. Read our comprehensive safety guide to ensure a secure pyrotechnic experience.'}
             </p>
             <div>
               <Link href="/safety" className="inline-flex items-center justify-center px-8 py-3 bg-[#111] hover:bg-black text-white text-[15px] font-semibold rounded-xl transition-colors border border-white/10">
-                Safety Guide
+                {locale === 'zh' ? '安全指南' : locale === 'ms' ? 'Panduan Keselamatan' : 'Safety Guide'}
               </Link>
             </div>
           </div>
@@ -359,7 +359,6 @@ export default function Home() {
 
         </div>
       </section>
-
       {/* ===== SECTION 5: Feature Highlights ===== */}
       <section className="bg-[#F9F9F9] py-16 md:py-24 transition-colors duration-500">
         <div className="w-full mx-auto px-6 sm:px-12 md:px-16 lg:px-24">

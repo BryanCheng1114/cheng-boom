@@ -28,7 +28,7 @@ function CustomGoogleButton({ onSuccess, onError, isLoading, text }: { onSuccess
       type="button"
       onClick={() => login()}
       disabled={isLoading}
-      className="w-full py-3.5 bg-white text-black font-bold rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-3 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full py-3.5 bg-white text-black font-bold rounded-full border border-zinc-200 hover:bg-gray-50 transition-colors flex items-center justify-center gap-3 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -46,7 +46,7 @@ function CustomGoogleButton({ onSuccess, onError, isLoading, text }: { onSuccess
 // Inner Auth Content
 function AuthContent() {
   const { clearCart } = useCart();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const router = useRouter();
   const { settings } = useBusiness();
   
@@ -288,13 +288,17 @@ function AuthContent() {
         <title>{isRegistering ? `Sign Up - ${settings?.businessName || 'Cheng-BOOM'}` : `Sign In - ${settings?.businessName || 'Cheng-BOOM'}`}</title>
       </Head>
 
-      <div className="min-h-screen bg-[#050505] text-zinc-100 flex relative overflow-hidden">
+      <div className="min-h-screen bg-white text-zinc-900 flex relative overflow-hidden">
         
         {/* Absolute Back Button over everything (top left of viewport) */}
         <div className="absolute top-6 left-6 md:top-10 md:left-10 z-50">
           <Link 
             href="/" 
-            className="inline-flex items-center gap-2 text-zinc-200 hover:text-white transition-all text-sm font-medium drop-shadow-md"
+            className={`inline-flex items-center gap-2 transition-all text-sm font-medium ${
+              !isRegistering 
+                ? 'text-white hover:text-zinc-200 drop-shadow-md' 
+                : 'text-zinc-900 hover:text-zinc-600'
+            }`}
           >
             <ArrowLeft size={16} />
             {t.login?.backToHome || 'Back to Home Page'}
@@ -307,7 +311,7 @@ function AuthContent() {
             src="/login_signin.jpg"
             alt="Background"
             fill
-            sizes="100vw"
+            sizes="(max-width: 768px) 100vw, 50vw"
             className="object-cover opacity-40"
             priority
           />
@@ -344,7 +348,7 @@ function AuthContent() {
           <motion.div 
             layout
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className={`w-full md:w-[35%] flex flex-col ${regStep === 'otp' ? 'justify-center' : 'justify-start md:justify-center'} relative bg-transparent md:bg-[#0a0a0a] ${isRegistering ? 'order-1' : 'order-2'} min-h-screen overflow-y-auto ${regStep === 'otp' ? 'py-12 md:py-0' : 'pt-[100px] pb-12 md:py-0'}`}
+            className={`w-full md:w-[35%] flex flex-col ${regStep === 'otp' ? 'justify-center' : 'justify-start md:justify-center'} relative bg-white ${isRegistering ? 'order-1' : 'order-2'} min-h-screen overflow-y-auto ${regStep === 'otp' ? 'py-12 md:py-0' : 'pt-[100px] pb-12 md:py-0'}`}
           >
             <div className="w-full max-w-[440px] mx-auto px-6 mt-4 md:mt-0">
               <AnimatePresence mode="wait">
@@ -359,8 +363,8 @@ function AuthContent() {
                     transition={{ duration: 0.3 }}
                   >
                     <div className="mb-10">
-                      <h1 className="text-4xl md:text-5xl font-light text-white mb-3">{t.login?.signIn || 'Sign in'}</h1>
-                      <p className="text-zinc-400 text-sm whitespace-pre-line">
+                      <h1 className="text-4xl md:text-5xl font-light text-zinc-900 mb-3">{t.login?.signIn || 'Sign in'}</h1>
+                      <p className="text-zinc-500 text-sm whitespace-pre-line">
                         {t.login?.loginDesc || 'Sign in to access your orders and exclusive seller pricing benefits.'}
                       </p>
                     </div>
@@ -377,25 +381,25 @@ function AuthContent() {
                     )}
 
                     <form onSubmit={handleLoginSubmit} className="space-y-5">
-                      <div className="space-y-2">
-                        <label className="text-sm text-zinc-400">{t.login?.labelAccount || 'Phone Number or E-mail'}</label>
+                      <div className="space-y-3">
+                        <label className="block text-sm font-medium text-zinc-600 mb-2">{t.login?.labelAccount || 'Phone Number or E-mail'}</label>
                         <input 
                           type="text"
                           required
-                          className="w-full px-4 py-3.5 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white placeholder:text-zinc-600"
+                          className="w-full px-5 py-2.5 rounded-full bg-zinc-100 border border-zinc-200 focus:border-yellow-500 focus:bg-white outline-none transition-all text-zinc-900 placeholder:text-zinc-400"
                           placeholder={t.login?.placeholderAccount || "your@email.com or +60123456789"}
                           value={loginData.identifier}
                           onChange={(e) => setLoginData({ ...loginData, identifier: e.target.value })}
                         />
                       </div>
 
-                      <div className="space-y-2">
-                        <label className="text-sm text-zinc-400">{t.login?.labelPassword || 'Password'}</label>
+                      <div className="space-y-3">
+                        <label className="block text-sm font-medium text-zinc-600 mb-2">{t.login?.labelPassword || 'Password'}</label>
                         <div className="relative">
                           <input 
                             type={showPassword ? "text" : "password"}
                             required
-                            className="w-full pl-4 pr-12 py-3.5 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white tracking-wider"
+                            className="w-full pl-5 pr-12 py-2.5 rounded-full bg-zinc-100 border border-zinc-200 focus:border-yellow-500 focus:bg-white outline-none transition-all text-zinc-900 tracking-wider"
                             placeholder="••••••••••••"
                             value={loginData.password}
                             onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
@@ -403,7 +407,7 @@ function AuthContent() {
                           <button 
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 transition-colors"
                           >
                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                           </button>
@@ -419,7 +423,7 @@ function AuthContent() {
                               checked={rememberMe}
                               onChange={(e) => setRememberMe(e.target.checked)}
                             />
-                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${rememberMe ? 'bg-yellow-500 border-yellow-500' : 'bg-[#1a1a1a] border-zinc-700'}`}>
+                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${rememberMe ? 'bg-yellow-500 border-yellow-500' : 'bg-zinc-100 border-zinc-300'}`}>
                               {rememberMe && (
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
                                   <polyline points="20 6 9 17 4 12"></polyline>
@@ -427,7 +431,7 @@ function AuthContent() {
                               )}
                             </div>
                           </div>
-                          <span className="text-sm text-zinc-400 group-hover:text-zinc-300 transition-colors">
+                          <span className="text-sm text-zinc-500 group-hover:text-zinc-700 transition-colors">
                             {t.login?.rememberMe || 'Remember me'}
                           </span>
                         </label>
@@ -436,7 +440,7 @@ function AuthContent() {
                       <button 
                         type="submit"
                         disabled={isLoading}
-                        className="w-full py-3.5 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 mt-4 shadow-sm"
+                        className="w-full py-3.5 bg-yellow-500 text-black font-semibold rounded-full hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 mt-4 shadow-sm"
                       >
                         {isLoading ? <Loader2 className="animate-spin" /> : (t.login?.signIn || 'Sign In')}
                       </button>
@@ -444,10 +448,10 @@ function AuthContent() {
 
                     <div className="relative my-8">
                       <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-zinc-800"></div>
+                        <div className="w-full border-t border-zinc-200"></div>
                       </div>
                       <div className="relative flex justify-center text-sm">
-                        <span className="px-4 bg-[#050505] md:bg-[#0a0a0a] text-zinc-500">{t.login?.orContinueWith || 'Or continue with'}</span>
+                        <span className="px-4 bg-white text-zinc-400">{t.login?.orContinueWith || 'Or continue with'}</span>
                       </div>
                     </div>
 
@@ -456,15 +460,15 @@ function AuthContent() {
                         onSuccess={handleGoogleSuccess} 
                         onError={() => setError(t.login?.googleError || 'Google Login Failed')}
                         isLoading={isLoading}
-                        text={t.login?.continueWithGoogle || 'Continue With Google'}
+                        text={locale === 'zh' ? '使用 Google 账号继续' : locale === 'ms' ? 'Teruskan dengan Google' : 'Continue With Google'}
                       />
                     </div>
 
                     <div className="mt-12 text-left flex items-center gap-2">
-                      <span className="text-sm text-zinc-400">{t.login?.noAccount || 'No Account?'}</span>
+                      <span className="text-sm text-zinc-500">{t.login?.noAccount || 'No Account?'}</span>
                       <button 
                         onClick={() => { setIsRegistering(true); setError(''); setSuccess(''); setRegStep('form'); }}
-                        className="text-sm text-yellow-500 font-semibold hover:text-yellow-400 transition-colors"
+                        className="text-sm text-yellow-600 font-semibold hover:text-yellow-500 transition-colors"
                       >
                         {t.login?.createAccount || 'Create Now'}
                       </button>
@@ -484,9 +488,9 @@ function AuthContent() {
                     {regStep === 'form' ? (
                       <>
                         <div className="mb-8">
-                          <h1 className="text-4xl md:text-5xl font-light text-white mb-3">{t.login?.joinBoom || 'Sign up'}</h1>
-                          <p className="text-zinc-400 text-sm whitespace-pre-line">
-                            {t.login?.registerDesc || 'Welcome to the Smart Site System for Oil Depots.\nRegister as a member to experience.'}
+                          <h1 className="text-4xl md:text-5xl font-light text-zinc-900 mb-3">{t.login?.joinBoom || 'Sign up'}</h1>
+                          <p className="text-zinc-500 text-sm whitespace-pre-line">
+                            {t.login?.registerDesc || 'Create your account and start exploring our premium fireworks collection.'}
                           </p>
                         </div>
 
@@ -498,26 +502,26 @@ function AuthContent() {
                         <form onSubmit={handleRegisterSubmit} className="space-y-4" autoComplete="off">
                           
                           <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <label className="text-sm text-zinc-400">{t.login?.fullNameLabel || 'Name'}</label>
+                            <div className="space-y-3">
+                              <label className="block text-sm font-medium text-zinc-600 mb-2">{t.login?.fullNameLabel || 'Name'}</label>
                               <input 
                                 type="text"
                                 required
-                                className="w-full px-4 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
+                                className="w-full px-5 py-2.5 rounded-full bg-zinc-100 border border-zinc-200 focus:border-yellow-500 focus:bg-white outline-none transition-all text-zinc-900"
                                 placeholder={t.login?.fullNamePlaceholder || 'John Doe'}
                                 autoComplete="off"
                                 value={registerData.name}
                                 onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                               />
                             </div>
-                            <div className="space-y-2">
-                              <label className="text-sm text-zinc-400">{t.login?.phoneLabel || 'Phone Number'}</label>
+                            <div className="space-y-3">
+                              <label className="block text-sm font-medium text-zinc-600 mb-2">{t.login?.phoneLabel || 'Phone Number'}</label>
                               <input 
                                 type="tel"
                                 required
                                 pattern="^(\+?60|0)1[0-9]{8,9}$"
                                 title="Please enter a valid Malaysian phone number, e.g., 0123456789 or +60123456789"
-                                className="w-full px-4 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
+                                className="w-full px-5 py-2.5 rounded-full bg-zinc-100 border border-zinc-200 focus:border-yellow-500 focus:bg-white outline-none transition-all text-zinc-900"
                                 placeholder={t.login?.phonePlaceholder || '0123456789'}
                                 autoComplete="off"
                                 value={registerData.phone}
@@ -526,26 +530,26 @@ function AuthContent() {
                             </div>
                           </div>
 
-                          <div className="space-y-2">
-                            <label className="text-sm text-zinc-400">{t.login?.emailLabel || 'E-mail'}</label>
+                          <div className="space-y-3">
+                            <label className="block text-sm font-medium text-zinc-600 mb-2">{t.login?.emailLabel || 'E-mail'}</label>
                             <input 
                               type="email"
                               required
-                              className="w-full px-4 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
-                              placeholder={t.login?.emailPlaceholder || 'yatingzang0215@gmail.com'}
+                              className="w-full px-5 py-2.5 rounded-full bg-zinc-100 border border-zinc-200 focus:border-yellow-500 focus:bg-white outline-none transition-all text-zinc-900"
+                              placeholder={t.login?.emailPlaceholder || 'you@example.com'}
                               autoComplete="off"
                               value={registerData.email}
                               onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                             />
                           </div>
 
-                          <div className="space-y-2">
-                            <label className="text-sm text-zinc-400">{t.login?.labelPassword || 'Password'}</label>
+                          <div className="space-y-3">
+                            <label className="block text-sm font-medium text-zinc-600 mb-2">{t.login?.labelPassword || 'Password'}</label>
                             <div className="relative">
                               <input 
                                 type={showRegPassword ? "text" : "password"}
                                 required
-                                className="w-full pl-4 pr-12 py-3 rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white tracking-wider"
+                                className="w-full pl-5 pr-12 py-2.5 rounded-full bg-zinc-100 border border-zinc-200 focus:border-yellow-500 focus:bg-white outline-none transition-all text-zinc-900 tracking-wider"
                                 placeholder="••••••••••••"
                                 autoComplete="new-password"
                                 value={registerData.password}
@@ -554,7 +558,7 @@ function AuthContent() {
                               <button 
                                 type="button"
                                 onClick={() => setShowRegPassword(!showRegPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 transition-colors"
                               >
                                 {showRegPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                               </button>
@@ -575,7 +579,7 @@ function AuthContent() {
                                   checked={agreeTerms}
                                   onChange={(e) => setAgreeTerms(e.target.checked)}
                                 />
-                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${agreeTerms ? 'bg-yellow-500 border-yellow-500' : 'bg-[#1a1a1a] border-zinc-700'}`}>
+                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${agreeTerms ? 'bg-yellow-500 border-yellow-500' : 'bg-zinc-100 border-zinc-300'}`}>
                                   {agreeTerms && (
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
                                       <polyline points="20 6 9 17 4 12"></polyline>
@@ -583,7 +587,7 @@ function AuthContent() {
                                   )}
                                 </div>
                               </div>
-                              <span className="text-sm text-zinc-400 group-hover:text-zinc-300 transition-colors">
+                              <span className="text-sm text-zinc-500 group-hover:text-zinc-700 transition-colors">
                                 {t.login?.agreeTerms || 'I agree to the terms of service'}
                               </span>
                             </label>
@@ -592,7 +596,7 @@ function AuthContent() {
                           <button 
                             type="submit"
                             disabled={!agreeTerms || isLoading}
-                            className="w-full py-3.5 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 mt-4 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full py-3.5 bg-yellow-500 text-black font-semibold rounded-full hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 mt-4 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {isLoading ? <Loader2 className="animate-spin" /> : (t.login?.createAccount || 'Create Account')}
                           </button>
@@ -600,10 +604,10 @@ function AuthContent() {
 
                         <div className="relative my-8">
                           <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-zinc-800"></div>
+                            <div className="w-full border-t border-zinc-200"></div>
                           </div>
                           <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-[#050505] md:bg-[#0a0a0a] text-zinc-500">{t.login?.orContinueWith || 'Or continue with'}</span>
+                            <span className="px-4 bg-white text-zinc-400">{t.login?.orContinueWith || 'Or continue with'}</span>
                           </div>
                         </div>
 
@@ -612,15 +616,15 @@ function AuthContent() {
                             onSuccess={handleGoogleSuccess} 
                             onError={() => setError(t.login?.googleError || 'Google Login Failed')}
                             isLoading={isLoading}
-                            text={t.login?.continueWithGoogle || 'Continue With Google'}
+                            text={locale === 'zh' ? '使用 Google 账号注册' : locale === 'ms' ? 'Daftar dengan Google' : 'Sign Up With Google'}
                           />
                         </div>
 
                         <div className="mt-12 text-left flex items-center gap-2">
-                          <span className="text-sm text-zinc-400">{t.login?.existingMember || 'Already a member?'}</span>
+                          <span className="text-sm text-zinc-500">{t.login?.existingMember || 'Already a member?'}</span>
                           <button 
                             onClick={() => { setIsRegistering(false); setError(''); setSuccess(''); setRegStep('form'); }}
-                            className="text-sm text-yellow-500 font-semibold hover:text-yellow-400 transition-colors"
+                            className="text-sm text-yellow-600 font-semibold hover:text-yellow-500 transition-colors"
                           >
                             {t.login?.signInInstead || 'Sign in'}
                           </button>
@@ -629,9 +633,9 @@ function AuthContent() {
                     ) : (
                       <form onSubmit={handleVerifyAndRegister} className="space-y-6 mt-4 w-full">
                         <div className="mb-6 text-center">
-                          <h1 className="text-3xl md:text-4xl font-light text-white mb-3">Account Verification</h1>
-                          <p className="text-zinc-400 text-sm">
-                            Enter Otp code send to <span className="text-white font-medium">{registerData.email}</span>
+                          <h1 className="text-3xl md:text-4xl font-light text-zinc-900 mb-3">Account Verification</h1>
+                          <p className="text-zinc-500 text-sm">
+                            Enter OTP code sent to <span className="text-zinc-900 font-medium">{registerData.email}</span>
                           </p>
                         </div>
                         
@@ -664,7 +668,7 @@ function AuthContent() {
                                 pattern="[0-9]*"
                                 autoFocus={index === 0}
                                 maxLength={1}
-                                className="w-full aspect-square text-center text-2xl font-bold rounded-lg bg-[#1a1a1a] border border-transparent focus:border-yellow-500/50 outline-none transition-all text-white"
+                                className="w-full aspect-square text-center text-2xl font-bold rounded-lg bg-zinc-100 border border-zinc-200 focus:border-yellow-500 focus:bg-white outline-none transition-all text-zinc-900"
                                 value={digit}
                                 onChange={(e) => {
                                   const val = e.target.value.replace(/[^0-9]/g, '');
@@ -693,7 +697,7 @@ function AuthContent() {
                           {isLoading ? <Loader2 className="animate-spin" /> : 'Verify'}
                         </button>
 
-                        <div className="mt-4 text-center text-sm text-zinc-400 flex items-center justify-center gap-2">
+                        <div className="mt-4 text-center text-sm text-zinc-500 flex items-center justify-center gap-2">
                           <span>Didn't receive the email?</span>
                           <button
                             type="button"
@@ -708,7 +712,7 @@ function AuthContent() {
                           </button>
                         </div>
 
-                        <div className="mt-8 text-center border-t border-zinc-800 pt-6">
+                        <div className="mt-8 text-center border-t border-zinc-200 pt-6">
                           <button 
                             type="button"
                             onClick={() => {
@@ -717,7 +721,7 @@ function AuthContent() {
                               setError('');
                               setSuccess('');
                             }}
-                            className="text-sm text-zinc-500 hover:text-white transition-colors flex items-center justify-center gap-1 w-full"
+                            className="text-sm text-zinc-400 hover:text-zinc-700 transition-colors flex items-center justify-center gap-1 w-full"
                           >
                             <ArrowLeft size={14} /> Back to Sign In
                           </button>

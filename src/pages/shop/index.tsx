@@ -394,7 +394,7 @@ export default function Shop() {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <Loader2 className="w-10 h-10 text-foreground/40 animate-spin mb-4" />
-            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">Syncing Inventory...</p>
+            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">{locale === 'zh' ? '正在同步库存...' : locale === 'ms' ? 'Menyegerakkan Inventori...' : 'Syncing Inventory...'}</p>
           </div>
         ) : filteredProducts.length === 0 ? (
           /* Empty state */

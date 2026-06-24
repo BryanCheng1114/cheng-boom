@@ -273,8 +273,6 @@ const CategoryOverviewPage = () => {
                             <div className="w-10 h-10 bg-zinc-500/10 rounded-xl overflow-hidden flex items-center justify-center text-zinc-500 border border-white/5 shrink-0">
                               {cat.image && cat.image !== '/example.png' ? (
                                 <img src={cat.image} className="w-full h-full object-cover" />
-                              ) : cat.transparentImage ? (
-                                <img src={cat.transparentImage} className="h-8 w-8 object-contain" />
                               ) : (
                                 <Package size={20} />
                               )}

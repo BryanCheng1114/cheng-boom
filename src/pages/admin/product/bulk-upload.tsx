@@ -22,31 +22,82 @@ export default function BulkUploadPage() {
   const [importResult, setImportResult] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
 
   const downloadBulkTemplate = async () => {
-    const XLSX = await import('xlsx');
-    const templateData = [{
-      'Code*': 'FW001',
-      'Name_EN*': 'Example Firework',
-      'Name_ZH': '示例烟花',
-      'Category*': 'Cakes',
-      'Description_EN*': 'A beautiful 25 shot cake.',
-      'Description_ZH': '美丽的25发烟花。',
-      'Video_URL': 'https://youtube.com/watch?v=...',
-      'Stock*': 100,
-      'Price*': 99.90,
-      'Promotion_Price': 89.90,
-      'Seller_Price': 79.90,
-      'Items_Per_Box': 24,
-      'Box_Price': 2000.00,
-      'Box_Seller_Price': 1800.00,
-      'Box_Promotion_Price': 1900.00,
-      'Status': 'Live',
-      'Image_Filename*': 'firework1.png'
-    }];
-    
-    const ws = XLSX.utils.json_to_sheet(templateData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Bulk Upload Template');
-    XLSX.writeFile(wb, 'product_bulk_upload_template.xlsx');
+    setIsLoading(true);
+    try {
+      // Fetch categories
+      const res = await fetch('/api/categories');
+      let categories: any[] = [];
+      if (res.ok) {
+        categories = await res.json();
+      }
+      
+      const categoryNames = categories.map(c => c.name);
+      if (categoryNames.length === 0) categoryNames.push('Cakes', 'Fountains', 'Sparklers'); // Fallback
+
+      const ExcelJS = (await import('exceljs')).default;
+      const { saveAs } = await import('file-saver');
+
+      const workbook = new ExcelJS.Workbook();
+      const ws = workbook.addWorksheet('Bulk Upload Template');
+
+      // Define columns
+      const headers = [
+        'Code*', 'Name_EN*', 'Name_ZH', 'Category*', 'Description_EN*', 'Description_ZH',
+        'Video_URL', 'Stock*', 'Price*', 'Promotion_Price', 'Seller_Price',
+        'Items_Per_Box', 'Box_Price', 'Box_Seller_Price', 'Box_Promotion_Price',
+        'Bundle_Quantity', 'Bundle_Price', 'Bundle_Seller_Price', 'Bundle_Promotion_Price',
+        'Status', 'Image_Filename*'
+      ];
+
+      ws.addRow(headers);
+      
+      const sampleRow = [
+        'FW001', 'Example Firework', '示例烟花', categoryNames[0] || 'Cakes', 'A beautiful 25 shot cake.', '美丽的25发烟花。',
+        'https://youtube.com/watch?v=...', 100, 99.90, 89.90, 79.90,
+        24, 2000.00, 1800.00, 1900.00,
+        4, 350.00, 300.00, 320.00,
+        'Live', 'firework1.png'
+      ];
+      
+      ws.addRow(sampleRow);
+
+      // Add data validation for the first 1000 rows
+      for (let i = 2; i <= 1001; i++) {
+        ws.getCell(`D${i}`).dataValidation = {
+          type: 'list',
+          allowBlank: false,
+          formulae: [`"${categoryNames.join(',')}"`],
+          showErrorMessage: true,
+          errorStyle: 'error',
+          errorTitle: 'Invalid Category',
+          error: 'Please select a category from the dropdown list.'
+        };
+
+        ws.getCell(`T${i}`).dataValidation = {
+          type: 'list',
+          allowBlank: false,
+          formulae: ['"Live,Hold"'],
+          showErrorMessage: true,
+          errorStyle: 'error',
+          errorTitle: 'Invalid Status',
+          error: 'Please select either Live or Hold.'
+        };
+      }
+
+      // Format headers
+      ws.getRow(1).font = { bold: true };
+      ws.columns.forEach(column => {
+        column.width = 20;
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      saveAs(new Blob([buffer]), 'product_bulk_upload_template.xlsx');
+    } catch (err) {
+      console.error(err);
+      setErrorMsg('Failed to generate template.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,6 +210,10 @@ export default function BulkUploadPage() {
           boxPrice: getValue('Box_Price') ? Number(getValue('Box_Price')) : null,
           boxSellerPrice: getValue('Box_Seller_Price') ? Number(getValue('Box_Seller_Price')) : null,
           boxPromotion: getValue('Box_Promotion_Price') ? Number(getValue('Box_Promotion_Price')) : null,
+          bundleQuantity: getValue('Bundle_Quantity') ? Number(getValue('Bundle_Quantity')) : null,
+          bundlePrice: getValue('Bundle_Price') ? Number(getValue('Bundle_Price')) : null,
+          bundleSellerPrice: getValue('Bundle_Seller_Price') ? Number(getValue('Bundle_Seller_Price')) : null,
+          bundlePromotion: getValue('Bundle_Promotion_Price') ? Number(getValue('Bundle_Promotion_Price')) : null,
           status: getValue('Status') || 'Live',
           description: descriptionEN || '',
           descriptionZh: getValue('Description_ZH') || '',

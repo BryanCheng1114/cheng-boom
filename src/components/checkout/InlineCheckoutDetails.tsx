@@ -224,7 +224,7 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
                 <ArrowLeft size={24} />
               </button>
               <div>
-                <h2 className="text-2xl sm:text-3xl font-black text-zinc-900">Checkout Details</h2>
+                <h2 className="text-2xl sm:text-3xl font-black text-zinc-900">{locale === 'zh' ? '结账详情' : locale === 'ms' ? 'Butiran Semak Keluar' : 'Checkout Details'}</h2>
                 <p className="text-sm text-zinc-500 font-medium mt-1">{t.cart.checkout.desc}</p>
               </div>
             </div>
@@ -256,7 +256,7 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
               {/* Order Mode */}
               <div className="space-y-3">
                 <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
-                  <MapPin size={12} className="text-zinc-400" /> Order Mode
+                  <MapPin size={12} className="text-zinc-400" /> {locale === 'zh' ? '订单方式' : locale === 'ms' ? 'Mod Pesanan' : 'Order Mode'}
                 </label>
                 <div className="flex gap-3">
                   {['Self Collect', 'Delivery'].map((mode) => {
@@ -276,9 +276,9 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
                     <div className="space-y-2 pt-2">
                       <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
-                        <MapPin size={12} className="text-zinc-400" /> Delivery Address
+                        <MapPin size={12} className="text-zinc-400" /> {locale === 'zh' ? '配送地址' : locale === 'ms' ? 'Alamat Penghantaran' : 'Delivery Address'}
                       </label>
-                      <textarea required className="text-zinc-900 w-full px-5 py-4 rounded-2xl bg-zinc-50 border border-zinc-200 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 outline-none transition-all font-medium text-sm resize-none" placeholder="Enter complete delivery address..." rows={3} value={orderDetails.address || ''} onChange={(e) => setOrderDetails({ ...orderDetails, address: e.target.value })} />
+                      <textarea required className="text-zinc-900 w-full px-5 py-4 rounded-2xl bg-zinc-50 border border-zinc-200 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 outline-none transition-all font-medium text-sm resize-none" placeholder={locale === 'zh' ? '请输入完整的配送地址...' : locale === 'ms' ? 'Masukkan alamat penghantaran yang lengkap...' : 'Enter complete delivery address...'} rows={3} value={orderDetails.address || ''} onChange={(e) => setOrderDetails({ ...orderDetails, address: e.target.value })} />
                     </div>
                   </motion.div>
                 )}
@@ -318,7 +318,7 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
                   >
                     <div className="bg-zinc-50 rounded-[24px] p-6 sm:p-8 border border-zinc-200 mt-2">
                       <h4 className="text-base font-black mb-6 text-center text-zinc-900">
-                        DuitNow & Bank Transfer Details
+                        {locale === 'zh' ? 'DuitNow与银行转账详情' : locale === 'ms' ? 'Butiran DuitNow & Pindahan Bank' : 'DuitNow & Bank Transfer Details'}
                       </h4>
                       
                       {settings?.bankTransferImage && (
@@ -330,7 +330,7 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
                       </p>
 
                       <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Upload Receipt Image</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">{locale === 'zh' ? '上传收据截图' : locale === 'ms' ? 'Muat Naik Gambar Resit' : 'Upload Receipt Image'}</label>
                         <div className="relative border-2 border-dashed border-zinc-300 rounded-[20px] p-8 flex flex-col items-center justify-center hover:bg-white transition-colors cursor-pointer group bg-white/50 overflow-hidden min-h-[160px]">
                           {orderDetails.paymentReceiptUrl ? (
                             <div className="flex flex-col items-center gap-5 z-20 w-full">
@@ -350,7 +350,7 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
                           ) : (
                             <div className="flex flex-col items-center gap-3" onClick={() => document.getElementById('receipt-upload')?.click()}>
                               {isUploadingReceipt ? <div className="w-10 h-10 border-4 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" /> : <Upload size={32} className="text-zinc-300 group-hover:text-zinc-600 transition-colors" />}
-                              <span className="text-sm font-bold text-zinc-500">{isUploadingReceipt ? 'Uploading...' : 'Click to Upload Receipt'}</span>
+                              <span className="text-sm font-bold text-zinc-500">{isUploadingReceipt ? (locale === 'zh' ? '上传中...' : locale === 'ms' ? 'Sedang Dimuat Naik...' : 'Uploading...') : (locale === 'zh' ? '点击上传收据' : locale === 'ms' ? 'Klik untuk Muat Naik Resit' : 'Click to Upload Receipt')}</span>
                             </div>
                           )}
                           <input id="receipt-upload" type="file" accept="image/*" onChange={handleReceiptUpload} disabled={isUploadingReceipt} className="hidden" />
@@ -364,10 +364,10 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
               {/* Notes */}
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
-                  <MessageCircle size={12} className="text-zinc-400" /> Notes (Optional)
+                  <MessageCircle size={12} className="text-zinc-400" /> {locale === 'zh' ? '备注（可选）' : locale === 'ms' ? 'Nota (Pilihan)' : 'Notes (Optional)'}
                 </label>
                 <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 focus-within:border-zinc-900 focus-within:ring-4 focus-within:ring-zinc-900/10 transition-all">
-                  <textarea className="bg-transparent text-zinc-800 text-sm w-full resize-none outline-none placeholder:text-zinc-400" placeholder="e.g. Please call before delivery..." rows={3} value={orderDetails.notes || ''} onChange={(e) => setOrderDetails({ ...orderDetails, notes: e.target.value })} maxLength={100} />
+                  <textarea className="bg-transparent text-zinc-800 text-sm w-full resize-none outline-none placeholder:text-zinc-400" placeholder={locale === 'zh' ? '例如：送货前请电话联系...' : locale === 'ms' ? 'cth. Sila hubungi sebelum penghantaran...' : 'e.g. Please call before delivery...'} rows={3} value={orderDetails.notes || ''} onChange={(e) => setOrderDetails({ ...orderDetails, notes: e.target.value })} maxLength={100} />
                   <div className="text-right text-zinc-400 text-[10px] font-medium mt-1">{(orderDetails.notes || '').length}/100</div>
                 </div>
               </div>
@@ -377,7 +377,7 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
           {/* RIGHT PANEL: Order Summary & Submit */}
           <div className="w-full lg:w-[480px] bg-zinc-50/50 p-6 sm:p-10 lg:p-12 flex flex-col justify-between">
             <div>
-              <h3 className="text-lg font-black text-zinc-900 mb-6">Order Summary</h3>
+              <h3 className="text-lg font-black text-zinc-900 mb-6">{locale === 'zh' ? '订单摘要' : locale === 'ms' ? 'Ringkasan Pesanan' : 'Order Summary'}</h3>
               
               <div className="space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-2 mb-8">
                 {cartItems.map((item, idx) => (
@@ -387,7 +387,7 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
                     </div>
                     <div className="flex-1 overflow-hidden">
                       <h4 className="font-bold text-sm text-zinc-900 truncate">{item.name}</h4>
-                      <p className="text-xs text-zinc-500 font-medium mt-0.5">Qty: {item.quantity}</p>
+                      <p className="text-xs text-zinc-500 font-medium mt-0.5">{locale === 'zh' ? '数量' : locale === 'ms' ? 'Kuantiti' : 'Qty'}: {item.quantity}</p>
                     </div>
                     <div className="font-bold text-sm text-zinc-900">
                       RM {item.price.toFixed(2)}
@@ -398,12 +398,12 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
 
               <div className="space-y-4 pt-6 border-t border-zinc-200">
                 <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500 font-medium">Subtotal</span>
+                  <span className="text-zinc-500 font-medium">{locale === 'zh' ? '小计' : locale === 'ms' ? 'Jumlah Kecil' : 'Subtotal'}</span>
                   <span className="text-zinc-900 font-bold">RM {cartTotals.totalOriginalPrice.toFixed(2)}</span>
                 </div>
                 {cartTotals.totalDiscount > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-zinc-500 font-medium">Discount</span>
+                    <span className="text-zinc-500 font-medium">{locale === 'zh' ? '折扣' : locale === 'ms' ? 'Diskaun' : 'Discount'}</span>
                     <span className="text-zinc-900 font-bold">-RM {cartTotals.totalDiscount.toFixed(2)}</span>
                   </div>
                 )}
@@ -413,8 +413,8 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
             <div className="pt-8 mt-8 border-t border-zinc-200">
               <div className="flex justify-between items-end mb-8">
                 <div className="flex flex-col">
-                  <span className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Total Amount</span>
-                  <span className="text-[10px] font-bold text-zinc-400">Final price shown at checkout</span>
+                  <span className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">{locale === 'zh' ? '总金额' : locale === 'ms' ? 'Jumlah Keseluruhan' : 'Total Amount'}</span>
+                  <span className="text-[10px] font-bold text-zinc-400">{locale === 'zh' ? '结账时显示的最终价格' : locale === 'ms' ? 'Harga akhir dipaparkan semasa semak keluar' : 'Final price shown at checkout'}</span>
                 </div>
                 <span className="text-3xl font-black text-zinc-900 whitespace-nowrap ml-4">RM {cartTotals.totalPrice.toFixed(2)}</span>
               </div>
@@ -428,9 +428,9 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
                   {isWhatsAppTermsAgreed && <Check size={16} strokeWidth={3} />}
                 </div>
                 <div>
-                  <div className="text-zinc-900 font-bold text-sm mb-1.5 flex items-center gap-1.5"><ShieldCheck size={16} className="text-zinc-500"/> Secure Verification</div>
+                  <div className="text-zinc-900 font-bold text-sm mb-1.5 flex items-center gap-1.5"><ShieldCheck size={16} className="text-zinc-500"/> {locale === 'zh' ? '安全验证' : locale === 'ms' ? 'Pengesahan Selamat' : 'Secure Verification'}</div>
                   <div className="text-zinc-500 text-xs leading-relaxed font-medium">
-                    I understand that I will be redirected to WhatsApp. I will not edit the text and will click send directly.
+                    {locale === 'zh' ? '我了解我将被重定向到 WhatsApp。我不会编辑文本并直接点击发送。' : locale === 'ms' ? 'Saya faham bahawa saya akan diarahkan ke WhatsApp. Saya tidak akan mengubah teks dan akan terus menekan hantar.' : 'I understand that I will be redirected to WhatsApp. I will not edit the text and will click send directly.'}
                   </div>
                 </div>
               </div>
@@ -451,7 +451,7 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
                 className={cn("w-full bg-zinc-900 text-white font-black text-base py-5 rounded-2xl flex justify-center items-center gap-2 transition-all", (!isWhatsAppTermsAgreed || isSubmitting) ? "opacity-50 cursor-not-allowed" : "hover:bg-zinc-800 shadow-xl shadow-zinc-900/20")}
               >
                 {isSubmitting ? <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <MessageCircle size={20} strokeWidth={2.5} />}
-                {isSubmitting ? 'PROCESSING...' : 'COMPLETE ORDER'}
+                {isSubmitting ? (locale === 'zh' ? '处理中...' : locale === 'ms' ? 'SEDANG DIPROSES...' : 'PROCESSING...') : (locale === 'zh' ? '完成订单' : locale === 'ms' ? 'LENGKAPKAN PESANAN' : 'COMPLETE ORDER')}
               </button>
 
               <button 
@@ -459,7 +459,7 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
                 onClick={() => setIsGuideOpen(true)}
                 className="w-full mt-3 bg-zinc-100 text-zinc-900 font-black text-sm py-4 rounded-2xl flex justify-center items-center hover:bg-zinc-200 transition-colors shadow-sm"
               >
-                Ordering Guide
+                {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}
               </button>
             </div>
           </div>

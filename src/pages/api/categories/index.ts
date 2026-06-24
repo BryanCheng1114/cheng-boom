@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'POST') {
     try {
-      const { name, code, nameZh, nameMs, image, transparentImage, status } = req.body;
+      const { name, code, nameZh, nameMs, image, description, displayOrder, status } = req.body;
       if (!name || !name.trim()) return res.status(400).json({ error: 'Category Name is required' });
       if (!code || !code.trim()) return res.status(400).json({ error: 'Category Code is required' });
 
@@ -67,7 +67,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           nameZh: nameZh?.trim() || null,
           nameMs: nameMs?.trim() || null,
           image: image?.trim() || null,
-          transparentImage: transparentImage?.trim() || null,
+          description: description?.trim() || null,
+          displayOrder: displayOrder !== undefined ? Number(displayOrder) : 0,
           status: status === 'Hold' ? 'Hold' : 'Live',
         },
       });

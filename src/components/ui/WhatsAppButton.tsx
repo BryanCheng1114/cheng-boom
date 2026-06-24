@@ -23,11 +23,11 @@ export function WhatsAppButton() {
       {/* Message preview bubble */}
       {showPreview && (
         <div className="fixed bottom-28 right-4 sm:right-6 z-50 w-72 animate-fade-in-up">
-          <div className="relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-2xl p-4">
+          <div className="relative bg-white border border-zinc-200 rounded-2xl shadow-2xl p-4">
             {/* Close */}
             <button
               onClick={() => setShowPreview(false)}
-              className="absolute top-3 right-3 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
+              className="absolute top-3 right-3 text-zinc-400 hover:text-zinc-600 transition-colors"
             >
               <X size={16} />
             </button>
@@ -38,7 +38,7 @@ export function WhatsAppButton() {
                 <MessageCircle size={18} className="text-white" />
               </div>
               <div>
-                <p className="text-sm font-bold text-zinc-900 dark:text-white">{settings?.businessName || 'Cheng-BOOM'}</p>
+                <p className="text-sm font-bold text-zinc-900">{settings?.businessName || 'Cheng-BOOM'}</p>
                 <p className="text-xs text-green-500 font-medium flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block animate-pulse" />
                   {t.floating.whatsapp.online}
@@ -47,7 +47,7 @@ export function WhatsAppButton() {
             </div>
 
             {/* Message bubble */}
-            <div className="bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/30 rounded-xl rounded-tl-none p-3 text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed space-y-1">
+            <div className="bg-green-50 border border-green-100 rounded-xl rounded-tl-none p-3 text-xs text-zinc-700 leading-relaxed space-y-1">
               <p>{t.floating.whatsapp.greeting}</p>
               <p>{t.floating.whatsapp.q1}</p>
               <p>{t.floating.whatsapp.q2}</p>
@@ -68,27 +68,25 @@ export function WhatsAppButton() {
             </a>
 
             {/* Pointer arrow */}
-            <div className="absolute -bottom-2 right-8 w-4 h-4 bg-white dark:bg-zinc-900 border-r border-b border-zinc-200 dark:border-zinc-700 rotate-45" />
+            <div className="absolute -bottom-2 right-8 w-4 h-4 bg-white border-r border-b border-zinc-200 rotate-45" />
           </div>
         </div>
       )}
 
       {/* Floating button */}
-      <div 
+      <div
         className="fixed bottom-8 right-4 sm:right-6 z-50 flex flex-col items-end gap-2 transition-all duration-300"
       >
-
         <button
           onClick={() => setShowPreview(!showPreview)}
           aria-label={t.floating.whatsapp.chatBtn}
-          className="relative w-14 h-14 rounded-full shadow-2xl shadow-green-500/40 hover:scale-110 active:scale-95 transition-all duration-300 overflow-hidden group"
+          className="relative w-14 h-14 rounded-full shadow-xl shadow-zinc-300/60 hover:scale-110 active:scale-95 transition-all duration-300 overflow-visible group"
         >
-          {/* Pulsing ring */}
-          <span className="absolute inset-0 rounded-full bg-green-400/30 animate-ping" />
-          <span className="absolute inset-0 rounded-full bg-green-500/20 animate-ping" style={{ animationDelay: '0.4s' }} />
+          {/* Pulsing ring — light neutral */}
+          <span className="absolute inset-0 rounded-full bg-zinc-200/70 animate-ping" />
 
-          {/* Icon image */}
-          <div className="relative w-full h-full rounded-full overflow-hidden bg-green-500 group-hover:brightness-110 transition-all">
+          {/* White background circle */}
+          <div className="relative w-full h-full rounded-full overflow-hidden bg-white border border-zinc-200 shadow-md group-hover:shadow-lg group-hover:border-zinc-300 transition-all flex items-center justify-center">
             <Image
               src="/whatsapp-call-icon-psd-editable_314999-3666.avif"
               alt="Chat on WhatsApp"

@@ -226,7 +226,7 @@ export default function Cart() {
               <p className="text-zinc-500 dark:text-zinc-400 mb-8 sm:mb-10 text-sm sm:text-base px-4">{t.cart.emptyDesc}</p>
               <Link 
                 href="/shop" 
-                className="w-full sm:w-auto max-w-xs mx-auto px-6 sm:px-8 py-3.5 sm:py-3 bg-primary text-zinc-900 rounded-full font-bold hover:brightness-110 transition-all inline-flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                className="w-full sm:w-auto max-w-xs mx-auto px-6 sm:px-8 py-3.5 sm:py-3 bg-white text-black border border-zinc-200 rounded-full font-bold hover:bg-zinc-50 transition-all inline-flex items-center justify-center gap-2 shadow-sm"
               >
                 {t.cart.startShopping || 'Continue shopping'} <ArrowRight size={18} />
               </Link>
@@ -361,13 +361,13 @@ export default function Cart() {
                   {(item.variant || item.code) && (
                     <div className="text-[12px] sm:text-[13px] text-zinc-500 mt-1">
                       {item.variant ? (
-                        (productsMap[item.id] && productsMap[item.id].boxPrice !== null && productsMap[item.id].boxPrice !== undefined) ? (
+                        (productsMap[item.id] && ((productsMap[item.id].boxPrice !== null && productsMap[item.id].boxPrice !== undefined) || (productsMap[item.id].bundlePrice !== null && productsMap[item.id].bundlePrice !== undefined))) ? (
                           <div className="flex items-center gap-1">
                             <span>{locale === 'zh' ? '分类:' : locale === 'ms' ? 'Variasi:' : 'Variation:'}</span>
                             <select 
                               value={item.variant} 
                               onChange={(e) => {
-                                const newVariant = e.target.value as 'Single' | 'Box';
+                                const newVariant = e.target.value as 'Single' | 'Box' | 'Bundle';
                                 const pDetails = productsMap[item.id];
                                 let newPrice = item.price;
                                 let newOrigPrice = item.originalPrice;
@@ -375,6 +375,9 @@ export default function Cart() {
                                   if (newVariant === 'Box') {
                                     newPrice = pDetails.boxPromotion || (isSeller ? pDetails.boxSellerPrice : null) || pDetails.boxPrice || item.price;
                                     newOrigPrice = pDetails.boxPrice || item.originalPrice;
+                                  } else if (newVariant === 'Bundle') {
+                                    newPrice = pDetails.bundlePromotion || (isSeller ? pDetails.bundleSellerPrice : null) || pDetails.bundlePrice || item.price;
+                                    newOrigPrice = pDetails.bundlePrice || item.originalPrice;
                                   } else {
                                     newPrice = pDetails.promotion || (isSeller ? pDetails.sellerPrice : null) || pDetails.price || item.price;
                                     newOrigPrice = pDetails.price || item.originalPrice;
@@ -384,12 +387,17 @@ export default function Cart() {
                               }}
                               className="bg-transparent text-zinc-700 font-medium p-0 border-none outline-none cursor-pointer hover:text-zinc-900 transition-colors"
                             >
-                              <option value="Single">Single</option>
-                              <option value="Box">Box</option>
+                              <option value="Single">{locale === 'zh' ? '单件' : locale === 'ms' ? 'Keping' : 'Single'}</option>
+                              {productsMap[item.id].bundlePrice && (
+                                <option value="Bundle">{locale === 'zh' ? '套装' : locale === 'ms' ? 'Set' : 'Bundle'}</option>
+                              )}
+                              {productsMap[item.id].boxPrice && (
+                                <option value="Box">{locale === 'zh' ? '盒装' : locale === 'ms' ? 'Kotak' : 'Box'}</option>
+                              )}
                             </select>
                           </div>
                         ) : (
-                          <span>{locale === 'zh' ? '分类:' : locale === 'ms' ? 'Variasi:' : 'Variation:'} {item.variant}</span>
+                          <span>{locale === 'zh' ? '分类:' : locale === 'ms' ? 'Variasi:' : 'Variation:'} {item.variant === 'Single' ? (locale === 'zh' ? '单件' : locale === 'ms' ? 'Keping' : 'Single') : item.variant === 'Box' ? (locale === 'zh' ? '盒装' : locale === 'ms' ? 'Kotak' : 'Box') : item.variant === 'Bundle' ? (locale === 'zh' ? '套装' : locale === 'ms' ? 'Set' : 'Bundle') : item.variant}</span>
                         )
                       ) : (
                         <span>{item.code}</span>

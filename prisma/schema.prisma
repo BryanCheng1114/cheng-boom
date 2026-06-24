@@ -34,6 +34,10 @@ model Product {
   itemsPerBox    Int?
   boxSellerPrice Float?
   boxPromotion   Float?
+  bundleQuantity    Int?
+  bundlePrice       Float?
+  bundleSellerPrice Float?
+  bundlePromotion   Float?
   category    String?
   status      String   @default("Live")
   createdAt   DateTime @default(now())
@@ -47,8 +51,9 @@ model Category {
   code             String?  @unique
   nameZh           String?  // Chinese name translation
   nameMs           String?  // Malay name translation
+  description      String?  @db.Text
+  displayOrder     Int?     @default(0)
   image            String?  // Image for homepage display
-  transparentImage String?  // Image with transparent background for app bar
   status           String   @default("Live") // "Live" or "Hold"
   createdAt        DateTime @default(now())
 }

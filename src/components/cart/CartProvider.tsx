@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 export interface CartItem {
   id: string;
   cartItemId: string;
-  variant?: 'Single' | 'Box';
+  variant?: 'Single' | 'Box' | 'Bundle';
   code?: string | null;
   name: string;
   price: number;
@@ -19,7 +19,7 @@ interface CartContextType {
   addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number, maxStockOverride?: number) => void;
-  updateVariant: (id: string, variant: 'Single' | 'Box', newPrice?: number, newOriginalPrice?: number) => void;
+  updateVariant: (id: string, variant: 'Single' | 'Box' | 'Bundle', newPrice?: number, newOriginalPrice?: number) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -110,7 +110,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const updateVariant = (cartItemId: string, variant: 'Single' | 'Box', newPrice?: number, newOriginalPrice?: number) => {
+  const updateVariant = (cartItemId: string, variant: 'Single' | 'Box' | 'Bundle', newPrice?: number, newOriginalPrice?: number) => {
     setItems((prev) =>
       prev.map((item) => {
         if (item.cartItemId === cartItemId) {

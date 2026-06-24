@@ -138,7 +138,7 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-white">
       <Head>
-        <title>Checkout - Cheng-BOOM</title>
+        <title>{t.nav?.checkout || 'Checkout'} - Cheng-BOOM</title>
       </Head>
 
       <main className="pt-24 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto min-h-[calc(100vh-80px)]">
@@ -154,7 +154,7 @@ export default function CheckoutPage() {
               setIsSuccess(true);
             }}
             onStockError={(productName) => {
-              alert(`Insufficient stock for ${productName}`);
+              alert(locale === 'zh' ? `库存不足: ${productName}` : locale === 'ms' ? `Stok tidak mencukupi untuk ${productName}` : `Insufficient stock for ${productName}`);
             }}
           />
         )}

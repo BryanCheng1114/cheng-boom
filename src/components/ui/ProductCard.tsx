@@ -26,10 +26,14 @@ export interface ProductCardProps {
   itemsPerBox?: number | null;
   boxSellerPrice?: number | null;
   boxPromotion?: number | null;
+  bundleQuantity?: number | null;
+  bundlePrice?: number | null;
+  bundleSellerPrice?: number | null;
+  bundlePromotion?: number | null;
   createdAt?: string | Date;
 }
 
-export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, sellerPrice, boxPrice, itemsPerBox, boxSellerPrice, boxPromotion, images = [], category, categoryZh, categoryMs, stock = 0, createdAt }: ProductCardProps) {
+export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, sellerPrice, boxPrice, itemsPerBox, boxSellerPrice, boxPromotion, bundleQuantity, bundlePrice, bundleSellerPrice, bundlePromotion, images = [], category, categoryZh, categoryMs, stock = 0, createdAt }: ProductCardProps) {
   const { items, addItem, updateQuantity } = useCart();
   const { flyToCart } = useFlyToCart();
   const { t, locale } = useTranslation();
@@ -124,9 +128,57 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
     }
   }
   
-  const discountPercent = hasDiscount 
-    ? Math.round(((price - activePrice) / price) * 100) 
-    : 0;
+  let activeBundlePrice = bundlePrice;
+  let hasBundleDiscount = false;
+  let strikeThroughBundlePrice: number | undefined = undefined;
+
+  if (activeBundlePrice) {
+    if (isSeller) {
+      if (bundleSellerPrice !== null && bundleSellerPrice !== undefined && bundleSellerPrice > 0) {
+        activeBundlePrice = bundleSellerPrice;
+        if (bundleSellerPrice < bundlePrice!) {
+          hasBundleDiscount = true;
+          strikeThroughBundlePrice = bundlePrice!;
+        }
+      } else {
+        const hasPromo = bundlePromotion !== null && bundlePromotion !== undefined && bundlePromotion < bundlePrice!;
+        if (hasPromo) {
+          activeBundlePrice = bundlePromotion as number;
+          hasBundleDiscount = true;
+          strikeThroughBundlePrice = bundlePrice!;
+        }
+      }
+    } else {
+      const hasPromo = bundlePromotion !== null && bundlePromotion !== undefined && bundlePromotion < bundlePrice!;
+      if (hasPromo) {
+        activeBundlePrice = bundlePromotion as number;
+        hasBundleDiscount = true;
+        strikeThroughBundlePrice = bundlePrice!;
+      }
+    }
+  }
+
+  const singleSavingsPercent = hasDiscount && strikeThroughPrice ? Math.round(((strikeThroughPrice - activePrice) / strikeThroughPrice) * 100) : 0;
+  const boxSavingsPercent = hasBoxDiscount && strikeThroughBoxPrice && activeBoxPrice ? Math.round(((strikeThroughBoxPrice - activeBoxPrice) / strikeThroughBoxPrice) * 100) : 0;
+  const bundleSavingsPercent = hasBundleDiscount && strikeThroughBundlePrice && activeBundlePrice ? Math.round(((strikeThroughBundlePrice - activeBundlePrice) / strikeThroughBundlePrice) * 100) : 0;
+  
+  const discountPercent = Math.max(singleSavingsPercent, boxSavingsPercent, bundleSavingsPercent);
+
+  // Dynamic Pricing Calculations for Shopee Style
+  const hasBoxPricing = !!(boxPrice && itemsPerBox && itemsPerBox > 1);
+  const hasBundlePricing = !!(bundlePrice && bundleQuantity && bundleQuantity > 1);
+  
+  const minPrice = Math.min(activePrice, hasBoxPricing ? activeBoxPrice! : activePrice, hasBundlePricing ? activeBundlePrice! : activePrice);
+  const maxPrice = Math.max(activePrice, hasBoxPricing ? activeBoxPrice! : activePrice, hasBundlePricing ? activeBundlePrice! : activePrice);
+  
+  const effectiveSingleStrike = strikeThroughPrice || activePrice;
+  const effectiveBoxStrike = strikeThroughBoxPrice || activeBoxPrice || activePrice;
+  const effectiveBundleStrike = strikeThroughBundlePrice || activeBundlePrice || activePrice;
+  
+  const minOriginal = Math.min(effectiveSingleStrike, hasBoxPricing ? effectiveBoxStrike : effectiveSingleStrike, hasBundlePricing ? effectiveBundleStrike : effectiveSingleStrike);
+  const maxOriginal = Math.max(effectiveSingleStrike, hasBoxPricing ? effectiveBoxStrike : effectiveSingleStrike, hasBundlePricing ? effectiveBundleStrike : effectiveSingleStrike);
+  
+  const hasAnyDiscount = hasDiscount || hasBoxDiscount || hasBundleDiscount;
 
   const displayImage = images[0] || '';
 
@@ -197,15 +249,13 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
           <div className="mt-auto flex flex-col gap-4">
             {/* Price Line */}
             <div className="flex flex-col gap-1 sm:gap-1.5 w-full">
-              <div className="flex flex-row items-center gap-1 sm:gap-2 whitespace-nowrap overflow-hidden w-full">
-                <span className="font-bold text-zinc-900 tracking-tight truncate shrink-0">
-                  <span className="text-[9px] sm:text-[13px] mr-0.5 font-semibold">RM</span>
-                  <span className="text-[13px] sm:text-[19px]">{activePrice.toFixed(2)}</span>
+              <div className="flex items-center flex-wrap gap-1 mt-auto">
+                <span className="text-[13px] sm:text-[19px] font-bold text-primary mr-1 whitespace-nowrap tracking-tight">
+                  {minPrice === maxPrice ? `RM${minPrice.toFixed(2)}` : `RM${minPrice.toFixed(2)} - ${maxPrice.toFixed(2)}`}
                 </span>
-                {hasDiscount && (
-                  <span className="font-bold text-primary tracking-tight truncate shrink-0 ml-1 sm:ml-2">
-                    <span className="text-[9px] sm:text-[13px] mr-0.5 font-semibold">{ct('save')} RM</span>
-                    <span className="text-[13px] sm:text-[19px]">{(strikeThroughPrice! - activePrice).toFixed(2)}</span>
+                {hasAnyDiscount && minOriginal && (
+                  <span className="text-[10px] sm:text-[12px] font-bold text-zinc-400 line-through whitespace-nowrap">
+                    {minOriginal === maxOriginal ? `RM${minOriginal.toFixed(2)}` : `RM${minOriginal.toFixed(2)} - ${maxOriginal.toFixed(2)}`}
                   </span>
                 )}
               </div>
@@ -236,7 +286,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
                 <button
                   disabled={isOutOfStock}
                   onClick={(e) => { e.preventDefault(); setSelectedQty(q => q + 1); }}
-                  className="w-[26px] h-[26px] sm:w-[32px] sm:h-[32px] shrink-0 rounded-full bg-zinc-900 border-2 border-zinc-900 flex items-center justify-center text-white hover:bg-primary hover:border-primary hover:text-zinc-900 active:scale-90 transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
+                  className="w-[26px] h-[26px] sm:w-[32px] sm:h-[32px] shrink-0 rounded-full bg-primary border-2 border-primary flex items-center justify-center text-black hover:brightness-110 active:scale-90 transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
                 >
                   <Plus size={12} strokeWidth={3} />
                 </button>
@@ -245,7 +295,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
               <button
                 onClick={handleBuyNow}
                 disabled={isOutOfStock}
-                className="w-full py-1.5 sm:py-2.5 rounded-full bg-zinc-900 text-white font-bold text-[11px] sm:text-sm transition-all hover:bg-primary hover:border-primary hover:text-zinc-900 border-[1.5px] border-zinc-900 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-1.5 sm:py-2.5 rounded-full bg-primary text-black font-bold text-[11px] sm:text-sm transition-all hover:brightness-110 border-[1.5px] border-primary active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {ct('buy')}
               </button>

@@ -1,4 +1,7 @@
+const fs = require('fs');
+const path = require('path');
 
+const uploadCode = `
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -57,7 +60,7 @@ const UploadProductPage = () => {
     
     try {
       const initials = formData.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 3);
-      const res = await fetch(`/api/products/generate-code?prefix=${initials}`);
+      const res = await fetch(\`/api/products/generate-code?prefix=\${initials}\`);
       const data = await res.json();
       if (data.code) {
         setFormData(prev => ({ ...prev, code: data.code }));
@@ -96,7 +99,7 @@ const UploadProductPage = () => {
     const data = new FormData();
     for (let i = 0; i < files.length; i++) {
       if (files[i].size > 10 * 1024 * 1024) {
-        alert(`${files[i].name} exceeds 10MB limit`);
+        alert(\`\${files[i].name} exceeds 10MB limit\`);
         continue;
       }
       data.append('files', files[i]);
@@ -135,13 +138,12 @@ const UploadProductPage = () => {
 
     // Build field-level errors
     const errors: Record<string, string> = {};
-    if (uploadedImages.length === 0) errors.image = t('err_image_required') || 'Image required';
-    if (!formData.name.trim()) errors.name = t('err_name_required') || 'Name required';
-    if (!formData.category) errors.category = t('err_category_required') || 'Category required';
-    if (!formData.code.trim()) errors.code = t('err_code_required') || 'Code required';
-    if (!formData.description.trim()) errors.description = t('err_description_required') || 'Description is required';
-    if (!formData.stock) errors.stock = t('err_stock_required') || 'Stock required';
-    if (!formData.price) errors.price = t('err_price_required') || 'Price required';
+    if (uploadedImages.length === 0) errors.image = t('err_image_required');
+    if (!formData.name.trim()) errors.name = t('err_name_required');
+    if (!formData.category) errors.category = t('err_category_required');
+    if (!formData.code.trim()) errors.code = t('err_code_required');
+    if (!formData.stock) errors.stock = t('err_stock_required');
+    if (!formData.price) errors.price = t('err_price_required');
 
     setFieldErrors(errors);
 
@@ -153,7 +155,6 @@ const UploadProductPage = () => {
         name: nameRef,
         category: categoryRef,
         code: codeRef,
-        description: nameRef, // Scroll to nameRef for description
         stock: stockRef,
         price: priceRef,
       };
@@ -194,17 +195,12 @@ const UploadProductPage = () => {
 
   return (
     <AdminLayout title={t('upload_new_item')}>
-      <div className="w-full pb-24 relative">
-
-        {/* Top Info Box */}
-        <div className="bg-white p-5 rounded-[20px] border border-zinc-200 shadow-sm mb-6 flex items-center gap-5">
-          <Link href="/admin/product" className="w-12 h-12 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center shrink-0 hover:bg-orange-100 transition-colors">
+      <div className="max-w-7xl mx-auto pb-24 relative">
+        <div className="flex items-center gap-4 mb-10">
+          <Link href="/admin/product" className="p-3 hover:bg-zinc-500/10 text-zinc-500 rounded-full transition-all">
             <ChevronLeft size={24} />
           </Link>
-          <div>
-            <h2 className="text-[15px] font-bold text-zinc-900">{t('upload_new_item')}</h2>
-            <p className="text-[13px] text-zinc-500 mt-1">Add a new product to your inventory and set its pricing, stock, and categories.</p>
-          </div>
+          <h1 className="text-3xl font-black italic uppercase tracking-tight text-zinc-900">{t('upload_new_item')}</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 relative">
@@ -232,16 +228,16 @@ const UploadProductPage = () => {
                         name="name"
                         value={formData.name}
                         onChange={(e) => { handleChange(e); if (fieldErrors.name) setFieldErrors(p => ({ ...p, name: '' })); }}
-                        className={`w-full px-4 py-3 rounded-xl border outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white ${
+                        className={\`w-full px-4 py-3 rounded-xl border outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white \${
                           fieldErrors.name ? 'border-red-500' : 'border-zinc-200'
-                        }`}
+                        }\`}
                         placeholder="e.g. Thunder Clap"
                       />
                       {fieldErrors.name && <p className="text-red-500 text-[11px] font-semibold mt-1">⚠ {fieldErrors.name}</p>}
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[13px] font-semibold text-zinc-800">{t('chinese_translation') || 'Chinese Translation'}</label>
+                      <label className="text-[13px] font-semibold text-zinc-800">{t('chinese_translation')} (optional)</label>
                       <input 
                         type="text" 
                         name="nameZh"
@@ -261,9 +257,9 @@ const UploadProductPage = () => {
                         name="category"
                         value={formData.category}
                         onChange={(e) => { handleChange(e); if (fieldErrors.category) setFieldErrors(p => ({ ...p, category: '' })); }}
-                        className={`w-full px-4 py-3 rounded-xl border outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white cursor-pointer ${
+                        className={\`w-full px-4 py-3 rounded-xl border outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white cursor-pointer \${
                           fieldErrors.category ? 'border-red-500' : 'border-zinc-200'
-                        }`}
+                        }\`}
                       >
                         <option value="">{t('choose_category')}</option>
                         {categories.map(cat => (
@@ -281,9 +277,9 @@ const UploadProductPage = () => {
                           name="code"
                           value={formData.code}
                           onChange={(e) => { handleChange(e); if (fieldErrors.code) setFieldErrors(p => ({ ...p, code: '' })); }}
-                          className={`flex-1 pl-4 pr-24 py-3 rounded-xl border outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white ${
+                          className={\`flex-1 pl-4 pr-24 py-3 rounded-xl border outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white \${
                             fieldErrors.code ? 'border-red-500' : 'border-zinc-200'
-                          }`}
+                          }\`}
                           placeholder="e.g. TC00001"
                         />
                         <button
@@ -299,32 +295,16 @@ const UploadProductPage = () => {
                   </div>
                   
                   {/* Descriptions */}
-                  <div className="space-y-4">
-                    <div ref={nameRef} className="space-y-2">
-                      <label className="text-[13px] font-semibold text-zinc-800">{t('description_en')} <span className="text-red-500">*</span></label>
-                      <textarea 
-                        name="description"
-                        value={formData.description}
-                        onChange={(e) => { handleChange(e); if (fieldErrors.description) setFieldErrors(p => ({ ...p, description: '' })); }}
-                        rows={3}
-                        className={`w-full px-4 py-3 rounded-xl border outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white resize-none ${
-                          fieldErrors.description ? 'border-red-500' : 'border-zinc-200'
-                        }`} 
-                        placeholder="Product details..."
-                      />
-                      {fieldErrors.description && <p className="text-red-500 text-[11px] font-semibold mt-1">⚠ {fieldErrors.description}</p>}
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[13px] font-semibold text-zinc-800">{t('chinese_translation') || 'Chinese Translation (optional)'}</label>
-                      <textarea 
-                        name="descriptionZh"
-                        value={formData.descriptionZh}
-                        onChange={handleChange}
-                        rows={3}
-                        className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white resize-none" 
-                        placeholder="产品详情..."
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <label className="text-[13px] font-semibold text-zinc-800">{t('description_en')} (optional)</label>
+                    <textarea 
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      rows={3}
+                      className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white resize-none" 
+                      placeholder="Product details..."
+                    />
                   </div>
                 </div>
               </div>
@@ -337,14 +317,14 @@ const UploadProductPage = () => {
                     <label className="text-[12px] font-semibold text-zinc-800">Total Stock <span className="text-red-500">*</span></label>
                     <input 
                       type="number" min="0" name="stock" value={formData.stock} onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-xl border outline-none text-[14px] bg-white ${fieldErrors.stock ? 'border-red-500' : 'border-zinc-200'}`} placeholder="0"
+                      className={\`w-full px-4 py-3 rounded-xl border outline-none text-[14px] bg-white \${fieldErrors.stock ? 'border-red-500' : 'border-zinc-200'}\`} placeholder="0"
                     />
                   </div>
                   <div ref={priceRef} className="space-y-2">
                     <label className="text-[12px] font-semibold text-zinc-800">Normal Price ($) <span className="text-red-500">*</span></label>
                     <input 
                       type="number" min="0" step="0.01" name="price" value={formData.price} onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-xl border outline-none text-[14px] bg-white ${fieldErrors.price ? 'border-red-500' : 'border-zinc-200'}`} placeholder="0.00"
+                      className={\`w-full px-4 py-3 rounded-xl border outline-none text-[14px] bg-white \${fieldErrors.price ? 'border-red-500' : 'border-zinc-200'}\`} placeholder="0.00"
                     />
                   </div>
                   <div className="space-y-2">
@@ -448,9 +428,9 @@ const UploadProductPage = () => {
                 
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className={`h-48 border-2 border-dashed rounded-[16px] flex flex-col items-center justify-center gap-3 bg-zinc-50 cursor-pointer hover:border-yellow-500/50 transition-all group ${
+                  className={\`h-48 border-2 border-dashed rounded-[16px] flex flex-col items-center justify-center gap-3 bg-zinc-50 cursor-pointer hover:border-yellow-500/50 transition-all group \${
                     fieldErrors.image ? 'border-red-500 animate-pulse' : 'border-zinc-200'
-                  }`}
+                  }\`}
                 >
                   <div className="p-3 bg-white shadow-sm rounded-xl text-zinc-400 group-hover:text-yellow-500 transition-colors">
                     <ImageIcon size={24} />
@@ -487,64 +467,11 @@ const UploadProductPage = () => {
                 </AnimatePresence>
                 
                 {/* Youtube Link */}
-                <div className="mt-6 pt-6 border-t border-zinc-100 space-y-2 relative">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <Video size={14} className="text-zinc-500" />
-                      <label className="text-[12px] font-semibold text-zinc-800">Youtube Video Link (optional)</label>
-                      <button 
-                        type="button"
-                        onMouseEnter={() => setShowYoutubeGuide(true)}
-                        onMouseLeave={() => setShowYoutubeGuide(false)}
-                        className="text-zinc-400 hover:text-yellow-500 transition-colors ml-1 outline-none"
-                      >
-                        <HelpCircle size={14} />
-                      </button>
-                    </div>
-                    <a 
-                      href="https://youtube.com" 
-                      target="_blank" 
-                      rel="noreferrer"
-                      className="text-[10px] font-black uppercase tracking-widest text-orange-500 hover:text-orange-600 transition-all flex items-center gap-1 hover:gap-2 group"
-                    >
-                      Open YouTube <ChevronRight size={12} strokeWidth={3} className="opacity-70 group-hover:opacity-100 transition-opacity" />
-                    </a>
-                  </div>
-
-                  <AnimatePresence>
-                    {showYoutubeGuide && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className="absolute z-50 bottom-full right-0 mb-2 w-[600px] bg-zinc-900 border border-white/10 rounded-[32px] p-8 shadow-2xl pointer-events-none"
-                      >
-                        <h4 className="text-sm font-black text-white uppercase tracking-widest mb-4 border-b border-white/10 pb-3">How to Add Video</h4>
-                        <div className="space-y-4">
-                          <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
-                            <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">1</span>
-                            <p>Click "Open YouTube" to visit youtube.com</p>
-                          </div>
-                          <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
-                            <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">2</span>
-                            <p>Find and open the video you want to display</p>
-                          </div>
-                          <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
-                            <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">3</span>
-                            <p>Copy the URL from the browser address bar</p>
-                          </div>
-                          <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
-                            <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">4</span>
-                            <p>Paste the copied link into this input box</p>
-                          </div>
-                        </div>
-                        <div className="mt-6 bg-zinc-800/50 rounded-2xl overflow-hidden border border-white/5 p-2">
-                          <img src="/youtube1.png" alt="YouTube Tutorial Guide" className="w-full h-auto rounded-xl object-contain" />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
+                <div className="mt-6 pt-6 border-t border-zinc-100 space-y-2">
+                  <label className="text-[12px] font-semibold text-zinc-800 flex items-center justify-between">
+                    <span>Youtube Video Link</span>
+                    <HelpCircle size={14} className="text-zinc-400 cursor-pointer hover:text-yellow-500" />
+                  </label>
                   <input 
                     type="text" 
                     name="videoUrl"
@@ -568,26 +495,26 @@ const UploadProductPage = () => {
                         key={status}
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, status }))}
-                        className={`flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${
+                        className={\`flex items-center gap-3 p-4 rounded-xl border transition-all text-left \${
                           isActive 
                             ? status === 'Live' ? 'bg-green-50/50 border-green-500 shadow-sm shadow-green-500/10' 
                             : status === 'Hold' ? 'bg-orange-50/50 border-orange-500 shadow-sm shadow-orange-500/10' 
                             : 'bg-red-50/50 border-red-500 shadow-sm shadow-red-500/10'
                             : 'bg-white border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50'
-                        }`}
+                        }\`}
                       >
-                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        <div className={\`w-4 h-4 rounded-full border-2 flex items-center justify-center \${
                           isActive 
                             ? status === 'Live' ? 'border-green-500' : status === 'Hold' ? 'border-orange-500' : 'border-red-500'
                             : 'border-zinc-300'
-                        }`}>
-                          {isActive && <div className={`w-2 h-2 rounded-full ${status === 'Live' ? 'bg-green-500' : status === 'Hold' ? 'bg-orange-500' : 'bg-red-500'}`} />}
+                        }\`}>
+                          {isActive && <div className={\`w-2 h-2 rounded-full \${status === 'Live' ? 'bg-green-500' : status === 'Hold' ? 'bg-orange-500' : 'bg-red-500'}\`} />}
                         </div>
-                        <span className={`text-[13px] font-bold ${
+                        <span className={\`text-[13px] font-bold \${
                           isActive 
                             ? status === 'Live' ? 'text-green-700' : status === 'Hold' ? 'text-orange-700' : 'text-red-700'
                             : 'text-zinc-600'
-                        }`}>
+                        }\`}>
                           {t(status === 'Live' ? 'live_products' : status === 'Hold' ? 'hold' : 'deactive')}
                         </span>
                       </button>
@@ -633,3 +560,7 @@ const UploadProductPage = () => {
 };
 
 export default UploadProductPage;
+`;
+
+fs.writeFileSync(path.join(__dirname, '..', 'src', 'pages', 'admin', 'product', 'upload.tsx'), uploadCode);
+console.log('Upload page generated!');

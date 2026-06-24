@@ -37,7 +37,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   const [activeImageIdx, setActiveImageIdx] = useState(0);
 
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [selectedVariant, setSelectedVariant] = useState<'Single' | 'Box' | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<'Single' | 'Box' | 'Bundle' | null>(null);
   const [showVariantError, setShowVariantError] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'description' | 'video'>('description');
@@ -58,8 +58,12 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   if (product?.itemsPerBox && product.itemsPerBox > 1) {
     maxAvailableBox = Math.floor(trueRemainingStock / product.itemsPerBox);
   }
+  let maxAvailableBundle = 0;
+  if (product?.bundleQuantity && product.bundleQuantity > 1) {
+    maxAvailableBundle = Math.floor(trueRemainingStock / product.bundleQuantity);
+  }
 
-  const currentMaxAvailable = selectedVariant === 'Box' ? maxAvailableBox : (selectedVariant === 'Single' ? maxAvailableSingle : 0);
+  const currentMaxAvailable = selectedVariant === 'Box' ? maxAvailableBox : selectedVariant === 'Bundle' ? maxAvailableBundle : (selectedVariant === 'Single' ? maxAvailableSingle : 0);
 
   // Sync / Clamp local selection if it exceeds max available stock
   useEffect(() => {
@@ -171,12 +175,45 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
   const boxSavings = hasBoxDiscount && strikeThroughBoxPrice && activeBoxPrice ? (strikeThroughBoxPrice - activeBoxPrice) : 0;
 
+  let activeBundlePrice = product.bundlePrice;
+  let hasBundleDiscount = false;
+  let strikeThroughBundlePrice: number | undefined = undefined;
+
+  if (activeBundlePrice && product.bundleQuantity && product.bundleQuantity > 1) {
+    if (isSeller) {
+      if (product.bundleSellerPrice && product.bundleSellerPrice > 0) {
+        activeBundlePrice = product.bundleSellerPrice;
+        if (product.bundleSellerPrice < product.bundlePrice!) {
+          hasBundleDiscount = true;
+          strikeThroughBundlePrice = product.bundlePrice!;
+        }
+      } else if (product.bundlePromotion !== null && product.bundlePromotion !== undefined && product.bundlePromotion < product.bundlePrice!) {
+        activeBundlePrice = product.bundlePromotion as number;
+        hasBundleDiscount = true;
+        strikeThroughBundlePrice = product.bundlePrice!;
+      }
+    } else {
+      if (product.bundlePromotion !== null && product.bundlePromotion !== undefined && product.bundlePromotion < product.bundlePrice!) {
+        activeBundlePrice = product.bundlePromotion as number;
+        hasBundleDiscount = true;
+        strikeThroughBundlePrice = product.bundlePrice!;
+      }
+    }
+  }
+
+  const bundleSavings = hasBundleDiscount && strikeThroughBundlePrice && activeBundlePrice ? (strikeThroughBundlePrice - activeBundlePrice) : 0;
+
 
 
   const handleWhatsAppShare = () => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
     const priceToDisplay = currentDisplayPrice || minPrice;
-    const msg = `Check out ${translatedName} for RM${priceToDisplay.toFixed(2)}. Get it on Cheng-BOOM now! ${url}`;
+    let msg = `Check out ${translatedName} for RM${priceToDisplay.toFixed(2)}. Get it on Cheng-BOOM now! ${url}`;
+    if (locale === 'zh') {
+      msg = `快来看看 ${translatedName}，只需 RM${priceToDisplay.toFixed(2)}。立即在 Cheng-BOOM 购买！${url}`;
+    } else if (locale === 'ms') {
+      msg = `Lihat ${translatedName} untuk RM${priceToDisplay.toFixed(2)}. Dapatkannya di Cheng-BOOM sekarang! ${url}`;
+    }
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -203,11 +240,11 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
         id: product.id,
         cartItemId: `${product.id}-${selectedVariant}`,
         variant: selectedVariant,
-        itemsPerBox: product.itemsPerBox,
+        itemsPerBox: selectedVariant === 'Box' ? product.itemsPerBox : selectedVariant === 'Bundle' ? product.bundleQuantity : 1,
         code: product.code,
         name: translatedName, 
-        price: selectedVariant === 'Single' ? activePrice : activeBoxPrice!, 
-        originalPrice: selectedVariant === 'Single' ? strikeThroughPrice : strikeThroughBoxPrice, 
+        price: selectedVariant === 'Single' ? activePrice : selectedVariant === 'Box' ? activeBoxPrice! : activeBundlePrice!, 
+        originalPrice: selectedVariant === 'Single' ? strikeThroughPrice : selectedVariant === 'Box' ? strikeThroughBoxPrice : strikeThroughBundlePrice, 
         image: images[activeImageIdx] || '',
         stock: currentMaxAvailable // Limit to remaining available stock for this variant
       }, localQty);
@@ -287,23 +324,27 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
   // Dynamic Pricing Calculations for Shopee Style
   const hasBoxPricing = !!(product.boxPrice && product.itemsPerBox && product.itemsPerBox > 1);
+  const hasBundlePricing = !!(product.bundlePrice && product.bundleQuantity && product.bundleQuantity > 1);
   
-  const minPrice = hasBoxPricing ? Math.min(activePrice, activeBoxPrice!) : activePrice;
-  const maxPrice = hasBoxPricing ? Math.max(activePrice, activeBoxPrice!) : activePrice;
+  const minPrice = Math.min(activePrice, hasBoxPricing ? activeBoxPrice! : activePrice, hasBundlePricing ? activeBundlePrice! : activePrice);
+  const maxPrice = Math.max(activePrice, hasBoxPricing ? activeBoxPrice! : activePrice, hasBundlePricing ? activeBundlePrice! : activePrice);
   
   const effectiveSingleStrike = strikeThroughPrice || activePrice;
   const effectiveBoxStrike = strikeThroughBoxPrice || activeBoxPrice || activePrice;
-  const minOriginal = hasBoxPricing ? Math.min(effectiveSingleStrike, effectiveBoxStrike) : effectiveSingleStrike;
-  const maxOriginal = hasBoxPricing ? Math.max(effectiveSingleStrike, effectiveBoxStrike) : effectiveSingleStrike;
+  const effectiveBundleStrike = strikeThroughBundlePrice || activeBundlePrice || activePrice;
   
-  const hasAnyDiscount = hasDiscount || hasBoxDiscount;
+  const minOriginal = Math.min(effectiveSingleStrike, hasBoxPricing ? effectiveBoxStrike : effectiveSingleStrike, hasBundlePricing ? effectiveBundleStrike : effectiveSingleStrike);
+  const maxOriginal = Math.max(effectiveSingleStrike, hasBoxPricing ? effectiveBoxStrike : effectiveSingleStrike, hasBundlePricing ? effectiveBundleStrike : effectiveSingleStrike);
   
-  const currentDisplayPrice = selectedVariant === 'Single' ? activePrice : selectedVariant === 'Box' ? activeBoxPrice! : null;
-  const currentStrikePrice = selectedVariant === 'Single' ? strikeThroughPrice : selectedVariant === 'Box' ? strikeThroughBoxPrice : null;
+  const hasAnyDiscount = hasDiscount || hasBoxDiscount || hasBundleDiscount;
+  
+  const currentDisplayPrice = selectedVariant === 'Single' ? activePrice : selectedVariant === 'Box' ? activeBoxPrice! : selectedVariant === 'Bundle' ? activeBundlePrice! : null;
+  const currentStrikePrice = selectedVariant === 'Single' ? strikeThroughPrice : selectedVariant === 'Box' ? strikeThroughBoxPrice : selectedVariant === 'Bundle' ? strikeThroughBundlePrice : null;
   
   const singleSavingsPercent = hasDiscount && strikeThroughPrice ? Math.round(((strikeThroughPrice - activePrice) / strikeThroughPrice) * 100) : 0;
   const boxSavingsPercent = hasBoxDiscount && strikeThroughBoxPrice && activeBoxPrice ? Math.round(((strikeThroughBoxPrice - activeBoxPrice) / strikeThroughBoxPrice) * 100) : 0;
-  const maxSavingsPercent = Math.max(singleSavingsPercent, boxSavingsPercent);
+  const bundleSavingsPercent = hasBundleDiscount && strikeThroughBundlePrice && activeBundlePrice ? Math.round(((strikeThroughBundlePrice - activeBundlePrice) / strikeThroughBundlePrice) * 100) : 0;
+  const maxSavingsPercent = Math.max(singleSavingsPercent, boxSavingsPercent, bundleSavingsPercent);
 
   return (
     <>
@@ -403,7 +444,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                 </div>
               )}
               <div className="absolute top-4 left-4 z-40 bg-white border border-zinc-200 text-zinc-600 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
-                  Best Seller
+                  {locale === 'zh' ? '热销产品' : locale === 'ms' ? 'Paling Laris' : 'Best Seller'}
                 </div>
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none z-30">
                 <div className="bg-black/50 backdrop-blur-md p-4 rounded-full text-white">
@@ -454,7 +495,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
                 return (
                   <div className="relative flex flex-col justify-center">
-                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2 px-1">
+                    <p className="text-xs font-black text-primary tracking-widest mb-2 px-1">
                       {currentLabels.title}
                     </p>
                     <div className="overflow-hidden rounded-lg border border-zinc-200  bg-white  shadow-sm">
@@ -462,7 +503,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                         <table className="w-full text-left text-[10px] sm:text-[11px] border-collapse min-w-[280px]">
                           <thead>
                             <tr className="bg-zinc-50  text-zinc-500  font-extrabold border-b border-zinc-200 ">
-                              <th className="px-2 sm:px-4 py-2.5">Variant</th>
+                              <th className="px-2 sm:px-4 py-2.5">{locale === 'zh' ? '选项' : locale === 'ms' ? 'Varian' : 'Variant'}</th>
                               <th className="px-2 sm:px-4 py-2.5">{currentLabels.original}</th>
                               <th className="px-2 sm:px-4 py-2.5">{currentLabels.promo}</th>
                               <th className="px-2 sm:px-4 py-2.5">{currentLabels.seller}</th>
@@ -470,16 +511,16 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                             </tr>
                           </thead>
                           <tbody>
-                            <tr className={`font-bold text-foreground border-b border-zinc-100  ${selectedVariant === 'Single' ? 'bg-primary/5' : ''}`}>
-                              <td className="px-2 sm:px-4 py-3">Single</td>
+                            <tr className={`font-bold text-zinc-800 border-b border-zinc-100  ${selectedVariant === 'Single' ? 'bg-orange-100' : ''}`}>
+                              <td className="px-2 sm:px-4 py-3">{locale === 'zh' ? '单品' : locale === 'ms' ? 'Satu' : 'Single'}</td>
                               <td className="px-2 sm:px-4 py-3 text-zinc-400  line-through">RM {product.price.toFixed(2)}</td>
                               <td className="px-2 sm:px-4 py-3 text-zinc-500 ">{product.promotion !== null && product.promotion !== undefined && product.promotion < product.price ? `RM ${product.promotion.toFixed(2)}` : '-'}</td>
                               <td className="px-2 sm:px-4 py-3 text-primary font-extrabold">{product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0 ? `RM ${product.sellerPrice.toFixed(2)}` : '-'}</td>
                               <td className="px-2 sm:px-4 py-3 text-green-500 font-extrabold text-right">{product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0 && product.sellerPrice < product.price ? `RM ${(product.price - product.sellerPrice).toFixed(2)}` : '-'}</td>
                             </tr>
                             {hasBoxPricing && (
-                              <tr className={`font-bold text-foreground ${selectedVariant === 'Box' ? 'bg-primary/5' : ''}`}>
-                                <td className="px-2 sm:px-4 py-3">Box</td>
+                              <tr className={`font-bold text-zinc-800 ${selectedVariant === 'Box' ? 'bg-orange-100' : ''}`}>
+                                <td className="px-2 sm:px-4 py-3">{locale === 'zh' ? '整箱' : locale === 'ms' ? 'Kotak' : 'Box'}</td>
                                 <td className="px-2 sm:px-4 py-3 text-zinc-400  line-through">RM {product.boxPrice!.toFixed(2)}</td>
                                 <td className="px-2 sm:px-4 py-3 text-zinc-500 ">{product.boxPromotion !== null && product.boxPromotion !== undefined && product.boxPromotion < product.boxPrice! ? `RM ${product.boxPromotion.toFixed(2)}` : '-'}</td>
                                 <td className="px-2 sm:px-4 py-3 text-primary font-extrabold">{product.boxSellerPrice !== null && product.boxSellerPrice !== undefined && product.boxSellerPrice > 0 ? `RM ${product.boxSellerPrice.toFixed(2)}` : '-'}</td>
@@ -523,7 +564,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                   {currentDisplayPrice ? (
                     currentStrikePrice && (
                       <span className="text-xs font-bold text-primary mb-1 ml-1 bg-primary/10 px-2 py-0.5 rounded-sm">
-                        {selectedVariant === 'Single' ? `-${singleSavingsPercent}%` : `-${boxSavingsPercent}%`}
+                        {selectedVariant === 'Single' ? `-${singleSavingsPercent}%` : selectedVariant === 'Box' ? `-${boxSavingsPercent}%` : `-${bundleSavingsPercent}%`}
                       </span>
                     )
                   ) : (
@@ -544,32 +585,48 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                 showVariantError ? "bg-red-50/50 dark:bg-red-950/20 p-4 -mx-4 rounded-xl border border-red-100 dark:border-red-900/30" : ""
               )}>
                 {/* Options Selector */}
-                {hasBoxPricing && (
+                {(hasBoxPricing || hasBundlePricing) && (
                   <div className="flex flex-col gap-3">
                     <span className="text-sm font-bold text-zinc-900 mb-2">
                     {locale === 'zh' ? '选项' : locale === 'ms' ? 'Saiz' : 'Size:'}
                     </span>
-                    <div className="grid grid-cols-2 gap-3 w-full">
+                    <div className="flex flex-wrap gap-3 w-full">
                       <button
                         onClick={() => {
                           setSelectedVariant('Single');
                           setLocalQty(1);
                           setShowVariantError(false);
                         }}
-                        className={`h-12 rounded-full border transition-all flex items-center justify-center text-sm font-bold ${selectedVariant === 'Single' ? 'border-orange-300 bg-orange-50 text-orange-900 shadow-sm' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
+                        className={`h-12 px-6 rounded-full border transition-all flex items-center justify-center text-sm font-bold flex-1 min-w-[120px] ${selectedVariant === 'Single' ? 'border-orange-500 bg-orange-100 text-orange-950 shadow-md ring-1 ring-orange-500/50' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
                       >
                         {locale === 'zh' ? '单品' : locale === 'ms' ? 'Satu' : 'Single'}
                       </button>
-                      <button
-                        onClick={() => {
-                          setSelectedVariant('Box');
-                          setLocalQty(1);
-                          setShowVariantError(false);
-                        }}
-                        className={`h-12 rounded-full border transition-all flex items-center justify-center text-sm font-bold ${selectedVariant === 'Box' ? 'border-orange-300 bg-orange-50 text-orange-900 shadow-sm' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
-                      >
-                        Box ({product.itemsPerBox} Items)
-                      </button>
+                      
+                      {hasBundlePricing && (
+                        <button
+                          onClick={() => {
+                            setSelectedVariant('Bundle');
+                            setLocalQty(1);
+                            setShowVariantError(false);
+                          }}
+                          className={`h-12 px-6 rounded-full border transition-all flex items-center justify-center text-sm font-bold flex-1 min-w-[120px] ${selectedVariant === 'Bundle' ? 'border-orange-500 bg-orange-100 text-orange-950 shadow-md ring-1 ring-orange-500/50' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
+                        >
+                          {locale === 'zh' ? `套装 (${product.bundleQuantity} 件)` : locale === 'ms' ? `Set (${product.bundleQuantity} Item)` : `Bundle Set (${product.bundleQuantity} Items)`}
+                        </button>
+                      )}
+
+                      {hasBoxPricing && (
+                        <button
+                          onClick={() => {
+                            setSelectedVariant('Box');
+                            setLocalQty(1);
+                            setShowVariantError(false);
+                          }}
+                          className={`h-12 px-6 rounded-full border transition-all flex items-center justify-center text-sm font-bold flex-1 min-w-[120px] ${selectedVariant === 'Box' ? 'border-orange-500 bg-orange-100 text-orange-950 shadow-md ring-1 ring-orange-500/50' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
+                        >
+                          {locale === 'zh' ? `整箱 (${product.itemsPerBox} 件)` : locale === 'ms' ? `Kotak (${product.itemsPerBox} Item)` : `Box (${product.itemsPerBox} Items)`}
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -726,7 +783,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
                 <div className="space-y-2">
                   <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{t.productDetail.productDescription}</h4>
-                  <div className="text-zinc-600 leading-relaxed space-y-4 max-w-4xl text-[15px]">
+                  <div className="text-zinc-600 leading-relaxed space-y-4 w-full text-[15px]">
                     {translatedDesc?.split('\n').map((line: string, i: number) => (
                       <p key={i}>{line}</p>
                     ))}
@@ -735,7 +792,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
               </div>
             )}
             {activeTab === 'video' && embedUrl && (
-              <div className="w-full max-w-4xl animate-in fade-in duration-500">
+              <div className="w-full animate-in fade-in duration-500">
                 <div className="relative rounded-2xl overflow-hidden aspect-video bg-black shadow-sm border border-zinc-200">
                   <iframe
                     className="w-full h-full"

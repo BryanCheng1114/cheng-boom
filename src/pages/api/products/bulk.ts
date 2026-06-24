@@ -110,6 +110,10 @@ export default async function handler(req: any, res: NextApiResponse) {
             boxPrice: p.boxPrice ? Number(p.boxPrice) : null,
             boxSellerPrice: p.boxSellerPrice ? Number(p.boxSellerPrice) : null,
             boxPromotion: p.boxPromotion ? Number(p.boxPromotion) : null,
+            bundleQuantity: p.bundleQuantity ? Number(p.bundleQuantity) : null,
+            bundlePrice: p.bundlePrice ? Number(p.bundlePrice) : null,
+            bundleSellerPrice: p.bundleSellerPrice ? Number(p.bundleSellerPrice) : null,
+            bundlePromotion: p.bundlePromotion ? Number(p.bundlePromotion) : null,
             status: p.status === 'Hold' ? 'Hold' : 'Live',
             images: [imageUrl],
           }

@@ -22,7 +22,7 @@ type NavbarCategory = {
   key?: string;
   count?: number;
   image?: string | null;
-  transparentImage?: string | null;
+  // transparentImage?: string | null;
 };
 
 const CONFETTI_BURST = [
@@ -320,7 +320,7 @@ export function Navbar() {
                             <div className="flex h-[60px] w-[60px] sm:h-[72px] sm:w-[72px] lg:h-[88px] lg:w-[88px] items-center justify-center">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img 
-                                src={category.transparentImage || category.image || '/example.png'} 
+                                src={category.image || '/example.png'} 
                                 alt={label} 
                                 className="max-h-full max-w-full object-contain opacity-85 transition-all duration-300 group-hover/cat:opacity-100 group-hover/cat:scale-110 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
                               />
@@ -370,7 +370,7 @@ export function Navbar() {
                 isTransparent ? 'text-white hover:text-white/80' : 'text-zinc-600 hover:text-zinc-900'
               )}
             >
-              Safety Guide
+              {locale === 'zh' ? '安全指南' : locale === 'ms' ? 'Panduan Keselamatan' : 'Safety Guide'}
             </Link>
           </div>
         </div>
@@ -452,21 +452,48 @@ export function Navbar() {
             </Link>
 
             {/* Profile Link */}
-            <div className="flex items-center">
+            <div className="flex items-center relative group/profile">
               {user ? (
-                <Link 
-                  href="/profile"
-                  className={cn(
-                    "flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-sm sm:text-base font-black ring-1 transition-all duration-300 hover:-translate-y-0.5",
-                    isTransparent
-                      ? "bg-white/15 text-white ring-white/10 hover:bg-white/25"
-                      : "bg-zinc-100 text-zinc-800 ring-zinc-200 hover:bg-zinc-200"
-                  )}
-                  aria-label={`${user.name} profile`}
-                  title={user.name}
-                >
-                  {user.name.charAt(0).toUpperCase()}
-                </Link>
+                <>
+                  <button 
+                    className={cn(
+                      "flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-sm sm:text-base font-black ring-1 transition-all duration-300 hover:-translate-y-0.5 cursor-default",
+                      isTransparent
+                        ? "bg-white/15 text-white ring-white/10 group-hover/profile:bg-white/25"
+                        : "bg-zinc-100 text-zinc-800 ring-zinc-200 group-hover/profile:bg-zinc-200"
+                    )}
+                    aria-label={`${user.name} profile`}
+                    title={user.name}
+                  >
+                    {user.name.charAt(0).toUpperCase()}
+                  </button>
+                  
+                  {/* Dropdown Menu */}
+                  <div className="absolute top-[110%] right-0 pt-2 w-56 invisible opacity-0 group-hover/profile:visible group-hover/profile:opacity-100 transition-all duration-300 z-50">
+                    <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-zinc-100 py-2 overflow-hidden flex flex-col">
+                      <div className="px-4 py-3 border-b border-zinc-100">
+                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">
+                          {locale === 'zh' ? '登录身份' : locale === 'ms' ? 'Dilog masuk sebagai' : 'Signed in as'}
+                        </p>
+                        <p className="text-sm font-black text-zinc-900 truncate">{user.name}</p>
+                      </div>
+                      <Link 
+                        href="/profile" 
+                        className="px-4 py-3 text-[15px] font-bold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 transition-colors flex items-center gap-3"
+                      >
+                        <User size={16} />
+                        {t.nav?.profile?.account || (locale === 'zh' ? '账号概览' : 'Account Overview')}
+                      </Link>
+                      <button 
+                        onClick={() => setIsLogoutModalOpen(true)}
+                        className="px-4 py-3 text-[15px] font-bold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3 text-left"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        {logoutTranslations.title[locale as 'en'|'zh'|'ms'] || 'Log Out'}
+                      </button>
+                    </div>
+                  </div>
+                </>
               ) : (
                 <Link
                   href="/login"
@@ -619,7 +646,7 @@ export function Navbar() {
                   onClick={() => setMobileOpen(false)}
                   className="py-5 text-[18px] font-semibold text-zinc-900 transition-colors block w-full text-left"
                 >
-                  Safety Guide
+                  {locale === 'zh' ? '安全指南' : locale === 'ms' ? 'Panduan Keselamatan' : 'Safety Guide'}
                 </Link>
 
                 {/* Contact Us */}
@@ -643,10 +670,25 @@ export function Navbar() {
                 >
                   <div className="flex items-center gap-3">
                     <User size={20} />
-                    {t.nav?.profile?.account || (locale === 'zh' ? '我的账号' : 'My Account')}
+                    {t.nav?.profile?.account || (locale === 'zh' ? '账号概览' : 'Account Overview')}
                   </div>
                   <ChevronRight size={20} className="opacity-50" />
                 </button>
+
+                {user && (
+                  <button
+                    onClick={() => {
+                      setMobileOpen(false);
+                      setIsLogoutModalOpen(true);
+                    }}
+                    className="py-5 text-[18px] font-semibold text-red-600 transition-colors flex items-center justify-between w-full text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                      {logoutTranslations.title[locale as 'en'|'zh'|'ms'] || 'Log Out'}
+                    </div>
+                  </button>
+                )}
 
                 {/* Language Switcher */}
                 <div className="flex flex-col">
@@ -868,9 +910,9 @@ export function Navbar() {
                                   }}
                                   className="flex items-center gap-3 sm:gap-4 py-2.5 hover:bg-zinc-50 rounded-xl px-2 -mx-2 transition-colors text-left"
                                 >
-                                  {(cat.transparentImage || cat.image) && (
+                                  {(cat.image) && (
                                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-zinc-100 rounded-lg flex items-center justify-center p-1.5 shrink-0">
-                                      <img src={cat.transparentImage || cat.image || undefined} alt={cat.name} className="max-w-full max-h-full object-contain drop-shadow-sm" />
+                                      <img src={cat.image || undefined} alt={cat.name} className="max-w-full max-h-full object-contain drop-shadow-sm" />
                                     </div>
                                   )}
                                   <span className="text-[15px] sm:text-[16px] font-medium text-zinc-800">{cat.name}</span>
@@ -930,48 +972,46 @@ export function Navbar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden relative"
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-8 text-center relative"
             >
-              <div className="flex justify-between items-center p-6 border-b border-zinc-100 dark:border-zinc-800/50">
-                <h3 className="text-lg font-black text-foreground">
-                  {logoutTranslations.title[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.title.en}
-                </h3>
-                <button 
-                  onClick={() => setIsLogoutModalOpen(false)}
-                  className="text-zinc-400 hover:text-foreground transition-colors p-1"
-                >
-                  <X size={20} />
-                </button>
+              <div className="mx-auto w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mb-6">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
               </div>
+
+              <h3 className="text-2xl font-black text-zinc-900 mb-2">
+                {logoutTranslations.title[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.title.en}
+              </h3>
               
-              <div className="p-6">
-                <p className="text-zinc-600 dark:text-zinc-300 font-medium whitespace-normal">
-                  {logoutTranslations.message[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.message.en}
-                </p>
-                
-                <div className="mt-8 flex gap-3">
-                  <button
-                    onClick={() => setIsLogoutModalOpen(false)}
-                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white transition-colors"
-                  >
-                    {logoutTranslations.cancel[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.cancel.en}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsLogoutModalOpen(false);
-                      handleLogout();
-                    }}
-                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/20"
-                  >
-                    {logoutTranslations.confirm[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.confirm.en}
-                  </button>
-                </div>
+              <p className="text-[15px] text-zinc-500 font-medium whitespace-normal mb-8 leading-relaxed">
+                {logoutTranslations.message[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.message.en}
+              </p>
+              
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => {
+                    setIsLogoutModalOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full py-3.5 rounded-full font-bold text-[15px] bg-black hover:bg-zinc-800 text-white transition-all shadow-sm"
+                >
+                  {logoutTranslations.confirm[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.confirm.en}
+                </button>
+                <button
+                  onClick={() => setIsLogoutModalOpen(false)}
+                  className="w-full py-3.5 rounded-full font-bold text-[15px] bg-white border border-zinc-200 text-zinc-900 hover:bg-zinc-50 transition-all shadow-sm"
+                >
+                  {logoutTranslations.cancel[locale as 'en' | 'zh' | 'ms'] || logoutTranslations.cancel.en}
+                </button>
               </div>
             </motion.div>
           </motion.div>
