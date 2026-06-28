@@ -104,15 +104,24 @@ const ProductPage = () => {
     });
 
     return sortedProducts.map((p, i) => ({
-      [t('col_no')]: i + 1,
-      [t('col_code')]: p.code || '-',
-      [t('col_name')]: getLocalizedName(p),
-      [t('col_category')]: p.category || '-',
-      [t('col_stock')]: p.stock ?? '-',
-      [t('col_original_price')]: p.price != null ? Number(p.price).toFixed(2) : '-',
-      [t('col_promotion_price')]: p.promotion != null && p.promotion !== '' ? Number(p.promotion).toFixed(2) : '-',
-      [t('col_seller_price')]: p.sellerPrice != null && p.sellerPrice !== '' ? Number(p.sellerPrice).toFixed(2) : '-',
-      [t('col_status')]: getTranslatedStatus(p.status),
+      'No.': i + 1,
+      'Code': p.code || '-',
+      'Name': getLocalizedName(p),
+      'Category': p.category || '-',
+      'Total Stock': p.stock ?? 0,
+      'Normal Price ($)': p.price != null ? Number(p.price).toFixed(2) : '-',
+      'Agent Price ($)': p.sellerPrice != null && p.sellerPrice !== '' ? Number(p.sellerPrice).toFixed(2) : '-',
+      'Promo Price ($)': p.promotion != null && p.promotion !== '' ? Number(p.promotion).toFixed(2) : '-',
+      'Items Per Box': p.itemsPerBox ?? '-',
+      'Box Price ($)': p.boxPrice != null ? Number(p.boxPrice).toFixed(2) : '-',
+      'Box Agent Price ($)': p.boxSellerPrice != null ? Number(p.boxSellerPrice).toFixed(2) : '-',
+      'Box Promo Price ($)': p.boxPromotion != null ? Number(p.boxPromotion).toFixed(2) : '-',
+      'Items Per Bundle': p.bundleQuantity ?? '-',
+      'Bundle Price ($)': p.bundlePrice != null ? Number(p.bundlePrice).toFixed(2) : '-',
+      'Bundle Agent Price ($)': p.bundleSellerPrice != null ? Number(p.bundleSellerPrice).toFixed(2) : '-',
+      'Bundle Promo Price ($)': p.bundlePromotion != null ? Number(p.bundlePromotion).toFixed(2) : '-',
+      'Status': getTranslatedStatus(p.status),
+      'Notes': '',
     }));
   };
 
@@ -194,11 +203,20 @@ const ProductPage = () => {
           'Code': cleanText(p.code),
           'Name': cleanText(p.name),
           'Category': cleanText(p.category),
-          'Stock': p.stock ?? '-',
-          'Original Price (RM)': p.price != null ? Number(p.price).toFixed(2) : '-',
-          'Promotion Price (RM)': p.promotion != null && p.promotion !== '' ? Number(p.promotion).toFixed(2) : '-',
-          'Seller Price (RM)': p.sellerPrice != null && p.sellerPrice !== '' ? Number(p.sellerPrice).toFixed(2) : '-',
+          'Total Stock': p.stock ?? 0,
+          'Normal Price ($)': p.price != null ? Number(p.price).toFixed(2) : '-',
+          'Agent Price ($)': p.sellerPrice != null && p.sellerPrice !== '' ? Number(p.sellerPrice).toFixed(2) : '-',
+          'Promo Price ($)': p.promotion != null && p.promotion !== '' ? Number(p.promotion).toFixed(2) : '-',
+          'Items Per Box': p.itemsPerBox ?? '-',
+          'Box Price ($)': p.boxPrice != null ? Number(p.boxPrice).toFixed(2) : '-',
+          'Box Agent Price ($)': p.boxSellerPrice != null ? Number(p.boxSellerPrice).toFixed(2) : '-',
+          'Box Promo Price ($)': p.boxPromotion != null ? Number(p.boxPromotion).toFixed(2) : '-',
+          'Items Per Bundle': p.bundleQuantity ?? '-',
+          'Bundle Price ($)': p.bundlePrice != null ? Number(p.bundlePrice).toFixed(2) : '-',
+          'Bundle Agent Price ($)': p.bundleSellerPrice != null ? Number(p.bundleSellerPrice).toFixed(2) : '-',
+          'Bundle Promo Price ($)': p.bundlePromotion != null ? Number(p.bundlePromotion).toFixed(2) : '-',
           'Status': p.status || '-',
+          'Notes': '',
         };
       });
 
@@ -219,9 +237,10 @@ const ProductPage = () => {
       headStyles: { fillColor: [240, 240, 240], textColor: 0, fontStyle: 'bold', valign: 'middle' },
       alternateRowStyles: { fillColor: [255, 255, 255] },
       columnStyles: {
-        0: { cellWidth: 10 },
-        1: { cellWidth: 25 },
-        2: { cellWidth: 80 }, // Force Name column to wrap if too long
+        0: { cellWidth: 8 },
+        1: { cellWidth: 15 },
+        2: { cellWidth: 40 }, // Force Name column to wrap if too long
+        17: { cellWidth: 40 }, // Give Notes column space for handwriting
       },
       margin: { left: 10, right: 10 },
     });

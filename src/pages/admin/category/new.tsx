@@ -297,7 +297,7 @@ const UploadCategoryPage = () => {
                           onChange={handleChange}
                           maxLength={200}
                           placeholder="Enter a short description about this category..."
-                          className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white min-h-[100px] resize-none"
+                          className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white min-h-[130px] resize-none"
                         />
                         <div className="absolute bottom-3 right-3 text-[11px] font-medium text-zinc-400">
                           {formData.description?.length || 0} / 200
@@ -394,7 +394,7 @@ const UploadCategoryPage = () => {
                         <span className="text-[13px] font-bold">Tips</span>
                       </div>
                       <p className="text-[12px] text-orange-700/80 leading-relaxed font-medium">
-                        Use a clear and vibrant image that best represents the category.
+                        Use a clear image that best represents the category.
                       </p>
                     </div>
                   </div>
