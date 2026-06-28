@@ -63,6 +63,7 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [stockErrorModalOpen, setStockErrorModalOpen] = useState(false);
   const [stockErrorProductName, setStockErrorProductName] = useState('');
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
