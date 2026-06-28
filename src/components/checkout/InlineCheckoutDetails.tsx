@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Phone, HelpCircle, CreditCard, Check, MapPin, MessageCircle, Upload, ExternalLink, ArrowLeft, ShieldCheck, Tag, AlertTriangle, X } from 'lucide-react';
+import { User, Phone, HelpCircle, CreditCard, Check, MapPin, MessageCircle, Upload, ExternalLink, ArrowLeft, ShieldCheck, Tag, AlertTriangle, X, Mail } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useBusiness } from '../../context/BusinessContext';
 import { generateWhatsAppLink, OrderDetails } from '../../services/whatsappService';
@@ -39,6 +39,7 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
   const [orderDetails, setOrderDetails] = useState<OrderDetails>({
     customerName: '',
     customerPhone: '',
+    customerEmail: '',
     paymentMethod: 'DuitNow & Bank Transfer',
     deliveryMode: 'Self Collect',
     address: '',
@@ -50,8 +51,9 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
   const [isWhatsAppTermsAgreed, setIsWhatsAppTermsAgreed] = useState(false);
   const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
   const [pdfErrorModalOpen, setPdfErrorModalOpen] = useState(false);
-  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [highlightVerification, setHighlightVerification] = useState(false);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -76,6 +78,7 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
               ...prev,
               customerName: fullProfile.name || '',
               customerPhone: fullProfile.phone || '',
+              customerEmail: fullProfile.email || '',
               address: fullProfile.address || '',
               paymentMethod: mapPayment(fullProfile.preferredPayment),
               deliveryMode: mapDelivery(fullProfile.orderMode),
@@ -85,7 +88,8 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
             setOrderDetails(prev => ({
               ...prev,
               customerName: user.name || '',
-              customerPhone: user.phone || ''
+              customerPhone: user.phone || '',
+              customerEmail: user.email || ''
             }));
           }
         } catch (err) {
@@ -153,6 +157,7 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
           customerInfo: {
             name: orderDetails.customerName,
             phone: orderDetails.customerPhone,
+            email: orderDetails.customerEmail,
             address: orderDetails.address || (orderDetails.deliveryMode === 'Self Collect' ? 'Self Collect' : ''),
             paymentMethod: orderDetails.paymentMethod,
             deliveryMode: orderDetails.deliveryMode,
@@ -183,20 +188,6 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
         }
         throw new Error('Failed to save order');
       }
-
-      const url = generateWhatsAppLink(
-        orderItemsPayload,
-        cartTotals.totalPrice,
-        { ...orderDetails, role },
-        locale as 'en' | 'zh' | 'ms',
-        isSeller,
-        settings?.businessName,
-        settings?.whatsapp ?? undefined,
-        cartTotals.sellerLevelName,
-        cartTotals.discountPercent,
-        cartTotals.isFreeShipping
-      );
-      window.open(url, '_blank');
 
       clearCart();
       onSuccess();
@@ -249,8 +240,15 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
                       <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-zinc-900 rotate-45 rounded-sm" />
                     </div>
                   </label>
-                  <input type="tel" required pattern="^(\+?601|01)[0-9]{8,9}$" className="text-zinc-900 w-full px-5 py-4 rounded-2xl bg-zinc-50 border border-zinc-200 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 outline-none transition-all font-bold text-sm" placeholder={t.cart.checkout.formPhonePlaceholder} value={orderDetails.customerPhone} onChange={(e) => setOrderDetails({ ...orderDetails, customerPhone: e.target.value })} />
+                  <input type="tel" required minLength={10} maxLength={15} pattern="^01[0-9]{8,9}$" className="text-zinc-900 w-full px-5 py-4 rounded-2xl bg-zinc-50 border border-zinc-200 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 outline-none transition-all font-bold text-sm" placeholder="0123456789" value={orderDetails.customerPhone} onChange={(e) => setOrderDetails({ ...orderDetails, customerPhone: e.target.value.replace(/\D/g, '') })} />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
+                  <Mail size={12} className="text-zinc-400" /> {locale === 'zh' ? '电子邮件' : locale === 'ms' ? 'Alamat E-mel' : 'Email Address'}
+                </label>
+                <input type="email" required className="text-zinc-900 w-full px-5 py-4 rounded-2xl bg-zinc-50 border border-zinc-200 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 outline-none transition-all font-bold text-sm" placeholder="you@example.com" value={orderDetails.customerEmail || ''} onChange={(e) => setOrderDetails({ ...orderDetails, customerEmail: e.target.value })} />
               </div>
 
               {/* Order Mode */}
@@ -419,21 +417,6 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
                 <span className="text-3xl font-black text-zinc-900 whitespace-nowrap ml-4">RM {cartTotals.totalPrice.toFixed(2)}</span>
               </div>
 
-              {/* Secure Order Verification */}
-              <div 
-                className="bg-white border-2 border-zinc-200 rounded-2xl p-5 flex items-start gap-3 cursor-pointer select-none mb-6 hover:border-zinc-300 transition-colors" 
-                onClick={() => setIsWhatsAppTermsAgreed(!isWhatsAppTermsAgreed)}
-              >
-                <div className={cn("w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors mt-0.5", isWhatsAppTermsAgreed ? "bg-zinc-900 border-zinc-900 text-white" : "border-zinc-300")}>
-                  {isWhatsAppTermsAgreed && <Check size={16} strokeWidth={3} />}
-                </div>
-                <div>
-                  <div className="text-zinc-900 font-bold text-sm mb-1.5 flex items-center gap-1.5"><ShieldCheck size={16} className="text-zinc-500"/> {locale === 'zh' ? '安全验证' : locale === 'ms' ? 'Pengesahan Selamat' : 'Secure Verification'}</div>
-                  <div className="text-zinc-500 text-xs leading-relaxed font-medium">
-                    {locale === 'zh' ? '我了解我将被重定向到 WhatsApp。我不会编辑文本并直接点击发送。' : locale === 'ms' ? 'Saya faham bahawa saya akan diarahkan ke WhatsApp. Saya tidak akan mengubah teks dan akan terus menekan hantar.' : 'I understand that I will be redirected to WhatsApp. I will not edit the text and will click send directly.'}
-                  </div>
-                </div>
-              </div>
 
               <button 
                 form="checkout-form"
@@ -442,7 +425,7 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
                 onClick={(e) => {
                   if (!isWhatsAppTermsAgreed) {
                     e.preventDefault();
-                    alert('Please agree to the Secure Order Verification first.');
+                    setHighlightVerification(true);
                   } else if (!orderDetails.paymentReceiptUrl && orderDetails.paymentMethod === 'DuitNow & Bank Transfer') {
                     e.preventDefault();
                     alert('Please upload your payment receipt first.');
@@ -454,13 +437,24 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
                 {isSubmitting ? (locale === 'zh' ? '处理中...' : locale === 'ms' ? 'SEDANG DIPROSES...' : 'PROCESSING...') : (locale === 'zh' ? '完成订单' : locale === 'ms' ? 'LENGKAPKAN PESANAN' : 'COMPLETE ORDER')}
               </button>
 
-              <button 
-                type="button"
-                onClick={() => setIsGuideOpen(true)}
-                className="w-full mt-3 bg-zinc-100 text-zinc-900 font-black text-sm py-4 rounded-2xl flex justify-center items-center hover:bg-zinc-200 transition-colors shadow-sm"
+              {/* Secure Order Verification (Moved below Complete Order button) */}
+              <div 
+                className={cn("bg-white border-2 rounded-2xl p-5 flex items-start gap-3 cursor-pointer select-none mt-4 transition-colors", highlightVerification ? "border-red-500 bg-red-50 shadow-[0_0_15px_rgba(239,68,68,0.2)]" : "border-zinc-200 hover:border-zinc-300")}
+                onClick={() => {
+                  setIsWhatsAppTermsAgreed(!isWhatsAppTermsAgreed);
+                  if (highlightVerification) setHighlightVerification(false);
+                }}
               >
-                {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}
-              </button>
+                <div className={cn("w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors mt-0.5", isWhatsAppTermsAgreed ? "bg-zinc-900 border-zinc-900 text-white" : highlightVerification ? "border-red-400 bg-white" : "border-zinc-300")}>
+                  {isWhatsAppTermsAgreed && <Check size={16} strokeWidth={3} />}
+                </div>
+                <div>
+                  <div className={cn("font-bold text-sm mb-1.5 flex items-center gap-1.5", highlightVerification ? "text-red-600" : "text-zinc-900")}><ShieldCheck size={16} className={highlightVerification ? "text-red-500" : "text-zinc-500"}/> {locale === 'zh' ? '安全验证' : locale === 'ms' ? 'Pengesahan Selamat' : 'Secure Verification'}</div>
+                  <div className={cn("text-xs leading-relaxed font-medium", highlightVerification ? "text-red-500" : "text-zinc-500")}>
+                    {locale === 'zh' ? '我了解并同意在下订单时进行安全验证。' : locale === 'ms' ? 'Saya faham dan bersetuju dengan pengesahan selamat semasa membuat pesanan.' : 'I understand and agree to the secure order verification.'}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -480,6 +474,8 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
           </div>
         </div>
       )}
+
+
     </div>
 
       {/* ── GUIDANCE MODAL ────────────────────────────────────────── */}

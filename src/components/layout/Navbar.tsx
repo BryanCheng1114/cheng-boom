@@ -60,6 +60,7 @@ export function Navbar() {
   const [isWiggling, setIsWiggling] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [user, setUser] = useState<NavbarUser | null>(null);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -221,7 +222,7 @@ export function Navbar() {
     <>
       <nav 
         className={cn(
-          "top-0 z-50 w-full transition-all duration-300",
+          "top-0 z-[100] w-full transition-all duration-300",
           isTransparentHeroPage ? "fixed" : "sticky",
           isTransparent
             ? "bg-transparent text-white border-b border-transparent shadow-none"
@@ -452,40 +453,51 @@ export function Navbar() {
             </Link>
 
             {/* Profile Link */}
-            <div className="flex items-center relative group/profile">
+            <div className="flex items-center relative">
               {user ? (
                 <>
                   <button 
+                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                     className={cn(
-                      "flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-sm sm:text-base font-black ring-1 transition-all duration-300 hover:-translate-y-0.5 cursor-default",
-                      isTransparent
-                        ? "bg-white/15 text-white ring-white/10 group-hover/profile:bg-white/25"
-                        : "bg-zinc-100 text-zinc-800 ring-zinc-200 group-hover/profile:bg-zinc-200"
+                      "relative flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full transition-all duration-300",
+                      isTransparent ? "text-white/82 hover:bg-white/10 hover:text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900",
+                      isProfileMenuOpen ? (isTransparent ? "bg-white/10 text-white" : "bg-zinc-100 text-zinc-900") : ""
                     )}
                     aria-label={`${user.name} profile`}
                     title={user.name}
                   >
-                    {user.name.charAt(0).toUpperCase()}
+                    <User strokeWidth={1.5} className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <span className={cn(
+                      "absolute top-2 right-2 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-emerald-500 rounded-full ring-2",
+                      isTransparent ? "ring-zinc-900/50" : "ring-white"
+                    )} />
                   </button>
                   
-                  {/* Dropdown Menu */}
-                  <div className="absolute top-[110%] right-0 pt-2 w-56 invisible opacity-0 group-hover/profile:visible group-hover/profile:opacity-100 transition-all duration-300 z-50">
+                  {/* Dropdown Menu (Click instead of Hover) */}
+                  <div className={cn(
+                    "absolute top-[110%] right-0 pt-2 w-56 transition-all duration-300 z-50",
+                    isProfileMenuOpen ? "visible opacity-100" : "invisible opacity-0 translate-y-2"
+                  )}>
                     <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-zinc-100 py-2 overflow-hidden flex flex-col">
                       <div className="px-4 py-3 border-b border-zinc-100">
                         <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">
                           {locale === 'zh' ? '登录身份' : locale === 'ms' ? 'Dilog masuk sebagai' : 'Signed in as'}
                         </p>
-                        <p className="text-sm font-black text-zinc-900 truncate">{user.name}</p>
+                        <p className="text-sm font-medium text-zinc-900 truncate">{user.name}</p>
                       </div>
                       <Link 
                         href="/profile" 
+                        onClick={() => setIsProfileMenuOpen(false)}
                         className="px-4 py-3 text-[15px] font-bold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 transition-colors flex items-center gap-3"
                       >
                         <User size={16} />
                         {t.nav?.profile?.account || (locale === 'zh' ? '账号概览' : 'Account Overview')}
                       </Link>
                       <button 
-                        onClick={() => setIsLogoutModalOpen(true)}
+                        onClick={() => {
+                          setIsProfileMenuOpen(false);
+                          setIsLogoutModalOpen(true);
+                        }}
                         className="px-4 py-3 text-[15px] font-bold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3 text-left"
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -493,6 +505,14 @@ export function Navbar() {
                       </button>
                     </div>
                   </div>
+
+                  {/* Backdrop for click outside */}
+                  {isProfileMenuOpen && (
+                    <div 
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsProfileMenuOpen(false)}
+                    />
+                  )}
                 </>
               ) : (
                 <Link
@@ -555,10 +575,10 @@ export function Navbar() {
                     <Link 
                       href="/profile" 
                       onClick={() => setMobileOpen(false)} 
-                      className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-zinc-100 text-sm sm:text-base font-black text-zinc-800 ring-1 ring-zinc-200 transition-all duration-300 hover:-translate-y-0.5 hover:bg-zinc-200"
+                      className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-all"
                       title={user.name}
                     >
-                      {user.name.charAt(0).toUpperCase()}
+                      <User className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
                     </Link>
                   ) : (
                     <Link href="/login" onClick={() => setMobileOpen(false)} className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-all">
@@ -600,7 +620,7 @@ export function Navbar() {
                           <Link
                             href="/shop"
                             onClick={() => setMobileOpen(false)}
-                            className="py-3 pl-2 text-[16px] font-semibold text-yellow-500 hover:text-yellow-600 transition-colors"
+                            className="py-3 pl-2 text-[16px] font-semibold text-zinc-900 hover:text-zinc-700 transition-colors"
                           >
                             {locale === 'zh' ? '所有分类' : 'All Categories'}
                           </Link>
@@ -640,15 +660,6 @@ export function Navbar() {
                   {t.nav.aboutUs}
                 </Link>
 
-                {/* Safety Guide */}
-                <Link
-                  href="/safety"
-                  onClick={() => setMobileOpen(false)}
-                  className="py-5 text-[18px] font-semibold text-zinc-900 transition-colors block w-full text-left"
-                >
-                  {locale === 'zh' ? '安全指南' : locale === 'ms' ? 'Panduan Keselamatan' : 'Safety Guide'}
-                </Link>
-
                 {/* Contact Us */}
                 <Link
                   href="/contact"
@@ -656,6 +667,15 @@ export function Navbar() {
                   className="py-5 text-[18px] font-semibold text-zinc-900 transition-colors block w-full text-left"
                 >
                   {t.nav.contact}
+                </Link>
+
+                {/* Safety Guide */}
+                <Link
+                  href="/safety"
+                  onClick={() => setMobileOpen(false)}
+                  className="py-5 text-[18px] font-semibold text-zinc-900 transition-colors block w-full text-left"
+                >
+                  {locale === 'zh' ? '安全指南' : locale === 'ms' ? 'Panduan Keselamatan' : 'Safety Guide'}
                 </Link>
 
                 <div className="my-2 h-px w-full bg-zinc-100" />

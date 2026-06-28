@@ -24,6 +24,8 @@ export default function About() {
                className="object-cover object-right md:object-center"
                priority
              />
+             {/* Mobile dark overlay to ensure white text is readable */}
+             <div className="absolute inset-0 bg-black/50 md:hidden" />
           </div>
 
           {/* Hero Content */}

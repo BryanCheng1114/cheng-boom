@@ -76,14 +76,13 @@ export default function Contact() {
           </div>
         </section>
 
-        <div className="max-w-[1200px] mx-auto px-6 sm:px-12 py-16 md:py-24">
-          <div className="mb-16"></div>
+        <div className="max-w-[1200px] mx-auto px-6 sm:px-12 pt-8 pb-16 md:py-24">
 
           {/* Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-24">
             
             {/* Left Column: Form */}
-            <div>
+            <div className="order-2 lg:order-1">
               <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                 
                 {/* Name */}
@@ -188,7 +187,7 @@ export default function Contact() {
             </div>
 
             {/* Right Column: Services List */}
-            <div className="flex flex-col">
+            <div className="flex flex-col order-1 lg:order-2">
               <h3 className="text-xl font-bold text-zinc-900 mb-8">
                 {locale === 'zh' ? '通过我们，您可以：' : locale === 'ms' ? 'Dengan perkhidmatan kami, anda boleh:' : 'With our services you can:'}
               </h3>
@@ -219,6 +218,9 @@ export default function Contact() {
                   </span>
                 </li>
               </ul>
+              
+              {/* Mobile Divider */}
+              <div className="w-full h-px bg-zinc-200 mt-10 lg:hidden" />
             </div>
 
           </div>

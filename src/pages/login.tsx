@@ -296,7 +296,7 @@ function AuthContent() {
             href="/" 
             className={`inline-flex items-center gap-2 transition-all text-sm font-medium ${
               !isRegistering 
-                ? 'text-white hover:text-zinc-200 drop-shadow-md' 
+                ? 'text-zinc-900 md:text-white hover:text-zinc-600 md:hover:text-zinc-200 drop-shadow-none md:drop-shadow-md' 
                 : 'text-zinc-900 hover:text-zinc-600'
             }`}
           >

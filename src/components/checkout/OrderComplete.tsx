@@ -1,37 +1,60 @@
 import React from 'react';
-import Link from 'next/link';
-import { CheckCircle, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { CheckCircle2, ArrowLeft, Home } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
+import SpotlightCard from '../ui/SpotlightCard';
 
 export function OrderComplete() {
+  const router = useRouter();
   const { locale } = useTranslation();
 
   return (
-    <div className="w-full max-w-6xl mx-auto flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
-      <div className="bg-white border-double border-[6px] border-zinc-200/60 rounded-[40px] shadow-sm overflow-hidden flex flex-col items-center justify-center p-12 sm:p-24 text-center">
-        <div className="w-24 h-24 sm:w-32 sm:h-32 bg-green-500/10 rounded-full flex items-center justify-center mb-8 text-green-500">
-          <CheckCircle className="w-12 h-12 sm:w-16 sm:h-16" strokeWidth={2} />
-        </div>
-        
-        <h2 className="text-3xl sm:text-4xl font-black text-zinc-900 mb-4 tracking-tight">
-          {locale === 'zh' ? '订单已成功提交！' : locale === 'ms' ? 'Pesanan Berjaya Dibuat!' : 'Order Successfully Placed!'}
-        </h2>
-        
-        <p className="text-base sm:text-lg text-zinc-500 font-medium mb-12 max-w-md mx-auto leading-relaxed">
-          {locale === 'zh' 
-            ? '我们的系统已成功接收您的订单！请耐心等待，我们将在24小时内准备您的订单并在WhatsApp上回复您。感谢您的购买与支持！' 
-            : locale === 'ms' 
-            ? 'Sistem kami telah berjaya menerima pesanan anda! Sila berikan kami masa sehingga 24 jam untuk menyediakan pesanan anda dan membalas mesej WhatsApp anda. Terima kasih atas kesabaran dan sokongan anda!' 
-            : 'Our system has successfully received your order! Please allow up to 24 hours for us to prepare everything and reply to your WhatsApp message. We appreciate your patience and thank you for shopping with us!'}
-        </p>
+    <div className="w-full max-w-4xl mx-auto flex flex-col items-center justify-center animate-in zoom-in-95 duration-500 pb-16">
+      <SpotlightCard
+        className="w-full rounded-[40px] shadow-sm border border-zinc-100 bg-white"
+        spotlightColor="rgba(0, 0, 0, 0.05)"
+      >
+        <div className="p-8 sm:p-12 w-full text-center relative overflow-hidden rounded-[40px]">
+          {/* Decorative background elements */}
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-green-500/10 rounded-full blur-3xl"></div>
 
-        <Link 
-          href="/shop" 
-          className="px-10 py-4 bg-zinc-900 text-white rounded-full font-black text-sm sm:text-base hover:bg-zinc-800 transition-all inline-flex items-center justify-center gap-2 shadow-lg shadow-zinc-900/20"
-        >
-          {locale === 'zh' ? '继续购物' : locale === 'ms' ? 'Teruskan Membeli-belah' : 'CONTINUE SHOPPING'} <ArrowRight size={18} />
-        </Link>
-      </div>
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-[bounce_1s_ease-in-out_1]">
+              <CheckCircle2 size={48} className="text-green-500" />
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl font-black text-zinc-900 tracking-tight mb-4">
+              {locale === 'zh' ? '订单已成功提交！' : locale === 'ms' ? 'Pesanan Berjaya!' : 'Order Placed Successfully!'}
+            </h2>
+            
+            <p className="text-zinc-500 font-medium text-base sm:text-lg mb-8 max-w-lg leading-relaxed">
+              {locale === 'zh' 
+                ? '感谢您的购买。我们已经收到您的订单详情，并且正在处理中。您的订单将在24小时内开始处理。' 
+                : locale === 'ms' 
+                  ? 'Terima kasih atas pesanan anda. Kami telah menerima butiran pesanan anda dan sedang menyemaknya. Pesanan anda akan mula diproses dalam masa 24 jam.' 
+                  : 'Thank you for your purchase. We have received your order details and are currently reviewing them. Your order will start processing within 24 hours.'}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+              <button
+                onClick={() => router.push('/shop')}
+                className="flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-zinc-200 text-zinc-900 rounded-2xl font-bold uppercase tracking-wider hover:bg-zinc-50 hover:border-zinc-300 transition-all active:scale-95 shadow-sm"
+              >
+                <ArrowLeft size={18} />
+                {locale === 'zh' ? '继续购物' : locale === 'ms' ? 'Teruskan Membeli-belah' : 'Continue Shopping'}
+              </button>
+              <button
+                onClick={() => router.push('/')}
+                className="flex items-center justify-center gap-2 px-8 py-4 bg-zinc-100 text-zinc-600 rounded-2xl font-bold uppercase tracking-wider hover:bg-zinc-200 transition-all active:scale-95"
+              >
+                <Home size={18} />
+                {locale === 'zh' ? '返回首页' : locale === 'ms' ? 'Kembali ke Laman Utama' : 'Back to Home'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </SpotlightCard>
     </div>
   );
 }

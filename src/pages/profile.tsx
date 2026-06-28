@@ -442,274 +442,562 @@ export default function ProfilePage() {
  <div className="lg:col-span-9 space-y-8">
  
  <AnimatePresence mode="wait">
- {activeTab === 'edit_profile' && (
- /* ── EDIT PROFILE FORM ────────────────────────────────── */
- <motion.div 
- key="edit"
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- exit={{ opacity: 0, y: -20 }}
- className="bg-white rounded-2xl p-4 md:p-8 shadow-sm flex flex-col"
- >
- <div className="flex items-center gap-3 mb-6 shrink-0">
- <button onClick={() => {
- if (user) {
- setEditForm({
- name: user.name || '',
- phone: user.phone || '',
- address: user.address || '',
- preferredPayment: user.preferredPayment || '',
- orderMode: user.orderMode || '',
- deliveryDetails: user.deliveryDetails || '',
- notes: user.notes || ''
- });
- }
- setActiveTab('');
- }} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
- <ArrowLeft size={18} />
- </button>
- <User size={20} className="text-zinc-400" />
- <h3 className="text-xl font-medium text-zinc-900 ">
- {t.profilePage?.editInformation || 'Edit Information'}
- </h3>
- </div>
+  {activeTab === 'edit_profile' && (
+  /* ── EDIT PROFILE FORM ────────────────────────────────── */
+  <motion.div 
+  key="edit"
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, y: -20 }}
+  className="space-y-6 -mt-16 md:mt-0"
+  >
+  {/* --- DESKTOP VIEW --- */}
+  <div className="hidden md:flex bg-white rounded-2xl p-8 shadow-sm flex-col">
+  <div className="flex items-center gap-3 mb-6 shrink-0">
+  <button onClick={() => {
+  if (user) {
+  setEditForm({
+  name: user.name || '',
+  phone: user.phone || '',
+  address: user.address || '',
+  preferredPayment: user.preferredPayment || '',
+  orderMode: user.orderMode || '',
+  deliveryDetails: user.deliveryDetails || '',
+  notes: user.notes || ''
+  });
+  }
+  setActiveTab('');
+  }} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
+  <ArrowLeft size={18} />
+  </button>
+  <User size={20} className="text-zinc-400" />
+  <h3 className="text-xl font-medium text-zinc-900 ">
+  {t.profilePage?.editInformation || 'Edit Information'}
+  </h3>
+  </div>
 
- <form onSubmit={handleUpdateProfile} className="space-y-4 flex-1 flex flex-col justify-between">
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
- <div className="space-y-2">
- <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.fullName || 'Full Name'}</label>
- <input 
- type="text"
- required
- className="w-full px-4 py-2 md:py-2.5 rounded-full bg-zinc-100 border border-zinc-200 focus:bg-zinc-200 focus:border-zinc-300 outline-none transition-all font-medium text-zinc-900 text-sm md:text-base"
- value={editForm.name}
- onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
- />
- </div>
- <div className="space-y-2">
- <div className="flex items-center justify-between ml-1 mb-2">
- <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ">{t.profilePage?.phoneNumber || 'Phone Number'}</label>
- <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1">
- <Shield size={8} /> {t.profilePage?.permanent || 'Permanent'}
- </span>
- </div>
- <input 
- type="tel"
- disabled
- className="w-full px-4 py-2 md:py-2.5 rounded-full bg-zinc-200 border border-zinc-300 outline-none transition-all font-medium text-zinc-500 cursor-not-allowed text-sm md:text-base"
- value={editForm.phone}
- />
- </div>
- </div>
+  <form onSubmit={handleUpdateProfile} className="space-y-4 flex-1 flex flex-col justify-between">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div className="space-y-2">
+  <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.fullName || 'Full Name'}</label>
+  <input 
+  type="text"
+  required
+  className="w-full px-4 py-2.5 rounded-xl bg-white border border-zinc-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-medium text-zinc-900 text-base"
+  value={editForm.name}
+  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+  />
+  </div>
+  <div className="space-y-2">
+  <div className="flex items-center justify-between ml-1 mb-2">
+  <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ">{t.profilePage?.phoneNumber || 'Phone Number'}</label>
+  <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1">
+  <Shield size={8} /> {t.profilePage?.permanent || 'Permanent'}
+  </span>
+  </div>
+  <input 
+  type="tel"
+  disabled
+  className="w-full px-4 py-2.5 rounded-xl bg-zinc-50 border border-zinc-200 outline-none transition-all font-medium text-zinc-500 cursor-not-allowed text-base opacity-70"
+  value={editForm.phone}
+  />
+  </div>
+  </div>
 
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
- <div className="space-y-2">
- <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.preferredPayment || 'Preferred Payment'}</label>
- <div className="relative">
- <select 
- required
- className="w-full px-4 py-2 md:py-2.5 rounded-full bg-zinc-100 border border-zinc-200 focus:bg-zinc-200 focus:border-zinc-300 outline-none transition-all font-medium appearance-none cursor-pointer text-zinc-900 text-sm md:text-base"
- value={editForm.preferredPayment}
- onChange={(e) => setEditForm({ ...editForm, preferredPayment: e.target.value })}
- >
- <option value="" className="">{t.profilePage?.selectMethod || 'Select Method'}</option>
- <option value="Cash on Delivery" className="">{locale === 'zh' ? '货到付款' : 'Cash on Delivery'}</option>
- <option value="DuitNow & Bank Transfer" className="">{locale === 'zh' ? 'DuitNow 及 银行转账' : 'DuitNow & Bank Transfer'}</option>
- </select>
- <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
- <ChevronDown size={16} />
- </div>
- </div>
- </div>
- <div className="space-y-2">
- <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.orderMode || 'Order Mode'}</label>
- <div className="relative">
- <select 
- required
- className="w-full px-4 py-2 md:py-2.5 rounded-full bg-zinc-100 border border-zinc-200 focus:bg-zinc-200 focus:border-zinc-300 outline-none transition-all font-medium appearance-none cursor-pointer text-zinc-900 text-sm md:text-base"
- value={editForm.orderMode}
- onChange={(e) => setEditForm({ ...editForm, orderMode: e.target.value })}
- >
- <option value="" className="">{t.profilePage?.selectMode || 'Select Mode'}</option>
- <option value="Self Collect" className="">{locale === 'zh' ? '自取' : 'Self Collect'}</option>
- <option value="Delivery" className="">{locale === 'zh' ? '配送' : 'Delivery'}</option>
- </select>
- <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
- <ChevronDown size={16} />
- </div>
- </div>
- </div>
- </div>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div className="space-y-2">
+  <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.preferredPayment || 'Preferred Payment'}</label>
+  <div className="relative">
+  <select 
+  required
+  className="w-full px-4 py-2.5 rounded-xl bg-white border border-zinc-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-medium appearance-none cursor-pointer text-zinc-900 text-base"
+  value={editForm.preferredPayment}
+  onChange={(e) => setEditForm({ ...editForm, preferredPayment: e.target.value })}
+  >
+  <option value="" className="">{t.profilePage?.selectMethod || 'Select Method'}</option>
+  <option value="Cash on Delivery" className="">{locale === 'zh' ? '货到付款' : 'Cash on Delivery'}</option>
+  <option value="DuitNow & Bank Transfer" className="">{locale === 'zh' ? 'DuitNow 及 银行转账' : 'DuitNow & Bank Transfer'}</option>
+  </select>
+  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
+  <ChevronDown size={16} />
+  </div>
+  </div>
+  </div>
+  <div className="space-y-2">
+  <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.orderMode || 'Order Mode'}</label>
+  <div className="relative">
+  <select 
+  required
+  className="w-full px-4 py-2.5 rounded-xl bg-white border border-zinc-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-medium appearance-none cursor-pointer text-zinc-900 text-base"
+  value={editForm.orderMode}
+  onChange={(e) => setEditForm({ ...editForm, orderMode: e.target.value })}
+  >
+  <option value="" className="">{t.profilePage?.selectMode || 'Select Mode'}</option>
+  <option value="Self Collect" className="">{locale === 'zh' ? '自取' : 'Self Collect'}</option>
+  <option value="Delivery" className="">{locale === 'zh' ? '配送' : 'Delivery'}</option>
+  </select>
+  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
+  <ChevronDown size={16} />
+  </div>
+  </div>
+  </div>
+  </div>
 
- <div className="space-y-2">
- <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.addressLabel || 'Delivery / Collection Address'}</label>
- <textarea 
- required={editForm.orderMode === 'Delivery'}
- className="w-full px-4 py-2 md:py-2.5 rounded-3xl bg-zinc-100 border border-zinc-200 focus:bg-zinc-200 focus:border-zinc-300 outline-none transition-all font-medium resize-none text-zinc-900 text-sm md:text-base"
- rows={2}
- value={editForm.address}
- onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
- />
- </div>
+  <div className="space-y-2">
+  <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.addressLabel || 'Delivery / Collection Address'}</label>
+  <textarea 
+  required={editForm.orderMode === 'Delivery'}
+  className="w-full px-4 py-2.5 rounded-xl bg-white border border-zinc-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-medium resize-none text-zinc-900 text-base min-h-[100px]"
+  value={editForm.address}
+  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+  />
+  </div>
 
- <div className="space-y-2">
- <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.notesLabel || 'Default Order Notes (Optional)'}</label>
- <input 
- type="text"
- className="w-full px-4 py-2 md:py-2.5 rounded-full bg-zinc-100 border border-zinc-200 focus:bg-zinc-200 focus:border-zinc-300 outline-none transition-all font-medium text-zinc-900 text-sm md:text-base"
- value={editForm.notes}
- onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
- />
- </div>
+  <div className="space-y-2">
+  <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.notesLabel || 'Default Order Notes (Optional)'}</label>
+  <input 
+  type="text"
+  className="w-full px-4 py-2.5 rounded-xl bg-white border border-zinc-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-medium text-zinc-900 text-base"
+  value={editForm.notes}
+  onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+  />
+  </div>
 
- <div className="flex flex-row gap-4 pt-6 shrink-0 mt-4">
- <button 
- type="button"
- onClick={() => {
- if (user) {
- setEditForm({
- name: user.name || '',
- phone: user.phone || '',
- address: user.address || '',
- preferredPayment: user.preferredPayment || '',
- orderMode: user.orderMode || '',
- deliveryDetails: user.deliveryDetails || '',
- notes: user.notes || ''
- });
- }
- setActiveTab('');
- }}
- className="px-6 py-3 bg-zinc-100 text-zinc-500 rounded-full font-medium hover:bg-zinc-200 transition-all flex items-center justify-center shrink-0 whitespace-nowrap"
- >
- {t.profilePage?.discardChanges || 'Discard'}
- </button>
- <button 
- type="submit"
- disabled={isSaving || !hasEditChanges}
- className={`flex-1 py-3 rounded-full font-medium transition-all flex items-center justify-center gap-2 ${
- !hasEditChanges || isSaving
- ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
- : 'bg-yellow-500 text-black hover:bg-yellow-600'
- }`}
- >
- {isSaving ? <Loader2 className="animate-spin" /> : null}
- {t.profilePage?.saveChanges || 'Save Changes'}
- </button>
- </div>
- </form>
- </motion.div>
- )}
+  <div className="flex flex-row gap-4 pt-6 shrink-0 mt-4">
+  <button 
+  type="button"
+  onClick={() => {
+  if (user) {
+  setEditForm({
+  name: user.name || '',
+  phone: user.phone || '',
+  address: user.address || '',
+  preferredPayment: user.preferredPayment || '',
+  orderMode: user.orderMode || '',
+  deliveryDetails: user.deliveryDetails || '',
+  notes: user.notes || ''
+  });
+  }
+  setActiveTab('');
+  }}
+  className="px-6 py-3 bg-zinc-100 text-zinc-500 rounded-full font-medium hover:bg-zinc-200 transition-all flex items-center justify-center shrink-0 whitespace-nowrap"
+  >
+  {t.profilePage?.discardChanges || 'Discard'}
+  </button>
+  <button 
+  type="submit"
+  disabled={isSaving || !hasEditChanges}
+  className={`flex-1 py-3 rounded-full font-medium transition-all flex items-center justify-center gap-2 ${
+  !hasEditChanges || isSaving
+  ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
+  : 'bg-zinc-900 text-white hover:bg-zinc-800 shadow-md active:scale-95'
+  }`}
+  >
+  {isSaving ? <Loader2 className="animate-spin" /> : null}
+  {t.profilePage?.saveChanges || 'Save Changes'}
+  </button>
+  </div>
+  </form>
+  </div>
+
+  {/* --- MOBILE VIEW --- */}
+  <div className="block md:hidden pb-10">
+    <form onSubmit={handleUpdateProfile} className="flex flex-col">
+      {/* Mobile Header */}
+      <div className="flex items-center gap-4 mb-6 pt-4">
+        <button type="button" onClick={() => {
+          if (user) {
+            setEditForm({
+              name: user.name || '',
+              phone: user.phone || '',
+              address: user.address || '',
+              preferredPayment: user.preferredPayment || '',
+              orderMode: user.orderMode || '',
+              deliveryDetails: user.deliveryDetails || '',
+              notes: user.notes || ''
+            });
+          }
+          setActiveTab('');
+        }} className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-zinc-900 shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-zinc-100 shrink-0">
+          <ArrowLeft size={20} />
+        </button>
+        <div>
+          <h3 className="text-xl font-bold text-zinc-900">
+            {t.profilePage?.editInformation || 'Edit Information'}
+          </h3>
+          <p className="text-[11px] text-zinc-500">Update your account details</p>
+        </div>
+      </div>
+
+      <div className="space-y-3 mb-8">
+        {/* Full Name */}
+        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 focus-within:border-zinc-300 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-700 shrink-0">
+            <User size={18} />
+          </div>
+          <div className="flex-1">
+            <div className="text-[11px] font-bold text-zinc-500 mb-0.5">{t.profilePage?.fullName || 'Full Name'}</div>
+            <input 
+              type="text" required
+              className="w-full bg-transparent text-[13px] font-semibold text-zinc-900 outline-none"
+              value={editForm.name}
+              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+            />
+          </div>
+        </div>
+
+        {/* Phone Number */}
+        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 opacity-70">
+          <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 shrink-0">
+            <Phone size={18} />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center justify-between">
+               <div className="text-[11px] font-bold text-zinc-500 mb-0.5">{t.profilePage?.phoneNumber || 'Phone Number'}</div>
+               <Shield size={12} className="text-zinc-400" />
+            </div>
+            <input 
+              type="tel" disabled
+              className="w-full bg-transparent text-[13px] font-semibold text-zinc-500 outline-none"
+              value={editForm.phone}
+            />
+          </div>
+        </div>
+
+        {/* Preferred Payment */}
+        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 focus-within:border-zinc-300 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-700 shrink-0">
+            <CreditCard size={18} />
+          </div>
+          <div className="flex-1 relative">
+            <div className="text-[11px] font-bold text-zinc-500 mb-0.5">{t.profilePage?.preferredPayment || 'Preferred Payment'}</div>
+            <select 
+              required
+              className="w-full bg-transparent text-[13px] font-semibold text-zinc-900 outline-none appearance-none pr-8"
+              value={editForm.preferredPayment}
+              onChange={(e) => setEditForm({ ...editForm, preferredPayment: e.target.value })}
+            >
+              <option value="">{t.profilePage?.selectMethod || 'Select Method'}</option>
+              <option value="Cash on Delivery">{locale === 'zh' ? '货到付款' : 'Cash on Delivery'}</option>
+              <option value="DuitNow & Bank Transfer">{locale === 'zh' ? 'DuitNow 及 银行转账' : 'DuitNow & Bank Transfer'}</option>
+            </select>
+            <ChevronDown size={16} className="absolute right-0 top-1/2 text-zinc-400 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Order Mode */}
+        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 focus-within:border-zinc-300 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-700 shrink-0">
+            <Package size={18} />
+          </div>
+          <div className="flex-1 relative">
+            <div className="text-[11px] font-bold text-zinc-500 mb-0.5">{t.profilePage?.orderMode || 'Order Mode'}</div>
+            <select 
+              required
+              className="w-full bg-transparent text-[13px] font-semibold text-zinc-900 outline-none appearance-none pr-8"
+              value={editForm.orderMode}
+              onChange={(e) => setEditForm({ ...editForm, orderMode: e.target.value })}
+            >
+              <option value="">{t.profilePage?.selectMode || 'Select Mode'}</option>
+              <option value="Self Collect">{locale === 'zh' ? '自取' : 'Self Collect'}</option>
+              <option value="Delivery">{locale === 'zh' ? '配送' : 'Delivery'}</option>
+            </select>
+            <ChevronDown size={16} className="absolute right-0 top-1/2 text-zinc-400 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Address */}
+        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-start gap-4 focus-within:border-zinc-300 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-700 shrink-0">
+            <MapPin size={18} />
+          </div>
+          <div className="flex-1">
+            <div className="text-[11px] font-bold text-zinc-500 mb-1">{t.profilePage?.addressLabel || 'Delivery / Collection Address'}</div>
+            <textarea 
+              required={editForm.orderMode === 'Delivery'}
+              className="w-full bg-transparent text-[13px] font-semibold text-zinc-900 outline-none resize-none min-h-[60px]"
+              value={editForm.address}
+              onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+            />
+          </div>
+        </div>
+
+        {/* Notes */}
+        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 focus-within:border-zinc-300 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-700 shrink-0">
+            <MessageSquare size={18} />
+          </div>
+          <div className="flex-1">
+            <div className="text-[11px] font-bold text-zinc-500 mb-0.5">{t.profilePage?.notesLabel || 'Default Order Notes (Optional)'}</div>
+            <input 
+              type="text"
+              className="w-full bg-transparent text-[13px] font-semibold text-zinc-900 outline-none"
+              value={editForm.notes}
+              onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Buttons */}
+      <div className="flex flex-row gap-3 pt-2">
+        <button 
+          type="button"
+          onClick={() => {
+            if (user) {
+              setEditForm({
+                name: user.name || '',
+                phone: user.phone || '',
+                address: user.address || '',
+                preferredPayment: user.preferredPayment || '',
+                orderMode: user.orderMode || '',
+                deliveryDetails: user.deliveryDetails || '',
+                notes: user.notes || ''
+              });
+            }
+            setActiveTab('');
+          }}
+          className="px-6 py-3.5 bg-white border border-zinc-200 text-zinc-600 rounded-full font-bold text-[13px] hover:bg-zinc-50 transition-all flex items-center justify-center shrink-0"
+        >
+          {t.profilePage?.discardChanges || 'Discard'}
+        </button>
+        <button 
+          type="submit"
+          disabled={isSaving || !hasEditChanges}
+          className={`flex-1 py-3.5 rounded-full font-bold text-[13px] transition-all flex items-center justify-center gap-2 ${
+            !hasEditChanges || isSaving
+              ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
+              : 'bg-zinc-900 text-white hover:bg-zinc-800 shadow-md active:scale-95'
+          }`}
+        >
+          {isSaving ? <Loader2 size={16} className="animate-spin" /> : null}
+          {t.profilePage?.saveChanges || 'Save Changes'}
+        </button>
+      </div>
+    </form>
+  </div>
+  </motion.div>
+  )}
  
- {activeTab === 'change_password' && (
- /* ── CHANGE PASSWORD FORM ──────────────────────────────── */
- <motion.div 
- key="password"
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- exit={{ opacity: 0, y: -20 }}
- className="bg-white rounded-2xl p-4 md:p-8 shadow-sm flex flex-col"
- >
- <div className="flex items-center gap-3 mb-10">
- <button onClick={() => {
- setPasswordForm({ newPassword: '', confirmPassword: '' });
- setShowNewPassword(false);
- setShowConfirmPassword(false);
- setActiveTab('');
- }} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
- <ArrowLeft size={18} />
- </button>
- <Lock size={20} className="text-zinc-400" />
- <h3 className="text-xl font-medium text-zinc-900 ">
- {t.profilePage?.securitySettings || 'Security Settings'}
- </h3>
- </div>
+  {activeTab === 'change_password' && (
+  /* ── CHANGE PASSWORD FORM ──────────────────────────────── */
+  <motion.div 
+  key="password"
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, y: -20 }}
+  className="space-y-6 -mt-16 md:mt-0"
+  >
+  {/* --- DESKTOP VIEW --- */}
+  <div className="hidden md:flex bg-white rounded-2xl p-8 shadow-sm flex-col">
+  <div className="flex items-center gap-3 mb-10">
+  <button onClick={() => {
+  setPasswordForm({ newPassword: '', confirmPassword: '' });
+  setShowNewPassword(false);
+  setShowConfirmPassword(false);
+  setActiveTab('');
+  }} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
+  <ArrowLeft size={18} />
+  </button>
+  <Lock size={20} className="text-zinc-400" />
+  <h3 className="text-xl font-medium text-zinc-900 ">
+  {t.profilePage?.securitySettings || 'Security Settings'}
+  </h3>
+  </div>
 
- <form onSubmit={handleChangePassword} className="space-y-6">
- <div className="space-y-2">
- <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.newPassword || 'New Password'}</label>
- <div className="relative">
- <input 
- type={showNewPassword ? 'text' : 'password'}
- required
- minLength={8}
- pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$"
- className="w-full px-4 py-2 md:py-2.5 rounded-full bg-zinc-100 border border-zinc-200 focus:bg-zinc-200 focus:border-zinc-300 outline-none transition-all font-medium text-zinc-900 text-sm md:text-base pr-12"
- placeholder="••••••••"
- value={passwordForm.newPassword}
- onInvalid={(e) => {
- const target = e.target as HTMLInputElement;
- target.setCustomValidity('');
- if (target.validity.tooShort || target.validity.patternMismatch) {
- target.setCustomValidity(t.profilePage?.passwordLengthHint || 'Password must be at least 8 characters, and include an uppercase letter, a number, and a symbol.');
- }
- }}
- onChange={(e) => {
- e.target.setCustomValidity('');
- setPasswordForm({ ...passwordForm, newPassword: e.target.value });
- }}
- />
- <button 
- type="button" 
- onClick={() => setShowNewPassword(!showNewPassword)}
- className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 :text-zinc-300 transition-colors"
- >
- {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
- </button>
- </div>
- {passwordForm.newPassword.length > 0 && !passwordRegex.test(passwordForm.newPassword) && (
- <p className="text-[11px] text-red-500 ml-1 mt-1 font-medium">
- {t.profilePage?.passwordLengthHint || 'Password must be at least 8 characters, and include an uppercase letter, a number, and a symbol.'}
- </p>
- )}
- </div>
- <div className="space-y-2">
- <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.confirmNewPassword || 'Confirm New Password'}</label>
- <div className="relative">
- <input 
- type={showConfirmPassword ? 'text' : 'password'}
- required
- className="w-full px-4 py-2 md:py-2.5 rounded-full bg-zinc-100 border border-zinc-200 focus:bg-zinc-200 focus:border-zinc-300 outline-none transition-all font-medium text-zinc-900 text-sm md:text-base pr-12"
- placeholder="••••••••"
- value={passwordForm.confirmPassword}
- onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
- />
- <button 
- type="button" 
- onClick={() => setShowConfirmPassword(!showConfirmPassword)}
- className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 :text-zinc-300 transition-colors"
- >
- {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
- </button>
- </div>
- </div>
+  <form onSubmit={handleChangePassword} className="space-y-6">
+  <div className="space-y-2">
+  <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.newPassword || 'New Password'}</label>
+  <div className="relative">
+  <input 
+  type={showNewPassword ? 'text' : 'password'}
+  required
+  minLength={8}
+  pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$"
+  className="w-full px-4 py-2.5 rounded-xl bg-white border border-zinc-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-medium text-zinc-900 text-base pr-12"
+  placeholder="••••••••"
+  value={passwordForm.newPassword}
+  onInvalid={(e) => {
+  const target = e.target as HTMLInputElement;
+  target.setCustomValidity('');
+  if (target.validity.tooShort || target.validity.patternMismatch) {
+  target.setCustomValidity(t.profilePage?.passwordLengthHint || 'Password must be at least 8 characters, and include an uppercase letter, a number, and a symbol.');
+  }
+  }}
+  onChange={(e) => {
+  e.target.setCustomValidity('');
+  setPasswordForm({ ...passwordForm, newPassword: e.target.value });
+  }}
+  />
+  <button 
+  type="button" 
+  onClick={() => setShowNewPassword(!showNewPassword)}
+  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors"
+  >
+  {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+  </button>
+  </div>
+  {passwordForm.newPassword.length > 0 && !passwordRegex.test(passwordForm.newPassword) && (
+  <p className="text-[11px] text-red-500 ml-1 mt-1 font-medium">
+  {t.profilePage?.passwordLengthHint || 'Password must be at least 8 characters, and include an uppercase letter, a number, and a symbol.'}
+  </p>
+  )}
+  </div>
+  <div className="space-y-2">
+  <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.confirmNewPassword || 'Confirm New Password'}</label>
+  <div className="relative">
+  <input 
+  type={showConfirmPassword ? 'text' : 'password'}
+  required
+  className="w-full px-4 py-2.5 rounded-xl bg-white border border-zinc-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-medium text-zinc-900 text-base pr-12"
+  placeholder="••••••••"
+  value={passwordForm.confirmPassword}
+  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+  />
+  <button 
+  type="button" 
+  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors"
+  >
+  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+  </button>
+  </div>
+  </div>
 
- <div className="flex flex-row gap-4 pt-6 mt-4">
- <button 
- type="button"
- onClick={() => {
- setPasswordForm({ newPassword: '', confirmPassword: '' });
- setActiveTab('');
- }}
- className="px-6 py-3 bg-zinc-100 text-zinc-500 rounded-full font-medium hover:bg-zinc-200 transition-all flex items-center justify-center shrink-0 whitespace-nowrap"
- >
- {t.profilePage?.discardChanges || 'Discard'}
- </button>
- <button 
- type="submit"
- disabled={isSaving || !isPasswordFormValid}
- className={`flex-1 py-3 rounded-full font-medium transition-all flex items-center justify-center gap-2 ${
- !isPasswordFormValid || isSaving
- ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
- : 'bg-yellow-500 text-black hover:bg-yellow-600'
- }`}
- >
- {isSaving ? <Loader2 className="animate-spin" /> : null}
- {t.profilePage?.updatePassword || 'Update Password'}
- </button>
- </div>
- </form>
- </motion.div>
- )}
+  <div className="flex flex-row gap-4 pt-6 mt-4">
+  <button 
+  type="button"
+  onClick={() => {
+  setPasswordForm({ newPassword: '', confirmPassword: '' });
+  setActiveTab('');
+  }}
+  className="px-6 py-3 bg-zinc-100 text-zinc-500 rounded-full font-medium hover:bg-zinc-200 transition-all flex items-center justify-center shrink-0 whitespace-nowrap"
+  >
+  {t.profilePage?.discardChanges || 'Discard'}
+  </button>
+  <button 
+  type="submit"
+  disabled={isSaving || !isPasswordFormValid}
+  className={`flex-1 py-3 rounded-full font-medium transition-all flex items-center justify-center gap-2 ${
+  !isPasswordFormValid || isSaving
+  ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
+  : 'bg-zinc-900 text-white hover:bg-zinc-800 shadow-md active:scale-95'
+  }`}
+  >
+  {isSaving ? <Loader2 className="animate-spin" /> : null}
+  {t.profilePage?.updatePassword || 'Update Password'}
+  </button>
+  </div>
+  </form>
+  </div>
+
+  {/* --- MOBILE VIEW --- */}
+  <div className="block md:hidden pb-10">
+    <form onSubmit={handleChangePassword} className="flex flex-col">
+      {/* Mobile Header */}
+      <div className="flex items-center gap-4 mb-6 pt-4">
+        <button type="button" onClick={() => {
+          setPasswordForm({ newPassword: '', confirmPassword: '' });
+          setShowNewPassword(false);
+          setShowConfirmPassword(false);
+          setActiveTab('');
+        }} className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-zinc-900 shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-zinc-100 shrink-0">
+          <ArrowLeft size={20} />
+        </button>
+        <div>
+          <h3 className="text-xl font-bold text-zinc-900">
+            {t.profilePage?.securitySettings || 'Security Settings'}
+          </h3>
+          <p className="text-[11px] text-zinc-500">Update your password</p>
+        </div>
+      </div>
+
+      <div className="space-y-3 mb-8">
+        {/* New Password */}
+        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 focus-within:border-zinc-300 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-700 shrink-0">
+            <Lock size={18} />
+          </div>
+          <div className="flex-1 relative">
+            <div className="text-[11px] font-bold text-zinc-500 mb-0.5">{t.profilePage?.newPassword || 'New Password'}</div>
+            <input 
+              type={showNewPassword ? 'text' : 'password'} required minLength={8} pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$"
+              className="w-full bg-transparent text-[13px] font-semibold text-zinc-900 outline-none pr-8"
+              placeholder="••••••••"
+              value={passwordForm.newPassword}
+              onInvalid={(e) => {
+                const target = e.target as HTMLInputElement;
+                target.setCustomValidity('');
+                if (target.validity.tooShort || target.validity.patternMismatch) {
+                  target.setCustomValidity(t.profilePage?.passwordLengthHint || 'Password must be at least 8 characters, and include an uppercase letter, a number, and a symbol.');
+                }
+              }}
+              onChange={(e) => {
+                e.target.setCustomValidity('');
+                setPasswordForm({ ...passwordForm, newPassword: e.target.value });
+              }}
+            />
+            <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-0 top-1/2 -translate-y-1/2 text-zinc-400 py-2">
+              {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+        </div>
+        {passwordForm.newPassword.length > 0 && !passwordRegex.test(passwordForm.newPassword) && (
+          <p className="text-[11px] text-red-500 ml-2 font-medium">
+            {t.profilePage?.passwordLengthHint || 'Password must be at least 8 characters, and include an uppercase letter, a number, and a symbol.'}
+          </p>
+        )}
+
+        {/* Confirm New Password */}
+        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 focus-within:border-zinc-300 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-700 shrink-0">
+            <Lock size={18} />
+          </div>
+          <div className="flex-1 relative">
+            <div className="text-[11px] font-bold text-zinc-500 mb-0.5">{t.profilePage?.confirmNewPassword || 'Confirm New Password'}</div>
+            <input 
+              type={showConfirmPassword ? 'text' : 'password'} required
+              className="w-full bg-transparent text-[13px] font-semibold text-zinc-900 outline-none pr-8"
+              placeholder="••••••••"
+              value={passwordForm.confirmPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+            />
+            <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-0 top-1/2 -translate-y-1/2 text-zinc-400 py-2">
+              {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Buttons */}
+      <div className="flex flex-row gap-3 pt-2">
+        <button 
+          type="button"
+          onClick={() => {
+            setPasswordForm({ newPassword: '', confirmPassword: '' });
+            setActiveTab('');
+          }}
+          className="px-6 py-3.5 bg-white border border-zinc-200 text-zinc-600 rounded-full font-bold text-[13px] hover:bg-zinc-50 transition-all flex items-center justify-center shrink-0"
+        >
+          {t.profilePage?.discardChanges || 'Discard'}
+        </button>
+        <button 
+          type="submit"
+          disabled={isSaving || !isPasswordFormValid}
+          className={`flex-1 py-3.5 rounded-full font-bold text-[13px] transition-all flex items-center justify-center gap-2 ${
+            !isPasswordFormValid || isSaving
+              ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
+              : 'bg-zinc-900 text-white hover:bg-zinc-800 shadow-md active:scale-95'
+          }`}
+        >
+          {isSaving ? <Loader2 size={16} className="animate-spin" /> : null}
+          {t.profilePage?.updatePassword || 'Update Password'}
+        </button>
+      </div>
+    </form>
+  </div>
+  </motion.div>
+  )}
 
  {activeTab === '' && (
  /* ── DEFAULT DASHBOARD VIEW (DJI Style) ───────────────────────────── */
@@ -721,70 +1009,80 @@ export default function ProfilePage() {
  className="flex flex-col gap-6"
  >
  {/* Mobile Dashboard Menu (< lg) */}
- <div className="flex flex-col lg:hidden w-full space-y-4 pb-8">
- <div className="flex flex-col items-center py-6">
- <div className="w-20 h-20 bg-zinc-200 rounded-full flex shrink-0 items-center justify-center text-3xl font-medium text-zinc-400 mb-4">
+ {/* Mobile Dashboard Menu (< lg) */}
+ <div className="flex flex-col lg:hidden w-[calc(100%+2rem)] -ml-4 -mt-[80px] bg-zinc-200 min-h-screen relative">
+ {/* Light Header Area */}
+ <div className="flex flex-col items-center pt-8 pb-10 px-6 relative">
+ {/* Back button & Title */}
+ <div className="w-full flex items-center justify-between mb-6">
+ <button onClick={() => router.push('/')} className="w-10 h-10 bg-white shadow-sm rounded-full flex items-center justify-center text-zinc-600">
+ <ChevronLeft size={20} />
+ </button>
+ <h1 className="text-zinc-900 text-lg font-bold"></h1>
+ <div className="w-10 h-10"></div> {/* placeholder for balance */}
+ </div>
+ 
+ {/* Avatar */}
+ <div className="w-[88px] h-[88px] bg-white rounded-full flex items-center justify-center text-4xl font-bold text-zinc-600 mb-3 border-[3px] border-zinc-200 ring-1 ring-black/5 shadow-md">
  {user.name.charAt(0).toUpperCase()}
  </div>
- <h2 className="text-xl font-medium text-zinc-900 mb-2">{user.name}</h2>
- <div className="flex items-center justify-center gap-2 text-zinc-500 text-sm bg-zinc-50 px-4 py-2 rounded-full">
- <Mail size={14} className="opacity-70" />
- <span>{user.email || user.phone || '-'}</span>
+ 
+ {/* Name & Email */}
+ <h2 className="text-xl font-bold text-zinc-900 mb-1">{user.name}</h2>
+ <p className="text-zinc-500 text-[13px]">{user.email || user.phone || '-'}</p>
  </div>
+ 
+ {/* White Bottom Area */}
+ <div className="flex-1 bg-white rounded-t-[32px] px-5 pt-8 pb-20 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] flex flex-col">
+ 
+ {/* Tabs Group 1 */}
+ <div className="bg-zinc-50 rounded-[24px] p-2 mb-4 space-y-1">
+ <button onClick={() => setActiveTab('view_profile')} className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-zinc-100/80 rounded-[16px] transition-colors">
+ <div className="flex items-center gap-4">
+ <div className="text-zinc-400"><User size={20} strokeWidth={2} /></div>
+ <span className="text-[15px] font-bold text-zinc-800">{t.profilePage?.myAccount || 'My Account'}</span>
  </div>
-
- <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
- <button 
- onClick={() => setActiveTab('view_profile')}
- className="w-full flex items-center justify-between p-4 bg-white border-b border-zinc-100 hover:bg-zinc-50 :bg-white/5 transition-colors"
- >
- <div className="flex items-center gap-3">
- <User size={18} className="text-zinc-500" />
- <span className="text-sm font-medium text-zinc-900 ">{t.profilePage?.myAccount || 'My Account'}</span>
- </div>
- <ChevronRight size={16} className="text-zinc-400" />
+ <ChevronRight size={18} className="text-zinc-300" />
  </button>
- <button 
- onClick={() => setActiveTab('all_orders')}
- className="w-full flex items-center justify-between p-4 bg-white hover:bg-zinc-50 :bg-white/5 transition-colors"
- >
- <div className="flex items-center gap-3">
- <Receipt size={18} className="text-zinc-500" />
- <span className="text-sm font-medium text-zinc-900 ">{t.profilePage?.myOrders || 'My Orders'}</span>
+ <button onClick={() => setActiveTab('all_orders')} className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-zinc-100/80 rounded-[16px] transition-colors">
+ <div className="flex items-center gap-4">
+ <div className="text-zinc-400"><Receipt size={20} strokeWidth={2} /></div>
+ <span className="text-[15px] font-bold text-zinc-800">{t.profilePage?.myOrders || 'My Orders'}</span>
  </div>
- <ChevronRight size={16} className="text-zinc-400" />
+ <ChevronRight size={18} className="text-zinc-300" />
  </button>
  </div>
 
- <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
- <button 
- onClick={() => setActiveTab('edit_profile')}
- className="w-full flex items-center justify-between p-4 bg-white border-b border-zinc-100 hover:bg-zinc-50 :bg-white/5 transition-colors"
- >
- <div className="flex items-center gap-3">
- <Edit3 size={18} className="text-zinc-500" />
- <span className="text-sm font-medium text-zinc-900 ">{t.profilePage?.editProfile || 'Edit Profile'}</span>
+ {/* Tabs Group 2 */}
+ <div className="bg-zinc-50 rounded-[24px] p-2 space-y-1 mb-4">
+ <button onClick={() => setActiveTab('edit_profile')} className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-zinc-100/80 rounded-[16px] transition-colors">
+ <div className="flex items-center gap-4">
+ <div className="text-zinc-400"><Edit3 size={20} strokeWidth={2} /></div>
+ <span className="text-[15px] font-bold text-zinc-800">{t.profilePage?.editProfile || 'Edit Profile'}</span>
  </div>
- <ChevronRight size={16} className="text-zinc-400" />
+ <ChevronRight size={18} className="text-zinc-300" />
  </button>
- <button 
- onClick={() => setActiveTab('change_password')}
- className="w-full flex items-center justify-between p-4 bg-white hover:bg-zinc-50 :bg-white/5 transition-colors"
- >
- <div className="flex items-center gap-3">
- <Lock size={18} className="text-zinc-500" />
- <span className="text-sm font-medium text-zinc-900 ">{t.profilePage?.changePassword || 'Change Password'}</span>
+ <button onClick={() => setActiveTab('change_password')} className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-zinc-100/80 rounded-[16px] transition-colors">
+ <div className="flex items-center gap-4">
+ <div className="text-zinc-400"><Lock size={20} strokeWidth={2} /></div>
+ <span className="text-[15px] font-bold text-zinc-800">{t.profilePage?.changePassword || 'Change Password'}</span>
  </div>
- <ChevronRight size={16} className="text-zinc-400" />
+ <ChevronRight size={18} className="text-zinc-300" />
  </button>
  </div>
 
- <button 
- onClick={() => setIsLogoutModalOpen(true)}
- className="w-full flex items-center justify-center p-4 bg-white rounded-2xl shadow-sm text-red-500 font-medium hover:bg-zinc-50 :bg-white/5 transition-colors mt-4"
- >
- {t.profilePage?.logout || 'Log Out'}
+ {/* Logout Button */}
+ <div className="bg-red-50/50 rounded-[24px] p-2 mt-4">
+ <button onClick={() => setIsLogoutModalOpen(true)} className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-red-50 rounded-[16px] transition-colors">
+ <div className="flex items-center gap-4">
+ <div className="text-red-400"><LogOut size={20} strokeWidth={2} /></div>
+ <span className="text-[15px] font-bold text-red-500">{t.profilePage?.logout || 'Log Out'}</span>
+ </div>
+ <ChevronRight size={18} className="text-red-200" />
  </button>
+ </div>
+ 
+ </div>
  </div>
 
  {/* Desktop Dashboard View (lg and up) */}
@@ -880,68 +1178,220 @@ export default function ProfilePage() {
  </motion.div>
  )}
 
- {activeTab === 'view_profile' && (
- /* ── VIEW PROFILE (READ-ONLY) ─────────────────────────── */
- <motion.div
- key="view_profile"
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- exit={{ opacity: 0, y: -20 }}
- className="space-y-6"
- >
- <div className="bg-white rounded-2xl p-4 md:p-8 shadow-sm">
- <div className="flex items-center gap-3 mb-6 md:mb-8">
- <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
- <ArrowLeft size={18} />
- </button>
- <User size={20} className="text-zinc-400" />
- <h3 className="text-xl font-medium text-zinc-900 ">
- {t.profilePage?.viewMyAccount || 'My Account'}
- </h3>
- </div>
- 
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
- <div className="space-y-1.5 md:space-y-2">
- <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.fullName || 'Full Name'}</label>
- <p className="px-4 py-2 md:py-2.5 rounded-full bg-zinc-100 border border-zinc-200 font-medium text-zinc-900 text-sm md:text-base">
- {user.name || '-'}
- </p>
- </div>
- <div className="space-y-1.5 md:space-y-2">
- <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.phoneNumber || 'Phone Number'}</label>
- <p className="px-4 py-2 md:py-2.5 rounded-full bg-zinc-100 border border-zinc-200 font-medium text-zinc-900 text-sm md:text-base">
- {user.phone || '-'}
- </p>
- </div>
- <div className="space-y-1.5 md:space-y-2">
- <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.preferredPayment || 'Preferred Payment'}</label>
- <p className="px-4 py-2 md:py-2.5 rounded-full bg-zinc-100 border border-zinc-200 font-medium text-yellow-600 text-sm md:text-base">
- {translatePayment(user.preferredPayment)}
- </p>
- </div>
- <div className="space-y-1.5 md:space-y-2">
- <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.orderMode || 'Order Mode'}</label>
- <p className="px-4 py-2 md:py-2.5 rounded-full bg-zinc-100 border border-zinc-200 font-medium text-yellow-600 text-sm md:text-base">
- {translateOrderMode(user.orderMode)}
- </p>
- </div>
- </div>
- 
- <div className="space-y-1.5 md:space-y-2 mt-4 md:mt-8">
- <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.addressLabel || 'Delivery / Collection Address'}</label>
- <p className="px-4 py-2 md:py-2.5 rounded-3xl bg-zinc-100 border border-zinc-200 font-medium text-zinc-900 min-h-[80px] md:min-h-[100px] whitespace-pre-wrap text-sm md:text-base">
- {user.address || '-'}
- </p>
- </div>
- <div className="space-y-1.5 md:space-y-2 mt-4 md:mt-8">
- <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.notesLabel || 'Default Order Notes (Optional)'}</label>
- <p className="px-4 py-2 md:py-2.5 rounded-3xl bg-zinc-100 border border-zinc-200 font-medium text-zinc-900 min-h-[60px] whitespace-pre-wrap text-sm md:text-base">
- {user.notes || '-'}
- </p>
- </div>
- </div>
- </motion.div>
- )}
+  {activeTab === 'view_profile' && (
+  /* ── VIEW PROFILE (ACCOUNT DETAILS) ────────────────────────────────── */
+  <motion.div 
+  key="view"
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, y: -20 }}
+  className="space-y-6 -mt-16 md:mt-0"
+  >
+  {/* --- DESKTOP VIEW --- */}
+  <div className="hidden md:flex bg-white rounded-2xl p-8 shadow-sm flex-col">
+  <div className="flex items-center gap-3 mb-8">
+  <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
+  <ArrowLeft size={18} />
+  </button>
+  <User size={20} className="text-zinc-400" />
+  <h3 className="text-xl font-medium text-zinc-900 ">
+  {t.profilePage?.myAccount || 'My Account'}
+  </h3>
+  </div>
+
+  <div className="space-y-6">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div>
+  <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.fullName || 'Full Name'}</label>
+  <p className="px-4 py-2.5 rounded-xl bg-zinc-50 border border-zinc-100 font-medium text-zinc-900 text-base flex items-center h-12">
+  {user.name}
+  </p>
+  </div>
+  <div>
+  <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.phoneNumber || 'Phone Number'}</label>
+  <p className="px-4 py-2.5 rounded-xl bg-zinc-50 border border-zinc-100 font-medium text-zinc-900 text-base flex items-center h-12 opacity-80">
+  {user.phone || '-'}
+  </p>
+  </div>
+  </div>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div>
+  <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.preferredPayment || 'Preferred Payment'}</label>
+  <p className="px-4 py-2.5 rounded-xl bg-zinc-50 border border-zinc-100 font-medium text-zinc-900 text-base flex items-center h-12">
+  {user.preferredPayment || '-'}
+  </p>
+  </div>
+  <div>
+  <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.orderMode || 'Order Mode'}</label>
+  <p className="px-4 py-2.5 rounded-xl bg-zinc-50 border border-zinc-100 font-medium text-zinc-900 text-base flex items-center h-12">
+  {user.orderMode || '-'}
+  </p>
+  </div>
+  </div>
+
+  <div>
+  <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.addressLabel || 'Delivery / Collection Address'}</label>
+  <p className="px-4 py-2.5 rounded-xl bg-zinc-50 border border-zinc-100 font-medium text-zinc-900 text-base min-h-[100px] whitespace-pre-wrap">
+  {user.address || '-'}
+  </p>
+  </div>
+
+  <div>
+  <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{t.profilePage?.notesLabel || 'Default Order Notes (Optional)'}</label>
+  <p className="px-4 py-2.5 rounded-xl bg-zinc-50 border border-zinc-100 font-medium text-zinc-900 text-base">
+  {user.notes || '-'}
+  </p>
+  </div>
+  </div>
+
+  <div className="pt-8 mt-4 border-t border-zinc-100">
+  <button 
+  onClick={() => setActiveTab('edit_profile')}
+  className="px-6 py-3 bg-zinc-900 text-white hover:bg-zinc-800 rounded-full font-medium transition-all flex items-center justify-center gap-2"
+  >
+  <Edit3 size={16} />
+  {t.profilePage?.editProfile || 'Edit Profile'}
+  </button>
+  </div>
+  </div>
+
+  {/* --- MOBILE VIEW (My Account) --- */}
+  <div className="block md:hidden pb-10">
+    <div className="flex flex-col">
+      {/* Mobile Header */}
+      <div className="flex items-center gap-4 mb-6 pt-4">
+        <button type="button" onClick={() => setActiveTab('')} className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-zinc-900 shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-zinc-100 shrink-0">
+          <ArrowLeft size={20} />
+        </button>
+        <div>
+          <h3 className="text-xl font-bold text-zinc-900">
+            {t.profilePage?.myAccount || 'My Account'}
+          </h3>
+          <p className="text-[11px] text-zinc-500">Manage your account and preferences</p>
+        </div>
+      </div>
+
+      {/* Profile Hero Card */}
+      <div className="relative bg-zinc-900 rounded-[24px] p-5 mb-4 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
+        {/* Decorative circles */}
+        <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
+        <div className="absolute -bottom-10 -right-2 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
+
+        {/* User info row */}
+        <div className="flex items-center gap-4 mb-5 relative z-10">
+          <div className="w-14 h-14 bg-zinc-700 rounded-full flex items-center justify-center text-2xl font-bold text-zinc-300 shrink-0 border-2 border-zinc-600">
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div className="text-[17px] font-black text-white tracking-tight leading-tight">{user.name}</div>
+            {user.role === 'seller' && user.sellerLevel ? (
+              <div className="inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-white border border-white/20 uppercase tracking-wider">
+                <Award size={10} />
+                Level {user.sellerLevel} Seller
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Contact info row */}
+        <div className="grid grid-cols-2 gap-3 relative z-10">
+          <div className="flex items-center gap-2.5 bg-white/10 rounded-[14px] px-3 py-2.5">
+            <Phone size={13} className="text-zinc-300 shrink-0" />
+            <div>
+              <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Phone Number</div>
+              <div className="text-[12px] font-bold text-white truncate">{user.phone || '-'}</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 bg-white/10 rounded-[14px] px-3 py-2.5 overflow-hidden">
+            <Mail size={13} className="text-zinc-300 shrink-0" />
+            <div className="overflow-hidden">
+              <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Email Address</div>
+              <div className="text-[12px] font-bold text-white truncate">{user.email || '-'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Order & Delivery Information */}
+      <div className="mb-2">
+        <div className="text-[13px] font-bold text-zinc-900 mb-3 ml-1">
+          {t.profilePage?.orderAndDelivery || 'Order & Delivery Information'}
+        </div>
+
+        <div className="space-y-2">
+          {/* Preferred Payment */}
+          <div className="bg-white rounded-[18px] shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-zinc-100 flex items-center px-4 py-3.5 gap-4">
+            <div className="w-9 h-9 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-500 shrink-0">
+              <CreditCard size={16} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[11px] font-semibold text-zinc-400">{t.profilePage?.preferredPayment || 'Preferred Payment'}</div>
+              <div className="text-[13px] font-bold text-zinc-900 truncate">{translatePayment(user.preferredPayment) || '-'}</div>
+            </div>
+          </div>
+
+          {/* Order Mode */}
+          <div className="bg-white rounded-[18px] shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-zinc-100 flex items-center px-4 py-3.5 gap-4">
+            <div className="w-9 h-9 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-500 shrink-0">
+              <Package size={16} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[11px] font-semibold text-zinc-400">{t.profilePage?.orderMode || 'Order Mode'}</div>
+              <div className="text-[13px] font-bold text-zinc-900 truncate">{translateOrderMode(user.orderMode) || '-'}</div>
+            </div>
+          </div>
+
+          {/* Delivery / Collection Address */}
+          <div className="bg-white rounded-[18px] shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-zinc-100 flex items-center px-4 py-3.5 gap-4">
+            <div className="w-9 h-9 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-500 shrink-0">
+              <MapPin size={16} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[11px] font-semibold text-zinc-400">{t.profilePage?.addressLabel || 'Delivery / Collection Address'}</div>
+              <div className="text-[13px] font-bold text-zinc-900 truncate">{user.address || '-'}</div>
+            </div>
+          </div>
+
+          {/* Default Notes */}
+          <div className="bg-white rounded-[18px] shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-zinc-100 flex items-center px-4 py-3.5 gap-4">
+            <div className="w-9 h-9 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-500 shrink-0">
+              <MessageSquare size={16} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[11px] font-semibold text-zinc-400">{t.profilePage?.notesLabel || 'Default Order Notes (Optional)'}</div>
+              <div className="text-[13px] font-bold text-zinc-900 truncate">{user.notes || '-'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Account Information Card */}
+      <div className="mt-4 bg-zinc-50 border border-zinc-100 rounded-[20px] p-5 flex items-center gap-4 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
+        <div className="w-12 h-12 bg-zinc-200 rounded-full flex items-center justify-center text-zinc-500 shrink-0">
+          <UserCheck size={20} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-[13px] font-bold text-zinc-900 mb-0.5">{t.profilePage?.accountInformation || 'Account Information'}</div>
+          <div className="text-[11px] text-zinc-500">Keep your information up to date to ensure a smooth and secure shopping experience.</div>
+        </div>
+      </div>
+
+      {/* Update Button */}
+      <div className="mt-4">
+        <button
+          onClick={() => setActiveTab('edit_profile')}
+          className="w-full py-4 bg-zinc-900 text-white rounded-full font-bold text-[13px] shadow-[0_4px_14px_rgba(0,0,0,0.15)] active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+        >
+          <Edit3 size={16} />
+          {t.profilePage?.editProfile || 'Update Information'} ›
+        </button>
+      </div>
+    </div>
+  </div>
+
+  </motion.div>
+  )}
 
 
 
@@ -952,17 +1402,18 @@ export default function ProfilePage() {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  exit={{ opacity: 0, y: -20 }}
- className="space-y-8"
+ className="space-y-8 -mt-16 md:mt-0"
  >
- {/* All Orders List */}
- <div className="bg-white rounded-2xl p-4 md:p-8 shadow-sm lg:h-[700px] flex flex-col">
- <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 md:mb-8 shrink-0">
+
+ {/* ── DESKTOP VIEW ── */}
+ <div className="hidden md:flex bg-white rounded-2xl p-8 shadow-sm lg:h-[700px] flex-col">
+ <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 shrink-0">
  <div className="flex items-center gap-3">
  <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
  <ArrowLeft size={18} />
  </button>
  <Package size={20} className="text-zinc-400" />
- <h3 className="text-xl font-medium text-zinc-900 ">
+ <h3 className="text-xl font-medium text-zinc-900">
  {t.profilePage?.myOrders || 'My Orders'}
  </h3>
  </div>
@@ -974,40 +1425,36 @@ export default function ProfilePage() {
  <input
  type="text"
  placeholder={searchPlaceholderTranslations[locale as string] || searchPlaceholderTranslations.en}
- className="w-full sm:w-64 pl-10 pr-10 py-3 rounded-xl bg-zinc-50 font-medium text-sm text-zinc-900 outline-none min-w-0 text-ellipsis"
+ className="w-full sm:w-64 pl-10 pr-10 py-3 rounded-xl bg-zinc-50 font-medium text-sm text-zinc-900 outline-none min-w-0 text-ellipsis border border-transparent focus:border-zinc-300 transition-colors"
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
  />
  {searchQuery && (
- <button 
- onClick={() => setSearchQuery('')}
- className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-red-500 transition-colors"
- >
+ <button onClick={() => setSearchQuery('')} className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-red-500 transition-colors">
  <X size={16} />
  </button>
  )}
  </div>
-
  <div className="relative shrink-0">
  <select
  value={statusFilter}
  onChange={(e) => setStatusFilter(e.target.value)}
- className="px-4 py-3 rounded-xl bg-zinc-50 font-medium text-sm text-zinc-900 cursor-pointer appearance-none outline-none text-center"
+ className="px-4 py-3 rounded-xl bg-zinc-50 font-medium text-sm text-zinc-900 cursor-pointer appearance-none outline-none text-center focus:border-zinc-300 transition-colors"
  style={{ textAlignLast: 'center' }}
  >
- <option value="All" className="bg-white text-zinc-900 ">{statusTranslations['All']?.[locale as string] || statusTranslations['All'].en}</option>
- <option value="Completed" className="bg-white text-zinc-900 ">{statusTranslations['Completed']?.[locale as string] || statusTranslations['Completed'].en}</option>
- <option value="Pending" className="bg-white text-zinc-900 ">{statusTranslations['Pending']?.[locale as string] || statusTranslations['Pending'].en}</option>
- <option value="In Process" className="bg-white text-zinc-900 ">{statusTranslations['In Process']?.[locale as string] || statusTranslations['In Process'].en}</option>
- <option value="Cancelled" className="bg-white text-zinc-900 ">{statusTranslations['Cancelled']?.[locale as string] || statusTranslations['Cancelled'].en}</option>
+ <option value="All">{statusTranslations['All']?.[locale as string] || statusTranslations['All'].en}</option>
+ <option value="Completed">{statusTranslations['Completed']?.[locale as string] || statusTranslations['Completed'].en}</option>
+ <option value="Pending">{statusTranslations['Pending']?.[locale as string] || statusTranslations['Pending'].en}</option>
+ <option value="In Process">{statusTranslations['In Process']?.[locale as string] || statusTranslations['In Process'].en}</option>
+ <option value="Cancelled">{statusTranslations['Cancelled']?.[locale as string] || statusTranslations['Cancelled'].en}</option>
  </select>
  </div>
  </div>
  </div>
 
  {filteredOrders.length === 0 ? (
- <div className="flex-1 flex flex-col items-center justify-center text-center min-h-[400px]">
- <div className="w-24 h-24 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-6 text-zinc-300 ">
+ <div className="flex-1 flex flex-col items-center justify-center text-center">
+ <div className="w-24 h-24 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-6 text-zinc-300">
  {searchQuery ? <Search size={40} strokeWidth={1.5} /> : <Package size={40} strokeWidth={1.5} />}
  </div>
  <p className="text-lg font-medium text-zinc-500 max-w-sm mx-auto">
@@ -1017,74 +1464,205 @@ export default function ProfilePage() {
  ) : (
  <div className="space-y-4 flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 min-h-0">
  {paginatedOrders.map((order: any) => (
- <div 
+  <div
+  key={order.id}
+  onClick={() => setSelectedOrder(order)}
+  className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-zinc-50 transition-colors cursor-pointer border border-zinc-100"
+  >
+  <div className="flex items-center gap-4 text-left">
+  <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-400 shrink-0">
+  <ShoppingBag size={18} />
+  </div>
+  <div>
+  <div className="text-sm text-zinc-900 font-medium">{t.profilePage?.orderHash || 'Order #'} {order.id}</div>
+  <div className="text-xs text-zinc-500 mt-1">{new Date(order.createdAt).toLocaleDateString()}</div>
+  </div>
+  </div>
+  <div className="flex items-center gap-6">
+  <div className="text-right">
+  <div className="text-sm text-zinc-900 font-medium">RM {order.totalAmount.toFixed(2)}</div>
+  <div className={`text-xs mt-1 ${order.status === 'Completed' ? 'text-green-500' : 'text-zinc-500'}`}>
+  {statusTranslations[order.status as string]?.[locale as string] || order.status}
+  </div>
+  </div>
+  <ChevronRight size={16} className="text-zinc-400" />
+  </div>
+  </div>
+ ))}
+ {totalPages > 1 && (
+ <div className="flex items-center justify-center gap-2 mt-8 pt-4 pb-4 border-t border-zinc-100">
+ <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1} className="p-2 rounded-xl bg-zinc-50 hover:bg-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-zinc-500"><ChevronsLeft size={16} /></button>
+ <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2 rounded-xl bg-zinc-50 hover:bg-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-zinc-500"><ChevronLeft size={16} /></button>
+ <span className="text-sm font-medium text-zinc-500 px-4">{currentPage} / {totalPages}</span>
+ <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="p-2 rounded-xl bg-zinc-50 hover:bg-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-zinc-500"><ChevronRight size={16} /></button>
+ <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} className="p-2 rounded-xl bg-zinc-50 hover:bg-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-zinc-500"><ChevronsRight size={16} /></button>
+ </div>
+ )}
+ </div>
+ )}
+ </div>
+
+ {/* ── MOBILE VIEW ── */}
+ <div className="flex md:hidden flex-col pb-10">
+ {/* Mobile Header */}
+ <div className="flex items-center gap-4 mb-6">
+ <button onClick={() => setActiveTab('')} className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-zinc-900 shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-zinc-100 shrink-0">
+ <ArrowLeft size={20} />
+ </button>
+ <div>
+ <h3 className="text-xl font-bold text-zinc-900">{t.profilePage?.myOrders || 'My Orders'}</h3>
+ <p className="text-[11px] text-zinc-500">View and track your orders</p>
+ </div>
+ </div>
+
+ {/* Hero Stats Banner */}
+ <div className="relative bg-zinc-900 rounded-[24px] p-5 mb-5 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
+ <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
+ <div className="absolute -bottom-10 -right-2 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
+ <div className="relative z-10">
+ <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-3">Order Summary</div>
+ <div className="grid grid-cols-3 gap-3">
+ <div className="bg-white/10 rounded-[14px] px-3 py-3 text-center">
+ <div className="text-[22px] font-black text-white leading-none mb-1">{orders.length}</div>
+ <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Total</div>
+ </div>
+ <div className="bg-white/10 rounded-[14px] px-3 py-3 text-center">
+ <div className="text-[22px] font-black text-white leading-none mb-1">{orders.filter((o: any) => o.status === 'Completed').length}</div>
+ <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Done</div>
+ </div>
+ <div className="bg-white/10 rounded-[14px] px-2 py-3 text-center overflow-hidden">
+ <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider leading-none mb-0.5">RM</div>
+ <div className="text-[18px] font-black text-white leading-none mb-1 truncate">{orders.reduce((s: number, o: any) => s + o.totalAmount, 0).toFixed(0)}</div>
+ <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Spent</div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ {/* Search + Filter Row */}
+ <div className="flex gap-2 mb-4">
+ <div className="relative flex-1">
+ <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+ <Search size={15} className="text-zinc-400" />
+ </div>
+ <input
+ type="text"
+ placeholder="Search orders..."
+ className="w-full pl-10 pr-9 py-3 rounded-[16px] bg-white border border-zinc-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] font-semibold text-[13px] text-zinc-900 outline-none focus:border-zinc-300 transition-colors"
+ value={searchQuery}
+ onChange={(e) => setSearchQuery(e.target.value)}
+ />
+ {searchQuery && (
+ <button onClick={() => setSearchQuery('')} className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400">
+ <X size={15} />
+ </button>
+ )}
+ </div>
+ <div className="relative shrink-0">
+ <select
+ value={statusFilter}
+ onChange={(e) => setStatusFilter(e.target.value)}
+ className="h-full px-3 py-3 rounded-[16px] bg-white border border-zinc-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] font-semibold text-[12px] text-zinc-900 cursor-pointer appearance-none outline-none focus:border-zinc-300 transition-colors pr-7"
+ >
+ <option value="All">All</option>
+ <option value="Completed">Done</option>
+ <option value="Pending">Pending</option>
+ <option value="In Process">In Process</option>
+ <option value="Cancelled">Cancelled</option>
+ </select>
+ <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+ </div>
+ </div>
+
+ {/* Orders List */}
+ {filteredOrders.length === 0 ? (
+ <div className="flex flex-col items-center justify-center text-center py-16">
+ <div className="w-20 h-20 bg-zinc-100 rounded-full flex items-center justify-center mb-4 text-zinc-300">
+ {searchQuery ? <Search size={32} strokeWidth={1.5} /> : <Package size={32} strokeWidth={1.5} />}
+ </div>
+ <p className="text-[14px] font-semibold text-zinc-500 max-w-[240px] mx-auto leading-relaxed">
+ {searchQuery ? (noOrdersSearchTranslations[locale as string] || noOrdersSearchTranslations.en) : (t.profilePage?.noOrdersYet || "You haven't placed any orders yet.")}
+ </p>
+ </div>
+ ) : (
+ <div className="bg-white rounded-[20px] border border-zinc-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden">
+ {/* Table Header */}
+ <div className="grid grid-cols-[1fr_auto_auto] gap-3 px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
+ <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Order</div>
+ <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400 text-right">Amount</div>
+ <div className="w-4"></div>
+ </div>
+
+ {/* Table Rows */}
+ <div className="divide-y divide-zinc-50">
+ {paginatedOrders.map((order: any) => {
+ const statusColor =
+ order.status === 'Completed' ? 'text-green-600 bg-green-50' :
+ order.status === 'Cancelled' ? 'text-red-500 bg-red-50' :
+ order.status === 'In Process' ? 'text-blue-600 bg-blue-50' :
+ 'text-zinc-500 bg-zinc-100';
+ return (
+ <div
  key={order.id}
  onClick={() => setSelectedOrder(order)}
- className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-zinc-50 :bg-white/5 transition-colors cursor-pointer border border-zinc-100 "
+ className="grid grid-cols-[1fr_auto_auto] gap-3 items-center px-4 py-3.5 active:bg-zinc-50 transition-colors cursor-pointer"
  >
- <div className="flex items-center gap-3 md:gap-4 text-left">
- <div className="hidden md:flex w-10 h-10 rounded-lg bg-zinc-100 items-center justify-center text-zinc-400">
- <ShoppingBag size={18} />
+ {/* Left: icon + info */}
+ <div className="flex items-center gap-3 min-w-0">
+ <div className="w-9 h-9 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 shrink-0">
+ <ShoppingBag size={15} />
  </div>
- <div>
- <div className="text-sm text-zinc-900 font-medium">
- <span className="md:hidden">{t.profilePage?.orderHash || 'Order #'} {order.id.substring(0, 6).toUpperCase()}</span>
- <span className="hidden md:inline">{t.profilePage?.orderHash || 'Order #'} {order.id}</span>
+ <div className="min-w-0">
+ <div className="text-[13px] font-bold text-zinc-900 truncate">
+ #{order.id.substring(0, 8).toUpperCase()}
  </div>
- <div className="text-xs text-zinc-500 mt-1">{new Date(order.createdAt).toLocaleDateString()}</div>
- </div>
- </div>
- <div className="flex items-center gap-3 md:gap-6">
- <div className="text-right">
- <div className="text-sm text-zinc-900 font-medium">RM {order.totalAmount.toFixed(2)}</div>
- <div className={`text-[10px] md:text-xs mt-1 ${order.status === 'Completed' ? 'text-green-500' : 'text-zinc-500'}`}>
+ <div className="flex items-center gap-1.5 mt-0.5">
+ <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${statusColor}`}>
  {statusTranslations[order.status as string]?.[locale as string] || order.status}
+ </span>
+ <span className="text-[10px] text-zinc-400">{new Date(order.createdAt).toLocaleDateString()}</span>
  </div>
  </div>
- <ChevronRight size={16} className="text-zinc-400" />
  </div>
+
+ {/* Right: amount */}
+ <div className="text-[14px] font-black text-zinc-900 whitespace-nowrap">
+ RM {order.totalAmount.toFixed(2)}
  </div>
- ))}
- 
- {/* Pagination Controls */}
+
+ {/* Chevron */}
+ <ChevronRight size={14} className="text-zinc-300" />
+ </div>
+ );
+ })}
+ </div>
+
+ {/* Pagination */}
  {totalPages > 1 && (
- <div className="flex items-center justify-center gap-2 mt-8 pt-4 pb-4 border-t border-zinc-100 ">
- <button
- onClick={() => setCurrentPage(1)}
- disabled={currentPage === 1}
- className="p-2 rounded-xl bg-zinc-50 hover:bg-zinc-100 :bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-zinc-500 "
- >
- <ChevronsLeft size={16} />
- </button>
+ <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-100 bg-zinc-50">
  <button
  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
  disabled={currentPage === 1}
- className="p-2 rounded-xl bg-zinc-50 hover:bg-zinc-100 :bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-zinc-500 "
+ className="flex items-center gap-1 text-[12px] font-bold text-zinc-500 disabled:opacity-30 disabled:cursor-not-allowed active:text-zinc-900 transition-colors"
  >
- <ChevronLeft size={16} />
+ <ChevronLeft size={14} /> Prev
  </button>
- <span className="text-sm font-medium text-zinc-500 px-4">
- {currentPage} / {totalPages}
+ <span className="text-[12px] font-semibold text-zinc-400">
+ Page {currentPage} of {totalPages}
  </span>
  <button
  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
  disabled={currentPage === totalPages}
- className="p-2 rounded-xl bg-zinc-50 hover:bg-zinc-100 :bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-zinc-500 "
+ className="flex items-center gap-1 text-[12px] font-bold text-zinc-500 disabled:opacity-30 disabled:cursor-not-allowed active:text-zinc-900 transition-colors"
  >
- <ChevronRight size={16} />
- </button>
- <button
- onClick={() => setCurrentPage(totalPages)}
- disabled={currentPage === totalPages}
- className="p-2 rounded-xl bg-zinc-50 hover:bg-zinc-100 :bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-zinc-500 "
- >
- <ChevronsRight size={16} />
+ Next <ChevronRight size={14} />
  </button>
  </div>
  )}
  </div>
  )}
  </div>
+
  </motion.div>
  )}
  </AnimatePresence>
@@ -1103,26 +1681,26 @@ export default function ProfilePage() {
  initial={{ opacity: 0, scale: 0.95, y: 20 }} 
  animate={{ opacity: 1, scale: 1, y: 0 }} 
  exit={{ opacity: 0, scale: 0.95, y: 20 }} 
- className="relative w-full h-full md:h-auto max-w-5xl bg-[#121212] md:bg-zinc-50 md: rounded-none md:rounded-[48px] shadow-2xl overflow-y-auto md:overflow-hidden border-0 md:border border-zinc-200 flex flex-col md:flex-row max-h-none md:max-h-[90vh] lg:max-h-[85vh]"
+ className="relative w-full h-full md:h-auto max-w-5xl bg-zinc-50 md:bg-zinc-50 rounded-none md:rounded-[48px] shadow-2xl overflow-y-auto md:overflow-hidden border-0 md:border border-zinc-200 flex flex-col md:flex-row max-h-none md:max-h-[90vh] lg:max-h-[85vh]"
  >
  {/* Mobile Header */}
- <div className="md:hidden sticky top-0 z-50 flex items-center px-4 py-4 bg-[#121212] border-b border-white/5">
- <button onClick={() => setSelectedOrder(null)} className="p-2 -ml-2 text-white absolute left-4">
+ <div className="md:hidden sticky top-0 z-50 flex items-center px-4 py-4 bg-white border-b border-zinc-100 shadow-sm">
+ <button onClick={() => setSelectedOrder(null)} className="p-2 -ml-2 text-zinc-900 absolute left-4">
  <ArrowLeft size={24} />
  </button>
- <h2 className="text-lg font-bold text-white w-full text-center">{t.profilePage?.orderDetails || 'Order Details'}</h2>
+ <h2 className="text-lg font-bold text-zinc-900 w-full text-center">{t.profilePage?.orderDetails || 'Order Details'}</h2>
  </div>
 
  {/* Close Button (Desktop Only) */}
- <button data-html2canvas-ignore="true" onClick={() => setSelectedOrder(null)} className="hidden md:block absolute top-6 right-6 md:top-8 md:right-8 p-3 rounded-full bg-black/5 hover:bg-black/10 :bg-white/20 text-zinc-600 hover:text-zinc-900 :text-white transition-all z-30 backdrop-blur-md">
+ <button data-html2canvas-ignore="true" onClick={() => setSelectedOrder(null)} className="hidden md:block absolute top-6 right-6 md:top-8 md:right-8 p-3 rounded-full bg-black/5 hover:bg-black/10 text-zinc-600 hover:text-zinc-900 transition-all z-30 backdrop-blur-md">
  <X size={20} strokeWidth={3} />
  </button>
 
  {/* Left Side: Order Info */}
- <div className="w-full md:w-1/2 lg:w-[55%] shrink-0 md:shrink bg-[#121212] md:bg-zinc-100/50 md: p-4 md:p-10 lg:p-12 flex flex-col border-b-0 md:border-b-0 md:border-r border-zinc-200 md:overflow-y-auto md:custom-scrollbar relative md:min-h-0">
+ <div className="w-full md:w-1/2 lg:w-[55%] shrink-0 md:shrink bg-zinc-50 md:bg-zinc-100/50 p-4 sm:p-6 md:p-10 lg:p-12 flex flex-col border-b-0 md:border-b-0 md:border-r border-zinc-200 md:overflow-y-auto md:custom-scrollbar relative md:min-h-0">
  
  {/* Order ID & Tag (Card on Mobile) */}
- <div className="bg-[#1c1c1e] md:bg-transparent rounded-3xl md:rounded-none p-5 md:p-0 mb-4 md:mb-8 w-full min-w-0 shrink-0">
+ <div className="bg-white md:bg-transparent rounded-3xl md:rounded-none p-5 md:p-0 mb-4 md:mb-8 w-full min-w-0 shrink-0 shadow-[0_2px_12px_rgba(0,0,0,0.03)] md:shadow-none border border-zinc-100 md:border-none">
  <div className="space-y-2 mb-8 mt-0 w-full min-w-0">
  <p className="text-xs font-black text-zinc-500 uppercase tracking-widest">{t.profilePage?.orderId || 'Order ID'}</p>
  <div className="flex items-center gap-3 w-full min-w-0">
@@ -1132,7 +1710,7 @@ export default function ProfilePage() {
  navigator.clipboard.writeText(selectedOrder.id.toUpperCase());
  alert('Order ID copied!');
  }} 
- className="text-zinc-400 hover:text-zinc-900 :text-white transition-colors shrink-0 mt-1 bg-white/5 p-2 rounded-lg md:bg-transparent md:p-0"
+ className="text-zinc-400 hover:text-zinc-900 transition-colors shrink-0 mt-1 bg-zinc-50 md:bg-transparent p-2 rounded-lg md:p-0"
  >
  <Copy size={16} />
  </button>
@@ -1216,7 +1794,7 @@ export default function ProfilePage() {
  </div>
 
  {/* Order Info List */}
- <div className="bg-[#1c1c1e] md:bg-transparent rounded-3xl md:rounded-none p-5 md:p-0 space-y-6 md:mt-8 md:pt-8 md:border-t border-zinc-200 text-left shrink-0">
+ <div className="bg-white md:bg-transparent rounded-3xl md:rounded-none p-5 md:p-0 space-y-6 md:mt-8 md:pt-8 md:border-t border-zinc-200 text-left shrink-0 shadow-[0_2px_12px_rgba(0,0,0,0.03)] md:shadow-none border border-zinc-100 md:border-none">
  <div className="flex justify-between items-center">
  <div className="flex items-center gap-3 text-zinc-500 ">
  <Calendar size={16} />
@@ -1268,10 +1846,10 @@ export default function ProfilePage() {
  </div>
 
  {/* Right Side: Order Items */}
- <div className="w-full md:w-1/2 lg:w-[45%] shrink-0 md:shrink bg-[#121212] md:bg-white md: px-4 pb-4 md:p-6 sm:md:p-10 lg:p-12 flex flex-col md:min-h-0 relative">
+ <div className="w-full md:w-1/2 lg:w-[45%] shrink-0 md:shrink bg-zinc-50 md:bg-white px-4 pb-4 sm:px-6 sm:pb-6 md:p-6 sm:md:p-10 lg:p-12 flex flex-col md:min-h-0 relative">
  
  {/* Card 3: Order Items */}
- <div className="bg-[#1c1c1e] md:bg-transparent rounded-3xl md:rounded-none p-5 md:p-0 mb-4 md:mb-0 flex flex-col shrink-0 md:flex-1 md:min-h-0">
+ <div className="bg-white md:bg-transparent rounded-3xl md:rounded-none p-5 md:p-0 mb-4 md:mb-0 flex flex-col shrink-0 md:flex-1 md:min-h-0 shadow-[0_2px_12px_rgba(0,0,0,0.03)] md:shadow-none border border-zinc-100 md:border-none">
  <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest mb-6 md:mb-8 shrink-0">
  {t.profilePage?.orderItems || 'Order Items'}
  </h3>
@@ -1279,7 +1857,7 @@ export default function ProfilePage() {
  {/* Items List */}
  <div className="space-y-0 shrink-0 md:flex-1 md:overflow-y-auto md:custom-scrollbar pr-0 md:pr-2 md:min-h-0">
  {selectedOrder.items?.map((item: any, idx: number) => (
- <div key={idx} className="flex items-center justify-between py-5 border-b border-white/5 last:border-0">
+ <div key={idx} className="flex items-center justify-between py-5 border-b border-zinc-100 last:border-0">
  <div className="flex-1 min-w-0 pr-6">
  <p className="text-sm font-bold text-zinc-900 line-clamp-2 leading-relaxed">{locale === 'zh' && item.nameZh ? item.nameZh : item.name}</p>
  </div>
@@ -1293,7 +1871,7 @@ export default function ProfilePage() {
  </div>
 
  {/* Card 4: Billing Summary */}
- <div className="bg-[#1c1c1e] md:bg-transparent rounded-3xl md:rounded-none p-5 md:p-0 mt-0 md:mt-8 md:pt-8 md:border-t border-zinc-200 space-y-3 shrink-0">
+ <div className="bg-white md:bg-transparent rounded-3xl md:rounded-none p-5 md:p-0 mt-0 md:mt-8 md:pt-8 md:border-t border-zinc-200 space-y-3 shrink-0 shadow-[0_2px_12px_rgba(0,0,0,0.03)] md:shadow-none border border-zinc-100 md:border-none">
  <div className="flex justify-between items-center">
  <span className="text-sm font-bold text-zinc-500">{t.profilePage?.subtotalLabel || 'Subtotal'}</span>
  <span className="text-sm font-bold text-zinc-900 ">RM {

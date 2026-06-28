@@ -249,13 +249,13 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
           <div className="mt-auto flex flex-col gap-4">
             {/* Price Line */}
             <div className="flex flex-col gap-1 sm:gap-1.5 w-full">
-              <div className="flex items-center flex-wrap gap-1 mt-auto">
-                <span className="text-[13px] sm:text-[19px] font-bold text-primary mr-1 whitespace-nowrap tracking-tight">
+              <div className="flex items-center flex-wrap gap-1.5 mt-auto">
+                <span className="text-[13px] sm:text-[19px] font-bold mr-1 whitespace-nowrap tracking-tight text-zinc-900">
                   {minPrice === maxPrice ? `RM${minPrice.toFixed(2)}` : `RM${minPrice.toFixed(2)} - ${maxPrice.toFixed(2)}`}
                 </span>
                 {hasAnyDiscount && minOriginal && (
-                  <span className="text-[10px] sm:text-[12px] font-bold text-zinc-400 line-through whitespace-nowrap">
-                    {minOriginal === maxOriginal ? `RM${minOriginal.toFixed(2)}` : `RM${minOriginal.toFixed(2)} - ${maxOriginal.toFixed(2)}`}
+                  <span className="text-[10px] sm:text-[12px] font-bold text-primary whitespace-nowrap">
+                    {locale === 'zh' ? '节省' : locale === 'ms' ? 'Jimat' : 'Save'} RM{(minOriginal - minPrice).toFixed(2)}
                   </span>
                 )}
               </div>

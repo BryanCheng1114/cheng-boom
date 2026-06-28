@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Phone, HelpCircle, CreditCard, Check, MapPin, MessageCircle, Upload, ExternalLink, ArrowLeft, ShieldCheck, ChevronRight, Tag, AlertTriangle } from 'lucide-react';
+import { X, User, Phone, HelpCircle, CreditCard, Check, MapPin, MessageCircle, Upload, ExternalLink, ArrowLeft, ShieldCheck, ChevronRight, Tag, AlertTriangle, Mail } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useBusiness } from '../../context/BusinessContext';
 import { generateWhatsAppLink, OrderDetails } from '../../services/whatsappService';
@@ -46,6 +46,7 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
   const [orderDetails, setOrderDetails] = useState<OrderDetails>({
     customerName: '',
     customerPhone: '',
+    customerEmail: '',
     paymentMethod: 'DuitNow & Bank Transfer',
     deliveryMode: 'Self Collect',
     address: '',
@@ -58,7 +59,7 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
   const [shakeTerms, setShakeTerms] = useState(false);
   const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
   const [pdfErrorModalOpen, setPdfErrorModalOpen] = useState(false);
-  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [verificationErrorModalOpen, setVerificationErrorModalOpen] = useState(false);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [stockErrorModalOpen, setStockErrorModalOpen] = useState(false);
   const [stockErrorProductName, setStockErrorProductName] = useState('');
@@ -86,6 +87,7 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
               ...prev,
               customerName: fullProfile.name || '',
               customerPhone: fullProfile.phone || '',
+              customerEmail: fullProfile.email || '',
               address: fullProfile.address || '',
               paymentMethod: mapPayment(fullProfile.preferredPayment),
               deliveryMode: mapDelivery(fullProfile.orderMode),
@@ -95,7 +97,8 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
             setOrderDetails(prev => ({
               ...prev,
               customerName: user.name || '',
-              customerPhone: user.phone || ''
+              customerPhone: user.phone || '',
+              customerEmail: user.email || ''
             }));
           }
         } catch (err) {
@@ -231,6 +234,7 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
           customerInfo: {
             name: orderDetails.customerName,
             phone: orderDetails.customerPhone,
+            email: orderDetails.customerEmail,
             address: orderDetails.address || (orderDetails.deliveryMode === 'Self Collect' ? 'Self Collect' : ''),
             paymentMethod: orderDetails.paymentMethod,
             deliveryMode: orderDetails.deliveryMode,
@@ -262,24 +266,11 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
         throw new Error('Failed to save order');
       }
 
-      const url = generateWhatsAppLink(
-        orderItemsPayload,
-        computedFinalTotalPrice,
-        { ...orderDetails, role },
-        locale as 'en' | 'zh' | 'ms',
-        isSeller,
-        settings?.businessName,
-        settings?.whatsapp ?? undefined,
-        computedSellerLevelName,
-        computedDiscountPercent,
-        computedIsFreeShipping
-      );
-      window.open(url, '_blank');
-
       if (mode === 'cart' && clearCart) {
         clearCart();
       }
       onClose();
+      window.location.href = '/success';
     } catch (error) {
       console.error('Checkout error:', error);
       alert('Failed to process order. Please try again.');
@@ -379,8 +370,15 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
                     <Phone size={18} className="text-zinc-600 shrink-0" />
                     <div className="flex-1 overflow-hidden">
                       <div className="text-zinc-500 text-[9px] mb-0.5">Phone Number</div>
-                      <input type="tel" required pattern="^(\+?601|01)[0-9]{8,9}$" className="bg-transparent text-zinc-900 text-[13px] font-bold w-full outline-none placeholder:text-zinc-400" placeholder="0123456789" value={orderDetails.customerPhone} onChange={(e) => setOrderDetails({ ...orderDetails, customerPhone: e.target.value })} />
+                      <input type="tel" required pattern="^(\+?601|01)[0-9]{8,9}$" className="bg-transparent text-zinc-900 text-[13px] font-bold w-full outline-none placeholder:text-zinc-400" placeholder="0123456789" value={orderDetails.customerPhone} onChange={(e) => setOrderDetails({ ...orderDetails, customerPhone: e.target.value.replace(/\D/g, '') })} />
                     </div>
+                  </div>
+                </div>
+                <div className="mt-2 bg-zinc-50 rounded-[14px] p-3 border border-zinc-200 flex items-center gap-3">
+                  <Mail size={18} className="text-zinc-600 shrink-0" />
+                  <div className="flex-1 overflow-hidden">
+                    <div className="text-zinc-500 text-[9px] mb-0.5">Email Address</div>
+                    <input type="email" required className="bg-transparent text-zinc-900 text-[13px] font-bold w-full outline-none placeholder:text-zinc-400" placeholder="you@example.com" value={orderDetails.customerEmail || ''} onChange={(e) => setOrderDetails({ ...orderDetails, customerEmail: e.target.value })} />
                   </div>
                 </div>
               </div>
@@ -501,21 +499,7 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
                 </div>
               </div>
 
-              {/* Secure Order Verification */}
-              <div className="px-4 mt-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-[14px] p-4 flex items-start gap-3 cursor-pointer select-none" onClick={() => setIsWhatsAppTermsAgreed(!isWhatsAppTermsAgreed)}>
-                  <ShieldCheck size={20} className="text-blue-500 shrink-0 mt-0.5" strokeWidth={1.5} />
-                  <div className="flex-1 pr-2">
-                    <div className="text-blue-500 font-bold text-xs mb-1">Secure Order Verification</div>
-                    <div className="text-blue-700 text-[10px] leading-relaxed">
-                      I understand & agree: After clicking, I will be redirected to WhatsApp with autofilled information. I will not edit the text and click send directly.
-                    </div>
-                  </div>
-                  <div className={cn("w-5 h-5 rounded-[4px] border flex items-center justify-center shrink-0 transition-colors mt-0.5", isWhatsAppTermsAgreed ? "bg-blue-500 border-blue-500 text-[#051124]" : "border-blue-500/40")}>
-                    {isWhatsAppTermsAgreed && <Check size={14} strokeWidth={3} />}
-                  </div>
-                </div>
-              </div>
+
 
               {/* Checkout Button */}
               <div className="px-4 mt-6 mb-6">
@@ -526,7 +510,7 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
                   onClick={(e) => {
                     if (!isWhatsAppTermsAgreed) {
                       e.preventDefault();
-                      alert(locale === 'zh' ? '请先勾选安全验证。' : locale === 'ms' ? 'Sila setuju dengan Pengesahan Selamat terlebih dahulu.' : 'Please agree to the Secure Order Verification first.');
+                      setVerificationErrorModalOpen(true);
                     } else if (!orderDetails.paymentReceiptUrl && orderDetails.paymentMethod === 'DuitNow & Bank Transfer') {
                       e.preventDefault();
                       alert(locale === 'zh' ? '请先上传您的付款收据。' : locale === 'ms' ? 'Sila muat naik resit pembayaran anda terlebih dahulu.' : 'Please upload your payment receipt first.');
@@ -537,10 +521,19 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
                   {isSubmitting ? <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-zinc-900/20 border-t-zinc-900 rounded-full animate-spin" /> : <MessageCircle size={18} className="sm:w-5 sm:h-5" strokeWidth={2.5} />}
                   {isSubmitting ? (locale === 'zh' ? '处理中...' : locale === 'ms' ? 'MEMPROSES...' : 'PROCESSING...') : 'COMPLETE ORDER'}
                 </button>
-                <div className="flex justify-center mt-4 pb-2">
-                  <button type="button" onClick={() => setIsGuideOpen(true)} className="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-900 transition-colors text-[11px] font-bold uppercase tracking-widest">
-                    <HelpCircle size={14} strokeWidth={2.5} /> {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}
-                  </button>
+
+                {/* Secure Order Verification (Moved below Complete Order button) */}
+                <div className="bg-blue-50 border border-blue-200 rounded-[14px] p-4 flex items-start gap-3 cursor-pointer select-none mt-4" onClick={() => setIsWhatsAppTermsAgreed(!isWhatsAppTermsAgreed)}>
+                  <ShieldCheck size={20} className="text-blue-500 shrink-0 mt-0.5" strokeWidth={1.5} />
+                  <div className="flex-1 pr-2">
+                    <div className="text-blue-500 font-bold text-xs mb-1">Secure Order Verification</div>
+                    <div className="text-blue-700 text-[10px] leading-relaxed">
+                      I understand & agree: After clicking, I will be redirected to WhatsApp with autofilled information. I will not edit the text and click send directly.
+                    </div>
+                  </div>
+                  <div className={cn("w-5 h-5 rounded-[4px] border flex items-center justify-center shrink-0 transition-colors mt-0.5", isWhatsAppTermsAgreed ? "bg-blue-500 border-blue-500 text-[#051124]" : "border-blue-500/40")}>
+                    {isWhatsAppTermsAgreed && <Check size={14} strokeWidth={3} />}
+                  </div>
                 </div>
               </div>
             </div>
@@ -625,8 +618,15 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
                         <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-zinc-900 dark:bg-white rotate-45 rounded-sm" />
                       </div>
                     </label>
-                    <input type="tel" required pattern="^(\+?601|01)[0-9]{8,9}$" title={(t.cart.checkout as any).phoneFormatHint || "Only Malaysia mobile numbers (+60 or 01) are allowed."} className="w-full px-4 sm:px-6 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-[13px] sm:text-base" placeholder={t.cart.checkout.formPhonePlaceholder} value={orderDetails.customerPhone} onChange={(e) => setOrderDetails({ ...orderDetails, customerPhone: e.target.value })} />
+                    <input type="tel" required minLength={10} maxLength={15} pattern="^01[0-9]{8,9}$" title={(t.cart.checkout as any).phoneFormatHint || "Only Malaysia mobile numbers (+60 or 01) are allowed."} className="w-full px-4 sm:px-6 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-[13px] sm:text-base" placeholder={t.cart.checkout.formPhonePlaceholder} value={orderDetails.customerPhone} onChange={(e) => setOrderDetails({ ...orderDetails, customerPhone: e.target.value.replace(/\D/g, '') })} />
                   </div>
+                </div>
+
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary ml-1">
+                    <Mail size={12} className="text-primary" /> Email Address
+                  </label>
+                  <input type="email" required className="w-full px-4 sm:px-6 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-[13px] sm:text-base" placeholder="you@example.com" value={orderDetails.customerEmail || ''} onChange={(e) => setOrderDetails({ ...orderDetails, customerEmail: e.target.value })} />
                 </div>
 
                 {/* Payment Method */}
@@ -743,22 +743,6 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
               </div>
 
               <div className="mt-8 sm:mt-12 flex flex-col gap-3 sm:gap-4">
-                 <motion.div animate={shakeControls} className={cn("border rounded-xl sm:rounded-2xl p-3 sm:p-4 transition-all duration-300 flex items-start gap-3 sm:gap-4 cursor-pointer select-none", isWhatsAppTermsAgreed ? "bg-green-500/5 border-green-500/30 dark:bg-green-500/10" : "bg-blue-500/5 border-blue-500/20 dark:bg-blue-500/10 hover:border-blue-500/40", shakeTerms && "border-red-500 bg-red-500/5 dark:bg-red-500/10")} onClick={() => setIsWhatsAppTermsAgreed(!isWhatsAppTermsAgreed)}>
-                   <div className="flex items-center mt-0.5">
-                     <div className={cn("w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg border-2 flex items-center justify-center transition-all duration-200 shrink-0", isWhatsAppTermsAgreed ? "bg-green-500 border-green-500 text-zinc-900 scale-105 shadow-sm sm:shadow-md shadow-green-500/20" : "border-blue-400 dark:border-blue-500 bg-white dark:bg-zinc-950")}>
-                       {isWhatsAppTermsAgreed && <Check size={12} className="sm:hidden" strokeWidth={4} />}
-                       {isWhatsAppTermsAgreed && <Check size={14} className="hidden sm:block" strokeWidth={4} />}
-                     </div>
-                   </div>
-                   <div className="text-left flex-1">
-                     <p className={cn("text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-0.5 sm:mb-1 transition-colors", isWhatsAppTermsAgreed ? "text-green-500 animate-pulse" : "text-blue-500")}>
-                       {locale === 'zh' ? '安全下单验证' : locale === 'ms' ? 'Pengesahan Pesanan Selamat' : 'Secure Order Verification'}
-                     </p>
-                     <p className={cn("text-[10px] sm:text-[11px] font-bold leading-relaxed transition-colors", isWhatsAppTermsAgreed ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400")}>
-                       {locale === 'zh' ? '我明了并同意：点击后，我将被重定向到 WhatsApp 且内容已自动填好。为避免下单失败，我绝不修改文本，直接点击发送。' : locale === 'ms' ? 'Saya faham & setuju: Selepas klik, saya akan dihalakan ke WhatsApp dengan maklumat yang diisi automatik. Saya tidak akan mengubah mesej dan terus klik hantar.' : 'I understand & agree: After clicking, I will be redirected to WhatsApp with autofilled information. I will not edit the text and click send directly.'}
-                     </p>
-                   </div>
-                 </motion.div>
 
                  <button 
                     type="submit"
@@ -766,6 +750,7 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
                     onClick={(e) => {
                       if (!isWhatsAppTermsAgreed) {
                         e.preventDefault();
+                        setVerificationErrorModalOpen(true);
                         shakeControls.start({ x: [0, -15, 15, -12, 12, -8, 8, -4, 4, 0], y: [0, 8, -8, 6, -6, 4, -4, 2, -2, 0], rotate: [0, -3, 3, -2, 2, -1, 1, 0], transition: { duration: 0.5, ease: "easeInOut" } });
                         setShakeTerms(true);
                         setTimeout(() => setShakeTerms(false), 500);
@@ -785,9 +770,22 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
                     <span className="leading-tight">{isSubmitting ? 'Processing...' : t.cart.checkout.confirmBtn}</span>
                  </button>
 
-                 <div className="flex justify-center mt-3 sm:mt-4 pb-2">
-                   <button type="button" onClick={() => setIsGuideOpen(true)} className="flex items-center gap-1.5 text-zinc-500 hover:text-primary transition-colors text-[10px] sm:text-xs font-black uppercase tracking-widest"><HelpCircle size={14} className="hidden sm:block" strokeWidth={3} /> {locale === 'zh' ? '下单指南' : locale === 'ms' ? 'Panduan Pesanan' : 'Ordering Guide'}</button>
-                 </div>
+                 <motion.div animate={shakeControls} className={cn("border rounded-xl sm:rounded-2xl p-3 sm:p-4 transition-all duration-300 flex items-start gap-3 sm:gap-4 cursor-pointer select-none", isWhatsAppTermsAgreed ? "bg-green-500/5 border-green-500/30 dark:bg-green-500/10" : "bg-blue-500/5 border-blue-500/20 dark:bg-blue-500/10 hover:border-blue-500/40", shakeTerms && "border-red-500 bg-red-500/5 dark:bg-red-500/10")} onClick={() => setIsWhatsAppTermsAgreed(!isWhatsAppTermsAgreed)}>
+                   <div className="flex items-center mt-0.5">
+                     <div className={cn("w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg border-2 flex items-center justify-center transition-all duration-200 shrink-0", isWhatsAppTermsAgreed ? "bg-green-500 border-green-500 text-zinc-900 scale-105 shadow-sm sm:shadow-md shadow-green-500/20" : "border-blue-400 dark:border-blue-500 bg-white dark:bg-zinc-950")}>
+                       {isWhatsAppTermsAgreed && <Check size={12} className="sm:hidden" strokeWidth={4} />}
+                       {isWhatsAppTermsAgreed && <Check size={14} className="hidden sm:block" strokeWidth={4} />}
+                     </div>
+                   </div>
+                   <div className="text-left flex-1">
+                     <p className={cn("text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-0.5 sm:mb-1 transition-colors", isWhatsAppTermsAgreed ? "text-green-500 animate-pulse" : "text-blue-500")}>
+                       {locale === 'zh' ? '安全下单验证' : locale === 'ms' ? 'Pengesahan Pesanan Selamat' : 'Secure Order Verification'}
+                     </p>
+                     <p className={cn("text-[10px] sm:text-[11px] font-bold leading-relaxed transition-colors", isWhatsAppTermsAgreed ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400")}>
+                       {locale === 'zh' ? '我明了并同意：点击后，我将被重定向到 WhatsApp 且内容已自动填好。为避免下单失败，我绝不修改文本，直接点击发送。' : locale === 'ms' ? 'Saya faham & setuju: Selepas klik, saya akan dihalakan ke WhatsApp dengan maklumat yang diisi automatik. Saya tidak akan mengubah mesej dan terus klik hantar.' : 'I understand & agree: After clicking, I will be redirected to WhatsApp with autofilled information. I will not edit the text and click send directly.'}
+                     </p>
+                   </div>
+                 </motion.div>
               </div>
             </div>
           </form>

@@ -1,27 +1,40 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
-import { sendOrderReceiptEmail } from '../../../lib/email';
+import { sendOrderReceiptEmail, sendCustomerOrderReceiptEmail } from '../../../lib/email';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     try {
       const { customerInfo, items, totalAmount, originalAmount, totalDiscount, sellerLevelName, discountPercent, isFreeShipping } = req.body;
-      const { name, phone, address } = customerInfo;
+      const { name, phone, email, address } = customerInfo;
 
-      // 1. Find or create the customer based on phone number
-      const customer = await prisma.customer.upsert({
-        where: { phone: phone },
-        update: {
-          name: name,
-          address: address || undefined,
-        },
-        create: {
-          name: name,
-          phone: phone,
-          address: address || undefined,
-          role: 'Guest',
-        },
-      });
+      // 1. Find or create the customer based on phone number (gracefully handle email unique constraints)
+      let customer;
+      try {
+        customer = await prisma.customer.upsert({
+          where: { phone: phone },
+          update: {
+            name: name,
+            address: address || undefined,
+          },
+          create: {
+            name: name,
+            phone: phone,
+            email: email || undefined,
+            address: address || undefined,
+            role: 'Guest',
+          },
+        });
+      } catch (err: any) {
+        if (err.code === 'P2002') {
+          customer = await prisma.customer.findFirst({
+            where: { OR: [{ phone: phone }, email ? { email: email } : {}] }
+          });
+          if (!customer) throw err;
+        } else {
+          throw err;
+        }
+      }
 
       // 2. Wrap stock deduction and order creation in an interactive transaction
       const order = await prisma.$transaction(async (tx) => {
@@ -99,7 +112,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         sellerLevelName,
         discountPercent,
         isFreeShipping
-      ).catch(console.error);
+      ).catch(err => console.error('Failed to send admin email:', err));
+
+      // 4. Send email receipt to customer
+      if (email) {
+        sendCustomerOrderReceiptEmail(
+          order, 
+          { ...customerInfo, email, role: customer.role }, 
+          enrichedItems, 
+          totalAmount,
+          originalAmount,
+          totalDiscount,
+          sellerLevelName,
+          discountPercent,
+          isFreeShipping
+        ).catch(err => console.error('Failed to send customer email:', err));
+      }
 
       return res.status(201).json(order);
     } catch (error: any) {

@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, ArrowRight, ArrowUp, ChevronLeft, ChevronRight, FileCheck, ShieldCheck, Headphones, Truck } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUp, ChevronLeft, ChevronRight, FileCheck, ShieldCheck, Headphones, Truck, Search, ShoppingCart, CreditCard, PackageCheck, PartyPopper, Star, Zap, Clock, BadgeCheck, ThumbsUp, Sparkles, Heart, Diamond, Users, Award, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 import { useTranslation } from '../hooks/useTranslation';
 import { useBusiness } from '../context/BusinessContext';
 import { cn } from '../utils/cn';
-
+import LightRays from '../components/ui/LightRays';
 // Pre-computed CNY gold spark positions (no Math.random — avoids SSR mismatch)
 const CNY_SPARKS = [
   { bottom: '5%',  left: '8%',  delay: '0s',    dur: '3.2s', size: 8,  color: '#FCD34D' },
@@ -104,6 +104,9 @@ export default function Home() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const autoPlayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
   useEffect(() => {
     if (!isAutoPlaying) return;
     const interval = setInterval(() => {
@@ -127,6 +130,21 @@ export default function Home() {
   const nextHeroSlide = () => handleManualNavigation(() => setCurrentHeroSlide(prev => (prev + 1) % 3));
   const prevHeroSlide = () => handleManualNavigation(() => setCurrentHeroSlide(prev => (prev - 1 + 3) % 3));
   const jumpToSlide = (idx: number) => handleManualNavigation(() => setCurrentHeroSlide(idx));
+
+  const minSwipeDistance = 50;
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+  const onTouchEndHandler = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    if (distance > minSwipeDistance) nextHeroSlide();
+    if (distance < -minSwipeDistance) prevHeroSlide();
+  };
 
   const mapImageSrc = locale === 'zh' ? '/mapzh.png' : locale === 'ms' ? '/mapms.png' : '/map.png';
 
@@ -154,18 +172,23 @@ export default function Home() {
       </Head>
 
       {/* ===== SECTION 1: HERO CAROUSEL ===== */}
-      <section className="relative h-[600px] md:h-[700px] lg:h-[800px] w-full flex overflow-hidden bg-zinc-900 group/slider">
+      <section 
+        className="relative h-[600px] md:h-[700px] lg:h-[800px] w-full flex overflow-hidden bg-zinc-900 group/slider"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEndHandler}
+      >
         
         {/* Navigation Arrows */}
         <button 
           onClick={prevHeroSlide}
-          className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all flex items-center justify-center opacity-0 group-hover/slider:opacity-100"
+          className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all hidden md:flex items-center justify-center opacity-0 group-hover/slider:opacity-100"
         >
           <ChevronLeft size={24} />
         </button>
         <button 
           onClick={nextHeroSlide}
-          className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all flex items-center justify-center opacity-0 group-hover/slider:opacity-100"
+          className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all hidden md:flex items-center justify-center opacity-0 group-hover/slider:opacity-100"
         >
           <ChevronRight size={24} />
         </button>
@@ -257,7 +280,7 @@ export default function Home() {
               onClick={() => jumpToSlide(idx)}
               className={cn(
                 "h-[2.5px] transition-all duration-300",
-                currentHeroSlide === idx ? "w-10 bg-orange-500" : "w-10 bg-white/40 hover:bg-white/70"
+                currentHeroSlide === idx ? "w-10 bg-black" : "w-10 bg-white/40 hover:bg-white/70"
               )}
               aria-label={`Go to slide ${idx + 1}`}
             />
@@ -265,164 +288,287 @@ export default function Home() {
         </div>
       </section>
 
-
-
-      {/* ===== INFO CARDS (Coverage & Safety) - DJI Style ===== */}
-      <section className="bg-white py-8 md:py-12">
-        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-6 md:gap-8">
+      {/* ===== EXPERTISE / CATEGORIES ===== */}
+      <section className="bg-white py-16 md:py-24 overflow-hidden border-b border-zinc-100">
+        <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-8">
           
-          {/* Card 1: Coverage (Text Left, Image Right) */}
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="bg-[#F5F5F7] rounded-[32px] md:rounded-[40px] overflow-hidden flex flex-col md:flex-row h-auto min-h-[60vh] md:h-[75vh] lg:h-[85vh]"
-          >
-            {/* Text Left */}
-            <div className="w-full md:w-[50%] p-8 sm:p-10 md:p-12 lg:p-16 flex flex-col justify-center">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-zinc-900 leading-[1.1] tracking-tight mb-4 md:mb-6 sm:whitespace-nowrap">
-                {t.coverage?.title || 'Our Delivery Coverage.'}
-              </h2>
-              <p className="text-lg md:text-xl text-zinc-600 leading-relaxed font-medium">
-                {t.coverage?.desc || 'We exclusively serve customers only in Bintulu. We bring premium fireworks directly to your local celebrations with reliable, safe delivery.'}
-              </p>
-            </div>
-            
-            {/* Image Right */}
-            <div className="w-full md:w-[50%] relative min-h-[400px] md:min-h-full flex items-center justify-center p-8 md:p-12">
-              <div 
-                onClick={() => setLightboxSrc(mapImageSrc)}
-                className="relative w-full h-full cursor-pointer"
-              >
-                <Image
-                  src={mapImageSrc}
-                  alt={t.coverage?.title || 'Bintulu Map'}
-                  fill
-                  className="object-contain object-center drop-shadow-2xl"
-                  sizes="(max-width: 768px) 100vw, 60vw"
-                />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                  <img 
-                    src={settings?.watermarkUrl || "/transparent-Background.png"} 
-                    className="w-[30%] h-[30%] object-contain opacity-20 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700" 
-                    alt="" 
-                    draggable={false}
-                  />
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Card 2: Safety (Image Left, Text Right) */}
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="bg-[#F5F5F7] rounded-[32px] md:rounded-[40px] overflow-hidden flex flex-col md:flex-row h-auto min-h-[60vh] md:h-[75vh] lg:h-[85vh]"
-          >
-            {/* Image Left (Order 2 on mobile, Order 1 on desktop) */}
-            <div className="w-full md:w-[50%] relative min-h-[400px] md:min-h-full flex items-center justify-center p-8 md:p-12 order-2 md:order-1">
-              <div 
-                onClick={() => setLightboxSrc(locale === 'zh' ? '/safe_guide_zh.png' : '/safe_guide.png')}
-                className="relative w-full h-full cursor-pointer"
-              >
-                <Image
-                  src={locale === 'zh' ? '/safe_guide_zh.png' : '/safe_guide.png'}
-                  alt={t.safety?.title || 'Safety First, Always'}
-                  fill
-                  className="object-contain object-center drop-shadow-2xl"
-                  sizes="(max-width: 768px) 100vw, 60vw"
-                />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                  <img 
-                    src={settings?.watermarkUrl || "/transparent-Background.png"} 
-                    className="w-[30%] h-[30%] object-contain opacity-20 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700" 
-                    alt="" 
-                    draggable={false}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Text Right (Order 1 on mobile, Order 2 on desktop) */}
-            <div className="w-full md:w-[50%] p-8 sm:p-10 md:p-12 lg:p-16 flex flex-col justify-center order-1 md:order-2">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-zinc-900 leading-[1.1] tracking-tight mb-4 md:mb-6 sm:whitespace-nowrap">
-                {t.safety?.title || 'Safety First, Always'}
-              </h2>
-              <p className="text-lg md:text-xl text-zinc-600 leading-relaxed font-medium">
-                {t.safety?.desc || 'We deliver joy, but safety is our promise. All our fireworks are strictly tested and approved, ensuring you can enjoy a spectacular and secure celebration.'}
-              </p>
-            </div>
-          </motion.div>
-
-        </div>
-      </section>
-      {/* ===== SECTION 5: Feature Highlights ===== */}
-      <section className="bg-[#F9F9F9] py-16 md:py-24 transition-colors duration-500">
-        <div className="w-full mx-auto px-6 sm:px-12 md:px-16 lg:px-24">
-          <div className="text-center mb-10 md:mb-16">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-serif text-zinc-900 leading-tight tracking-tight">{t.features?.title || 'What We Guarantee'}</h2>
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-zinc-900 tracking-tight mb-4">
+              {t.home.exploreExpertise}
+            </h2>
+            <p className="text-base sm:text-lg text-zinc-500 max-w-3xl mx-auto leading-relaxed">
+              {t.home.exploreExpertiseDesc}
+            </p>
           </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 md:gap-8 lg:gap-12 text-center">
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
             
-            {/* Feature 1 */}
-            <div className="flex flex-col items-center justify-center w-full mx-auto aspect-square md:aspect-auto p-4 sm:p-6 md:p-8 lg:p-10 bg-white border border-zinc-200 rounded-2xl group transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1.5 cursor-default">
-              <div className="mb-2 md:mb-6 text-zinc-400 md:text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800">
-                <FileCheck strokeWidth={1.5} className="w-10 h-10 md:w-14 md:h-14" />
+            {/* Card 1 */}
+            <div className="group flex flex-col w-full bg-white rounded-none overflow-hidden cursor-default shadow-md hover:shadow-2xl transition-shadow duration-500 border border-zinc-100">
+              {/* Top: Image Section */}
+              <div className="relative w-full h-[380px] sm:h-[460px] lg:h-[500px] overflow-hidden">
+                <Image src="/expertise1.png" alt={t.home.festiveJoy} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-95" />
+                
+                <div className="absolute bottom-0 left-0 w-full p-6 sm:p-8">
+                  <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-3 tracking-wide drop-shadow-md">
+                    {t.home.festiveJoy}
+                  </h3>
+                  <p className="text-[13px] sm:text-[15px] text-zinc-200 leading-relaxed max-w-[300px]">
+                    {t.home.festiveJoyDesc}
+                  </p>
+                </div>
               </div>
-              <h3 className="text-[13px] sm:text-sm md:text-[17px] font-bold text-zinc-900 mb-1 md:mb-3 tracking-tight leading-tight">
-                {t.features?.licensed || 'Fully Licensed'}
-              </h3>
-              <p className="text-[11px] sm:text-xs md:text-[15px] text-zinc-500 leading-tight md:leading-relaxed max-w-[160px] md:max-w-[260px]">
-                {t.features?.licensedDesc || '100% legal & certified'}
-              </p>
+
+              {/* Bottom: 3 Features (Black & White) */}
+              <div className="grid grid-cols-3 gap-4 p-6 sm:p-12 bg-white">
+                <div className="flex flex-col items-center text-center">
+                  <ShieldCheck className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
+                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c1f1Title}</h4>
+                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c1f1Desc}</p>
+                </div>
+                <div className="flex flex-col items-center text-center">
+                  <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
+                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c1f2Title}</h4>
+                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c1f2Desc}</p>
+                </div>
+                <div className="flex flex-col items-center text-center">
+                  <Heart className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
+                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c1f3Title}</h4>
+                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c1f3Desc}</p>
+                </div>
+              </div>
             </div>
 
-            {/* Feature 2 */}
-            <div className="flex flex-col items-center justify-center w-full mx-auto aspect-square md:aspect-auto p-4 sm:p-6 md:p-8 lg:p-10 bg-white border border-zinc-200 rounded-2xl group transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1.5 cursor-default">
-              <div className="mb-2 md:mb-6 text-zinc-400 md:text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800">
-                <ShieldCheck strokeWidth={1.5} className="w-10 h-10 md:w-14 md:h-14" />
+            {/* Card 2 */}
+            <div className="group flex flex-col w-full bg-white rounded-none overflow-hidden cursor-default shadow-md hover:shadow-2xl transition-shadow duration-500 border border-zinc-100">
+              {/* Top: Image Section */}
+              <div className="relative w-full h-[380px] sm:h-[460px] lg:h-[500px] overflow-hidden">
+                <Image src="/expertise2.png" alt={t.home.professionalEvent} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-95" />
+                
+                <div className="absolute bottom-0 left-0 w-full p-6 sm:p-8">
+                  <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-3 tracking-wide drop-shadow-md">
+                    {t.home.professionalEvent}
+                  </h3>
+                  <p className="text-[13px] sm:text-[15px] text-zinc-200 leading-relaxed max-w-[300px]">
+                    {t.home.professionalEventDesc}
+                  </p>
+                </div>
               </div>
-              <h3 className="text-[13px] sm:text-sm md:text-[17px] font-bold text-zinc-900 mb-1 md:mb-3 tracking-tight leading-tight">
-                {t.features?.safety || 'Safety Approved'}
-              </h3>
-              <p className="text-[11px] sm:text-xs md:text-[15px] text-zinc-500 leading-tight md:leading-relaxed max-w-[160px] md:max-w-[260px]">
-                {t.features?.safetyDesc || 'Tested & secure'}
-              </p>
+
+              {/* Bottom: 3 Features (Black & White) */}
+              <div className="grid grid-cols-3 gap-4 p-6 sm:p-12 bg-white">
+                <div className="flex flex-col items-center text-center">
+                  <Diamond className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
+                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c2f1Title}</h4>
+                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c2f1Desc}</p>
+                </div>
+                <div className="flex flex-col items-center text-center">
+                  <Users className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
+                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c2f2Title}</h4>
+                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c2f2Desc}</p>
+                </div>
+                <div className="flex flex-col items-center text-center">
+                  <Award className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
+                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c2f3Title}</h4>
+                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c2f3Desc}</p>
+                </div>
+              </div>
             </div>
 
-            {/* Feature 3 */}
-            <div className="flex flex-col items-center justify-center w-full mx-auto aspect-square md:aspect-auto p-4 sm:p-6 md:p-8 lg:p-10 bg-white border border-zinc-200 rounded-2xl group transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1.5 cursor-default">
-              <div className="mb-2 md:mb-6 text-zinc-400 md:text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800">
-                <Headphones strokeWidth={1.5} className="w-10 h-10 md:w-14 md:h-14" />
+            {/* Card 3 */}
+            <div className="group flex flex-col w-full bg-white rounded-none overflow-hidden cursor-default shadow-md hover:shadow-2xl transition-shadow duration-500 border border-zinc-100">
+              {/* Top: Image Section */}
+              <div className="relative w-full h-[380px] sm:h-[460px] lg:h-[500px] overflow-hidden">
+                <Image src="/expertise3.png" alt={t.home.fastDelivery} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-95" />
+                
+                <div className="absolute bottom-0 left-0 w-full p-6 sm:p-8">
+                  <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-3 tracking-wide drop-shadow-md">
+                    {t.home.fastDelivery}
+                  </h3>
+                  <p className="text-[13px] sm:text-[15px] text-zinc-200 leading-relaxed max-w-[300px]">
+                    {t.home.fastDeliveryDesc}
+                  </p>
+                </div>
               </div>
-              <h3 className="text-[13px] sm:text-sm md:text-[17px] font-bold text-zinc-900 mb-1 md:mb-3 tracking-tight leading-tight">
-                {t.features?.support || 'Expert Support'}
-              </h3>
-              <p className="text-[11px] sm:text-xs md:text-[15px] text-zinc-500 leading-tight md:leading-relaxed max-w-[160px] md:max-w-[260px]">
-                {t.features?.supportDesc || 'Always here to help'}
-              </p>
-            </div>
 
-            {/* Feature 4 */}
-            <div className="flex flex-col items-center justify-center w-full mx-auto aspect-square md:aspect-auto p-4 sm:p-6 md:p-8 lg:p-10 bg-white border border-zinc-200 rounded-2xl group transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1.5 cursor-default">
-              <div className="mb-2 md:mb-6 text-zinc-400 md:text-zinc-500 transition-colors duration-300 group-hover:text-zinc-800">
-                <Truck strokeWidth={1.5} className="w-10 h-10 md:w-14 md:h-14" />
+              {/* Bottom: 3 Features (Black & White) */}
+              <div className="grid grid-cols-3 gap-4 p-6 sm:p-12 bg-white">
+                <div className="flex flex-col items-center text-center">
+                  <ShieldCheck className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
+                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c3f1Title}</h4>
+                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c3f1Desc}</p>
+                </div>
+                <div className="flex flex-col items-center text-center">
+                  <Clock className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
+                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c3f2Title}</h4>
+                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c3f2Desc}</p>
+                </div>
+                <div className="flex flex-col items-center text-center">
+                  <MapPin className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
+                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c3f3Title}</h4>
+                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c3f3Desc}</p>
+                </div>
               </div>
-              <h3 className="text-[13px] sm:text-sm md:text-[17px] font-bold text-zinc-900 mb-1 md:mb-3 tracking-tight leading-tight">
-                {t.features?.fastDelivery || 'Fast Delivery'}
-              </h3>
-              <p className="text-[11px] sm:text-xs md:text-[15px] text-zinc-500 leading-tight md:leading-relaxed max-w-[160px] md:max-w-[260px]">
-                {t.features?.fastDeliveryDesc || 'Nationwide secure shipping'}
-              </p>
             </div>
 
           </div>
         </div>
       </section>
+
+      {/* ===== HOW IT WORKS ===== */}
+      <section className="bg-white py-20 md:py-28 overflow-hidden border-t border-zinc-100 relative">
+        <div className="absolute inset-0 pointer-events-none opacity-30 z-0 mix-blend-multiply">
+          <LightRays
+            raysOrigin="top-center"
+            raysColor="#a1a1aa" 
+            raysSpeed={0.8}
+            lightSpread={1.2}
+            rayLength={1.5}
+            followMouse={true}
+            mouseInfluence={0.1}
+            noiseAmount={0.05}
+            distortion={0.03}
+          />
+        </div>
+        <div className="w-full max-w-7xl mx-auto px-6 sm:px-10 md:px-16 relative z-10">
+
+          {/* Section Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="text-center mb-16 md:mb-20"
+          >
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-zinc-900 leading-tight tracking-tight mb-4">
+              {t.home.howItWorks}
+            </h2>
+            <p className="text-lg text-zinc-500 max-w-xl mx-auto leading-relaxed">
+              {t.home.howItWorksDesc}
+            </p>
+          </motion.div>
+
+          {/* Horizontal Steps */}
+          <div className="relative">
+            {/* Background track */}
+            <div className="hidden lg:block absolute top-[52px] left-[10%] right-[10%] h-[2px] bg-zinc-100 rounded-full" />
+            {/* Animated fill line */}
+            <motion.div
+              className="hidden lg:block absolute top-[52px] left-[10%] h-[2px] rounded-full bg-zinc-900"
+              style={{ right: '10%' }}
+              initial={{ scaleX: 0, originX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+            />
+
+            {/* Steps row */}
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-10 lg:gap-6">
+              {[
+                {
+                  step: "01",
+                  icon: <Search className="w-7 h-7" />,
+                  title: t.home.step1Title,
+                  desc: t.home.step1Desc,
+                  delay: 0,
+                },
+                {
+                  step: "02",
+                  icon: <ShoppingCart className="w-7 h-7" />,
+                  title: t.home.step2Title,
+                  desc: t.home.step2Desc,
+                  delay: 0.12,
+                },
+                {
+                  step: "03",
+                  icon: <FileCheck className="w-7 h-7" />,
+                  title: t.home.step3Title,
+                  desc: t.home.step3Desc,
+                  delay: 0.24,
+                },
+                {
+                  step: "04",
+                  icon: <CreditCard className="w-7 h-7" />,
+                  title: t.home.step4Title,
+                  desc: t.home.step4Desc,
+                  delay: 0.36,
+                },
+                {
+                  step: "05",
+                  icon: <PartyPopper className="w-7 h-7" />,
+                  title: t.home.step5Title,
+                  desc: t.home.step5Desc,
+                  delay: 0.48,
+                },
+              ].map((step, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 36 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-30px" }}
+                  transition={{ duration: 0.55, delay: step.delay, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex flex-col items-center text-center group"
+                >
+                  {/* Circle node wrapper */}
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    whileInView={{ scale: 1, opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ type: "spring", stiffness: 260, damping: 18, delay: step.delay + 0.18 }}
+                    whileHover={{ y: -6 }}
+                    className="relative w-[112px] h-[112px] flex items-center justify-center mb-6 z-10 cursor-default"
+                  >
+                    {/* Outer animated ring */}
+                    <motion.div 
+                      className="absolute inset-0 rounded-full border-[1.5px] border-zinc-200"
+                      initial={{ scale: 1, borderColor: "#e4e4e7" }}
+                      whileHover={{ scale: 1.08, borderColor: "#18181b" }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                    />
+                    
+                    {/* Core Solid Circle */}
+                    <motion.div 
+                      className="relative w-[76px] h-[76px] rounded-full bg-zinc-900 flex items-center justify-center text-white shadow-xl z-10"
+                      whileHover={{ scale: 1.06 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                      style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
+                    >
+                      <motion.div whileHover={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 0.5 }}>
+                        {step.icon}
+                      </motion.div>
+                    </motion.div>
+
+                    {/* Step badge */}
+                    <span className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-white border-2 border-zinc-200 text-zinc-900 text-[12px] font-black flex items-center justify-center shadow-sm z-20 group-hover:bg-zinc-900 group-hover:text-white group-hover:border-zinc-900 transition-colors duration-300">
+                      {step.step}
+                    </span>
+                  </motion.div>
+
+                  <h3 className="text-[15px] sm:text-base font-bold text-zinc-900 mb-1.5 leading-snug group-hover:text-black transition-colors">{step.title}</h3>
+                  <p className="text-[12px] sm:text-[13px] text-zinc-500 leading-relaxed max-w-[140px] group-hover:text-zinc-700 transition-colors">{step.desc}</p>
+
+                  {/* Mobile connector arrow */}
+                  {i < 4 && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: step.delay + 0.4 }}
+                      className="sm:hidden mt-5 text-zinc-300 text-2xl"
+                    >
+                      ↓
+                    </motion.div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
 
       {/* ===== LIGHTBOX MODAL ===== */}
       {lightboxSrc && (
@@ -430,7 +576,6 @@ export default function Home() {
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 sm:p-8"
           onClick={() => setLightboxSrc(null)}
         >
-          {/* Close button */}
           <button
             onClick={() => setLightboxSrc(null)}
             className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-white transition-all duration-200 z-10"
@@ -438,8 +583,6 @@ export default function Home() {
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
-
-          {/* Image container — stop click propagation so clicking image doesn't close */}
           <div
             className="relative w-full max-w-6xl rounded-3xl overflow-hidden shadow-2xl"
             onClick={(e) => e.stopPropagation()}
@@ -452,26 +595,21 @@ export default function Home() {
               className="w-full h-auto object-contain"
               priority
             />
-
-            {/* Centered Watermark Overlay */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-              <img 
-                src={settings?.watermarkUrl || "/transparent-Background.png"} 
-                className="w-[30%] h-[30%] object-contain opacity-30 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700" 
-                alt="" 
+              <img
+                src={settings?.watermarkUrl || "/transparent-Background.png"}
+                className="w-[30%] h-[30%] object-contain opacity-30 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700"
+                alt=""
                 draggable={false}
               />
             </div>
           </div>
-
-          {/* ESC hint */}
           <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white/40 font-medium">
             {t.coverage?.escHint || 'Click anywhere outside to close'}
           </p>
         </div>
       )}
 
-      {/* Removed old floating scroll to top button */}
     </>
   );
 }

@@ -5,6 +5,7 @@ const WHATSAPP_NUMBER = '601112269835';
 export interface OrderDetails {
   customerName: string;
   customerPhone: string;
+  customerEmail?: string;
   paymentMethod: string;
   deliveryMode: string;
   address?: string;

@@ -54,6 +54,7 @@ export function Footer() {
     { href: '/shop',      label: t.nav.shopAll || 'Shop All' },
     { href: '/about',     label: t.nav.aboutUs || 'About Us' },
     { href: '/contact',   label: t.nav.contact || 'Contact Us' },
+    { href: '/safety-guide', label: t.nav.safetyGuide || 'Safety Guide' },
   ];
 
   const currentLocale = router.locale || router.defaultLocale || 'en';
@@ -66,10 +67,10 @@ export function Footer() {
   return (
     <footer className="bg-zinc-50 text-zinc-500 mt-auto border-t border-zinc-200">
       {/* Main footer grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 md:py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 md:py-16 md:pb-16">
         
         {/* ===== MOBILE ACCORDION FOOTER ===== */}
-        <div className="md:hidden flex flex-col divide-y divide-zinc-200 border-b border-zinc-200 pb-2 mb-6">
+        <div className="md:hidden flex flex-col divide-y divide-zinc-200">
           
           {/* Back to Top */}
           <div className="pb-4 pt-0 flex justify-center">
@@ -164,13 +165,13 @@ export function Footer() {
                 <li>
                   <div className="flex flex-col">
                     <span className="mb-1 text-[13px] text-zinc-500">{t.footer?.email || 'E-mail'}</span>
-                    <span className="text-zinc-800 dark:text-white text-[14px] font-medium">{EMAIL}</span>
+                    <span className="text-zinc-800 text-[14px] font-medium">{EMAIL}</span>
                   </div>
                 </li>
                 <li>
                   <div className="flex flex-col mt-2">
                     <span className="mb-1 text-[13px] text-zinc-500">{t.footer?.callUs || 'Call us'}</span>
-                    <span className="text-zinc-800 dark:text-white text-[14px] font-medium">{DISPLAY_NUMBER}</span>
+                    <span className="text-zinc-800 text-[14px] font-medium">{DISPLAY_NUMBER}</span>
                   </div>
                 </li>
               </ul>
@@ -191,35 +192,59 @@ export function Footer() {
               />
             </button>
             {expanded === 'follow' && (
-              <ul className="pb-5 space-y-4">
+              <div className="pb-5 space-y-4">
                 {settings?.facebook && (
-                  <li>
-                    <div className="flex flex-col">
-                      <span className="mb-1 text-[13px] text-zinc-500">Facebook</span>
-                      <span className="text-zinc-800 dark:text-white text-[14px] font-medium">{settings.facebook}</span>
+                  <a
+                    href={settings.facebook.startsWith('http') ? settings.facebook : `https://facebook.com/${settings.facebook}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 group"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-zinc-200 group-hover:bg-zinc-300 flex items-center justify-center transition-colors text-zinc-700 shrink-0">
+                      <FacebookIcon />
                     </div>
-                  </li>
+                    <div className="flex flex-col">
+                      <span className="text-[13px] text-zinc-500">Facebook</span>
+                      <span className="text-zinc-800 text-[14px] font-medium">{settings.facebook}</span>
+                    </div>
+                  </a>
                 )}
                 {settings?.instagram && (
-                  <li>
-                    <div className="flex flex-col mt-1">
-                      <span className="mb-1 text-[13px] text-zinc-500">Instagram</span>
-                      <span className="text-zinc-800 dark:text-white text-[14px] font-medium">{settings.instagram}</span>
+                  <a
+                    href={settings.instagram.startsWith('http') ? settings.instagram : `https://instagram.com/${settings.instagram.replace('@', '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 group"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-zinc-200 group-hover:bg-zinc-300 flex items-center justify-center transition-colors text-zinc-700 shrink-0">
+                      <InstagramIcon />
                     </div>
-                  </li>
+                    <div className="flex flex-col">
+                      <span className="text-[13px] text-zinc-500">Instagram</span>
+                      <span className="text-zinc-800 text-[14px] font-medium">{settings.instagram}</span>
+                    </div>
+                  </a>
                 )}
                 {settings?.tiktok && (
-                  <li>
-                    <div className="flex flex-col mt-1">
-                      <span className="mb-1 text-[13px] text-zinc-500">TikTok</span>
-                      <span className="text-zinc-800 dark:text-white text-[14px] font-medium">{settings.tiktok}</span>
+                  <a
+                    href={settings.tiktok.startsWith('http') ? settings.tiktok : `https://tiktok.com/@${settings.tiktok.replace('@', '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 group"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-zinc-200 group-hover:bg-zinc-300 flex items-center justify-center transition-colors text-zinc-700 shrink-0">
+                      <TikTokIcon />
                     </div>
-                  </li>
+                    <div className="flex flex-col">
+                      <span className="text-[13px] text-zinc-500">TikTok</span>
+                      <span className="text-zinc-800 text-[14px] font-medium">{settings.tiktok}</span>
+                    </div>
+                  </a>
                 )}
                 {(!settings?.facebook && !settings?.instagram && !settings?.tiktok) && (
-                  <li><span className="text-zinc-500 text-[14px]">No social accounts linked.</span></li>
+                  <span className="text-zinc-500 text-[14px]">No social accounts linked.</span>
                 )}
-              </ul>
+              </div>
             )}
           </div>
 
@@ -353,22 +378,19 @@ export function Footer() {
               )}
             </div>
 
-            <div className="pt-4">
-              <h4 className="text-zinc-900 font-bold text-sm mb-3">{t.footer?.instantAccess || 'Instant Access'}</h4>
-              <div className="p-4 border border-zinc-200 rounded-xl bg-zinc-100 max-w-sm flex items-center gap-5 hover:bg-zinc-150 transition-colors">
-                <div className="p-2 bg-white rounded-xl shrink-0">
-                  <QRCodeCanvas 
-                    value={siteUrl}
-                    size={75}
-                    level="L"
-                    includeMargin={false}
-                  />
-                </div>
-                <div className="flex flex-col justify-center">
-                  <span className="text-zinc-900 font-bold text-base mb-1.5">{t.footer?.visitWebsite || 'Visit Website'}</span>
-                  <span className="text-xs leading-relaxed text-zinc-500">{t.footer?.scanQrCode || 'Scan this QR code with your phone to quickly access our store anytime.'}</span>
-                </div>
+            <div className="pt-4 flex flex-col items-start">
+              <h4 className="text-zinc-900 font-bold text-base mb-4">{t.footer?.visitWebsite || 'Visit Website'}</h4>
+              <div className="p-2 bg-white border border-zinc-200 rounded-xl mb-3 shadow-sm inline-block">
+                <QRCodeCanvas 
+                  value={siteUrl}
+                  size={100}
+                  level="L"
+                  includeMargin={false}
+                />
               </div>
+              <p className="text-xs leading-relaxed text-zinc-500 max-w-[220px]">
+                {t.footer?.scanQrCode || 'Scan this QR code with your phone to quickly access our store anytime.'}
+              </p>
             </div>
           </div>
 
@@ -378,7 +400,7 @@ export function Footer() {
       {/* ---- Bottom Bar ---- */}
       <div className="bg-zinc-50 border-t border-zinc-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="pt-6 pb-12 md:pb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 md:border-t md:border-zinc-100">
+          <div className="pt-4 pb-12 md:pt-6 md:pb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 md:border-t md:border-zinc-100">
             <div className="flex flex-col gap-1.5">
               <p className="text-zinc-800 font-medium text-sm">
                 {t.footer?.copyright ? `${t.footer.copyright} \u00A9 ${new Date().getFullYear()} ${businessName}. ${t.footer.allRightsReserved}` : `Copyright \u00A9 ${new Date().getFullYear()} ${businessName}. All Rights Reserved.`}
