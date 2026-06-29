@@ -5,7 +5,7 @@ import { useBusiness } from '../context/BusinessContext';
 import { SharedCheckoutModal } from '../components/checkout/SharedCheckoutModal';
 import { InlineCheckoutDetails } from '../components/checkout/InlineCheckoutDetails';
 import { OrderComplete } from '../components/checkout/OrderComplete';
-import { Trash2, Plus, Minus, ChevronUp, ChevronDown, CheckSquare, Square, ArrowRight, MessageCircle, Shield, X, MapPin, CreditCard, User, Phone, Check, Zap, HelpCircle, Upload, ExternalLink, AlertTriangle, ShoppingCart } from 'lucide-react';
+import { Trash2, Plus, Minus, ChevronUp, ChevronDown, CheckSquare, Square, ArrowRight, MessageCircle, Shield, X, MapPin, CreditCard, User, Phone, Check, Zap, HelpCircle, Upload, ExternalLink, AlertTriangle, ShoppingCart, Receipt } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { cn } from '../utils/cn';
@@ -199,23 +199,23 @@ export default function Cart() {
           
           {!isLoggedIn ? (
             <>
-              <p className="text-zinc-500 mb-8 sm:mb-10 text-sm sm:text-base leading-relaxed">
+              <p className="text-zinc-500 mb-8 sm:mb-10 text-[15px] sm:text-base leading-relaxed px-2">
                 {locale === 'zh' 
                   ? `登录您的 ${settings?.businessName || 'Cheng-BOOM'} 帐户以查看您保存的商品或继续购物` 
                   : locale === 'ms'
                   ? `Log masuk ke akaun ${settings?.businessName || 'Cheng-BOOM'} anda untuk melihat item anda yang disimpan atau teruskan membeli-belah`
                   : `Sign in to your ${settings?.businessName || 'Cheng-BOOM'} account to view your saved items or continue shopping`}
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
+              <div className="flex flex-row items-center justify-center gap-3 sm:gap-4 w-full px-2">
                 <Link 
                   href="/shop" 
-                  className="w-full sm:w-auto px-8 py-3.5 bg-zinc-100 text-zinc-600 rounded-full font-bold hover:bg-zinc-200 transition-colors inline-flex items-center justify-center gap-2"
+                  className="flex-1 sm:flex-none sm:w-auto px-2 sm:px-8 py-3.5 bg-zinc-100 text-zinc-600 rounded-full font-bold hover:bg-zinc-200 transition-colors inline-flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap"
                 >
                   {locale === 'zh' ? '继续购物' : locale === 'ms' ? 'Teruskan Membeli-belah' : 'Continue shopping'} <ArrowRight size={18} className="hidden sm:block" />
                 </Link>
                 <Link 
                   href="/login" 
-                  className="w-full sm:w-auto px-8 py-3.5 bg-white border border-zinc-200 text-zinc-900 rounded-full font-bold hover:bg-zinc-50 transition-colors text-center shadow-sm"
+                  className="flex-1 sm:flex-none sm:w-auto px-2 sm:px-8 py-3.5 bg-white border border-zinc-200 text-zinc-900 rounded-full font-bold hover:bg-zinc-50 transition-colors text-center shadow-sm text-sm sm:text-base whitespace-nowrap"
                 >
                   {locale === 'zh' ? '登录' : locale === 'ms' ? 'Log Masuk' : 'Sign in'}
                 </Link>
@@ -223,10 +223,10 @@ export default function Cart() {
             </>
           ) : (
             <>
-              <p className="text-zinc-500 dark:text-zinc-400 mb-8 sm:mb-10 text-sm sm:text-base px-4">{t.cart.emptyDesc}</p>
+              <p className="text-zinc-500 dark:text-zinc-400 mb-8 sm:mb-10 text-[15px] sm:text-base px-4">{t.cart.emptyDesc}</p>
               <Link 
                 href="/shop" 
-                className="w-full sm:w-auto max-w-xs mx-auto px-6 sm:px-8 py-3.5 sm:py-3 bg-white text-black border border-zinc-200 rounded-full font-bold hover:bg-zinc-50 transition-all inline-flex items-center justify-center gap-2 shadow-sm"
+                className="w-full sm:w-auto max-w-xs mx-auto px-6 sm:px-8 py-3.5 bg-white text-black border border-zinc-200 rounded-full font-bold hover:bg-zinc-50 transition-all inline-flex items-center justify-center gap-2 shadow-sm text-[15px] sm:text-base"
               >
                 {t.cart.startShopping || 'Continue shopping'} <ArrowRight size={18} />
               </Link>
@@ -245,34 +245,49 @@ export default function Cart() {
       <Head>
         <title>{`${t.cart.title} - Cheng-BOOM`}</title>
       </Head>
-      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
-        <div className="flex flex-col items-center justify-center mb-10 sm:mb-16">
-          <h1 className="text-[32px] sm:text-[40px] font-medium text-zinc-900 tracking-tight mb-8 sm:mb-12">
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 relative">
+        <div className="flex flex-col items-center justify-center mb-6 sm:mb-10 w-full">
+          <h1 className="text-[24px] sm:text-[40px] font-medium text-zinc-900 tracking-tight mb-5 sm:mb-12">
             {locale === 'zh' ? '您的购物车' : locale === 'ms' ? 'Troli Beli-belah Anda' : 'Your Shopping Cart'}
           </h1>
           
-          <div className="flex items-center gap-4 sm:gap-12 overflow-x-auto w-full justify-start sm:justify-center px-4 sm:px-0 scrollbar-hide">
+          <div className="relative flex items-start justify-between w-full max-w-[320px] sm:max-w-md mx-auto px-1 sm:px-4 z-10 mt-2 mb-8">
+            {/* Background Line */}
+            <div className="absolute left-[15%] right-[15%] top-[20px] sm:top-[24px] h-[2px] bg-zinc-200 -z-10 rounded-full"></div>
+
             {/* Step 1 */}
-            <div className={`flex items-center gap-2 sm:gap-3 px-2 shrink-0 transition-all ${checkoutStep >= 1 ? 'border-b-2 border-zinc-900 pb-3 sm:pb-4' : 'opacity-50 pb-3 sm:pb-4'}`}>
-              <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold ${checkoutStep >= 1 ? 'bg-zinc-900 text-white' : 'bg-zinc-400 text-white'}`}>1</div>
-              <span className={`text-[13px] sm:text-[15px] font-bold whitespace-nowrap ${checkoutStep >= 1 ? 'text-zinc-900' : 'text-zinc-500'}`}>
-                {locale === 'zh' ? '购物车' : locale === 'ms' ? 'Troli Beli-belah' : 'Shopping cart'}
+            <div className="flex flex-col items-center gap-2 z-10 w-20 sm:w-24">
+              <div className="flex items-center justify-center bg-white px-2 sm:px-4 transition-all duration-500">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-[14px] flex items-center justify-center transition-all duration-500 ${checkoutStep >= 1 ? 'bg-orange-50 text-orange-500 shadow-sm' : 'bg-zinc-50 text-zinc-400'}`}>
+                  <Receipt size={20} strokeWidth={2.5} />
+                </div>
+              </div>
+              <span className={`text-[10px] sm:text-[12px] font-bold text-center whitespace-nowrap transition-colors duration-500 ${checkoutStep >= 1 ? 'text-zinc-900' : 'text-zinc-400'}`}>
+                {locale === 'zh' ? '购物车' : locale === 'ms' ? 'Troli' : 'Cart'}
               </span>
             </div>
             
             {/* Step 2 */}
-            <div className={`flex items-center gap-2 sm:gap-3 px-2 shrink-0 transition-all ${checkoutStep >= 2 ? 'border-b-2 border-zinc-900 pb-3 sm:pb-4' : 'opacity-50 pb-3 sm:pb-4'}`}>
-              <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold ${checkoutStep >= 2 ? 'bg-zinc-900 text-white' : 'bg-zinc-400 text-white'}`}>2</div>
-              <span className={`text-[13px] sm:text-[15px] font-bold whitespace-nowrap ${checkoutStep >= 2 ? 'text-zinc-900' : 'text-zinc-500'}`}>
-                {locale === 'zh' ? '结账详情' : locale === 'ms' ? 'Butiran Pembayaran' : 'Checkout details'}
+            <div className="flex flex-col items-center gap-2 z-10 w-20 sm:w-24">
+              <div className="flex items-center justify-center bg-white px-2 sm:px-4 transition-all duration-500">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-[14px] flex items-center justify-center transition-all duration-500 ${checkoutStep >= 2 ? 'bg-orange-50 text-orange-500 shadow-sm' : 'bg-zinc-50 text-zinc-700'}`}>
+                  <CreditCard size={20} strokeWidth={2.5} />
+                </div>
+              </div>
+              <span className={`text-[10px] sm:text-[12px] font-bold text-center whitespace-nowrap transition-colors duration-500 ${checkoutStep >= 2 ? 'text-zinc-900' : 'text-zinc-400'}`}>
+                {locale === 'zh' ? '结账' : locale === 'ms' ? 'Bayar' : 'Checkout'}
               </span>
             </div>
             
             {/* Step 3 */}
-            <div className={`flex items-center gap-2 sm:gap-3 px-2 shrink-0 transition-all ${checkoutStep >= 3 ? 'border-b-2 border-zinc-900 pb-3 sm:pb-4' : 'opacity-50 pb-3 sm:pb-4'}`}>
-              <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold ${checkoutStep >= 3 ? 'bg-zinc-900 text-white' : 'bg-zinc-400 text-white'}`}>3</div>
-              <span className={`text-[13px] sm:text-[15px] font-bold whitespace-nowrap ${checkoutStep >= 3 ? 'text-zinc-900' : 'text-zinc-500'}`}>
-                {locale === 'zh' ? '完成订单' : locale === 'ms' ? 'Pesanan Selesai' : 'Order complete'}
+            <div className="flex flex-col items-center gap-2 z-10 w-20 sm:w-24">
+              <div className="flex items-center justify-center bg-white px-2 sm:px-4 transition-all duration-500">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-[14px] flex items-center justify-center transition-all duration-500 ${checkoutStep >= 3 ? 'bg-orange-50 text-orange-500 shadow-sm' : 'bg-zinc-50 text-zinc-700'}`}>
+                  <Check size={20} strokeWidth={3} />
+                </div>
+              </div>
+              <span className={`text-[10px] sm:text-[12px] font-bold text-center whitespace-nowrap transition-colors duration-500 ${checkoutStep >= 3 ? 'text-zinc-900' : 'text-zinc-400'}`}>
+                {locale === 'zh' ? '完成' : locale === 'ms' ? 'Selesai' : 'Done'}
               </span>
             </div>
           </div>
@@ -281,39 +296,44 @@ export default function Cart() {
         {/* Step 1: Cart Items */}
         {checkoutStep === 1 && (
           <>
-          <div className="w-full max-w-6xl mx-auto flex flex-col gap-6">
+          <div className="w-full max-w-6xl mx-auto flex flex-col gap-5 sm:gap-6">
           
-          {/* Top Bar: Select All & Delete */}
-          <div className="bg-white border-double border-[6px] border-zinc-200/60 rounded-[32px] p-4 px-6 flex items-center justify-between shadow-sm">
-            <button 
-              onClick={toggleAllSelection} 
-              className="flex items-center gap-3 text-zinc-900 font-medium hover:opacity-80 transition-opacity focus:outline-none px-2"
-            >
-              <div className="text-zinc-400 hover:text-zinc-900 transition-colors">
-                {selectedItemIds.length === items.length && items.length > 0 ? (
-                  <CheckSquare size={20} className="text-zinc-900" />
-                ) : (
-                  <Square size={20} />
-                )}
+
+
+          {/* Bulk actions (Desktop Only) */}
+          {items.length > 0 && (
+            <div className="hidden md:flex items-center justify-between bg-white border-double border-[4px] sm:border-[6px] border-zinc-200/60 rounded-[24px] sm:rounded-[40px] p-4 sm:px-6 shadow-sm mb-4">
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={toggleAllSelection}
+                  className="flex items-center gap-2 text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-none"
+                >
+                  {selectedItemIds.length === items.length && items.length > 0 ? (
+                    <CheckSquare size={20} className="text-zinc-900" />
+                  ) : (
+                    <Square size={20} />
+                  )}
+                  <span className="text-[14px] font-bold">
+                    {locale === 'zh' ? '全选' : locale === 'ms' ? 'Pilih Semua' : 'Select All'}
+                  </span>
+                </button>
+                <span className="text-xs text-zinc-400 font-medium ml-2">
+                  ({selectedItemIds.length} {locale === 'zh' ? '已选' : locale === 'ms' ? 'terpilih' : 'selected'})
+                </span>
               </div>
-              <span className="text-sm">{locale === 'zh' ? '全选' : locale === 'ms' ? 'Pilih Semua' : 'Select All'}</span>
-            </button>
-            
-            <button 
-              onClick={() => setIsBulkDeleteModalOpen(true)}
-              disabled={selectedItemIds.length === 0}
-              className={`py-2 px-6 rounded-full text-sm font-bold transition-all shadow-sm ${
-                selectedItemIds.length > 0 
-                  ? 'bg-zinc-900 text-white hover:bg-zinc-800' 
-                  : 'bg-zinc-100 text-zinc-400 cursor-not-allowed shadow-none'
-              }`}
-            >
-              {locale === 'zh' ? '删除' : locale === 'ms' ? 'Padam' : 'Delete'}
-            </button>
-          </div>
+              <button 
+                onClick={() => selectedItemIds.length > 0 && setIsBulkDeleteModalOpen(true)}
+                disabled={selectedItemIds.length === 0}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed bg-red-50 text-red-500 hover:bg-red-100"
+              >
+                <Trash2 size={16} />
+                {locale === 'zh' ? '删除' : locale === 'ms' ? 'Padam' : 'Delete Selected'}
+              </button>
+            </div>
+          )}
 
           {/* Cart Items List */}
-          <div className="bg-white border-double border-[6px] border-zinc-200/60 rounded-[40px] p-3 sm:p-5 shadow-sm flex flex-col mb-10">
+          <div className="bg-white border-double border-[4px] sm:border-[6px] border-zinc-200/60 rounded-[24px] sm:rounded-[40px] p-2 sm:p-5 shadow-sm flex flex-col mb-10">
             {items.map((item, index) => (
               <div 
                 key={item.cartItemId} 
@@ -322,7 +342,7 @@ export default function Cart() {
                 }`}
               >
                 {/* Item Checkbox */}
-                <div className="flex justify-center shrink-0 mt-8 sm:mt-10">
+                <div className="hidden md:flex justify-center shrink-0 mt-8 sm:mt-10">
                   <button 
                     onClick={() => toggleItemSelection(item.cartItemId)}
                     className="text-zinc-400 hover:text-zinc-900 transition-colors focus:outline-none"
@@ -336,16 +356,16 @@ export default function Cart() {
                 </div>
 
                 {/* Item Image Container */}
-                <Link href={`/shop/${item.id}?from=cart`} className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-zinc-100 overflow-hidden shrink-0 flex items-center justify-center p-2 hover:opacity-90 transition-opacity">
+                <Link href={`/shop/${item.id}?from=cart`} className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl bg-zinc-100 overflow-hidden shrink-0 flex items-center justify-center p-2 hover:opacity-90 transition-opacity">
                   <img src={item.image || '/transparent-Background.png'} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
                 </Link>
 
                 {/* Item Details */}
-                <div className="flex-1 flex flex-col py-1 h-24 sm:h-28">
+                <div className="flex-1 flex flex-col py-1 h-20 sm:h-28">
                   {/* Top Row: Name and Delete Icon */}
                   <div className="flex justify-between items-start gap-2">
                     <Link href={`/shop/${item.id}?from=cart`} className="hover:opacity-80 transition-opacity">
-                      <h3 className="text-[14px] sm:text-[15px] font-bold text-zinc-900 line-clamp-2 leading-tight">
+                      <h3 className="text-[13px] sm:text-[15px] font-bold text-zinc-900 line-clamp-2 leading-tight">
                         {t.products?.[item.id]?.name || item.name}
                       </h3>
                     </Link>
@@ -359,7 +379,7 @@ export default function Cart() {
 
                   {/* Second Row: Variation */}
                   {(item.variant || item.code) && (
-                    <div className="text-[12px] sm:text-[13px] text-zinc-500 mt-1">
+                    <div className="text-[11px] sm:text-[13px] text-zinc-500 mt-1">
                       {item.variant ? (
                         (productsMap[item.id] && ((productsMap[item.id].boxPrice !== null && productsMap[item.id].boxPrice !== undefined) || (productsMap[item.id].bundlePrice !== null && productsMap[item.id].bundlePrice !== undefined))) ? (
                           <div className="flex items-center gap-1">
@@ -410,7 +430,7 @@ export default function Cart() {
 
                   {/* Bottom Row: Price and Quantity */}
                   <div className="flex items-end justify-between w-full mt-2">
-                    <div className="font-bold text-base sm:text-lg text-zinc-900">
+                    <div className="font-bold text-[14px] sm:text-lg text-zinc-900">
                       RM {(item.price * item.quantity).toFixed(2)}
                     </div>
                     
@@ -449,18 +469,18 @@ export default function Cart() {
         </div>
 
         {/* Mobile Total Section */}
-        <div className="sm:hidden w-full bg-white dark:bg-zinc-950 mt-4 p-4 border-t border-zinc-100 dark:border-zinc-800">
+        <div className="sm:hidden w-full bg-white border-double border-[4px] border-zinc-200/60 rounded-[24px] mt-2 mb-8 p-5 shadow-sm">
           {/* Details */}
-          <div className="space-y-3 text-sm mb-6 border-b border-zinc-100 dark:border-zinc-800 pb-4">
-            <div className="flex justify-between items-center gap-4 text-zinc-600 dark:text-zinc-400 font-medium">
+          <div className="space-y-3 text-[13px] mb-5 border-b border-zinc-100 pb-4">
+            <div className="flex justify-between items-center gap-4 text-zinc-600 font-medium">
               <span>{locale === 'zh' ? `小计 (${selectedItemIds.length})` : locale === 'ms' ? `Subjumlah (${selectedItemIds.length})` : `Subtotal (${selectedItemIds.length})`}</span>
-              <span>RM {selectedTotalOriginalPrice.toFixed(2)}</span>
+              <span className="font-bold text-zinc-900">RM {selectedTotalOriginalPrice.toFixed(2)}</span>
             </div>
             
             {selectedTotalPromoDiscount > 0 && (
-              <div className="flex justify-between items-center gap-4 text-zinc-600 dark:text-zinc-400 font-medium">
+              <div className="flex justify-between items-center gap-4 text-zinc-600 font-medium">
                 <span>{locale === 'zh' ? '商品折扣' : locale === 'ms' ? 'Diskaun Produk' : 'Product Discount'}</span>
-                <span>-RM {selectedTotalPromoDiscount.toFixed(2)}</span>
+                <span className="text-zinc-900 font-bold">-RM {selectedTotalPromoDiscount.toFixed(2)}</span>
               </div>
             )}
 
@@ -485,14 +505,14 @@ export default function Cart() {
               </div>
             )}
             
-            <div className="flex justify-between items-center gap-4 font-black text-foreground text-lg mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+            <div className="flex justify-between items-center gap-4 font-black text-zinc-900 text-[17px] mt-4 pt-4 border-t border-zinc-100">
               <span>{locale === 'zh' ? `总计 (${selectedItemIds.length} 件)` : locale === 'ms' ? `Jumlah (${selectedItemIds.length} item)` : `Total (${selectedItemIds.length} Items)`}</span>
               <span className="text-primary">RM {finalSelectedTotalPrice.toFixed(2)}</span>
             </div>
           </div>
 
           {/* Mobile Buttons */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2.5">
             <button
               onClick={() => {
                 if (selectedItemIds.length === 0) {
@@ -503,13 +523,13 @@ export default function Cart() {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               disabled={selectedItemIds.length === 0}
-              className={`w-full py-3.5 rounded-full font-black text-base transition-all shadow-md ${selectedItemIds.length > 0 ? 'bg-primary text-zinc-900 hover:brightness-110 hover:shadow-lg hover:shadow-primary/20' : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-400 cursor-not-allowed shadow-none'}`}
+              className={`w-full py-3 rounded-full font-bold text-sm transition-all shadow-sm ${selectedItemIds.length > 0 ? 'bg-zinc-900 text-white hover:bg-zinc-800' : 'bg-zinc-100 text-zinc-400 cursor-not-allowed shadow-none'}`}
             >
               {t.cart.checkout.confirmBtn || 'Check Out'}
             </button>
             <Link 
               href="/shop" 
-              className="flex items-center justify-center w-full py-3.5 rounded-full font-bold text-base transition-all bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 shadow-sm"
+              className="flex items-center justify-center w-full py-3 rounded-full font-bold text-sm transition-all bg-white border border-zinc-200 text-zinc-900 hover:bg-zinc-50 shadow-sm"
             >
               {locale === 'zh' ? '继续购物' : locale === 'ms' ? 'Teruskan Membeli-belah' : 'Continue Shopping'}
             </Link>
@@ -742,10 +762,15 @@ export default function Cart() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white border border-zinc-200 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden relative"
             >
-              <div className="flex justify-between items-center p-6 border-b border-zinc-100">
-                <h3 className="text-lg font-black text-zinc-900">
-                  {bulkDeleteTranslations.title[locale as 'en' | 'zh' | 'ms'] || bulkDeleteTranslations.title.en}
-                </h3>
+              <div className="flex justify-between items-center p-6 border-b border-zinc-100 bg-red-50/30">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500">
+                    <AlertTriangle size={20} />
+                  </div>
+                  <h3 className="text-lg font-black text-zinc-900">
+                    {bulkDeleteTranslations.title[locale as 'en' | 'zh' | 'ms'] || bulkDeleteTranslations.title.en}
+                  </h3>
+                </div>
                 <button 
                   onClick={() => setIsBulkDeleteModalOpen(false)}
                   className="text-zinc-400 hover:text-zinc-900 transition-colors p-1"

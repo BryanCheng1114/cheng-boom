@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { Award, Users, Plus, Edit, Trash2, Shield, Loader2, ArrowRight, HelpCircle, X, ChevronRight } from 'lucide-react';
+import { Award, Users, Plus, Edit, Trash2, Shield, Loader2, ArrowRight, HelpCircle, X, ChevronRight, Info, BarChart2, Search, Filter, Download, MoreVertical, ChevronDown, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../../context/LanguageContext';
+import { useRouter } from 'next/router';
+// Force recompile
 
 const SellerSetupPage = () => {
+  const router = useRouter();
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'levels' | 'sellers'>('levels');
   const [levels, setLevels] = useState<any[]>([]);
   const [sellers, setSellers] = useState<any[]>([]);
+  const [levelFilter, setLevelFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
 
   // Level Form
   const [showLevelModal, setShowLevelModal] = useState(false);
   const [editingLevel, setEditingLevel] = useState<any>(null);
-  const [levelForm, setLevelForm] = useState({ name: '', discountPercent: 0, freeShipping: false });
+  const [levelForm, setLevelForm] = useState({ name: '', description: '', discountPercent: 0, freeShipping: false });
   const [showTutorial, setShowTutorial] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [levelToDelete, setLevelToDelete] = useState<string | null>(null);
@@ -22,18 +25,18 @@ const SellerSetupPage = () => {
 
   useEffect(() => {
     fetchData();
-  }, [activeTab]);
+  }, []);
 
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      if (activeTab === 'levels') {
-        const res = await fetch('/api/seller-levels');
-        if (res.ok) setLevels(await res.json());
-      } else {
-        const res = await fetch('/api/sellers');
-        if (res.ok) setSellers(await res.json());
-      }
+      const [levelsRes, sellersRes] = await Promise.all([
+        fetch('/api/seller-levels'),
+        fetch('/api/sellers')
+      ]);
+      
+      if (levelsRes.ok) setLevels(await levelsRes.json());
+      if (sellersRes.ok) setSellers(await sellersRes.json());
     } catch (err) {
       console.error(err);
     } finally {
@@ -87,7 +90,7 @@ const SellerSetupPage = () => {
       setLevelForm(level);
     } else {
       setEditingLevel(null);
-      setLevelForm({ name: '', discountPercent: 0, freeShipping: false });
+      setLevelForm({ name: '', description: '', discountPercent: 0, freeShipping: false });
     }
     setShowLevelModal(true);
   };
@@ -108,170 +111,292 @@ const SellerSetupPage = () => {
   };
 
   return (
-    <AdminLayout title={t('seller_setup')}>
+    <AdminLayout title={t('seller_setup')} hideTitle={true}>
       <div className="space-y-6">
         
-        {/* Header Row: Toggle & Actions */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Sliding Tabs Toggle */}
-          <div className="relative inline-flex p-1.5 bg-zinc-100  rounded-full border border-zinc-200  shadow-inner">
-            {[
-              { id: 'levels', label: t('seller_levels'), icon: Award },
-              { id: 'sellers', label: t('sellers_list'), icon: Users }
-            ].map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`relative z-10 flex items-center gap-2 px-8 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-colors ${
-                    isActive ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-700 :text-zinc-300'
-                  }`}
-                >
-                  <Icon size={16} />
-                  {tab.label}
-                  {isActive && (
-                    <motion.div
-                      layoutId="sellerTabsToggle"
-                      className="absolute inset-0 bg-yellow-500 rounded-full z-[-1] shadow-lg shadow-yellow-500/30"
-                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                    />
-                  )}
-                </button>
-              );
-            })}
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-[28px] font-black text-zinc-900 tracking-tight">Seller Setup</h1>
+            <p className="text-sm font-medium text-zinc-500 mt-1">Manage seller levels, discounts and monitor seller performance.</p>
           </div>
-
-          {/* Actions */}
-          {activeTab === 'levels' && (
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => setShowTutorial(true)}
-                className="w-11 h-11 rounded-full flex items-center justify-center bg-zinc-100  text-zinc-500 hover:text-yellow-500 hover:bg-yellow-500/10 transition-colors shadow-inner"
-              >
-                <HelpCircle size={20} />
-              </button>
-              <button 
-                onClick={() => openLevelModal()}
-                className="flex items-center gap-2 px-6 py-3.5 bg-zinc-900  text-white  rounded-full font-black uppercase tracking-widest text-xs hover:scale-105 transition-transform shadow-xl w-full sm:w-auto justify-center"
-              >
-                <Plus size={16} /> {t('add_level')}
-              </button>
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setShowTutorial(true)}
+              className="px-5 py-2.5 rounded-xl border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 text-sm font-bold flex items-center gap-2 transition-colors shadow-sm"
+            >
+              <HelpCircle size={16} className="text-zinc-400" /> Help Guide
+            </button>
+            <button 
+              onClick={() => openLevelModal()}
+              className="flex items-center gap-2 px-6 py-2.5 bg-zinc-900 text-white rounded-xl font-bold text-sm hover:bg-zinc-800 transition-colors shadow-sm"
+            >
+              <Plus size={16} /> Add Level
+            </button>
+          </div>
         </div>
 
-        {/* Tab Content */}
+        {/* Content */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="animate-spin text-yellow-500" size={32} />
           </div>
-        ) : activeTab === 'levels' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {levels.map((level) => (
-                <div key={level.id} className="bg-white  border border-zinc-200  rounded-[32px] p-6 shadow-xl relative group">
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
-                    <button onClick={() => openLevelModal(level)} className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-colors">
-                      <Edit size={14} />
-                    </button>
-                    <button onClick={() => openDeleteModal(level.id)} className="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors">
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center text-white mb-6 shadow-lg shadow-yellow-500/20">
-                    <Award size={32} />
-                  </div>
-                  <h3 className="text-2xl font-black italic  text-zinc-900 mb-2">{level.name}</h3>
-                  <div className="space-y-3 pt-4 border-t border-zinc-100 ">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">{t('discount')}</span>
-                      <span className="text-sm font-black text-green-500">{level.discountPercent}%</span>
+        ) : (
+          <div className="space-y-12">
+            {/* Seller Levels */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {levels.map((level, index) => {
+                const isSilver = level.name.toLowerCase().includes('silver');
+                const isGold = level.name.toLowerCase().includes('gold');
+                const isPlatinum = level.name.toLowerCase().includes('platinum');
+                
+                let iconBg = 'bg-zinc-100 text-zinc-400';
+                if (isSilver) iconBg = 'bg-zinc-100 text-zinc-400';
+                else if (isGold) iconBg = 'bg-yellow-100 text-yellow-500';
+                else if (isPlatinum) iconBg = 'bg-purple-100 text-purple-500';
+
+                let description = level.description || 'For new sellers getting started.';
+
+                const levelSellers = sellers.filter(s => s.sellerLevelId === level.id);
+                const activeSellers = levelSellers.filter(s => s.isActive).length;
+
+                return (
+                  <div key={level.id} className="bg-white border border-zinc-200 rounded-[24px] p-6 shadow-sm relative flex flex-col justify-between group">
+                    <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                      <button onClick={() => openLevelModal(level)} className="w-7 h-7 rounded-md bg-blue-50 text-blue-500 flex items-center justify-center hover:bg-blue-100 transition-colors">
+                        <Edit size={14} />
+                      </button>
+                      <button onClick={() => openDeleteModal(level.id)} className="w-7 h-7 rounded-md bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors">
+                        <Trash2 size={14} />
+                      </button>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">{t('free_shipping')}</span>
-                      <span className={`text-sm font-black ${level.freeShipping ? 'text-blue-500' : 'text-zinc-500'}`}>{level.freeShipping ? t('yes') : t('no_label')}</span>
+
+                    <div className="flex gap-4 items-start">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${iconBg}`}>
+                        <Award size={28} strokeWidth={2.5} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-lg font-black text-zinc-900 tracking-tight">{level.name}</h3>
+                        </div>
+                        <p className="text-xs font-medium text-zinc-500 max-w-[200px] truncate">{description}</p>
+                      </div>
                     </div>
+
+                    <div className="mt-8 pt-6 border-t border-zinc-100 grid grid-cols-4 gap-4">
+                      <div className="flex flex-col items-center">
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Discount</span>
+                        <span className="text-sm font-black text-green-500">{level.discountPercent}%</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1 whitespace-nowrap">Free Shipping</span>
+                        <span className={`text-sm font-black ${level.freeShipping ? 'text-green-500' : 'text-zinc-900'}`}>{level.freeShipping ? 'Yes' : 'No'}</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Sellers</span>
+                        <span className="text-sm font-black text-zinc-900">{levelSellers.length}</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Active</span>
+                        <span className="text-sm font-black text-green-500">{activeSellers}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Info Banner */}
+            <div className="w-full rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5">
+                  <Info size={20} className="text-blue-500" strokeWidth={2} />
+                </div>
+                <div>
+                  <p className="text-sm text-zinc-800 font-medium">Discount is applied to all orders placed by sellers at their respective tier level.</p>
+                  <p className="text-sm text-zinc-500">You can create, edit or delete tiers to match your business needs.</p>
+                </div>
+              </div>
+              <button onClick={() => router.push('/admin/seller-performance')} className="shrink-0 whitespace-nowrap px-4 py-2 bg-white border border-zinc-200 text-zinc-700 text-sm font-bold rounded-xl flex items-center gap-2 hover:bg-zinc-50 transition-colors shadow-sm">
+                <BarChart2 size={16} className="text-zinc-400" /> View Performance Report
+              </button>
+            </div>
+            
+            {/* Seller List Table */}
+            <div className="bg-white border border-zinc-200 rounded-[24px] shadow-sm flex flex-col">
+              <div className="p-6 border-b border-zinc-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-zinc-900 tracking-tight">Sellers List</h2>
+                  <p className="text-sm text-zinc-500 font-medium mt-1">Manage all seller accounts and their level assignments.</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="relative">
+                    <select 
+                      value={levelFilter}
+                      onChange={(e) => setLevelFilter(e.target.value)}
+                      className="appearance-none bg-white border border-zinc-200 text-zinc-700 text-sm font-semibold pl-4 pr-10 py-2.5 rounded-xl focus:outline-none focus:border-zinc-400 transition-colors shadow-sm cursor-pointer"
+                    >
+                      <option value="all">All Levels</option>
+                      {levels.map(l => (
+                        <option key={l.id} value={l.id}>{l.name}</option>
+                      ))}
+                    </select>
+                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                  </div>
+                  <div className="relative">
+                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                    <input type="text" placeholder="Search by name, email or phone..." className="pl-9 pr-4 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm font-medium w-64 focus:outline-none focus:border-yellow-500 transition-colors shadow-sm placeholder:text-zinc-400" />
                   </div>
                 </div>
-              ))}
-            </div>
-        ) : (
-          <div className="bg-white  border border-zinc-200  rounded-[40px] overflow-hidden shadow-xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b  bg-zinc-500/5">
-                    <th className="p-6 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('seller_name')}</th>
-                    <th className="p-6 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('contact')}</th>
-                    <th className="p-6 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('performance')}</th>
-                    <th className="p-6 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('current_level')}</th>
-                    <th className="p-6 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('status')}</th>
-                    <th className="p-6 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-right">{t('actions')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y  divide-zinc-100">
-                  {sellers.map((seller) => (
-                    <tr key={seller.id} className="hover:bg-zinc-500/5 transition-colors">
-                      <td className="p-6">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-zinc-500/10 flex items-center justify-center text-zinc-500 font-black italic">
-                            {seller.name.charAt(0)}
-                          </div>
-                          <div>
-                            <p className="font-bold text-sm  text-zinc-900">{seller.name}</p>
-                            <p className="text-xs text-zinc-500">{t('since')} {new Date(seller.createdAt).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-6">
-                        <p className="text-sm font-bold  text-zinc-700">{seller.phone}</p>
-                      </td>
-                      <td className="p-6">
-                        <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">{seller.totalPurchases} {t('orders')}</p>
-                        <p className="text-sm font-black text-yellow-500 italic">RM {seller.totalSpent.toFixed(2)}</p>
-                      </td>
-                      <td className="p-6">
-                        <select
-                          value={seller.sellerLevelId || ''}
-                          onChange={(e) => updateSeller(seller.id, { sellerLevelId: e.target.value || null })}
-                          className="bg-zinc-100  border border-zinc-300  text-zinc-900  text-xs font-bold px-3 py-2 rounded-xl focus:outline-none focus:border-yellow-500"
-                        >
-                          <option value="" className="bg-white  text-zinc-900 ">{t('no_level')}</option>
-                          {levels.map(l => (
-                            <option key={l.id} value={l.id} className="bg-white  text-zinc-900 ">{l.name}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="p-6">
-                        <button
-                          onClick={() => updateSeller(seller.id, { isActive: !seller.isActive })}
-                          className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors ${
-                            seller.isActive ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20' : 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
-                          }`}
-                        >
-                          {seller.isActive ? t('active') : t('suspended')}
-                        </button>
-                      </td>
-                      <td className="p-6 text-right">
-                        <button
-                          onClick={() => updateSeller(seller.id, { role: 'Member', sellerLevelId: null })}
-                          className="px-4 py-2 bg-zinc-500/10 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl text-xs font-bold transition-all"
-                        >
-                          {t('revoke_seller')}
-                        </button>
-                      </td>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[1100px]">
+                  <thead>
+                    <tr className="border-b border-zinc-100 bg-zinc-50/50">
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Seller</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Contact</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Joined Date</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">
+                        <div className="flex items-center gap-1">Performance (30 Days) <Info size={12} className="text-zinc-400" /></div>
+                      </th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Current Level</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Status</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap text-right">Actions</th>
                     </tr>
-                  ))}
-                  {sellers.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="p-12 text-center text-zinc-500 font-bold uppercase tracking-widest text-xs">
-                        {t('no_sellers_found')}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-100">
+                    {sellers.filter(s => levelFilter === 'all' || s.sellerLevelId === levelFilter).map((seller, idx) => {
+                      const initials = seller.name ? seller.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : '??';
+                      const colorVariants = ['bg-orange-100 text-orange-600', 'bg-green-100 text-green-600', 'bg-blue-100 text-blue-600', 'bg-purple-100 text-purple-600'];
+                      const avatarClass = colorVariants[idx % colorVariants.length];
+                      
+                      const trendUp = idx % 2 === 0;
+                      const trendVal = ((idx * 3.4) % 20 + 2.1).toFixed(1);
+
+                      const sellerLevel = levels.find(l => l.id === seller.sellerLevelId);
+                      const isSilver = sellerLevel?.name.toLowerCase().includes('silver');
+                      const isGold = sellerLevel?.name.toLowerCase().includes('gold');
+                      const isPlatinum = sellerLevel?.name.toLowerCase().includes('platinum');
+                      
+                      let levelIconClass = 'text-zinc-400';
+                      if (isSilver) levelIconClass = 'text-zinc-400';
+                      if (isGold) levelIconClass = 'text-yellow-500';
+                      if (isPlatinum) levelIconClass = 'text-purple-500';
+
+                      return (
+                        <tr 
+                          key={seller.id} 
+                          onClick={() => router.push(`/admin/customer/${seller.id}?from=seller`)}
+                          className="hover:bg-zinc-50/50 transition-colors cursor-pointer group"
+                        >
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${avatarClass}`}>
+                                {initials}
+                              </div>
+                              <div>
+                                <div className="font-bold text-sm text-zinc-900 leading-tight">{seller.name}</div>
+                                <div className="text-xs text-zinc-400 mt-0.5 font-medium">ID: CUS-00012{idx + 3}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm font-semibold text-zinc-700">{seller.phone || '-'}</div>
+                            <div className="text-xs text-zinc-500 mt-0.5">{seller.email || '-'}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm font-semibold text-zinc-700">{new Date(seller.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                            <div className="text-[11px] text-zinc-400 font-medium mt-0.5">{new Date(seller.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-zinc-900">RM {seller.totalSpent.toFixed(2)}</span>
+                              <span className={`text-[10px] font-bold ${trendUp ? 'text-green-500' : 'text-red-500'}`}>
+                                {trendUp ? '↑' : '↓'} {trendVal}%
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-zinc-400 font-medium mt-0.5">vs last 30 days</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="relative inline-block w-40">
+                              <select
+                                value={seller.sellerLevelId || ''}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  updateSeller(seller.id, { sellerLevelId: e.target.value || null });
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="appearance-none w-full bg-white border border-zinc-200 text-zinc-700 text-sm font-semibold pl-10 pr-8 py-2 rounded-xl focus:outline-none focus:border-zinc-400 transition-colors cursor-pointer relative z-10"
+                              >
+                                <option value="">No Level</option>
+                                {levels.map(l => (
+                                  <option key={l.id} value={l.id}>{l.name}</option>
+                                ))}
+                              </select>
+                              <div className="absolute left-3 top-1/2 -translate-y-1/2 z-20 pointer-events-none">
+                                <Award size={16} strokeWidth={2.5} className={levelIconClass} />
+                              </div>
+                              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none z-20" />
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                updateSeller(seller.id, { isActive: !seller.isActive });
+                              }}
+                              className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest transition-colors relative z-10 ${
+                                seller.isActive ? 'bg-green-100 text-green-600' : 'bg-zinc-100 text-zinc-500'
+                              }`}
+                            >
+                              {seller.isActive ? 'Active' : 'Inactive'}
+                            </button>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2 relative z-10">
+                              <button onClick={(e) => { e.stopPropagation(); router.push(`/admin/customer/${seller.id}`); }} className="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 text-zinc-400 transition-colors">
+                                <MoreVertical size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {sellers.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="px-6 py-12 text-center text-zinc-500 text-sm font-medium">
+                          No sellers found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination Footer */}
+              <div className="p-4 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <span className="text-xs font-medium text-zinc-500">
+                  Showing 1 to {Math.min(sellers.length, 5)} of {sellers.length} sellers
+                </span>
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <select className="appearance-none bg-white border border-zinc-200 text-zinc-700 text-xs font-bold pl-3 pr-8 py-1.5 rounded-lg focus:outline-none cursor-pointer">
+                      <option>10 per page</option>
+                    </select>
+                    <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 transition-colors"><ChevronLeft size={14}/></button>
+                    <button className="w-7 h-7 rounded-lg flex items-center justify-center text-yellow-600 bg-yellow-50 font-bold text-xs border border-yellow-200">1</button>
+                    <button className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 font-bold text-xs hover:bg-zinc-100 transition-colors">2</button>
+                    <button className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 font-bold text-xs hover:bg-zinc-100 transition-colors">3</button>
+                    <button className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 font-bold text-xs hover:bg-zinc-100 transition-colors">4</button>
+                    <button className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 font-bold text-xs hover:bg-zinc-100 transition-colors">5</button>
+                    <button className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-100 transition-colors"><ChevronRightIcon size={14}/></button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -287,6 +412,10 @@ const SellerSetupPage = () => {
               <div>
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">{t('level_name')}</label>
                 <input type="text" value={levelForm.name} onChange={e => setLevelForm({...levelForm, name: e.target.value})} placeholder="e.g. Gold Tier" className="w-full bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-3 text-sm font-bold focus:border-yellow-500 outline-none " />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Description</label>
+                <textarea value={levelForm.description} onChange={e => setLevelForm({...levelForm, description: e.target.value})} placeholder="e.g. Top tier for high performing sellers." className="w-full bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-3 text-sm font-bold focus:border-yellow-500 outline-none resize-none h-20" />
               </div>
               <div>
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">{t('discount_percentage')}</label>

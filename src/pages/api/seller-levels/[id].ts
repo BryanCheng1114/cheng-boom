@@ -10,11 +10,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === 'PATCH' || req.method === 'PUT') {
-      const { name, discountPercent, freeShipping, prioritySupport } = req.body;
+      const { name, description, discountPercent, freeShipping, prioritySupport } = req.body;
       const updated = await prisma.sellerLevel.update({
         where: { id },
         data: {
           ...(name && { name }),
+          ...(description !== undefined && { description }),
           ...(discountPercent !== undefined && { discountPercent: parseFloat(discountPercent) }),
           ...(freeShipping !== undefined && { freeShipping: Boolean(freeShipping) }),
           ...(prioritySupport !== undefined && { prioritySupport: Boolean(prioritySupport) })

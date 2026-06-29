@@ -201,7 +201,10 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
     setIsSubmitting(true);
 
     try {
-      const role = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}').role : 'Guest';
+      const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+      const userObj = userStr ? JSON.parse(userStr) : {};
+      const role = userObj.role || 'Guest';
+      const customerId = userObj.id || null;
       const isSeller = typeof window !== 'undefined' && (
         localStorage.getItem('user_role') === 'Seller' || role === 'Seller'
       );
@@ -241,7 +244,8 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
             deliveryMode: orderDetails.deliveryMode,
             notes: orderDetails.notes,
             paymentReceiptUrl: orderDetails.paymentReceiptUrl,
-            role
+            role,
+            customerId
           },
           items: orderItemsPayload,
           totalAmount: computedFinalTotalPrice,

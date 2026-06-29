@@ -244,7 +244,10 @@ export default function ProfilePage() {
  setError('');
  setSuccess('');
 
- const { phone: _, ...updateData } = editForm;
+ const updateData: any = { ...editForm };
+ if (user?.phone) {
+   delete updateData.phone;
+ }
 
  try {
  const res = await fetch(`/api/customers/${user.id}`, {
@@ -267,7 +270,12 @@ export default function ProfilePage() {
  setActiveTab('view_profile');
  setSuccess(locale === 'zh' ? '个人资料更新成功！' : 'Profile updated successfully!');
  } else {
- setError(locale === 'zh' ? '更新个人资料失败。' : 'Failed to update profile.');
+  const errData = await res.json().catch(() => ({}));
+  if (errData.error === 'Phone number is already in use by another account.') {
+    setError(locale === 'zh' ? '该电话号码已被其他帐户使用。' : 'Phone number is already in use by another account.');
+  } else {
+    setError(errData.error || (locale === 'zh' ? '更新个人资料失败。' : 'Failed to update profile.'));
+  }
  }
  } catch (err) {
  setError(locale === 'zh' ? '发生错误。' : 'An error occurred.');
@@ -491,15 +499,23 @@ export default function ProfilePage() {
   <div className="space-y-2">
   <div className="flex items-center justify-between ml-1 mb-2">
   <label className="block mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ">{t.profilePage?.phoneNumber || 'Phone Number'}</label>
+  {user?.phone ? (
   <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1">
   <Shield size={8} /> {t.profilePage?.permanent || 'Permanent'}
   </span>
+  ) : (
+  <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-1">
+  {locale === 'zh' ? '仅可编辑一次' : 'Editable Once'}
+  </span>
+  )}
   </div>
   <input 
   type="tel"
-  disabled
-  className="w-full px-4 py-2.5 rounded-xl bg-zinc-50 border border-zinc-200 outline-none transition-all font-medium text-zinc-500 cursor-not-allowed text-base opacity-70"
+  disabled={!!user?.phone}
+  required={!user?.phone}
+  className={`w-full px-4 py-2.5 rounded-xl border outline-none transition-all font-medium text-base ${user?.phone ? 'bg-zinc-50 border-zinc-200 text-zinc-500 cursor-not-allowed opacity-70' : 'bg-white border-zinc-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-zinc-900'}`}
   value={editForm.phone}
+  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
   />
   </div>
   </div>
@@ -647,19 +663,22 @@ export default function ProfilePage() {
         </div>
 
         {/* Phone Number */}
-        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 opacity-70">
-          <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 shrink-0">
+        <div className={`bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 ${user?.phone ? 'opacity-70' : 'focus-within:border-zinc-300 transition-colors'}`}>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${user?.phone ? 'bg-zinc-100 text-zinc-500' : 'bg-zinc-50 text-zinc-700'}`}>
             <Phone size={18} />
           </div>
           <div className="flex-1">
             <div className="flex items-center justify-between">
                <div className="text-[11px] font-bold text-zinc-500 mb-0.5">{t.profilePage?.phoneNumber || 'Phone Number'}</div>
-               <Shield size={12} className="text-zinc-400" />
+               {user?.phone ? <Shield size={12} className="text-zinc-400" /> : <span className="text-[9px] font-bold text-blue-500">{locale === 'zh' ? '仅可编辑一次' : 'Editable Once'}</span>}
             </div>
             <input 
-              type="tel" disabled
-              className="w-full bg-transparent text-[13px] font-semibold text-zinc-500 outline-none"
+              type="tel" 
+              disabled={!!user?.phone}
+              required={!user?.phone}
+              className={`w-full bg-transparent text-[13px] font-semibold outline-none ${user?.phone ? 'text-zinc-500' : 'text-zinc-900'}`}
               value={editForm.phone}
+              onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
             />
           </div>
         </div>
@@ -1245,15 +1264,7 @@ export default function ProfilePage() {
   </div>
   </div>
 
-  <div className="pt-8 mt-4 border-t border-zinc-100">
-  <button 
-  onClick={() => setActiveTab('edit_profile')}
-  className="px-6 py-3 bg-zinc-900 text-white hover:bg-zinc-800 rounded-full font-medium transition-all flex items-center justify-center gap-2"
-  >
-  <Edit3 size={16} />
-  {t.profilePage?.editProfile || 'Edit Profile'}
-  </button>
-  </div>
+
   </div>
 
   {/* --- MOBILE VIEW (My Account) --- */}

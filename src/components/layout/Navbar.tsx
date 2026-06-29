@@ -444,7 +444,10 @@ export function Navbar() {
                     key="cart-badge"
                     initial={{ scale: 0 }}
                     animate={{ scale: isWiggling ? [1, 1.5, 1] : 1 }}
-                    className="absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-black text-zinc-950 shadow-[0_2px_4px_rgba(0,0,0,0.24)]"
+                    className={cn(
+                      "absolute top-1.5 right-1.5 sm:top-1.5 sm:right-1.5 inline-flex h-4 w-4 sm:h-4 sm:w-4 items-center justify-center rounded-full bg-yellow-400 text-[9px] sm:text-[10px] font-black text-zinc-950 ring-2",
+                      isTransparent ? "ring-zinc-900/50" : "ring-white"
+                    )}
                   >
                     {totalItems}
                   </motion.span>

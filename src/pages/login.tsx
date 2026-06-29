@@ -414,7 +414,7 @@ function AuthContent() {
                         </div>
                       </div>
 
-                      <div className="flex items-center pt-2">
+                      <div className="flex items-center justify-between pt-2">
                         <label className="flex items-center gap-3 cursor-pointer group select-none">
                           <div className="relative flex items-center justify-center">
                             <input 
@@ -435,6 +435,9 @@ function AuthContent() {
                             {t.login?.rememberMe || 'Remember me'}
                           </span>
                         </label>
+                        <Link href="/forgot-password" className="text-sm text-zinc-500 hover:text-zinc-700 underline transition-colors">
+                          {locale === 'zh' ? '忘记密码？' : locale === 'ms' ? 'Lupa Kata Laluan?' : 'Forgot Password?'}
+                        </Link>
                       </div>
 
                       <button 

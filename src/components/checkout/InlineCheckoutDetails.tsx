@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User, Phone, HelpCircle, CreditCard, Check, MapPin, MessageCircle, Upload, ExternalLink, ArrowLeft, ShieldCheck, Tag, AlertTriangle, X, Mail } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useBusiness } from '../../context/BusinessContext';
@@ -54,6 +54,8 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
   const [highlightVerification, setHighlightVerification] = useState(false);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const receiptRef = useRef<HTMLDivElement>(null);
+  const [highlightReceipt, setHighlightReceipt] = useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -117,6 +119,7 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
       if (res.ok) {
         const data = await res.json();
         setOrderDetails(prev => ({ ...prev, paymentReceiptUrl: data.urls[0] }));
+        setHighlightReceipt(false);
       } else {
         alert('Upload failed');
       }
@@ -133,7 +136,10 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
     setIsSubmitting(true);
 
     try {
-      const role = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}').role : 'Guest';
+      const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+      const userObj = userStr ? JSON.parse(userStr) : {};
+      const role = userObj.role || 'Guest';
+      const customerId = userObj.id || null;
       const isSeller = typeof window !== 'undefined' && (
         localStorage.getItem('user_role') === 'Seller' || role === 'Seller'
       );
@@ -163,7 +169,8 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
             deliveryMode: orderDetails.deliveryMode,
             notes: orderDetails.notes,
             paymentReceiptUrl: orderDetails.paymentReceiptUrl,
-            role
+            role,
+            customerId
           },
           items: orderItemsPayload,
           totalAmount: cartTotals.totalPrice,
@@ -327,9 +334,9 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
                         {locale === 'zh' ? '请将款项转至上方银行账户或扫描二维码，并上传转账收据。' : locale === 'ms' ? 'Sila pindahkan jumlah keseluruhan ke akaun bank atau imbas kod QR di atas, dan muat naik resit.' : 'Please transfer the total amount to the bank account or scan the QR code above, and upload the receipt.'}
                       </p>
 
-                      <div className="space-y-3">
+                      <div className="space-y-3" ref={receiptRef}>
                         <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">{locale === 'zh' ? '上传收据截图' : locale === 'ms' ? 'Muat Naik Gambar Resit' : 'Upload Receipt Image'}</label>
-                        <div className="relative border-2 border-dashed border-zinc-300 rounded-[20px] p-8 flex flex-col items-center justify-center hover:bg-white transition-colors cursor-pointer group bg-white/50 overflow-hidden min-h-[160px]">
+                        <div className={cn("relative border-2 border-dashed rounded-[20px] p-8 flex flex-col items-center justify-center hover:bg-white transition-all cursor-pointer group bg-white/50 overflow-hidden min-h-[160px]", highlightReceipt ? "border-red-500 bg-red-50 shadow-[0_0_15px_rgba(239,68,68,0.2)]" : "border-zinc-300")}>
                           {orderDetails.paymentReceiptUrl ? (
                             <div className="flex flex-col items-center gap-5 z-20 w-full">
                               <div className="flex flex-col items-center gap-2">
@@ -421,15 +428,36 @@ export function InlineCheckoutDetails({ cartItems, cartTotals, clearCart, onBack
               <button 
                 form="checkout-form"
                 type="submit" 
-                disabled={isSubmitting || (!orderDetails.paymentReceiptUrl && orderDetails.paymentMethod === 'DuitNow & Bank Transfer')}
+                disabled={isSubmitting}
                 onClick={(e) => {
+                  const form = document.getElementById('checkout-form') as HTMLFormElement;
+                  if (form && !form.checkValidity()) {
+                    // Let native browser validation handle scrolling to top fields first
+                    return;
+                  }
+
+                  let hasError = false;
+
+                  if (!orderDetails.paymentReceiptUrl && orderDetails.paymentMethod === 'DuitNow & Bank Transfer') {
+                    e.preventDefault();
+                    setHighlightReceipt(true);
+                    hasError = true;
+                    setTimeout(() => {
+                      receiptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 50);
+                  } else {
+                    setHighlightReceipt(false);
+                  }
+
                   if (!isWhatsAppTermsAgreed) {
                     e.preventDefault();
                     setHighlightVerification(true);
-                  } else if (!orderDetails.paymentReceiptUrl && orderDetails.paymentMethod === 'DuitNow & Bank Transfer') {
-                    e.preventDefault();
-                    alert('Please upload your payment receipt first.');
+                    hasError = true;
+                  } else {
+                    setHighlightVerification(false);
                   }
+
+                  if (hasError) return;
                 }}
                 className={cn("w-full bg-zinc-900 text-white font-black text-base py-5 rounded-2xl flex justify-center items-center gap-2 transition-all", (!isWhatsAppTermsAgreed || isSubmitting) ? "opacity-50 cursor-not-allowed" : "hover:bg-zinc-800 shadow-xl shadow-zinc-900/20")}
               >

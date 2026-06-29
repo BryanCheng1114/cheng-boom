@@ -10,16 +10,16 @@ const inter = Inter({ subsets: ['latin'] });
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const isLoginPage = router.pathname === '/login';
+  const isAuthPage = ['/login', '/forgot-password', '/reset-password'].includes(router.pathname);
 
   return (
     <div className={cn("min-h-screen flex flex-col font-sans", inter.className)}>
-      {!isLoginPage && <Navbar />}
+      {!isAuthPage && <Navbar />}
       <main className="flex-1 flex flex-col relative">
         {children}
       </main>
-      {!isLoginPage && <Footer />}
-      {!isLoginPage && <WhatsAppButton />}
+      {!isAuthPage && <Footer />}
+      {!isAuthPage && <WhatsAppButton />}
     </div>
   );
 }

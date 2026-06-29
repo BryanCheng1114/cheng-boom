@@ -56,8 +56,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const { password: _, ...customerWithoutPassword } = updatedCustomer;
       return res.status(200).json(customerWithoutPassword);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating customer:', error);
+      if (error.code === 'P2002' && error.meta?.target?.includes('phone')) {
+        return res.status(409).json({ error: 'Phone number is already in use by another account.' });
+      }
       return res.status(500).json({ error: 'Failed to update customer' });
     }
   }

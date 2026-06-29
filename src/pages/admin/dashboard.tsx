@@ -18,7 +18,8 @@ import {
   AlertTriangle,
   MoreHorizontal,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  CheckCircle2
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import Link from 'next/link';
@@ -30,6 +31,8 @@ const DashboardPage = () => {
   const { t } = useLanguage();
   const locale = router.locale || 'en';
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [modalStep, setModalStep] = useState(1);
+  const [todaysOrders, setTodaysOrders] = useState<any[]>([]);
   const [lowStockItems, setLowStockItems] = useState<any[]>([]);
   const [soldOutItems, setSoldOutItems] = useState<any[]>([]);
   const [stats, setStats] = useState({
@@ -82,12 +85,17 @@ const DashboardPage = () => {
         const lowStock = products.filter((p: any) => p.stock > 0 && p.stock < 5);
         const soldOut = products.filter((p: any) => p.stock === 0);
         
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const incomingToday = orders.filter((o: any) => new Date(o.createdAt) >= today);
+
         setLowStockItems(lowStock);
         setSoldOutItems(soldOut);
+        setTodaysOrders(incomingToday);
 
-        if (!sessionStorage.getItem('admin_welcome_shown') && (lowStock.length > 0 || soldOut.length > 0)) {
+        if (incomingToday.length > 0 || lowStock.length > 0 || soldOut.length > 0) {
           setShowWelcomeModal(true);
-          sessionStorage.setItem('admin_welcome_shown', 'true');
+          setModalStep(incomingToday.length > 0 ? 1 : 2); // Start at stock if no orders today
         }
       } catch (err) {
         console.error('Dashboard fetch error:', err);
@@ -361,96 +369,180 @@ const DashboardPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
           >
             <motion.div
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white  border border-zinc-200  rounded-3xl shadow-2xl overflow-hidden"
+              className="relative w-full max-w-lg bg-white border border-zinc-200 rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]"
             >
               {/* Header */}
-              <div className="flex justify-between items-center p-6 border-b border-zinc-100 ">
+              <div className="flex justify-between items-center p-6 border-b border-zinc-100 shrink-0">
                 <div className="flex items-center gap-3 text-yellow-500">
-                  <h3 className="text-xl font-black text-zinc-900 uppercase tracking-wider">
+                  <h3 className="text-xl font-medium text-zinc-900">
                     {locale === 'zh' ? '欢迎回来' : locale === 'ms' ? 'Selamat Kembali' : 'Welcome Back'}
                   </h3>
                 </div>
                 <button 
                   onClick={() => setShowWelcomeModal(false)}
-                  className="text-zinc-400 hover:text-zinc-900 transition-colors p-1 bg-zinc-100 hover:bg-zinc-200 rounded-full"
+                  className="text-zinc-400 hover:text-zinc-900 transition-colors p-1.5 bg-zinc-50 hover:bg-zinc-100 rounded-full"
                 >
                   <X size={20} />
                 </button>
               </div>
 
               {/* Body */}
-              <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
-                {/* Date */}
-                <div className="flex items-center gap-4 p-5 bg-zinc-50 border border-zinc-100 rounded-2xl shadow-sm">
-                  <div className="p-3.5 bg-blue-500/10 text-blue-600 rounded-xl">
-                    <Calendar size={24} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-0.5">{locale === 'zh' ? '今天的日期' : locale === 'ms' ? 'Tarikh Hari Ini' : 'Today\'s Date'}</p>
-                    <p className="text-lg font-black text-zinc-900">
-                      {new Intl.DateTimeFormat(locale === 'ms' ? 'ms-MY' : locale === 'zh' ? 'zh-CN' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(new Date())}
-                    </p>
-                  </div>
+              <div className="p-6 overflow-y-auto space-y-6 flex-1">
+                
+                {/* Step Indicators */}
+                <div className="flex items-center justify-center gap-2 mb-6">
+                  <div className={`h-1.5 w-12 rounded-full transition-colors ${modalStep === 1 ? 'bg-yellow-500' : 'bg-zinc-200'}`} />
+                  <div className={`h-1.5 w-12 rounded-full transition-colors ${modalStep === 2 ? 'bg-yellow-500' : 'bg-zinc-200'}`} />
                 </div>
 
-                {/* Sold Out */}
-                {soldOutItems.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-black text-red-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                      <AlertTriangle size={16} /> {locale === 'zh' ? '已售罄商品' : locale === 'ms' ? 'Item Habis Dijual' : 'Sold Out Items'} ({soldOutItems.length})
-                    </h4>
-                    <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-4">
-                      <ul className="space-y-2">
-                        {soldOutItems.map(p => (
-                          <li key={p.id} className="flex items-start gap-2">
-                            <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-500 shrink-0 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
-                            <span className="text-sm font-bold text-zinc-700 ">{p.name}</span>
-                          </li>
-                        ))}
-                      </ul>
+                {modalStep === 1 && (
+                  <motion.div 
+                    initial={{ opacity: 0, x: -20 }} 
+                    animate={{ opacity: 1, x: 0 }} 
+                    exit={{ opacity: 0, x: 20 }}
+                    className="space-y-6"
+                  >
+                    <div className="flex items-center gap-4 p-5 bg-blue-50/50 border border-blue-100/50 rounded-2xl">
+                      <div className="p-3.5 bg-blue-500/10 text-blue-600 rounded-xl">
+                        <ShoppingBag size={24} />
+                      </div>
+                      <div>
+                        <p className="text-sm text-blue-600/80 mb-0.5">
+                          {locale === 'zh' ? '今日新订单' : locale === 'ms' ? 'Pesanan Baru Hari Ini' : 'New Orders Today'}
+                        </p>
+                        <p className="text-2xl font-semibold text-blue-900">
+                          {todaysOrders.length} {locale === 'zh' ? '单' : locale === 'ms' ? 'pesanan' : 'orders'}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                    
+                    {todaysOrders.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-medium text-zinc-700 mb-3">
+                          {locale === 'zh' ? '订单概览' : locale === 'ms' ? 'Gambaran Pesanan' : 'Order Overview'}
+                        </h4>
+                        <div className="bg-zinc-50/50 border border-zinc-100 rounded-2xl p-4 max-h-60 overflow-y-auto">
+                          <ul className="space-y-3">
+                            {todaysOrders.map(o => (
+                              <li key={o.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-white border border-zinc-100 rounded-xl shadow-sm">
+                                <div>
+                                  <span className="text-xs text-zinc-500 font-mono block">#{o.id.slice(-6).toUpperCase()}</span>
+                                  <span className="text-sm font-medium text-zinc-900">{o.customer?.name || 'Guest'}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm font-semibold text-zinc-900">RM {o.totalAmount.toFixed(2)}</span>
+                                  <span className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${
+                                    o.status === 'Pending' ? 'bg-orange-50 text-orange-600' : 'bg-zinc-50 text-zinc-600'
+                                  }`}>
+                                    {o.status}
+                                  </span>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
                 )}
 
-                {/* Low Stock */}
-                {lowStockItems.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-black text-amber-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                      <PackageOpen size={16} /> {locale === 'zh' ? '库存紧张 (< 5)' : locale === 'ms' ? 'Stok Rendah (< 5)' : 'Low Stock (< 5)'} ({lowStockItems.length})
-                    </h4>
-                    <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4">
-                      <ul className="space-y-2">
-                        {lowStockItems.map(p => (
-                          <li key={p.id} className="flex items-start justify-between gap-2">
-                            <div className="flex items-start gap-2">
-                              <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
-                              <span className="text-sm font-bold text-zinc-700 ">{p.name}</span>
+                {modalStep === 2 && (
+                  <motion.div 
+                    initial={{ opacity: 0, x: 20 }} 
+                    animate={{ opacity: 1, x: 0 }} 
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-6"
+                  >
+                    {soldOutItems.length === 0 && lowStockItems.length === 0 ? (
+                      <div className="text-center py-10">
+                        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <CheckCircle2 className="text-green-500" size={32} />
+                        </div>
+                        <h3 className="text-lg font-medium text-zinc-900 mb-2">All Stock Looks Good!</h3>
+                        <p className="text-sm text-zinc-500">No sold out or low stock items at the moment.</p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Sold Out */}
+                        {soldOutItems.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium text-red-600 mb-3 flex items-center gap-2">
+                              <AlertTriangle size={16} /> {locale === 'zh' ? '已售罄商品' : locale === 'ms' ? 'Item Habis Dijual' : 'Sold Out Items'} ({soldOutItems.length})
+                            </h4>
+                            <div className="bg-red-50/50 border border-red-100 rounded-2xl p-4 max-h-48 overflow-y-auto">
+                              <ul className="space-y-2">
+                                {soldOutItems.map(p => (
+                                  <li key={p.id} className="flex items-start gap-2">
+                                    <div className="mt-2 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                                    <span className="text-sm text-zinc-700">{p.name}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
-                            <span className="text-xs font-black text-amber-600  bg-amber-500/10 px-2 py-1 rounded-lg shrink-0">
-                              {p.stock} left
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
+                          </div>
+                        )}
+
+                        {/* Low Stock */}
+                        {lowStockItems.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium text-amber-600 mb-3 flex items-center gap-2">
+                              <PackageOpen size={16} /> {locale === 'zh' ? '库存紧张 (< 5)' : locale === 'ms' ? 'Stok Rendah (< 5)' : 'Low Stock (< 5)'} ({lowStockItems.length})
+                            </h4>
+                            <div className="bg-amber-50/50 border border-amber-100 rounded-2xl p-4 max-h-48 overflow-y-auto">
+                              <ul className="space-y-2">
+                                {lowStockItems.map(p => (
+                                  <li key={p.id} className="flex items-start justify-between gap-2">
+                                    <div className="flex items-start gap-2">
+                                      <div className="mt-2 w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                                      <span className="text-sm text-zinc-700">{p.name}</span>
+                                    </div>
+                                    <span className="text-xs font-medium text-amber-700 bg-amber-100/50 px-2.5 py-1 rounded-full shrink-0">
+                                      {p.stock} left
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </motion.div>
                 )}
               </div>
 
-              {/* Footer */}
-              <div className="p-6 border-t border-zinc-100 bg-zinc-50">
-                <button
-                  onClick={() => setShowWelcomeModal(false)}
-                  className="w-full py-4 bg-yellow-500 hover:bg-yellow-400 text-zinc-900 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg shadow-yellow-500/20 hover:shadow-yellow-500/40 hover:-translate-y-0.5"
-                >
-                  {locale === 'zh' ? '继续' : locale === 'ms' ? 'Teruskan' : 'Continue'}
-                </button>
+              {/* Footer Buttons */}
+              <div className="p-6 border-t border-zinc-100 flex gap-3 shrink-0">
+                {modalStep === 1 ? (
+                  <>
+                    <button
+                      onClick={() => setShowWelcomeModal(false)}
+                      className="flex-1 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 rounded-xl font-medium transition-colors text-sm"
+                    >
+                      {locale === 'zh' ? '跳过' : locale === 'ms' ? 'Langkau' : 'Skip'}
+                    </button>
+                    <button
+                      onClick={() => setModalStep(2)}
+                      className="flex-[2] py-3 bg-yellow-500 hover:bg-yellow-400 text-zinc-900 rounded-xl font-semibold transition-all text-sm flex items-center justify-center gap-2"
+                    >
+                      {locale === 'zh' ? '下一步：库存状态' : locale === 'ms' ? 'Seterusnya: Status Stok' : 'Next: Stock Info'}
+                      <ArrowRight size={16} />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setShowWelcomeModal(false)}
+                    className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-medium transition-all text-sm shadow-md shadow-zinc-900/10"
+                  >
+                    {locale === 'zh' ? '关闭并前往控制台' : locale === 'ms' ? 'Tutup & Ke Papan Pemuka' : 'Close & Go to Dashboard'}
+                  </button>
+                )}
               </div>
             </motion.div>
           </motion.div>

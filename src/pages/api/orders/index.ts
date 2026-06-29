@@ -8,23 +8,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { customerInfo, items, totalAmount, originalAmount, totalDiscount, sellerLevelName, discountPercent, isFreeShipping } = req.body;
       const { name, phone, email, address } = customerInfo;
 
-      // 1. Find or create the customer based on phone number (gracefully handle email unique constraints)
+      // 1. Find or create the customer
       let customer;
+      const { customerId } = customerInfo;
+      
       try {
-        customer = await prisma.customer.upsert({
-          where: { phone: phone },
-          update: {
-            name: name,
-            address: address || undefined,
-          },
-          create: {
-            name: name,
-            phone: phone,
-            email: email || undefined,
-            address: address || undefined,
-            role: 'Guest',
-          },
-        });
+        if (customerId) {
+          // Logged-in user: find existing customer and optionally update their shipping address/phone
+          customer = await prisma.customer.findUnique({ where: { id: customerId } });
+          if (customer) {
+             customer = await prisma.customer.update({
+               where: { id: customerId },
+               data: {
+                 phone: phone || customer.phone,
+                 address: address || customer.address
+               }
+             });
+          }
+        }
+        
+        // If no customerId or customer wasn't found in DB, fallback to phone-based guest logic
+        if (!customer) {
+          customer = await prisma.customer.upsert({
+            where: { phone: phone },
+            update: {
+              name: name,
+              address: address || undefined,
+            },
+            create: {
+              name: name,
+              phone: phone,
+              email: email || undefined,
+              address: address || undefined,
+              role: customerInfo.role || 'Guest',
+            },
+          });
+        }
       } catch (err: any) {
         if (err.code === 'P2002') {
           customer = await prisma.customer.findFirst({

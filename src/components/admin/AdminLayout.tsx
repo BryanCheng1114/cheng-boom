@@ -15,7 +15,8 @@ import {
   Award,
   TrendingUp,
   Sidebar,
-  Layers
+  Layers,
+  HelpCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from '../../context/LanguageContext';
@@ -118,8 +119,19 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, headerAction
 
         {/* Bottom Section */}
         <div className="mt-auto">
-          {/* Settings Menu */}
-          <div className="px-4 pb-4">
+          {/* Help & Settings Menu */}
+          <div className="px-4 pb-4 space-y-2">
+            <Link href="/admin/help">
+              <div className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all cursor-pointer ${router.pathname === '/admin/help' ? 'bg-white/10 text-white font-medium' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}>
+                <div className="shrink-0">
+                  <HelpCircle size={20} strokeWidth={router.pathname === '/admin/help' ? 2.5 : 2} />
+                </div>
+                {!isCollapsed && (
+                  <span className="text-sm whitespace-nowrap">{t('help') || 'Help & Tutorials'}</span>
+                )}
+              </div>
+            </Link>
+
             <Link href="/admin/settings">
               <div className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all cursor-pointer ${router.pathname === '/admin/settings' ? 'bg-white/10 text-white font-medium' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}>
                 <div className="shrink-0">

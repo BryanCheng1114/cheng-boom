@@ -92,15 +92,15 @@ export default function AdminLogin() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <h1 className="text-4xl font-black text-zinc-900 mb-3 tracking-tight">
+              <h1 className="text-4xl md:text-5xl font-light text-zinc-900 mb-3">
                 Admin Login
               </h1>
-              <p className="text-zinc-500 text-sm font-medium mb-10">
+              <p className="text-zinc-500 text-sm mb-10">
                 Please enter your credentials to proceed.
               </p>
 
               {error && (
-                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm font-medium animate-shake">
+                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm animate-shake">
                   {error}
                 </div>
               )}
@@ -112,14 +112,14 @@ export default function AdminLogin() {
               >
                 {/* Username Input */}
                 <div className="relative mt-2">
-                  <label className="absolute -top-2.5 left-3 bg-white px-1 text-[11px] font-black uppercase tracking-widest text-zinc-500 z-10 transition-colors">
+                  <label className="absolute -top-2.5 left-3 bg-white px-1 text-sm font-medium text-zinc-600 z-10 transition-colors">
                     Username
                   </label>
                   <input 
                     type="text"
                     required
                     disabled={isLoading || loginStatus === 'success'}
-                    className="w-full bg-zinc-50 border border-zinc-200 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 rounded-2xl px-5 py-4 text-zinc-900 font-bold text-sm outline-none transition-all disabled:opacity-50"
+                    className="w-full bg-zinc-50 border border-zinc-200 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 rounded-2xl px-5 py-4 text-zinc-900 outline-none transition-all disabled:opacity-50"
                     placeholder="Enter your username"
                     value={formData.username}
                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -128,14 +128,14 @@ export default function AdminLogin() {
 
                 {/* Password Input */}
                 <div className="relative mt-4">
-                  <label className="absolute -top-2.5 left-3 bg-white px-1 text-[11px] font-black uppercase tracking-widest text-zinc-500 z-10 transition-colors">
+                  <label className="absolute -top-2.5 left-3 bg-white px-1 text-sm font-medium text-zinc-600 z-10 transition-colors">
                     Password
                   </label>
                   <input 
                     type={showPassword ? "text" : "password"}
                     required
                     disabled={isLoading || loginStatus === 'success'}
-                    className="w-full bg-zinc-50 border border-zinc-200 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 rounded-2xl px-5 py-4 text-zinc-900 font-bold text-sm outline-none transition-all tracking-wide disabled:opacity-50"
+                    className="w-full bg-zinc-50 border border-zinc-200 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 rounded-2xl px-5 py-4 text-zinc-900 outline-none transition-all tracking-wide disabled:opacity-50"
                     placeholder="Enter password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -169,7 +169,7 @@ export default function AdminLogin() {
                         )}
                       </div>
                     </div>
-                    <span className="text-sm font-bold text-zinc-500 group-hover:text-zinc-900 transition-colors">
+                    <span className="text-sm text-zinc-500 group-hover:text-zinc-700 transition-colors">
                       Remember me
                     </span>
                   </label>
@@ -179,7 +179,7 @@ export default function AdminLogin() {
                 <button 
                   type="submit"
                   disabled={isLoading || loginStatus === 'success'}
-                  className="w-full py-4 bg-zinc-900 text-white rounded-2xl font-black text-sm uppercase tracking-wider hover:bg-zinc-800 transition-all flex items-center justify-center gap-2 mt-4 shadow-xl shadow-zinc-900/20 disabled:opacity-70 disabled:cursor-wait"
+                  className="w-full py-4 bg-zinc-900 text-white rounded-2xl font-semibold hover:bg-zinc-800 transition-all flex items-center justify-center gap-2 mt-4 shadow-xl shadow-zinc-900/20 disabled:opacity-70 disabled:cursor-wait"
                 >
                   {(isLoading || loginStatus === 'success') ? (
                     <>
@@ -193,10 +193,10 @@ export default function AdminLogin() {
           </div>
 
           {/* Secure System Footer */}
-          <div className="mt-auto pt-6 text-center text-xs font-bold text-zinc-400 select-none">
+          <div className="mt-auto pt-6 text-center text-xs text-zinc-500 select-none">
             <div className="flex items-center justify-center gap-1.5 mb-1 text-zinc-500">
               <ShieldCheck size={14} /> 
-              <span className="uppercase tracking-widest text-[10px]">Secure System Protection</span>
+              <span className="text-xs">Secure System Protection</span>
             </div>
             &copy; 2026 Cheng-BOOM. All rights reserved.
           </div>

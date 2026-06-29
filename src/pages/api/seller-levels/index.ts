@@ -11,10 +11,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } 
     
     if (req.method === 'POST') {
-      const { name, discountPercent, freeShipping, prioritySupport } = req.body;
+      const { name, description, discountPercent, freeShipping, prioritySupport } = req.body;
       const created = await prisma.sellerLevel.create({
         data: {
           name,
+          description: description || null,
           discountPercent: parseFloat(discountPercent) || 0,
           freeShipping: Boolean(freeShipping),
           prioritySupport: Boolean(prioritySupport)
