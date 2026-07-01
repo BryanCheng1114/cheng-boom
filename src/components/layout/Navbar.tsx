@@ -270,18 +270,32 @@ export function Navbar() {
             >
               <Link
                 href="/shop"
+                onClick={(e) => {
+                  if (typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches) {
+                    if (!isShopHovered) {
+                      e.preventDefault();
+                      setIsShopHovered(true);
+                    }
+                  }
+                }}
                 className={cn(
                   'relative h-full flex items-center gap-1 font-sans text-[15px] font-medium tracking-normal transition-colors duration-300',
                   isTransparent
                     ? 'text-white group-hover/shop:text-white/80'
-                    : 'text-zinc-600 group-hover/shop:text-zinc-900'
+                    : 'text-zinc-600 group-hover/shop:text-zinc-900',
+                  isShopHovered && !isTransparent ? 'text-zinc-900' : ''
                 )}
               >
                 {t.nav.shop} <ChevronDown size={14} className="ml-0.5 opacity-60" />
               </Link>
               
               {/* Dropdown Mega Menu (Full Width) */}
-              <div className="absolute top-[63px] left-0 w-full invisible opacity-0 group-hover/shop:visible group-hover/shop:opacity-100 transition-all duration-300">
+              <div className={cn(
+                "absolute top-[63px] left-0 w-full transition-all duration-300",
+                isShopHovered 
+                  ? "visible opacity-100" 
+                  : "invisible opacity-0 group-hover/shop:visible group-hover/shop:opacity-100"
+              )}>
                 <div className={cn(
                   "w-full pb-4 pt-1 transition-all duration-300",
                   isTransparent 
@@ -478,12 +492,13 @@ export function Navbar() {
                   
                   {/* Dropdown Menu (Click instead of Hover) */}
                   <div className={cn(
-                    "absolute top-[110%] right-0 pt-2 w-56 transition-all duration-300 z-50",
-                    isProfileMenuOpen ? "visible opacity-100" : "invisible opacity-0 translate-y-2"
+                    "transition-all duration-300 z-50",
+                    isProfileMenuOpen ? "visible opacity-100 translate-y-0" : "invisible opacity-0 -translate-y-2 md:translate-y-2",
+                    "fixed left-0 right-0 top-[64px] w-full md:absolute md:top-[110%] md:right-0 md:left-auto md:w-56 md:pt-2"
                   )}>
-                    <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-zinc-100 py-2 overflow-hidden flex flex-col">
-                      <div className="px-4 py-3 border-b border-zinc-100">
-                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">
+                    <div className="bg-white rounded-b-xl md:rounded-2xl shadow-md md:shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-t border-zinc-100 md:border-t-0 md:border md:border-zinc-100 overflow-hidden flex flex-col">
+                      <div className="px-5 md:px-4 py-2.5 md:py-3 border-b border-zinc-100">
+                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-0.5">
                           {locale === 'zh' ? '登录身份' : locale === 'ms' ? 'Dilog masuk sebagai' : 'Signed in as'}
                         </p>
                         <p className="text-sm font-medium text-zinc-900 truncate">{user.name}</p>
@@ -491,9 +506,9 @@ export function Navbar() {
                       <Link 
                         href="/profile" 
                         onClick={() => setIsProfileMenuOpen(false)}
-                        className="px-4 py-3 text-[15px] font-bold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 transition-colors flex items-center gap-3"
+                        className="px-5 md:px-4 py-2.5 md:py-3 text-[14px] md:text-[15px] font-bold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 transition-colors flex items-center gap-2 md:gap-3"
                       >
-                        <User size={16} />
+                        <User className="w-4 h-4" />
                         {t.nav?.profile?.account || (locale === 'zh' ? '账号概览' : 'Account Overview')}
                       </Link>
                       <button 
@@ -501,9 +516,9 @@ export function Navbar() {
                           setIsProfileMenuOpen(false);
                           setIsLogoutModalOpen(true);
                         }}
-                        className="px-4 py-3 text-[15px] font-bold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3 text-left"
+                        className="px-5 md:px-4 py-2.5 md:py-3 text-[14px] md:text-[15px] font-bold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 md:gap-3 text-left"
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                         {logoutTranslations.title[locale as 'en'|'zh'|'ms'] || 'Log Out'}
                       </button>
                     </div>

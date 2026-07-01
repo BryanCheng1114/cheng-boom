@@ -420,7 +420,7 @@ export default function Shop() {
                     delay: index * 0.03,
                     ease: "easeOut"
                   }}
-                  className="h-full w-[170px] sm:w-[240px] md:w-[250px] lg:w-[286px]"
+                  className="h-full mx-auto w-full max-w-[170px] sm:max-w-[240px] md:max-w-[250px] lg:max-w-[286px]"
                 >
                   <ProductCard {...product} categoryZh={catObj?.nameZh} categoryMs={catObj?.nameMs} />
                 </motion.div>

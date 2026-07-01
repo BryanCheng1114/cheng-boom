@@ -215,7 +215,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
         {/* NEW tag */}
 
         {isNew && !isOutOfStock && (
-          <div className="absolute top-5 left-5 z-30 font-extrabold text-primary text-[13px] tracking-wide">
+          <div className="absolute top-4 left-4 z-30 font-bold text-black bg-primary px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] tracking-wider uppercase shadow-sm border border-primary/50">
             {ct('new')}
           </div>
         )}

@@ -641,7 +641,7 @@ export default function ProfilePage() {
           <h3 className="text-xl font-bold text-zinc-900">
             {t.profilePage?.editInformation || 'Edit Information'}
           </h3>
-          <p className="text-[11px] text-zinc-500">Update your account details</p>
+          <p className="text-[11px] text-zinc-500">{locale === 'zh' ? '更新您的账户详情' : 'Update your account details'}</p>
         </div>
       </div>
 
@@ -927,7 +927,7 @@ export default function ProfilePage() {
           <h3 className="text-xl font-bold text-zinc-900">
             {t.profilePage?.securitySettings || 'Security Settings'}
           </h3>
-          <p className="text-[11px] text-zinc-500">Update your password</p>
+          <p className="text-[11px] text-zinc-500">{locale === 'zh' ? '更新您的密码' : 'Update your password'}</p>
         </div>
       </div>
 
@@ -1279,7 +1279,7 @@ export default function ProfilePage() {
           <h3 className="text-xl font-bold text-zinc-900">
             {t.profilePage?.myAccount || 'My Account'}
           </h3>
-          <p className="text-[11px] text-zinc-500">Manage your account and preferences</p>
+          <p className="text-[11px] text-zinc-500">{locale === 'zh' ? '管理您的帐户和偏好' : 'Manage your account and preferences'}</p>
         </div>
       </div>
 
@@ -1310,14 +1310,14 @@ export default function ProfilePage() {
           <div className="flex items-center gap-2.5 bg-white/10 rounded-[14px] px-3 py-2.5">
             <Phone size={13} className="text-zinc-300 shrink-0" />
             <div>
-              <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Phone Number</div>
+              <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">{t.profilePage?.phoneNumber || (locale === 'zh' ? '电话号码' : 'Phone Number')}</div>
               <div className="text-[12px] font-bold text-white truncate">{user.phone || '-'}</div>
             </div>
           </div>
           <div className="flex items-center gap-2.5 bg-white/10 rounded-[14px] px-3 py-2.5 overflow-hidden">
             <Mail size={13} className="text-zinc-300 shrink-0" />
             <div className="overflow-hidden">
-              <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Email Address</div>
+              <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">{locale === 'zh' ? '电子邮件' : 'Email Address'}</div>
               <div className="text-[12px] font-bold text-white truncate">{user.email || '-'}</div>
             </div>
           </div>
@@ -1327,7 +1327,7 @@ export default function ProfilePage() {
       {/* Order & Delivery Information */}
       <div className="mb-2">
         <div className="text-[13px] font-bold text-zinc-900 mb-3 ml-1">
-          {t.profilePage?.orderAndDelivery || 'Order & Delivery Information'}
+          {t.profilePage?.orderAndDelivery || (locale === 'zh' ? '订单和送货信息' : 'Order & Delivery Information')}
         </div>
 
         <div className="space-y-2">
@@ -1383,8 +1383,8 @@ export default function ProfilePage() {
           <UserCheck size={20} />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-[13px] font-bold text-zinc-900 mb-0.5">{t.profilePage?.accountInformation || 'Account Information'}</div>
-          <div className="text-[11px] text-zinc-500">Keep your information up to date to ensure a smooth and secure shopping experience.</div>
+          <div className="text-[13px] font-bold text-zinc-900 mb-0.5">{t.profilePage?.accountInformation || (locale === 'zh' ? '账户信息' : 'Account Information')}</div>
+          <div className="text-[11px] text-zinc-500">{locale === 'zh' ? '账户信息 - 保持您的信息最新，以确保购物体验顺畅安全。' : 'Keep your information up to date to ensure a smooth and secure shopping experience.'}</div>
         </div>
       </div>
 
@@ -1395,7 +1395,7 @@ export default function ProfilePage() {
           className="w-full py-4 bg-zinc-900 text-white rounded-full font-bold text-[13px] shadow-[0_4px_14px_rgba(0,0,0,0.15)] active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
         >
           <Edit3 size={16} />
-          {t.profilePage?.editProfile || 'Update Information'} ›
+          {t.profilePage?.editProfile || (locale === 'zh' ? '更新信息' : 'Update Information')} ›
         </button>
       </div>
     </div>
@@ -1522,7 +1522,7 @@ export default function ProfilePage() {
  </button>
  <div>
  <h3 className="text-xl font-bold text-zinc-900">{t.profilePage?.myOrders || 'My Orders'}</h3>
- <p className="text-[11px] text-zinc-500">View and track your orders</p>
+ <p className="text-[11px] text-zinc-500">{locale === 'zh' ? '查看并跟踪您的订单' : 'View and track your orders'}</p>
  </div>
  </div>
 
@@ -1531,20 +1531,20 @@ export default function ProfilePage() {
  <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
  <div className="absolute -bottom-10 -right-2 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
  <div className="relative z-10">
- <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-3">Order Summary</div>
+ <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-3">{locale === 'zh' ? '订单摘要' : 'Order Summary'}</div>
  <div className="grid grid-cols-3 gap-3">
  <div className="bg-white/10 rounded-[14px] px-3 py-3 text-center">
  <div className="text-[22px] font-black text-white leading-none mb-1">{orders.length}</div>
- <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Total</div>
+ <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{locale === 'zh' ? '总计' : 'Total'}</div>
  </div>
  <div className="bg-white/10 rounded-[14px] px-3 py-3 text-center">
  <div className="text-[22px] font-black text-white leading-none mb-1">{orders.filter((o: any) => o.status === 'Completed').length}</div>
- <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Done</div>
+ <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{locale === 'zh' ? '已完成' : 'Done'}</div>
  </div>
  <div className="bg-white/10 rounded-[14px] px-2 py-3 text-center overflow-hidden">
  <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider leading-none mb-0.5">RM</div>
  <div className="text-[18px] font-black text-white leading-none mb-1 truncate">{orders.reduce((s: number, o: any) => s + o.totalAmount, 0).toFixed(0)}</div>
- <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Spent</div>
+ <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{locale === 'zh' ? '消费' : 'Spent'}</div>
  </div>
  </div>
  </div>
@@ -1558,7 +1558,7 @@ export default function ProfilePage() {
  </div>
  <input
  type="text"
- placeholder="Search orders..."
+ placeholder={locale === 'zh' ? '搜索订单...' : 'Search orders...'}
  className="w-full pl-10 pr-9 py-3 rounded-[16px] bg-white border border-zinc-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] font-semibold text-[13px] text-zinc-900 outline-none focus:border-zinc-300 transition-colors"
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
@@ -1575,11 +1575,11 @@ export default function ProfilePage() {
  onChange={(e) => setStatusFilter(e.target.value)}
  className="h-full px-3 py-3 rounded-[16px] bg-white border border-zinc-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] font-semibold text-[12px] text-zinc-900 cursor-pointer appearance-none outline-none focus:border-zinc-300 transition-colors pr-7"
  >
- <option value="All">All</option>
- <option value="Completed">Done</option>
- <option value="Pending">Pending</option>
- <option value="In Process">In Process</option>
- <option value="Cancelled">Cancelled</option>
+ <option value="All">{locale === 'zh' ? '全部' : 'All'}</option>
+ <option value="Completed">{locale === 'zh' ? '已完成' : 'Done'}</option>
+ <option value="Pending">{locale === 'zh' ? '待处理' : 'Pending'}</option>
+ <option value="In Process">{locale === 'zh' ? '处理中' : 'In Process'}</option>
+ <option value="Cancelled">{locale === 'zh' ? '已取消' : 'Cancelled'}</option>
  </select>
  <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
  </div>
@@ -1599,8 +1599,8 @@ export default function ProfilePage() {
  <div className="bg-white rounded-[20px] border border-zinc-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden">
  {/* Table Header */}
  <div className="grid grid-cols-[1fr_auto_auto] gap-3 px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
- <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Order</div>
- <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400 text-right">Amount</div>
+ <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{locale === 'zh' ? '订单' : 'Order'}</div>
+ <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400 text-right">{locale === 'zh' ? '金额' : 'Amount'}</div>
  <div className="w-4"></div>
  </div>
 
