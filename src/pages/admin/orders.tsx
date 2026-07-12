@@ -145,50 +145,62 @@ const OrdersPage = () => {
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
     
     const stats = {
-      todayOrders: 0,
-      yesterdayOrders: 0,
+      thisMonthOrders: 0,
+      lastMonthOrders: 0,
       
       completedThisMonth: 0,
       completedLastMonth: 0,
+      completedTotal: 0,
       
       inProcessThisMonth: 0,
       inProcessLastMonth: 0,
+      inProcessTotal: 0,
       
       pendingThisMonth: 0,
       pendingLastMonth: 0,
+      pendingTotal: 0,
       
       cancelledThisMonth: 0,
       cancelledLastMonth: 0,
+      cancelledTotal: 0,
       
       deliveringThisMonth: 0,
       deliveringLastMonth: 0,
+      deliveringTotal: 0,
     };
 
     orders.forEach(o => {
       if (!o.createdAt) return;
       const time = new Date(o.createdAt).getTime();
       
-      // Today vs Yesterday
-      if (time >= startOfToday) stats.todayOrders++;
-      else if (time >= startOfYesterday && time < startOfToday) stats.yesterdayOrders++;
+      // Total orders tracking
+      const isThisMonthLocal = time >= startOfThisMonth;
+      const isLastMonthLocal = time >= startOfLastMonth && time < startOfThisMonth;
+      if (isThisMonthLocal) stats.thisMonthOrders++;
+      if (isLastMonthLocal) stats.lastMonthOrders++;
       
       // This Month vs Last Month
       const isThisMonth = time >= startOfThisMonth;
       const isLastMonth = time >= startOfLastMonth && time < startOfThisMonth;
 
       if (o.status === 'Completed') {
+        stats.completedTotal++;
         if (isThisMonth) stats.completedThisMonth++;
         if (isLastMonth) stats.completedLastMonth++;
       } else if (o.status === 'In Process') {
+        stats.inProcessTotal++;
         if (isThisMonth) stats.inProcessThisMonth++;
         if (isLastMonth) stats.inProcessLastMonth++;
       } else if (o.status === 'Pending') {
+        stats.pendingTotal++;
         if (isThisMonth) stats.pendingThisMonth++;
         if (isLastMonth) stats.pendingLastMonth++;
       } else if (o.status === 'Cancelled') {
+        stats.cancelledTotal++;
         if (isThisMonth) stats.cancelledThisMonth++;
         if (isLastMonth) stats.cancelledLastMonth++;
       } else if (o.status === 'Delivering') {
+        stats.deliveringTotal++;
         if (isThisMonth) stats.deliveringThisMonth++;
         if (isLastMonth) stats.deliveringLastMonth++;
       }
@@ -201,19 +213,19 @@ const OrdersPage = () => {
 
     return [
       {
-        id: 'today',
-        label: 'Total Orders Today',
-        value: stats.todayOrders,
-        gain: calculateGain(stats.todayOrders, stats.yesterdayOrders),
+        id: 'all',
+        label: t('total_all_orders') || 'Total All Orders',
+        value: orders.length,
+        gain: calculateGain(stats.thisMonthOrders, stats.lastMonthOrders),
         icon: ShoppingBag,
         color: '#3b82f6',
         filterValue: 'All',
-        filterToday: true
+        filterToday: false
       },
       {
         id: 'completed',
-        label: 'Order Completed',
-        value: stats.completedThisMonth,
+        label: t('order_completed_kpi') || 'Order Completed',
+        value: stats.completedTotal,
         gain: calculateGain(stats.completedThisMonth, stats.completedLastMonth),
         icon: CheckCircle2,
         color: '#10b981',
@@ -221,8 +233,8 @@ const OrdersPage = () => {
       },
       {
         id: 'inProcess',
-        label: 'In-Process Order',
-        value: stats.inProcessThisMonth,
+        label: t('in_process_order') || 'In-Process Order',
+        value: stats.inProcessTotal,
         gain: calculateGain(stats.inProcessThisMonth, stats.inProcessLastMonth),
         icon: Activity,
         color: '#f59e0b',
@@ -230,8 +242,8 @@ const OrdersPage = () => {
       },
       {
         id: 'pending',
-        label: 'Pending Order',
-        value: stats.pendingThisMonth,
+        label: t('pending_order') || 'Pending Order',
+        value: stats.pendingTotal,
         gain: calculateGain(stats.pendingThisMonth, stats.pendingLastMonth),
         icon: Clock,
         color: '#8b5cf6',
@@ -239,8 +251,8 @@ const OrdersPage = () => {
       },
       {
         id: 'cancelled',
-        label: 'Cancelled Order',
-        value: stats.cancelledThisMonth,
+        label: t('cancelled_order_kpi') || 'Cancelled Order',
+        value: stats.cancelledTotal,
         gain: calculateGain(stats.cancelledThisMonth, stats.cancelledLastMonth),
         icon: AlertCircle,
         color: '#ef4444',
@@ -248,15 +260,15 @@ const OrdersPage = () => {
       },
       {
         id: 'delivering',
-        label: 'Delivering Order',
-        value: stats.deliveringThisMonth,
+        label: t('delivering_order') || 'Delivering Order',
+        value: stats.deliveringTotal,
         gain: calculateGain(stats.deliveringThisMonth, stats.deliveringLastMonth),
         icon: Truck,
         color: '#0ea5e9',
         filterValue: 'Delivering'
       }
     ];
-  }, [orders]);
+  }, [orders, t]);
 
   // Payment Methods Calculation
   const paymentMethodData = useMemo(() => {
@@ -284,11 +296,11 @@ const OrdersPage = () => {
     const pCod = 100 - pBank - pQr; // ensure sum is exactly 100
 
     return [
-      { name: 'Bank Transfer', value: bank, color: '#1e1b4b', percent: pBank },
-      { name: 'DuitNow QR Code', value: qr, color: '#818cf8', percent: pQr },
-      { name: 'Cash On Delivery', value: cod, color: '#c7d2fe', percent: pCod },
+      { name: t('bank_transfer') || 'Bank Transfer', value: bank, color: '#1e1b4b', percent: pBank },
+      { name: t('qr_code') || 'DuitNow QR Code', value: qr, color: '#818cf8', percent: pQr },
+      { name: t('cash_on_delivery') || 'Cash On Delivery', value: cod, color: '#c7d2fe', percent: pCod },
     ].filter(item => item.value > 0);
-  }, [orders]);
+  }, [orders, t]);
 
   return (
     <AdminLayout title={t('orders') || 'Orders'}>
@@ -334,7 +346,7 @@ const OrdersPage = () => {
                       "flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold",
                       stat.gain >= 0 ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
                     )}
-                    title={stat.id === 'today' ? "Compared to yesterday" : "Compared to last month"}
+                    title="Compared to last month"
                   >
                     {stat.gain >= 0 ? <ArrowUp size={10} strokeWidth={3} /> : <ArrowDown size={10} strokeWidth={3} />}
                     {Math.abs(stat.gain)}%
@@ -348,8 +360,8 @@ const OrdersPage = () => {
           <div className="bg-white border border-zinc-100 rounded-3xl overflow-hidden flex flex-col shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg transition-all duration-300">
             {/* Header */}
             <div className="px-6 pt-6 pb-2">
-              <h3 className="text-[14px] font-bold text-zinc-800 tracking-wide">Payment Methods</h3>
-              <p className="text-[12px] font-medium text-zinc-500 mt-0.5">Breakdown of all order payment types</p>
+              <h3 className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('payment_methods') || 'Payment Methods'}</h3>
+              <p className="text-[12px] font-medium text-zinc-500 mt-0.5">{t('payment_methods_desc') || 'Breakdown of all order payment types'}</p>
             </div>
 
             {/* Body */}
@@ -398,11 +410,11 @@ const OrdersPage = () => {
                       <span className="text-2xl font-extrabold text-zinc-900 leading-none">
                         {paymentMethodData.reduce((acc, curr) => acc + curr.value, 0).toLocaleString()}
                       </span>
-                      <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider mt-0.5">Total</span>
+                      <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider mt-0.5">{t('total') || 'Total'}</span>
                     </div>
                   </>
                 ) : (
-                  <p className="text-sm font-bold text-zinc-400">No payment data</p>
+                  <p className="text-sm font-bold text-zinc-400">{t('no_payment_data') || 'No payment data'}</p>
                 )}
               </div>
 
@@ -450,12 +462,12 @@ const OrdersPage = () => {
               {/* Filter Pills */}
               <div className="flex flex-wrap items-center gap-2">
                 {[
-                  { id: 'All', label: 'All', count: orders.length },
-                  { id: 'Pending', label: 'Pending', count: orders.filter(o => o.status === 'Pending').length },
-                  { id: 'In Process', label: 'In-Process', count: orders.filter(o => o.status === 'In Process').length },
-                  { id: 'Delivering', label: 'Delivering', count: orders.filter(o => o.status === 'Delivering').length },
-                  { id: 'Completed', label: 'Completed', count: orders.filter(o => o.status === 'Completed').length },
-                  { id: 'Cancelled', label: 'Cancelled', count: orders.filter(o => o.status === 'Cancelled').length },
+                  { id: 'All', label: t('all_filter') || 'All', count: orders.length },
+                  { id: 'Pending', label: t('pending_filter') || 'Pending', count: orders.filter(o => o.status === 'Pending').length },
+                  { id: 'In Process', label: t('in_process_filter') || 'In-Process', count: orders.filter(o => o.status === 'In Process').length },
+                  { id: 'Delivering', label: t('delivering_filter') || 'Delivering', count: orders.filter(o => o.status === 'Delivering').length },
+                  { id: 'Completed', label: t('completed_filter') || 'Completed', count: orders.filter(o => o.status === 'Completed').length },
+                  { id: 'Cancelled', label: t('cancelled_filter') || 'Cancelled', count: orders.filter(o => o.status === 'Cancelled').length },
                 ].map(filter => (
                   <button
                     key={filter.id}
@@ -477,7 +489,7 @@ const OrdersPage = () => {
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-blue-500 transition-colors" size={16} />
                   <input 
                     type="text" 
-                    placeholder="Search Order ID, Name, Phone..."
+                    placeholder={t('search_orders_placeholder') || 'Search Order ID, Name, Phone...'}
                     value={searchTerm}
                     onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                     className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-full outline-none focus:border-blue-500 focus:bg-white transition-all text-[13px] font-bold text-zinc-700"
@@ -510,7 +522,7 @@ const OrdersPage = () => {
                           className="absolute right-0 top-full mt-2 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-20 p-4 w-[280px]"
                         >
                           <div className="flex items-center justify-between mb-4">
-                            <h4 className="text-sm font-bold text-zinc-800">Filter by Month</h4>
+                            <h4 className="text-sm font-bold text-zinc-800">{t('filter_by_month') || 'Filter by Month'}</h4>
                             <button onClick={() => setShowCalendar(false)} className="text-zinc-400 hover:text-zinc-600">
                               <X size={16} />
                             </button>
@@ -528,13 +540,13 @@ const OrdersPage = () => {
                               onClick={() => { setMonthFilter(''); setCurrentPage(1); setShowCalendar(false); }}
                               className="flex-1 py-2 bg-zinc-100 text-zinc-600 rounded-xl text-xs font-bold hover:bg-zinc-200 transition-colors"
                             >
-                              Clear
+                              {t('clear') || 'Clear'}
                             </button>
                             <button 
                               onClick={() => setShowCalendar(false)}
                               className="flex-1 py-2 bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 hover:brightness-110 transition-all"
                             >
-                              Apply
+                              {t('apply') || 'Apply'}
                             </button>
                           </div>
                         </motion.div>
@@ -551,18 +563,19 @@ const OrdersPage = () => {
                 <thead>
                   <tr className="border-b border-zinc-100 bg-zinc-50/50">
                     <th onClick={() => handleSort('id')} className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider cursor-pointer hover:text-blue-500 transition-colors whitespace-nowrap group/header">
-                      <div className="flex items-center gap-2">Order ID <SortIndicator column="id" /></div>
+                      <div className="flex items-center gap-2">{t('order_id') || 'Order ID'} <SortIndicator column="id" /></div>
                     </th>
-                    <th className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider whitespace-nowrap">Customer Name</th>
-                    <th className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider whitespace-nowrap">Phone Number</th>
+                    <th className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider whitespace-nowrap">{t('customer_name') || 'Customer Name'}</th>
+                    <th className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider whitespace-nowrap">{t('phone_number') || 'Phone Number'}</th>
+                    <th className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider whitespace-nowrap">{t('items') || 'Items'}</th>
                     <th onClick={() => handleSort('totalAmount')} className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider cursor-pointer hover:text-blue-500 transition-colors whitespace-nowrap group/header">
-                      <div className="flex items-center gap-2">Total Amount <SortIndicator column="totalAmount" /></div>
+                      <div className="flex items-center gap-2">{t('total_amount') || 'Total Amount'} <SortIndicator column="totalAmount" /></div>
                     </th>
                     <th onClick={() => handleSort('status')} className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider cursor-pointer hover:text-blue-500 transition-colors whitespace-nowrap group/header">
-                      <div className="flex items-center gap-2">Status <SortIndicator column="status" /></div>
+                      <div className="flex items-center gap-2">{t('status') || 'Status'} <SortIndicator column="status" /></div>
                     </th>
                     <th onClick={() => handleSort('createdAt')} className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider cursor-pointer hover:text-blue-500 transition-colors whitespace-nowrap group/header">
-                      <div className="flex items-center gap-2">Date <SortIndicator column="createdAt" /></div>
+                      <div className="flex items-center gap-2">{t('date') || 'Date'} <SortIndicator column="createdAt" /></div>
                     </th>
                   </tr>
                 </thead>
@@ -572,7 +585,7 @@ const OrdersPage = () => {
                       <td colSpan={6} className="p-20 text-center">
                         <div className="flex flex-col items-center justify-center gap-3">
                           <div className="w-8 h-8 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
-                          <p className="text-sm font-bold text-zinc-400">Loading Orders...</p>
+                          <p className="text-sm font-bold text-zinc-400">{t('loading_orders') || 'Loading Orders...'}</p>
                         </div>
                       </td>
                     </tr>
@@ -581,7 +594,7 @@ const OrdersPage = () => {
                       <td colSpan={6} className="p-20 text-center">
                         <div className="flex flex-col items-center justify-center gap-3">
                           <Package size={32} className="text-zinc-300" />
-                          <p className="text-sm font-bold text-zinc-400">No order records found.</p>
+                          <p className="text-sm font-bold text-zinc-400">{t('no_order_records') || 'No order records found.'}</p>
                         </div>
                       </td>
                     </tr>
@@ -601,6 +614,11 @@ const OrdersPage = () => {
                         <span className="text-[13px] font-medium text-zinc-600">{order.customer?.phone || '-'}</span>
                       </td>
                       <td className="p-4 px-6">
+                        <span className="text-[13px] font-bold text-zinc-800">
+                          {order.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0} {t('items') || 'items'}
+                        </span>
+                      </td>
+                      <td className="p-4 px-6">
                         <span className="text-[15px] font-black text-black">RM {order.totalAmount?.toFixed(2)}</span>
                       </td>
                       <td className="p-4 px-6">
@@ -618,11 +636,15 @@ const OrdersPage = () => {
                            order.status === 'In Process' ? <Activity size={12} /> :
                            order.status === 'Delivering' ? <Truck size={12} /> : 
                            order.status === 'Cancelled' ? <AlertCircle size={12} /> : <Activity size={12} />}
-                          {order.status}
+                          {order.status === 'Completed' ? (t('completed_filter') || 'Completed') :
+                           order.status === 'Pending' ? (t('pending_filter') || 'Pending') :
+                           order.status === 'In Process' ? (t('in_process_filter') || 'In Process') :
+                           order.status === 'Delivering' ? (t('delivering_filter') || 'Delivering') :
+                           order.status === 'Cancelled' ? (t('cancelled_filter') || 'Cancelled') : order.status}
                         </div>
                       </td>
                       <td className="p-4 px-6">
-                        <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
                           <span className="text-[13px] font-bold text-zinc-700">
                             {new Date(order.createdAt).toLocaleDateString()}
                           </span>

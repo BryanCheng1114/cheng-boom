@@ -257,9 +257,10 @@ const EditProductPage = () => {
     );
   }
 
-  return (
+  const localizedProductName = language === 'zh' && formData.nameZh ? formData.nameZh : (language === 'ms' && formData.nameMs ? formData.nameMs : formData.name);
 
-    <AdminLayout title={`${t('edit_product') || 'Edit Product'}: ${formData.name}`}>
+  return (
+    <AdminLayout title={`${t('edit_product') || 'Edit Product'}: ${localizedProductName}`}>
       <div className="w-full pb-24 relative">
 
         {/* Top Info Box */}
@@ -268,8 +269,8 @@ const EditProductPage = () => {
             <ChevronLeft size={24} />
           </Link>
           <div>
-            <h2 className="text-[15px] font-bold text-zinc-900">{`${t('edit_product') || 'Edit Product'}: ${formData.name}`}</h2>
-            <p className="text-[13px] text-zinc-500 mt-1">Modify the product details, pricing, and status.</p>
+            <h2 className="text-[15px] font-bold text-zinc-900">{`${t('edit_product') || 'Edit Product'}: ${localizedProductName}`}</h2>
+            <p className="text-[13px] text-zinc-500 mt-1">{t('edit_product_desc') || 'Modify the product details, pricing, and status.'}</p>
           </div>
         </div>
 
@@ -277,7 +278,7 @@ const EditProductPage = () => {
           {Object.keys(fieldErrors).length > 0 && (
             <div className="flex items-center gap-3 p-5 bg-red-50 text-red-500 text-sm font-semibold rounded-2xl border border-red-100">
               <AlertTriangle size={18} className="shrink-0" />
-              Please fill in all required fields marked in red.
+              {t('fill_required_fields_err') || 'Please fill in all required fields marked in red.'}
             </div>
           )}
 
@@ -287,7 +288,7 @@ const EditProductPage = () => {
               
               {/* Basic Details */}
               <div className="bg-white p-6 md:p-8 rounded-[20px] border border-zinc-200 shadow-sm">
-                <h3 className="text-[16px] font-bold text-zinc-900 mb-6">Product Information</h3>
+                <h3 className="text-[16px] font-bold text-zinc-900 mb-6">{t('product_info') || 'Product Information'}</h3>
                 <div className="space-y-6">
                   {/* Row 1 */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -332,15 +333,16 @@ const EditProductPage = () => {
                         }`}
                       >
                         <option value="">{t('choose_category')}</option>
-                        {categories.map(cat => (
-                          <option key={cat.id} value={cat.name}>{cat.name}</option>
-                        ))}
+                        {categories.map(cat => {
+                          const catName = language === 'zh' && cat.nameZh ? cat.nameZh : (language === 'ms' && cat.nameMs ? cat.nameMs : cat.name);
+                          return <option key={cat.id} value={cat.name}>{catName}</option>;
+                        })}
                       </select>
                       {fieldErrors.category && <p className="text-red-500 text-[11px] font-semibold mt-1">⚠ {fieldErrors.category}</p>}
                     </div>
 
                     <div ref={codeRef} className="space-y-2">
-                      <label className="text-[13px] font-semibold text-zinc-800">Product Code <span className="text-red-500">*</span></label>
+                      <label className="text-[13px] font-semibold text-zinc-800">{t('product_code') || 'Product Code'} <span className="text-red-500">*</span></label>
                       <div className="flex gap-2 relative">
                         <input 
                           type="text" 
@@ -357,7 +359,7 @@ const EditProductPage = () => {
                           onClick={handleAutoGenerateCode}
                           className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-orange-500 font-bold text-[12px] hover:bg-orange-50 rounded-md transition-all"
                         >
-                          Auto-Gen
+                          {t('auto_gen') || 'Auto-Gen'}
                         </button>
                       </div>
                       {fieldErrors.code && <p className="text-red-500 text-[11px] font-semibold mt-1">⚠ {fieldErrors.code}</p>}
@@ -397,31 +399,31 @@ const EditProductPage = () => {
 
               {/* Single Pricing & Stock */}
               <div className="bg-white p-6 md:p-8 rounded-[20px] border border-zinc-200 shadow-sm">
-                <h3 className="text-[16px] font-bold text-zinc-900 mb-6">Single Item Pricing & Stock</h3>
+                <h3 className="text-[16px] font-bold text-zinc-900 mb-6">{t('single_pricing_stock') || 'Single Item Pricing & Stock'}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div ref={stockRef} className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">Total Stock <span className="text-red-500">*</span></label>
+                    <label className="text-[12px] font-semibold text-zinc-800">{t('total_stock') || 'Total Stock'} <span className="text-red-500">*</span></label>
                     <input 
                       type="number" min="0" name="stock" value={formData.stock} onChange={handleChange}
                       className={`w-full px-4 py-3 rounded-xl border outline-none text-[14px] bg-white ${fieldErrors.stock ? 'border-red-500' : 'border-zinc-200'}`} placeholder="0"
                     />
                   </div>
                   <div ref={priceRef} className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">Normal Price ($) <span className="text-red-500">*</span></label>
+                    <label className="text-[12px] font-semibold text-zinc-800">{t('normal_price') || 'Normal Price ($)'} <span className="text-red-500">*</span></label>
                     <input 
                       type="number" min="0" step="0.01" name="price" value={formData.price} onChange={handleChange}
                       className={`w-full px-4 py-3 rounded-xl border outline-none text-[14px] bg-white ${fieldErrors.price ? 'border-red-500' : 'border-zinc-200'}`} placeholder="0.00"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">Agent Price ($)</label>
+                    <label className="text-[12px] font-semibold text-zinc-800">{t('agent_price') || 'Agent Price ($)'}</label>
                     <input 
                       type="number" min="0" step="0.01" name="sellerPrice" value={formData.sellerPrice} onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none text-[14px] bg-white" placeholder="0.00"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">Promo Price ($)</label>
+                    <label className="text-[12px] font-semibold text-zinc-800">{t('promo_price') || 'Promo Price ($)'}</label>
                     <input 
                       type="number" min="0" step="0.01" name="promotion" value={formData.promotion} onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none text-[14px] bg-white" placeholder="0.00"
@@ -432,31 +434,31 @@ const EditProductPage = () => {
 
               {/* Box Pricing */}
               <div className="bg-white p-6 md:p-8 rounded-[20px] border border-zinc-200 shadow-sm">
-                <h3 className="text-[16px] font-bold text-zinc-900 mb-6">Per Box Pricing (Optional)</h3>
+                <h3 className="text-[16px] font-bold text-zinc-900 mb-6">{t('per_box_pricing') || 'Per Box Pricing (Optional)'}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">Items Per Box</label>
+                    <label className="text-[12px] font-semibold text-zinc-800">{t('items_per_box') || 'Items Per Box'}</label>
                     <input 
                       type="number" min="0" name="itemsPerBox" value={formData.itemsPerBox} onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none text-[14px] bg-white" placeholder="0"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">Box Price ($)</label>
+                    <label className="text-[12px] font-semibold text-zinc-800">{t('box_price') || 'Box Price ($)'}</label>
                     <input 
                       type="number" min="0" step="0.01" name="boxPrice" value={formData.boxPrice} onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none text-[14px] bg-white" placeholder="0.00"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">Box Agent Price ($)</label>
+                    <label className="text-[12px] font-semibold text-zinc-800">{t('box_agent_price') || 'Box Agent Price ($)'}</label>
                     <input 
                       type="number" min="0" step="0.01" name="boxSellerPrice" value={formData.boxSellerPrice} onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none text-[14px] bg-white" placeholder="0.00"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">Box Promo Price ($)</label>
+                    <label className="text-[12px] font-semibold text-zinc-800">{t('box_promo_price') || 'Box Promo Price ($)'}</label>
                     <input 
                       type="number" min="0" step="0.01" name="boxPromotion" value={formData.boxPromotion} onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none text-[14px] bg-white" placeholder="0.00"
@@ -467,31 +469,31 @@ const EditProductPage = () => {
               
               {/* Bundle Pricing */}
               <div className="bg-white p-6 md:p-8 rounded-[20px] border border-zinc-200 shadow-sm">
-                <h3 className="text-[16px] font-bold text-zinc-900 mb-6">Bundle Set Pricing (Optional)</h3>
+                <h3 className="text-[16px] font-bold text-zinc-900 mb-6">{t('bundle_pricing') || 'Bundle Set Pricing (Optional)'}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">Items Per Bundle</label>
+                    <label className="text-[12px] font-semibold text-zinc-800">{t('items_per_bundle') || 'Items Per Bundle'}</label>
                     <input 
                       type="number" min="0" name="bundleQuantity" value={formData.bundleQuantity} onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none text-[14px] bg-white" placeholder="e.g. 4"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">Bundle Price ($)</label>
+                    <label className="text-[12px] font-semibold text-zinc-800">{t('bundle_price') || 'Bundle Price ($)'}</label>
                     <input 
                       type="number" min="0" step="0.01" name="bundlePrice" value={formData.bundlePrice} onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none text-[14px] bg-white" placeholder="100.00"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">Bundle Agent Price ($)</label>
+                    <label className="text-[12px] font-semibold text-zinc-800">{t('bundle_agent_price') || 'Bundle Agent Price ($)'}</label>
                     <input 
                       type="number" min="0" step="0.01" name="bundleSellerPrice" value={formData.bundleSellerPrice} onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none text-[14px] bg-white" placeholder="90.00"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">Bundle Promo Price ($)</label>
+                    <label className="text-[12px] font-semibold text-zinc-800">{t('bundle_promo_price') || 'Bundle Promo Price ($)'}</label>
                     <input 
                       type="number" min="0" step="0.01" name="bundlePromotion" value={formData.bundlePromotion} onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none text-[14px] bg-white" placeholder="0.00"
@@ -508,7 +510,7 @@ const EditProductPage = () => {
               {/* Images */}
               <div ref={imageRef} className="bg-white p-6 md:p-8 rounded-[20px] border border-zinc-200 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-[16px] font-bold text-zinc-900">Visual Assets <span className="text-red-500">*</span></h3>
+                  <h3 className="text-[16px] font-bold text-zinc-900">{t('visual_assets') || 'Visual Assets'} <span className="text-red-500">*</span></h3>
                   <span className="text-[11px] font-bold text-zinc-400 bg-zinc-100 px-2 py-1 rounded-md">{previews.length}/10</span>
                 </div>
                 
@@ -522,8 +524,8 @@ const EditProductPage = () => {
                     <ImageIcon size={24} />
                   </div>
                   <div className="text-center">
-                    <p className="text-[12px] font-bold text-zinc-600">Click to upload images</p>
-                    <p className="text-[10px] text-zinc-400 mt-1">PNG, JPG up to 10MB</p>
+                    <p className="text-[12px] font-bold text-zinc-600">{t('click_to_upload_images') || 'Click to upload images'}</p>
+                    <p className="text-[10px] text-zinc-400 mt-1">{t('image_size_hint') || 'PNG, JPG up to 10MB'}</p>
                   </div>
                   <input 
                     type="file" multiple accept="image/*" ref={fileInputRef} onChange={handleFileSelect} className="hidden" 
@@ -557,7 +559,7 @@ const EditProductPage = () => {
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <Video size={14} className="text-zinc-500" />
-                      <label className="text-[12px] font-semibold text-zinc-800">Youtube Video Link (optional)</label>
+                      <label className="text-[12px] font-semibold text-zinc-800">{t('youtube_link_optional') || 'Youtube Video Link (optional)'}</label>
                       <button 
                         type="button"
                         onMouseEnter={() => setShowYoutubeGuide(true)}
@@ -573,7 +575,7 @@ const EditProductPage = () => {
                       rel="noreferrer"
                       className="text-[10px] font-black uppercase tracking-widest text-orange-500 hover:text-orange-600 transition-all flex items-center gap-1 hover:gap-2 group"
                     >
-                      Open YouTube <ChevronRight size={12} strokeWidth={3} className="opacity-70 group-hover:opacity-100 transition-opacity" />
+                      {t('open_youtube') || 'Open YouTube'} <ChevronRight size={12} strokeWidth={3} className="opacity-70 group-hover:opacity-100 transition-opacity" />
                     </a>
                   </div>
 
@@ -585,23 +587,23 @@ const EditProductPage = () => {
                         exit={{ opacity: 0, y: 10 }}
                         className="absolute z-50 bottom-full right-0 mb-2 w-[600px] bg-zinc-900 border border-white/10 rounded-[32px] p-8 shadow-2xl pointer-events-none"
                       >
-                        <h4 className="text-sm font-black text-white uppercase tracking-widest mb-4 border-b border-white/10 pb-3">How to Add Video</h4>
+                        <h4 className="text-sm font-black text-white uppercase tracking-widest mb-4 border-b border-white/10 pb-3">{t('how_to_add_video') || 'How to Add Video'}</h4>
                         <div className="space-y-4">
                           <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
                             <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">1</span>
-                            <p>Click "Open YouTube" to visit youtube.com</p>
+                            <p>{t('youtube_step1') || 'Click "Open YouTube" to visit youtube.com'}</p>
                           </div>
                           <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
                             <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">2</span>
-                            <p>Find and open the video you want to display</p>
+                            <p>{t('youtube_step2') || 'Find and open the video you want to display'}</p>
                           </div>
                           <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
                             <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">3</span>
-                            <p>Copy the URL from the browser address bar</p>
+                            <p>{t('youtube_step3') || 'Copy the URL from the browser address bar'}</p>
                           </div>
                           <div className="flex gap-4 text-zinc-300 text-xs font-bold items-center">
                             <span className="w-6 h-6 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center shrink-0">4</span>
-                            <p>Paste the copied link into this input box</p>
+                            <p>{t('youtube_step4') || 'Paste the copied link into this input box'}</p>
                           </div>
                         </div>
                         <div className="mt-6 bg-zinc-800/50 rounded-2xl overflow-hidden border border-white/5 p-2">
@@ -624,7 +626,7 @@ const EditProductPage = () => {
 
               {/* Listing Status */}
               <div className="bg-white p-6 md:p-8 rounded-[20px] border border-zinc-200 shadow-sm">
-                <h3 className="text-[16px] font-bold text-zinc-900 mb-4">Listing Status</h3>
+                <h3 className="text-[16px] font-bold text-zinc-900 mb-4">{t('listing_status') || 'Listing Status'}</h3>
                 
                 <div className="flex flex-col gap-2">
                   {['Live', 'Hold', 'Deactive'].map((status) => {
@@ -673,8 +675,7 @@ const EditProductPage = () => {
                 onClick={() => router.push('/admin/product')}
                 disabled={isLoading}
                 className="px-8 py-3 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-bold text-[13px] hover:bg-zinc-50 transition-all disabled:opacity-50"
-              >
-                Cancel
+              >{t('cancel') || 'Cancel'}
               </button>
               <button 
                 type="submit" 
@@ -688,8 +689,7 @@ const EditProductPage = () => {
                   <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    <Package size={16} />
-                    Save Changes
+                    <Package size={16} />{t('save_changes') || 'Save Changes'}
                   </>
                 )}
               </button>

@@ -5,7 +5,6 @@ import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { 
   LogOut, 
   LayoutDashboard, 
-  Settings as SettingsIcon, 
   Package, 
   Users, 
   ChevronLeft, 
@@ -16,7 +15,7 @@ import {
   TrendingUp,
   Sidebar,
   Layers,
-  HelpCircle
+  Globe
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from '../../context/LanguageContext';
@@ -33,6 +32,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, headerAction
   const { t, language, setLanguage } = useLanguage();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // When mounted on client, now we can show the UI
   useEffect(() => {
@@ -64,7 +64,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, headerAction
     { name: t('business_setup') || 'Business Setup', key: 'business-setup', path: '/admin/business-setup', icon: Building },
   ];
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = async () => {
     try {
       await fetch('/api/admin/logout');
       router.push('/admin');
@@ -87,7 +91,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, headerAction
         <div className="h-20 flex items-center justify-between px-6">
           {!isCollapsed && (
             <span className="font-bold text-2xl text-white tracking-wide">
-              Admin
+              {t('admin_title') || 'Admin'}
             </span>
           )}
           <button 
@@ -119,29 +123,19 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, headerAction
 
         {/* Bottom Section */}
         <div className="mt-auto">
-          {/* Help & Settings Menu */}
+          {/* Language Toggle */}
           <div className="px-4 pb-4 space-y-2">
-            <Link href="/admin/help">
-              <div className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all cursor-pointer ${router.pathname === '/admin/help' ? 'bg-white/10 text-white font-medium' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}>
-                <div className="shrink-0">
-                  <HelpCircle size={20} strokeWidth={router.pathname === '/admin/help' ? 2.5 : 2} />
-                </div>
-                {!isCollapsed && (
-                  <span className="text-sm whitespace-nowrap">{t('help') || 'Help & Tutorials'}</span>
-                )}
+            <button
+              onClick={() => setLanguage(language === 'en' ? 'zh' : 'en')}
+              className="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all cursor-pointer text-zinc-400 hover:text-white hover:bg-white/5"
+            >
+              <div className="shrink-0">
+                <Globe size={20} strokeWidth={2} />
               </div>
-            </Link>
-
-            <Link href="/admin/settings">
-              <div className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all cursor-pointer ${router.pathname === '/admin/settings' ? 'bg-white/10 text-white font-medium' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}>
-                <div className="shrink-0">
-                  <SettingsIcon size={20} strokeWidth={router.pathname === '/admin/settings' ? 2.5 : 2} />
-                </div>
-                {!isCollapsed && (
-                  <span className="text-sm whitespace-nowrap">{t('settings') || 'Settings'}</span>
-                )}
-              </div>
-            </Link>
+              {!isCollapsed && (
+                <span className="text-sm whitespace-nowrap">{language === 'en' ? 'English' : '中文'}</span>
+              )}
+            </button>
           </div>
 
           {/* Admin Avatar & Logout */}
@@ -153,8 +147,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, headerAction
                 </div>
                 {!isCollapsed && (
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-white">Admin</span>
-                    <span className="text-[11px] text-zinc-400 uppercase tracking-wider">Super Admin</span>
+                    <span className="text-sm font-bold text-white">{t('admin_title') || 'Admin'}</span>
+                    <span className="text-[11px] text-zinc-400 uppercase tracking-wider">{t('super_admin') || 'Super Admin'}</span>
                   </div>
                 )}
               </div>
@@ -207,6 +201,47 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, headerAction
           {children}
         </motion.div>
       </motion.main>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="w-full max-w-sm bg-white rounded-3xl shadow-xl overflow-hidden p-6 text-center"
+            >
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <LogOut size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-zinc-900 mb-2">{t('confirm_logout') || 'Confirm Logout'}</h3>
+              <p className="text-sm text-zinc-500 mb-8 font-medium">
+                {t('logout_message') || 'Are you sure you want to log out of the admin panel? You will need to sign in again to access the dashboard.'}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex-1 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-medium transition-colors text-sm"
+                >
+                  {t('cancel') || 'Cancel'}
+                </button>
+                <button
+                  onClick={confirmLogout}
+                  className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-colors text-sm shadow-sm shadow-red-500/20"
+                >
+                  {t('yes_logout') || 'Yes, Log out'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style jsx global>{`
         body { font-family: 'Outfit', sans-serif; background-color: #ffffff; overflow-x: hidden; }

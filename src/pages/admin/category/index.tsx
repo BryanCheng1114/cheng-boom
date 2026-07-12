@@ -22,7 +22,7 @@ import { useLanguage } from '../../../context/LanguageContext';
 
 const CategoryOverviewPage = () => {
   const router = useRouter();
-  const { t, language } = useLanguage();
+  const { t, language: locale } = useLanguage();
   const [categories, setCategories] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,8 +36,8 @@ const CategoryOverviewPage = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const getLocalizedCategoryName = (cat: any) => {
-    if (language === 'zh' && cat.nameZh) return cat.nameZh;
-    if (language === 'ms' && cat.nameMs) return cat.nameMs;
+    if (locale === 'zh' && cat.nameZh) return cat.nameZh;
+    if (locale === 'ms' && cat.nameMs) return cat.nameMs;
     return cat.name || '-';
   };
 
@@ -112,52 +112,40 @@ const CategoryOverviewPage = () => {
   const totalProducts = products.length;
   const liveProducts = products.filter((p) => p.status === 'Live').length;
 
-  // Gradient palette to cycle through category cards
-  const gradients = [
-    'from-violet-500 to-indigo-600',
-    'from-rose-500 to-pink-600',
-    'from-amber-500 to-orange-600',
-    'from-emerald-500 to-teal-600',
-    'from-sky-500 to-blue-600',
-    'from-fuchsia-500 to-purple-600',
-    'from-lime-500 to-green-600',
-    'from-red-500 to-rose-600',
-  ];
-
   const headerActions = (
     <Link
       href="/admin/category/new"
       className="flex items-center gap-2 px-6 py-2.5 bg-yellow-500 rounded-full text-[14px] font-bold text-zinc-800 tracking-wide hover:brightness-110 shadow-lg shadow-yellow-500/20 transition-all"
     >
       <Plus size={16} strokeWidth={3} />
-      Add New Category
+      {t('add_new_category') || 'Add New Category'}
     </Link>
   );
 
   return (
-    <AdminLayout title="Category Overview" headerActions={headerActions}>
+    <AdminLayout title={t('category_overview') || 'Category Overview'} headerActions={headerActions}>
       <div className="space-y-8">
         {/* ── KPI Summary Cards ───────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           {[
             {
-              label: 'Total Categories',
+              label: t('total_categories') || 'Total Categories',
               value: categories.length,
-              sub: 'Organized folders',
+              sub: t('organized_folders') || 'Organized folders',
               icon: <Layers size={18} strokeWidth={2.5} />,
               color: 'bg-violet-500',
             },
             {
-              label: 'Total Products',
-              value: totalProducts,
-              sub: 'Across all categories',
+              label: t('total_products') || 'Total Products',
+              value: liveProducts,
+              sub: t('across_all_categories') || 'Across all categories',
               icon: <Grid3x3 size={18} strokeWidth={2.5} />,
               color: 'bg-sky-500',
             },
             {
-              label: 'On-Hold Category',
+              label: t('on_hold_category') || 'On-Hold Category',
               value: categories.filter(c => c.status === 'Hold').length,
-              sub: 'Hidden from frontend',
+              sub: t('hidden_from_frontend') || 'Hidden from frontend',
               icon: <AlertTriangle size={18} strokeWidth={2.5} />,
               color: 'bg-orange-500',
             },
@@ -189,9 +177,9 @@ const CategoryOverviewPage = () => {
             {/* Filter Pills */}
             <div className="flex flex-wrap items-center gap-2">
               {[
-                { id: 'All', label: 'All', count: categories.length },
-                { id: 'Live', label: 'Live', count: categories.filter(c => c.status === 'Live').length },
-                { id: 'Hold', label: 'Hold', count: categories.filter(c => c.status === 'Hold').length },
+                { id: 'All', label: t('all') || 'All', count: categories.length },
+                { id: 'Live', label: t('live') || 'Live', count: categories.filter(c => c.status === 'Live').length },
+                { id: 'Hold', label: t('hold') || 'Hold', count: categories.filter(c => c.status === 'Hold').length },
               ].map(filter => (
                 <button
                   key={filter.id}
@@ -215,7 +203,7 @@ const CategoryOverviewPage = () => {
               />
               <input
                 type="text"
-                placeholder="Search categories..."
+                placeholder={locale === 'zh' ? '搜索分类...' : locale === 'ms' ? 'Cari kategori...' : 'Search categories...'}
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                 className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-full outline-none focus:border-blue-500 focus:bg-white transition-all text-[13px] font-bold text-zinc-700"
@@ -228,18 +216,10 @@ const CategoryOverviewPage = () => {
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
                 <tr className="border-b border-zinc-100 bg-zinc-100">
-                  <th className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest">
-                    Category ID
-                  </th>
-                  <th className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest">
-                    Category Name
-                  </th>
-                  <th className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">
-                    Total Items
-                  </th>
-                  <th className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest">
-                    Status
-                  </th>
+                  <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('category_id') || 'Category ID'}</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('category_name') || 'Category Name'}</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">{t('total_items') || 'Total Items'}</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">{t('status') || 'Status'}</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -298,7 +278,7 @@ const CategoryOverviewPage = () => {
                               cat.status === 'Hold' ? 'bg-orange-500 shadow-orange-500/50' :
                               'bg-zinc-500 shadow-zinc-500/50'
                             }`} />
-                            {cat.status === 'Live' ? 'Live' : cat.status === 'Hold' ? 'Hold' : 'Unknown'}
+                            {cat.status === 'Live' ? (t('live') || 'Live') : cat.status === 'Hold' ? (t('hold') || 'Hold') : 'Unknown'}
                           </div>
                         </td>
                         <td className="px-4 py-5 text-right">
@@ -384,9 +364,9 @@ const CategoryOverviewPage = () => {
               <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Trash2 size={32} strokeWidth={2} />
               </div>
-              <h3 className="text-2xl font-black text-zinc-900 tracking-tight mb-2">Delete Category?</h3>
+              <h3 className="text-2xl font-black text-zinc-900 tracking-tight mb-2">{t('delete_category_title') || 'Delete Category?'}</h3>
               <p className="text-zinc-500 font-medium mb-8">
-                Are you sure you want to delete <span className="text-zinc-800 font-bold">"{categoryToDelete.name}"</span>? This action cannot be undone. All products under this category will lose their category association.
+                {t('delete_category_q') || 'Are you sure you want to delete'} <span className="text-zinc-800 font-bold">"{getLocalizedCategoryName(categoryToDelete)}"</span>{t('delete_category_warn') || '? This action cannot be undone. All products under this category will lose their category association.'}
               </p>
               
               <div className="flex gap-3">
@@ -395,7 +375,7 @@ const CategoryOverviewPage = () => {
                   disabled={isDeleting}
                   className="flex-1 px-4 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-bold transition-colors"
                 >
-                  Cancel
+                  {t('cancel') || 'Cancel'}
                 </button>
                 <button 
                   onClick={handleDeleteSingle}
@@ -407,7 +387,7 @@ const CategoryOverviewPage = () => {
                   ) : (
                     <>
                       <Trash2 size={18} />
-                      Delete Category
+                      {t('delete_category_btn') || 'Delete Category'}
                     </>
                   )}
                 </button>

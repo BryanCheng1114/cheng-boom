@@ -26,7 +26,7 @@ import {
 } from 'recharts';
 
 export default function RevenuePage() {
-  const { t } = useLanguage();
+  const { t, language: locale } = useLanguage();
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [chartData, setChartData] = useState<any[]>([]);
@@ -44,11 +44,31 @@ export default function RevenuePage() {
   const [availableMonths, setAvailableMonths] = useState<{label: string, value: string}[]>([]);
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchOrdersAndProducts = async () => {
       try {
-        const res = await fetch('/api/orders');
-        const data = await res.json();
-        const completedOrders = data.filter((o: any) => o.status === 'Completed');
+        const [ordersRes, productsRes] = await Promise.all([
+          fetch('/api/orders'),
+          fetch('/api/products')
+        ]);
+        const ordersData = await ordersRes.json();
+        const productsData = await productsRes.json();
+        
+        const productsMap = productsData.reduce((acc: any, p: any) => {
+          acc[p.id] = p;
+          return acc;
+        }, {});
+
+        const completedOrders = ordersData.filter((o: any) => o.status === 'Completed');
+        completedOrders.forEach((o: any) => {
+          o.items?.forEach((item: any) => {
+             const product = productsMap[item.productId];
+             if (product) {
+               item.nameZh = product.nameZh;
+               item.nameMs = product.nameMs;
+             }
+          });
+        });
+
         setAllOrders(completedOrders);
         
         const months = new Set<string>();
@@ -59,7 +79,7 @@ export default function RevenuePage() {
         });
         const monthOptions = Array.from(months).sort().reverse().map(m => {
            const d = new Date(m + '-01');
-           return { label: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }), value: m };
+           return { label: d.toLocaleDateString(locale === 'ms' ? 'ms-MY' : locale === 'zh' ? 'zh-CN' : 'en-US', { month: 'long', year: 'numeric' }), value: m };
         });
         setAvailableMonths(monthOptions);
       } catch (error) {
@@ -68,7 +88,7 @@ export default function RevenuePage() {
         setIsLoading(false);
       }
     };
-    fetchOrders();
+    fetchOrdersAndProducts();
   }, []);
 
   useEffect(() => {
@@ -105,7 +125,7 @@ export default function RevenuePage() {
     const avgValue = totalOrd > 0 ? totalRev / totalOrd : 0;
     
     let totalUnits = 0;
-    const productSales: Record<string, { name: string, qty: number, rev: number }> = {};
+    const productSales: Record<string, { name: string, nameZh?: string, nameMs?: string, qty: number, rev: number }> = {};
 
     const dailyRevenue: Record<string, number> = {};
     datesToMap.forEach(date => { dailyRevenue[date] = 0; });
@@ -118,7 +138,13 @@ export default function RevenuePage() {
       order.items?.forEach((item: any) => {
         totalUnits += item.quantity;
         if (!productSales[item.productId]) {
-          productSales[item.productId] = { name: item.name, qty: 0, rev: 0 };
+          productSales[item.productId] = { 
+            name: item.name, 
+            nameZh: item.nameZh,
+            nameMs: item.nameMs,
+            qty: 0, 
+            rev: 0 
+          };
         }
         productSales[item.productId].qty += item.quantity;
         productSales[item.productId].rev += (item.price * item.quantity);
@@ -133,7 +159,7 @@ export default function RevenuePage() {
     });
 
     const formattedChartData = datesToMap.map(date => ({
-      date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      date: new Date(date).toLocaleDateString(locale === 'ms' ? 'ms-MY' : locale === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' }),
       revenue: dailyRevenue[date]
     }));
     setChartData(formattedChartData);
@@ -142,7 +168,7 @@ export default function RevenuePage() {
       .sort((a, b) => b.rev - a.rev)
       .slice(0, 5);
     setTopProducts(sortedProducts);
-  }, [allOrders, selectedPeriod, isLoading]);
+  }, [allOrders, selectedPeriod, isLoading, locale]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -163,7 +189,7 @@ export default function RevenuePage() {
     { 
       label: t('total_sales') || 'Total Sales', 
       value: `RM ${metrics.totalRevenue.toLocaleString()}`, 
-      sub: 'Completed Sales', 
+      sub: t('completed_sales') || 'Completed Sales', 
       icon: TrendingUp, 
       solidBg: 'bg-[#f59e0b]', // yellow/orange
       pillBg: 'bg-emerald-500/10', pillText: 'text-emerald-500', pillIcon: ArrowUp, pillValue: '12%'
@@ -171,7 +197,7 @@ export default function RevenuePage() {
     { 
       label: t('average_order_value') || 'Average Order Value', 
       value: `RM ${metrics.avgOrderValue.toFixed(2)}`, 
-      sub: 'Per Order', 
+      sub: t('per_order') || 'Per Order', 
       icon: BarChart3, 
       solidBg: 'bg-[#3b82f6]', // blue
       pillBg: 'bg-emerald-500/10', pillText: 'text-emerald-500', pillIcon: ArrowUp, pillValue: '5%'
@@ -179,7 +205,7 @@ export default function RevenuePage() {
     { 
       label: t('completed_sales') || 'Completed Sales', 
       value: metrics.totalOrders, 
-      sub: 'All Transactions', 
+      sub: t('all_transactions') || 'All Transactions', 
       icon: ShoppingBag, 
       solidBg: 'bg-[#10b981]', // green
       pillBg: 'bg-emerald-500/10', pillText: 'text-emerald-500', pillIcon: ArrowUp, pillValue: '18%'
@@ -187,7 +213,7 @@ export default function RevenuePage() {
     { 
       label: t('units_sold') || 'Units Sold', 
       value: metrics.unitsSold, 
-      sub: 'Total Items', 
+      sub: t('total_items') || 'Total Items', 
       icon: Package, 
       solidBg: 'bg-[#a855f7]', // purple
       pillBg: 'bg-emerald-500/10', pillText: 'text-emerald-500', pillIcon: ArrowUp, pillValue: '8%'
@@ -246,7 +272,7 @@ export default function RevenuePage() {
                 </h3>
                 {!isLoading && (
                   <p className="text-[13px] text-zinc-500 font-medium mt-0.5">
-                    Total: <span className="font-bold text-zinc-700">RM {metrics.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    {t('total') || 'Total'}: <span className="font-bold text-zinc-700">RM {metrics.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </p>
                 )}
               </div>
@@ -326,8 +352,8 @@ export default function RevenuePage() {
           <div className="bg-white border border-zinc-100 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
             {/* Header */}
             <div className="px-8 pt-7 pb-5 border-b border-zinc-100">
-              <h3 className="text-[18px] font-bold text-zinc-800 tracking-wide">Top Selling Products</h3>
-              <p className="text-[13px] text-zinc-500 font-medium mt-0.5">By revenue this period</p>
+              <h3 className="text-[18px] font-bold text-zinc-800 tracking-wide">{t('top_selling_products') || 'Top Selling Products'}</h3>
+              <p className="text-[13px] text-zinc-500 font-medium mt-0.5">{t('by_revenue_this_period') || 'By revenue this period'}</p>
             </div>
 
             <div className="flex-1 flex flex-col px-8 py-6 gap-5">
@@ -364,9 +390,9 @@ export default function RevenuePage() {
                         </span>
                         <div>
                           <p className="text-[13px] font-bold text-zinc-800 line-clamp-1 group-hover:text-indigo-600 transition-colors">
-                            {product.name}
+                            {locale === 'zh' ? (product.nameZh || product.name) : locale === 'ms' ? (product.nameMs || product.name) : product.name}
                           </p>
-                          <p className="text-[11px] text-zinc-400 font-medium">{product.qty} units sold</p>
+                          <p className="text-[11px] text-zinc-400 font-medium">{product.qty} {t('units_sold_count') || 'units sold'}</p>
                         </div>
                       </div>
                       <span className="text-[13px] font-extrabold text-zinc-900 tabular-nums">RM {product.rev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>

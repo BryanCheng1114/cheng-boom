@@ -22,6 +22,7 @@ const BusinessSetupPage = () => {
   const [copySuccess, setCopySuccess] = useState(false);
   const [isRefreshingQR, setIsRefreshingQR] = useState(false);
   const [activeTab, setActiveTab] = useState('branding');
+  const [websiteUrl, setWebsiteUrl] = useState('http://localhost:3000');
 
   useEffect(() => {
     if (settings) {
@@ -29,8 +30,11 @@ const BusinessSetupPage = () => {
     }
   }, [settings]);
 
-  // Use a stable website URL
-  const websiteUrl = 'http://localhost:3000';
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setWebsiteUrl(window.location.origin);
+    }
+  }, []);
 
   const handleCopyLink = async () => {
     try {
@@ -592,41 +596,55 @@ const BusinessSetupPage = () => {
                     Share & Forward
                   </button>
                 </div>
-
-                <div className="flex items-center gap-4 mt-auto pt-5">
-                  <div className="bg-white p-2 rounded-2xl shadow-sm border border-zinc-200 shrink-0">
-                    {isRefreshingQR ? (
-                      <div className="w-[84px] h-[84px] flex items-center justify-center bg-zinc-50 rounded-xl">
-                        <Loader2 className="animate-spin text-purple-500" size={20} />
-                      </div>
-                    ) : (
-                      <QRCodeCanvas 
-                        id="business-qr-code"
-                        value={websiteUrl}
-                        size={84}
-                        level="H"
-                        includeMargin={false}
-                        imageSettings={formData.logoUrl ? {
-                          src: formData.logoUrl,
-                          x: undefined, y: undefined, height: 20, width: 20, excavate: true, crossOrigin: "anonymous",
-                        } : undefined}
-                        className="rounded-xl"
-                      />
-                    )}
+                <div className="flex flex-col sm:flex-row items-start gap-6 mt-auto pt-5">
+                  <div className="shrink-0 flex flex-col">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">Store QR Code</span>
+                    <div className="bg-white p-3 rounded-2xl shadow-sm border border-zinc-200 shrink-0">
+                      {isRefreshingQR ? (
+                        <div className="w-[160px] h-[160px] flex items-center justify-center bg-zinc-50 rounded-xl">
+                          <Loader2 className="animate-spin text-purple-500" size={24} />
+                        </div>
+                      ) : (
+                        <QRCodeCanvas 
+                          id="business-qr-code"
+                          value={websiteUrl}
+                          size={160}
+                          level="H"
+                          includeMargin={false}
+                          imageSettings={formData.logoUrl ? {
+                            src: formData.logoUrl,
+                            x: undefined, y: undefined, height: 36, width: 36, excavate: true, crossOrigin: "anonymous",
+                          } : undefined}
+                          className="rounded-xl"
+                        />
+                      )}
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-2 w-full">
-                    <button 
-                      onClick={handleDownloadQR}
-                      className="w-full py-2 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Download size={14} /> Download QR
-                    </button>
-                    <button 
-                      onClick={handleRefreshQR}
-                      className="w-full py-2 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <RefreshCw size={14} className={isRefreshingQR ? "animate-spin" : ""} /> Refresh
-                    </button>
+                  
+                  <div className="flex flex-col flex-1 h-full">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2 hidden sm:block opacity-0">Actions</span>
+                    <div className="flex flex-col gap-3">
+                      <button 
+                        onClick={handleDownloadQR}
+                        className="w-full py-2.5 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Download size={14} /> Download QR
+                      </button>
+                      <button 
+                        onClick={handleRefreshQR}
+                        className="w-full py-2.5 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <RefreshCw size={14} className={isRefreshingQR ? "animate-spin" : ""} /> Refresh
+                      </button>
+                    </div>
+                    <div className="mt-auto pt-4">
+                      <div className="bg-zinc-50 rounded-xl p-3 border border-zinc-100 flex items-start gap-2">
+                        <QrCode size={14} className="text-zinc-400 mt-0.5 shrink-0" />
+                        <p className="text-[10px] text-zinc-500 leading-relaxed font-medium">
+                          Customers can scan this QR code using their mobile device camera to easily visit your online store and place orders.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -647,10 +665,16 @@ const BusinessSetupPage = () => {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <label className="text-xs font-semibold text-zinc-700 flex items-center gap-2 mt-auto pt-2">
+              <div className="space-y-4 flex flex-col flex-1">
+                <label className="text-xs font-semibold text-zinc-700 flex items-center gap-2">
                   DuitNow / Bank Transfer / QR
-                  <HelpCircle size={14} className="text-zinc-400" />
+                  <div className="group relative flex items-center">
+                    <HelpCircle size={14} className="text-zinc-400 cursor-help" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-zinc-800 text-white text-[10px] font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-center">
+                      Upload your bank's QR code or account details image here for manual payments.
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-zinc-800"></div>
+                    </div>
+                  </div>
                 </label>
                 
                 <div className="relative aspect-[4/3] bg-zinc-50/50 border border-zinc-200 rounded-xl flex flex-col items-center justify-center overflow-hidden">
@@ -686,6 +710,15 @@ const BusinessSetupPage = () => {
                       <Trash2 size={16} />
                     </button>
                   )}
+                </div>
+
+                <div className="mt-auto pt-4">
+                  <div className="bg-emerald-50/50 rounded-xl p-3 flex items-start gap-2 border border-emerald-100">
+                    <CreditCard size={14} className="text-emerald-500 mt-0.5 shrink-0" />
+                    <p className="text-[10px] font-medium text-emerald-700 leading-relaxed">
+                      This payment QR code or bank transfer details will be displayed to your customers at checkout. Ensure the details are clear and accurate to avoid payment delays.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

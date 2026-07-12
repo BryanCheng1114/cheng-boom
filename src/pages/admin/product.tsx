@@ -567,22 +567,19 @@ const ProductPage = () => {
                     onClick={() => setShowAddMenu(false)}
                     className="flex items-center gap-3 px-5 py-4 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 transition-colors"
                   >
-                    <Upload size={16} className="text-blue-500" /> Upload Single Item
-                  </Link>
+                    <Upload size={16} className="text-blue-500" />{t('upload_single_item') || 'Upload Single Item'}</Link>
                   <Link 
                     href="/admin/product/bulk-upload" 
                     onClick={() => setShowAddMenu(false)}
                     className="flex items-center gap-3 px-5 py-4 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 transition-colors"
                   >
-                    <Package size={16} className="text-yellow-500" /> Bulk Upload
-                  </Link>
+                    <Package size={16} className="text-yellow-500" />{t('bulk_upload') || 'Bulk Upload'}</Link>
                   <div className="h-px bg-zinc-100 my-1 mx-2"></div>
                   <button 
                     onClick={downloadBulkTemplate} 
                     className="w-full flex items-center gap-3 px-5 py-4 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 transition-colors"
                   >
-                    <Download size={16} className="text-emerald-500" /> Download Template
-                  </button>
+                    <Download size={16} className="text-emerald-500" />{t('download_template') || 'Download Template'}</button>
                 </div>
               </motion.div>
             </>
@@ -667,7 +664,7 @@ const ProductPage = () => {
               <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
                 {products.filter(p => p.status === 'Live').length}
               </h3>
-              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">Available on store</p>
+              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">{t('available_on_store') || 'Available on store'}</p>
             </div>
           </div>
 
@@ -688,7 +685,7 @@ const ProductPage = () => {
               <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
                 {products.filter(p => p.status === 'Hold').length}
               </h3>
-              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">Awaiting action</p>
+              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">{t('awaiting_action') || 'Awaiting action'}</p>
             </div>
           </div>
 
@@ -709,7 +706,7 @@ const ProductPage = () => {
               <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
                 {products.filter(p => p.status === 'Deactive').length}
               </h3>
-              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">Unpublished items</p>
+              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">{t('unpublished_items') || 'Unpublished items'}</p>
             </div>
           </div>
 
@@ -722,7 +719,7 @@ const ProductPage = () => {
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-orange-500">
                   <AlertTriangle size={18} strokeWidth={2.5} />
                 </div>
-                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">Low Stock</span>
+                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('low_stock') || 'Low Stock'}</span>
               </div>
               <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
             </div>
@@ -730,7 +727,7 @@ const ProductPage = () => {
               <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
                 {products.filter(p => p.stock > 0 && p.stock < 10).length}
               </h3>
-              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">Below 10 items</p>
+              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">{t('below_10_items') || 'Below 10 items'}</p>
             </div>
           </div>
 
@@ -743,7 +740,7 @@ const ProductPage = () => {
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-red-500">
                   <X size={18} strokeWidth={2.5} />
                 </div>
-                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">Out of Stock</span>
+                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('out_of_stock') || 'Out of Stock'}</span>
               </div>
               <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
             </div>
@@ -751,7 +748,7 @@ const ProductPage = () => {
               <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
                 {products.filter(p => p.stock <= 0).length}
               </h3>
-              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">0 items left</p>
+              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">0 {t('items_left') || 'items left'}</p>
             </div>
           </div>
         </div>
@@ -762,9 +759,9 @@ const ProductPage = () => {
           {/* Best & Least Selling Products */}
           <div className="bg-white border border-zinc-100 rounded-3xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col h-[400px]">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-[14px] font-bold text-zinc-800 tracking-wide">Best &amp; Least Selling Products</h3>
+              <h3 className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('best_least_selling') || 'Best & Least Selling Products'}</h3>
             </div>
-            <p className="text-[12px] font-medium text-zinc-500 mb-8">See which products sold the most and the least this month</p>
+            <p className="text-[12px] font-medium text-zinc-500 mb-8">{t('see_which_products') || 'See which products sold the most and the least this month'}</p>
             
             <div className="flex-1 w-full relative">
               {salesData.length > 0 ? (
@@ -788,7 +785,7 @@ const ProductPage = () => {
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontWeight: 'bold' }}
                       labelStyle={{ color: '#52525b', marginBottom: '4px' }}
                     />
-                    <Bar dataKey="sold" radius={[6, 6, 6, 6]} barSize={24}>
+                    <Bar dataKey="sold" name={t('units_sold') || 'Sold'} radius={[6, 6, 6, 6]} barSize={24}>
                       {salesData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={index === salesData.length - 1 ? '#4f46e5' : '#e0e7ff'} />
                       ))}
@@ -797,7 +794,7 @@ const ProductPage = () => {
                 </ResponsiveContainer>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <p className="text-sm font-bold text-zinc-400">No sales data for this month</p>
+                  <p className="text-sm font-bold text-zinc-400">{t('no_sales_data') || 'No sales data for this month'}</p>
                 </div>
               )}
             </div>
@@ -806,9 +803,9 @@ const ProductPage = () => {
           {/* Product Stock Overview */}
           <div className="bg-white border border-zinc-100 rounded-3xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col h-[400px]">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-[14px] font-bold text-zinc-800 tracking-wide">Product Stock Overview</h3>
+              <h3 className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('product_stock_overview') || 'Product Stock Overview'}</h3>
             </div>
-            <p className="text-[12px] font-medium text-zinc-500 mb-8">Monitor which products are available, running low, or sold out</p>
+            <p className="text-[12px] font-medium text-zinc-500 mb-8">{t('monitor_products') || 'Monitor which products are available, running low, or sold out'}</p>
             
             <div className="flex-1 w-full flex items-center justify-center relative">
               <ResponsiveContainer width="100%" height="100%">
@@ -839,7 +836,7 @@ const ProductPage = () => {
                 <span className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
                   {products.length}
                 </span>
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total</span>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{t('total') || 'Total'}</span>
               </div>
 
               {/* Legend */}
@@ -861,7 +858,7 @@ const ProductPage = () => {
 
         {/* Unified Table Section */}
         <div className="mt-8">
-          <h3 className="text-xl font-bold text-zinc-800 tracking-wide px-2 mb-6">Inventory List</h3>
+          <h3 className="text-xl font-bold text-zinc-800 tracking-wide px-2 mb-6">{t('inventory_list') || 'Inventory List'}</h3>
           
           <div className="bg-white border border-zinc-100 rounded-[40px] shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
             
@@ -870,12 +867,12 @@ const ProductPage = () => {
               {/* Filter Pills */}
               <div className="flex flex-wrap items-center gap-2">
                 {[
-                  { id: 'All', label: 'All', count: products.length },
-                  { id: 'Live', label: 'Live', count: products.filter(p => p.status === 'Live' && p.stock >= 10).length },
-                  { id: 'Hold', label: 'Hold', count: products.filter(p => p.status === 'Hold' && p.stock >= 10).length },
-                  { id: 'Deactive', label: 'Deactive', count: products.filter(p => p.status === 'Deactive' && p.stock >= 10).length },
-                  { id: 'Low Stock', label: 'Low stock', count: products.filter(p => p.stock > 0 && p.stock < 10).length },
-                  { id: 'Out of Stock', label: 'Out of stock', count: products.filter(p => p.stock <= 0).length },
+                  { id: 'All', label: t('all') || 'All', count: products.length },
+                  { id: 'Live', label: t('live') || 'Live', count: products.filter(p => p.status === 'Live' && p.stock >= 10).length },
+                  { id: 'Hold', label: t('hold') || 'Hold', count: products.filter(p => p.status === 'Hold' && p.stock >= 10).length },
+                  { id: 'Deactive', label: t('deactive') || 'Deactive', count: products.filter(p => p.status === 'Deactive' && p.stock >= 10).length },
+                  { id: 'Low Stock', label: t('low_stock') || 'Low stock', count: products.filter(p => p.stock > 0 && p.stock < 10).length },
+                  { id: 'Out of Stock', label: t('out_of_stock') || 'Out of stock', count: products.filter(p => p.stock <= 0).length },
                 ].map(filter => (
                   <button
                     key={filter.id}
@@ -950,13 +947,13 @@ const ProductPage = () => {
                   <th 
                     className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
                   >
-                    Product ID
+                    {t('product_id') || 'Product ID'}
                   </th>
                   <th 
                     onClick={() => handleSort('name')}
                     className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
                   >
-                    <div className="flex items-center gap-2">{t('products')} <SortIndicator column="name" /></div>
+                    <div className="flex items-center gap-2">{t('product_name') || 'Product Name'} <SortIndicator column="name" /></div>
                   </th>
                   <th 
                     onClick={() => handleSort('category')}
@@ -1029,7 +1026,7 @@ const ProductPage = () => {
                               <ImageIcon size={20} />
                             )}
                           </div>
-                          <span className="font-bold text-sm text-zinc-900 group-hover:text-yellow-500 transition-colors line-clamp-1">{p.name}</span>
+                          <span className="font-bold text-sm text-zinc-900 group-hover:text-yellow-500 transition-colors line-clamp-1">{getLocalizedName(p)}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -1238,7 +1235,7 @@ const ProductPage = () => {
               <div className="w-20 h-20 bg-red-500/10 text-red-500 rounded-[28px] flex items-center justify-center mx-auto mb-8 border border-red-500/20">
                 <AlertTriangle size={40} />
               </div>
-              <h3 className="text-3xl font-black italic uppercase tracking-tight mb-4 text-white">Permanent Deletion</h3>
+              <h3 className="text-3xl font-black italic uppercase tracking-tight mb-4 text-white">{t('permanent_deletion') || 'Permanent Deletion'}</h3>
               <p className="text-zinc-400 font-medium mb-10 leading-relaxed">
                 You will forever delete <span className="text-white font-bold">{selectedIds.length} products</span> and won't be find back. All associated images will be permanently removed from storage.
               </p>
@@ -1286,7 +1283,7 @@ const ProductPage = () => {
               <div className="w-20 h-20 bg-red-500/10 text-red-500 rounded-[28px] flex items-center justify-center mx-auto mb-8 border border-red-500/20">
                 <AlertTriangle size={40} />
               </div>
-              <h3 className="text-3xl font-black italic uppercase tracking-tight mb-4 text-white">Permanent Deletion</h3>
+              <h3 className="text-3xl font-black italic uppercase tracking-tight mb-4 text-white">{t('permanent_deletion') || 'Permanent Deletion'}</h3>
               <p className="text-zinc-400 font-medium mb-10 leading-relaxed">
                 You will forever delete <span className="text-white font-bold">{getLocalizedName(productToDelete)}</span>. It won't be recoverable.
               </p>
@@ -1374,9 +1371,7 @@ const ProductPage = () => {
                     <div className="p-2 bg-yellow-500/20 text-yellow-600 rounded-xl">
                       <HelpCircle size={24} strokeWidth={2.5} />
                     </div>
-                    <h3 className="text-2xl font-black italic tracking-tight text-zinc-900">
-                      Bulk Upload Guidance
-                    </h3>
+                    <h3 className="text-2xl font-black italic tracking-tight text-zinc-900">{t('bulk_upload_guidance') || 'Bulk Upload Guidance'}</h3>
                   </div>
                   <button
                     onClick={() => setShowBulkGuideModal(false)}
@@ -1388,9 +1383,7 @@ const ProductPage = () => {
 
                 <div className="space-y-12">
                   <div className="max-w-2xl text-zinc-600 font-medium">
-                    <p>
-                      Welcome to the Bulk Upload guide. Our bulk import system allows you to easily upload hundreds of products and their corresponding images simultaneously using a single ZIP archive. Follow these professional guidelines to ensure a flawless data import experience.
-                    </p>
+                    <p>{t('bulk_guide_intro') || 'Welcome to the Bulk Upload guide. Our bulk import system allows you to easily upload hundreds of products and their corresponding images simultaneously using a single ZIP archive. Follow these professional guidelines to ensure a flawless data import experience.'}</p>
                   </div>
 
                   {/* Step 1 */}
@@ -1404,13 +1397,13 @@ const ProductPage = () => {
                     
                     <div className="w-full md:w-1/2 space-y-3">
                       <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 font-black text-xs mb-2 shadow-sm border border-blue-500/20">1</div>
-                      <h4 className="text-2xl font-black italic text-zinc-900">Prepare the Excel Template</h4>
+                      <h4 className="text-2xl font-black italic text-zinc-900">{t('prep_excel_template') || 'Prepare the Excel Template'}</h4>
                       <div className="text-sm text-zinc-500 space-y-3 font-medium">
-                        <p>Begin by downloading the official template from the Products page.</p>
+                        <p>{t('prep_step1') || 'Begin by downloading the official template from the Products page.'}</p>
                         <ul className="list-disc pl-5 space-y-2">
-                          <li>Fill in all the required columns (marked with an asterisk <span className="text-red-500 font-bold">*</span>).</li>
-                          <li>For the <span className="font-bold text-zinc-700">Image_Filename</span> column, input the exact filename of your image (e.g., <code className="bg-zinc-100 px-2 py-0.5 rounded text-xs text-pink-600 font-mono">firework-01.png</code>).</li>
-                          <li>Ensure the spelling and file extension (.png, .jpg) matches your actual image file perfectly.</li>
+                          <li>{t('prep_step2_pt1') || 'Fill in all the required columns (marked with an asterisk'} <span className="text-red-500 font-bold">*</span>).</li>
+                          <li>{t('for_the') || 'For the'} <span className="font-bold text-zinc-700">{t('image_filename') || 'Image_Filename'}</span> {t('column_input') || 'column, input the exact filename of your image (e.g.,'} <code className="bg-zinc-100 px-2 py-0.5 rounded text-xs text-pink-600 font-mono">{t('firework_png') || 'firework-01.png'}</code>).</li>
+                          <li>{t('prep_step4') || 'Ensure the spelling and file extension (.png, .jpg) matches your actual image file perfectly.'}</li>
                         </ul>
                       </div>
                     </div>
@@ -1427,16 +1420,16 @@ const ProductPage = () => {
                     
                     <div className="w-full md:w-1/2 space-y-3">
                       <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-yellow-500/10 text-yellow-600 font-black text-xs mb-2 shadow-sm border border-yellow-500/20">2</div>
-                      <h4 className="text-2xl font-black italic text-zinc-900">Package the ZIP Archive</h4>
+                      <h4 className="text-2xl font-black italic text-zinc-900">{t('pack_zip_archive') || 'Package the ZIP Archive'}</h4>
                       <div className="text-sm text-zinc-500 space-y-3 font-medium">
-                        <p>Consolidate your filled template and all product images into a single folder.</p>
+                        <p>{t('pack_step1') || 'Consolidate your filled template and all product images into a single folder.'}</p>
                         <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-xs text-yellow-800">
-                          <span className="font-bold">Note on Folders:</span> Our system utilizes a smart-scan engine. Folder names do not matter. We automatically search all directories within your ZIP archive to match filenames perfectly.
+                          <span className="font-bold">{t('note_on_folders') || 'Note on Folders:'}</span> {t('do_not_place_images') || 'Our system utilizes a smart-scan engine. Folder names do not matter. We automatically search all directories within your ZIP archive to match filenames perfectly.'}
                         </div>
                         <ul className="list-disc pl-5 space-y-2">
-                          <li>Create a new folder on your computer.</li>
-                          <li>Move your completed `.xlsx` template and all related image files into this folder.</li>
-                          <li>Right-click the folder and select <span className="font-bold text-zinc-700">Compress to ZIP file</span>.</li>
+                          <li>{t('pack_step3') || 'Create a new folder on your computer.'}</li>
+                          <li>{t('pack_step4') || 'Move your completed `.xlsx` template and all related image files into this folder.'}</li>
+                          <li>{t('right_click_select') || 'Right-click the folder and select'} <span className="font-bold text-zinc-700">{t('compress_to_zip') || 'Compress to ZIP file'}</span>.</li>
                         </ul>
                       </div>
                     </div>
@@ -1453,14 +1446,14 @@ const ProductPage = () => {
                     
                     <div className="w-full md:w-1/2 space-y-3">
                       <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-500/10 text-green-600 font-black text-xs mb-2 shadow-sm border border-green-500/20">3</div>
-                      <h4 className="text-2xl font-black italic text-zinc-900">Upload and Verify</h4>
+                      <h4 className="text-2xl font-black italic text-zinc-900">{t('upload_verify') || 'Upload and Verify'}</h4>
                       <div className="text-sm text-zinc-500 space-y-3 font-medium">
-                        <p>Navigate to the Bulk Upload page and drop your newly created `.zip` package.</p>
+                        <p>{t('upload_step1') || 'Navigate to the Bulk Upload page and drop your newly created `.zip` package.'}</p>
                         <ul className="list-disc pl-5 space-y-2">
-                          <li>The system will extract and analyze your ZIP package locally.</li>
-                          <li>A preview table will appear showing exactly how your products will look.</li>
-                          <li>Review any validation errors highlighted in red.</li>
-                          <li>Click <span className="font-bold text-zinc-700">Confirm Import</span> to permanently save the products to the database.</li>
+                          <li>{t('upload_step2') || 'The system will extract and analyze your ZIP package locally.'}</li>
+                          <li>{t('upload_step3') || 'A preview table will appear showing exactly how your products will look.'}</li>
+                          <li>{t('review_validation') || 'Review any validation errors highlighted in red.'}</li>
+                          <li>{t('click') || 'Click'} <span className="font-bold text-zinc-700">{t('confirm_import') || 'Confirm Import'}</span> {t('to_permanently_save') || 'to permanently save the products to the database.'}</li>
                         </ul>
                       </div>
                       
@@ -1470,8 +1463,7 @@ const ProductPage = () => {
                           onClick={() => setShowBulkGuideModal(false)}
                           className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-zinc-900 text-white rounded-full font-bold uppercase tracking-widest text-[10px] hover:scale-105 transition-transform shadow-xl shadow-zinc-900/20"
                         >
-                          <UploadCloud size={14} /> Go to Bulk Upload
-                        </Link>
+                          <UploadCloud size={14} /> {t('go_to_bulk_upload') || 'Go to Bulk Upload'}</Link>
                       </div>
                     </div>
                   </div>
@@ -1482,7 +1474,7 @@ const ProductPage = () => {
                     onClick={() => setShowBulkGuideModal(false)}
                     className="px-8 py-3.5 bg-yellow-500 text-zinc-900 rounded-full font-black uppercase tracking-widest text-xs hover:brightness-110 shadow-lg shadow-yellow-500/20 transition-all flex items-center gap-2"
                   >
-                    Got it
+                    {t('got_it') || 'Got it'}
                   </button>
                 </div>
               </div>
@@ -1543,8 +1535,8 @@ const ProductPage = () => {
                     <HelpCircle size={24} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-zinc-900">Quick Action Guide</h3>
-                    <p className="text-sm font-medium text-zinc-500">Inline Editing Shortcuts</p>
+                    <h3 className="text-xl font-black text-zinc-900">{t('quick_action_guide') || 'Quick Action Guide'}</h3>
+                    <p className="text-sm font-medium text-zinc-500">{t('inline_editing_shortcuts') || 'Inline Editing Shortcuts'}</p>
                   </div>
                 </div>
                 
@@ -1556,26 +1548,26 @@ const ProductPage = () => {
                     <img src="/quickaction.png" alt="Quick Action Preview" className="w-full h-auto rounded-lg object-contain group-hover:scale-[1.02] transition-transform duration-300" />
                   </div>
                   <p className="text-sm text-zinc-600 leading-relaxed font-medium">
-                    You don't need to leave this page to make simple updates. To quickly edit an item:
+                    {t('quick_action_subtitle') || "You don't need to leave this page to make simple updates. To quickly edit an item:"}
                   </p>
                   <ul className="mt-4 space-y-3">
                     <li className="flex items-start gap-3">
                       <div className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center shrink-0 mt-0.5">
                         <span className="text-[10px] font-black text-zinc-600">1</span>
                       </div>
-                      <span className="text-sm text-zinc-700 font-medium"><strong className="text-zinc-900">Double-click</strong> directly on the <strong className="text-zinc-900">Stock, Price, or Status</strong> cells in the inventory table below.</span>
+                      <span className="text-sm text-zinc-700 font-medium"><strong className="text-zinc-900">{t('double_click') || 'Double-click'}</strong>{t('directly_on_the') || 'directly on the'}<strong className="text-zinc-900">{t('stock_price_status') || 'Stock, Price, or Status'}</strong>{t('cells_in_inventory') || 'cells in the inventory table below.'}</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <div className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center shrink-0 mt-0.5">
                         <span className="text-[10px] font-black text-zinc-600">2</span>
                       </div>
-                      <span className="text-sm text-zinc-700 font-medium">Type your new value or select the new status from the dropdown.</span>
+                      <span className="text-sm text-zinc-700 font-medium">{t('quick_action_step2') || 'Type your new value or select the new status from the dropdown.'}</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <div className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center shrink-0 mt-0.5">
                         <span className="text-[10px] font-black text-zinc-600">3</span>
                       </div>
-                      <span className="text-sm text-zinc-700 font-medium">Hit <strong className="text-zinc-900 bg-zinc-200 px-1.5 py-0.5 rounded text-xs">Enter</strong> or click the green Save icon to instantly apply your changes!</span>
+                      <span className="text-sm text-zinc-700 font-medium">{t('hit') || 'Hit'} <strong className="text-zinc-900 bg-zinc-200 px-1.5 py-0.5 rounded text-xs">{t('enter') || 'Enter'}</strong> {t('or_click_green_save') || 'or click the green Save icon to instantly apply your changes!'}</span>
                     </li>
                   </ul>
                 </div>
@@ -1585,7 +1577,7 @@ const ProductPage = () => {
                     onClick={() => setShowQuickEditGuide(false)}
                     className="px-8 py-3.5 bg-blue-500 text-white rounded-full font-black uppercase tracking-widest text-xs hover:brightness-110 shadow-lg shadow-blue-500/20 transition-all"
                   >
-                    Got it, Thanks!
+                    {t('got_it_thanks') || 'Got it, Thanks!'}
                   </button>
                 </div>
               </div>

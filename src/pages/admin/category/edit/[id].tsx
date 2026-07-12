@@ -9,7 +9,7 @@ import { useLanguage } from '../../../../context/LanguageContext';
 const EditCategoryPage = () => {
   const router = useRouter();
   const { id } = router.query;
-  const { t } = useLanguage();
+  const { t, language: locale } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -109,7 +109,7 @@ const EditCategoryPage = () => {
 
   const handleAutoGenerateCode = async () => {
     if (!formData.name.trim()) {
-      setErrorMsg('Please input Category Name first to auto-generate code.');
+      setErrorMsg(t('please_input_category_name_auto_gen') || 'Please input Category Name first to auto-generate code.');
       return;
     }
 
@@ -174,7 +174,7 @@ const EditCategoryPage = () => {
 
       const result = await response.json();
       if (response.ok) {
-        router.push('/admin/category?updated=true');
+        setSuccess(true);
       } else {
         setErrorMsg(result.error || 'Failed to update category.');
       }
@@ -210,7 +210,7 @@ const EditCategoryPage = () => {
   };
 
   return (
-    <AdminLayout title="Edit Category">
+    <AdminLayout title={t('edit_category') || 'Edit Category'}>
       <div className="w-full pb-24 relative">
         {/* Top Info Box */}
         <div className="bg-white p-5 rounded-[20px] border border-zinc-200 shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
@@ -219,8 +219,8 @@ const EditCategoryPage = () => {
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
             </div>
             <div>
-              <h2 className="text-[15px] font-bold text-zinc-900">Edit Category</h2>
-              <p className="text-[13px] text-zinc-500 mt-1">Modify the category details or update its visual assets.</p>
+              <h1 className="text-3xl font-black text-zinc-900 tracking-tight">{t('edit_category') || 'Edit Category'}</h1>
+              <p className="text-zinc-500 font-medium mt-2">{t('edit_category_desc') || 'Modify the category details or update its visual assets.'}</p>
             </div>
           </div>
           <button 
@@ -229,7 +229,7 @@ const EditCategoryPage = () => {
             className="flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-500 rounded-xl font-bold text-[13px] hover:bg-red-100 transition-all border border-red-100 shrink-0"
           >
             <Trash2 size={16} />
-            Delete Category
+            {t('delete_category_btn') || 'Delete Category'}
           </button>
         </div>
 
@@ -243,7 +243,7 @@ const EditCategoryPage = () => {
               <CheckCircle size={40} />
             </div>
             <div className="space-y-2">
-              <h4 className="text-2xl font-bold tracking-tight text-zinc-900">Category Updated!</h4>
+              <h4 className="text-2xl font-bold tracking-tight text-zinc-900">{t('category_updated') || 'Category Updated!'}</h4>
               <p className="text-zinc-500 text-sm max-w-md mx-auto">
                 {formData.name} has been updated successfully.
               </p>
@@ -252,7 +252,7 @@ const EditCategoryPage = () => {
               onClick={() => router.push('/admin/category')}             
               className="px-10 py-4 bg-orange-500 text-white font-bold text-sm rounded-2xl hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20"
             >
-              Done & Return
+              {t('done_return') || 'Done & Return'}
             </button>
           </motion.div>
         ) : (
@@ -269,12 +269,12 @@ const EditCategoryPage = () => {
               <div className="flex-1 space-y-6">
                 {/* Basic Details */}
                 <div className="bg-white p-6 md:p-8 rounded-[20px] border border-zinc-200 shadow-sm">
-                  <h3 className="text-[16px] font-bold text-zinc-900 mb-6">Category Information</h3>
+                  <h2 className="text-lg font-black text-zinc-900">{t('category_info') || 'Category Information'}</h2>
                   <div className="space-y-6">
                     {/* Row 1 */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-[13px] font-semibold text-zinc-800">Category Name (English) <span className="text-red-500">*</span></label>
+                        <label className="text-[13px] font-semibold text-zinc-800">{t('category_name_en') || 'Category Name (English)'} <span className="text-red-500">*</span></label>
                         <div className="relative">
                           <input 
                             type="text" 
@@ -283,7 +283,7 @@ const EditCategoryPage = () => {
                             disabled={isLoading}
                             value={formData.name}
                             onChange={handleChange}
-                            placeholder="e.g. Track Jacket"
+                            placeholder={locale === 'zh' ? '例如：外套' : locale === 'ms' ? 'cth. Jaket' : 'e.g. Track Jacket'}
                             className="w-full pl-4 pr-12 py-3 rounded-xl border border-zinc-200 outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white"
                           />
                           <div className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-indigo-50 text-indigo-500 rounded-md flex items-center justify-center text-xs font-bold">
@@ -293,7 +293,7 @@ const EditCategoryPage = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-[13px] font-semibold text-zinc-800">Category Code (URL Key) <span className="text-red-500">*</span></label>
+                        <label className="text-[13px] font-semibold text-zinc-800">{t('category_code_url') || 'Category Code (URL Key)'} <span className="text-red-500">*</span></label>
                         <div className="flex gap-2 relative">
                           <input 
                             type="text" 
@@ -310,17 +310,17 @@ const EditCategoryPage = () => {
                             onClick={handleAutoGenerateCode}
                             className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-orange-500 font-bold text-[12px] hover:bg-orange-50 rounded-md transition-all"
                           >
-                            Auto-Gen
+                            {t('auto_gen') || 'Auto-Gen'}
                           </button>
                         </div>
-                        <p className="text-[11px] text-zinc-400">Unique code for category URL (no spaces, use - or _)</p>
+                        <p className="text-[11px] font-medium text-zinc-500">{t('category_code_desc') || 'Unique code for category URL (no spaces, use - or _)'}</p>
                       </div>
                     </div>
 
                     {/* Row 2 */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-[13px] font-semibold text-zinc-800">Chinese Translation (optional)</label>
+                        <label className="text-[13px] font-semibold text-zinc-800">{t('chinese_translation_optional') || 'Chinese Translation (optional)'}</label>
                         <div className="relative">
                           <input 
                             type="text" 
@@ -328,7 +328,7 @@ const EditCategoryPage = () => {
                             disabled={isLoading}
                             value={formData.nameZh}
                             onChange={handleChange}
-                            placeholder="e.g. 高空烟花"
+                            placeholder={locale === 'ms' ? 'cth. Bunga Api' : 'e.g. 高空烟花'}
                             className="w-full pl-4 pr-12 py-3 rounded-xl border border-zinc-200 outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white"
                           />
                           <div className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-zinc-100 text-zinc-500 rounded-md flex items-center justify-center">
@@ -338,7 +338,7 @@ const EditCategoryPage = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-[13px] font-semibold text-zinc-800">Display Order (optional)</label>
+                        <label className="text-[13px] font-semibold text-zinc-800">{t('display_order_optional') || 'Display Order (optional)'}</label>
                         <input 
                           type="number" 
                           name="displayOrder"
@@ -348,13 +348,13 @@ const EditCategoryPage = () => {
                           placeholder="0"
                           className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white"
                         />
-                        <p className="text-[11px] text-zinc-400">Lower numbers appear first</p>
+                        <p className="text-[11px] text-zinc-400">{t('lower_numbers_first') || 'Lower numbers appear first'}</p>
                       </div>
                     </div>
 
                     {/* Row 3 */}
                     <div className="space-y-2">
-                      <label className="text-[13px] font-semibold text-zinc-800">Category Description (optional)</label>
+                      <label className="text-[13px] font-semibold text-zinc-800">{t('category_desc_optional') || 'Category Description (optional)'}</label>
                       <div className="relative">
                         <textarea
                           name="description"
@@ -362,7 +362,7 @@ const EditCategoryPage = () => {
                           value={formData.description}
                           onChange={handleChange}
                           maxLength={200}
-                          placeholder="Enter a short description about this category..."
+                          placeholder={locale === 'zh' ? '输入关于此分类的简短描述...' : locale === 'ms' ? 'Masukkan penerangan ringkas...' : 'Enter a short description about this category...'}
                           className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white min-h-[130px] resize-none"
                         />
                         <div className="absolute bottom-3 right-3 text-[11px] font-medium text-zinc-400">
@@ -380,8 +380,8 @@ const EditCategoryPage = () => {
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-[15px] font-bold text-zinc-900">On-Hold Category</h3>
-                      <p className="text-[13px] text-zinc-500 mt-1">Hide this category and all its products from the frontend.</p>
+                      <p className="text-[14px] font-bold text-zinc-900">{t('on_hold_category') || 'On-Hold Category'}</p>
+                      <p className="text-[12px] font-medium text-zinc-500 mt-0.5">{t('hide_category_desc') || 'Hide this category and all its products from the frontend.'}</p>
                     </div>
                     <button
                       type="button"
@@ -399,8 +399,8 @@ const EditCategoryPage = () => {
                 {/* Visual Assets */}
                 <div className="bg-white p-6 md:p-8 rounded-[20px] border border-zinc-200 shadow-sm flex flex-col h-full">
                   <div className="mb-6">
-                    <h3 className="text-[16px] font-bold text-zinc-900">Category Photo</h3>
-                    <p className="text-[13px] text-zinc-500 mt-1">Upload a photo that represents this category</p>
+                    <h3 className="text-[16px] font-bold text-zinc-900">{t('category_photo') || 'Category Photo'}</h3>
+                    <p className="text-[13px] text-zinc-500 mt-1">{t('category_photo_desc') || 'Upload a photo that represents this category'}</p>
                   </div>
                   
                   <div className="relative h-[180px] border border-dashed rounded-[20px] flex flex-col items-center justify-center gap-4 bg-zinc-50/50 border-zinc-300 overflow-hidden shrink-0">
@@ -412,9 +412,9 @@ const EditCategoryPage = () => {
                         <Upload size={28} strokeWidth={1.5} />
                       </div>
                       <div className="text-center px-6">
-                        <p className="text-[13px] font-semibold text-zinc-700">Drag & drop your image here</p>
-                        <p className="text-[13px] text-zinc-500 mt-1">or click to browse</p>
-                        <p className="text-[11px] text-zinc-400 mt-3 font-medium">PNG, JPG, JPEG up to 10MB</p>
+                        <p className="text-[13px] font-semibold text-zinc-700">{t('drag_drop_image') || 'Drag & drop your image here'}</p>
+                        <p className="text-[13px] text-zinc-500 mt-1">{t('or_click_browse') || 'or click to browse'}</p>
+                        <p className="text-[11px] text-zinc-400 mt-3 font-medium">{t('image_restrictions') || 'PNG, JPG, JPEG up to 10MB'}</p>
                       </div>
                     </div>
                     <input 
@@ -427,7 +427,7 @@ const EditCategoryPage = () => {
                   </div>
 
                   <div className="mt-8 flex-1 flex flex-col">
-                    <h4 className="text-[14px] font-bold text-zinc-900 mb-4">Image Preview</h4>
+                    <h4 className="text-[14px] font-bold text-zinc-900 mb-4">{t('image_preview') || 'Image Preview'}</h4>
                     <div className="flex-1 bg-zinc-50 rounded-[16px] flex items-center justify-center min-h-[140px] border border-zinc-100 mb-6 relative overflow-hidden">
                       {preview ? (
                         <>
@@ -449,7 +449,7 @@ const EditCategoryPage = () => {
                       ) : (
                         <div className="flex flex-col items-center gap-2 text-zinc-300">
                           <ImageIcon size={36} strokeWidth={1.5} />
-                          <span className="text-[12px] font-medium text-zinc-400">Image preview will appear here</span>
+                          <span className="text-[12px] font-medium text-zinc-400">{t('image_preview_desc') || 'Image preview will appear here'}</span>
                         </div>
                       )}
                     </div>
@@ -457,10 +457,10 @@ const EditCategoryPage = () => {
                     <div className="bg-orange-50 rounded-[16px] p-5 border border-orange-100">
                       <div className="flex items-center gap-2 text-orange-600 mb-2">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1.45.62 2.84 1.5 3.5.76.76 1.23 1.52 1.41 2.5"></path></svg>
-                        <span className="text-[13px] font-bold">Tips</span>
+                        <span className="text-[13px] font-bold">{t('tips') || 'Tips'}</span>
                       </div>
                       <p className="text-[12px] text-orange-700/80 leading-relaxed font-medium">
-                        Use a clear image that best represents the category.
+                        {t('clear_image_tip') || 'Use a clear image that best represents the category.'}
                       </p>
                     </div>
                   </div>
@@ -477,7 +477,7 @@ const EditCategoryPage = () => {
                   disabled={isLoading}
                   className="px-8 py-3 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-bold text-[13px] hover:bg-zinc-50 transition-all disabled:opacity-50"
                 >
-                  Cancel
+                  {t('cancel') || 'Cancel'}
                 </button>
                 <button 
                   type="submit" 
@@ -489,7 +489,7 @@ const EditCategoryPage = () => {
                   ) : (
                     <>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                      Update Category
+                      {t('update_category') || 'Update Category'}
                     </>
                   )}
                 </button>
@@ -516,12 +516,9 @@ const EditCategoryPage = () => {
                 <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
                   <AlertTriangle size={32} />
                 </div>
-                <h3 className="text-xl font-bold text-zinc-900 mb-2">Delete Category?</h3>
-                <p className="text-[14px] text-zinc-500 mb-8 leading-relaxed">
-                  Are you sure you want to delete this category? 
-                  <br/><br/>
-                  <span className="text-red-500 font-semibold">After deletion, all products under this category will be hidden</span> 
-                  because they are no longer associated with a valid category.
+                <h3 className="text-xl font-bold text-zinc-900 mb-2">{t('delete_category_title') || 'Delete Category?'}</h3>
+                <p className="text-zinc-500 font-medium mb-6">
+                  {t('delete_category_q') || 'Are you sure you want to delete'} <span className="font-bold text-zinc-800">"{formData.name}"</span>? {t('delete_category_warn_2') || 'After deletion, all products under this category will be hidden'} because they are no longer associated with a valid category.
                 </p>
                 
                 <div className="flex gap-3">
@@ -530,7 +527,7 @@ const EditCategoryPage = () => {
                     onClick={() => setShowDeleteModal(false)}
                     className="flex-1 py-3 rounded-xl text-[13px] font-bold bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 transition-all"
                   >
-                    Cancel
+                    {t('cancel') || 'Cancel'}
                   </button>
                   <button 
                     disabled={isDeleting}
@@ -539,9 +536,7 @@ const EditCategoryPage = () => {
                   >
                     {isDeleting ? (
                       <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      "Confirm Delete"
-                    )}
+                    ) : (t('confirm_delete') || 'Confirm Delete')}
                   </button>
                 </div>
               </motion.div>

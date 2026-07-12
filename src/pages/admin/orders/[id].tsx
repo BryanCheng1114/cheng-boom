@@ -19,7 +19,7 @@ import SpotlightCard from '../../../components/ui/SpotlightCard';
 const OrderDetailsPage = () => {
   const router = useRouter();
   const { id, viewOnly, customerId } = router.query;
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { settings } = useBusiness();
   
   const [order, setOrder] = useState<any>(null);
@@ -40,10 +40,10 @@ const OrderDetailsPage = () => {
   const [emailSuccess, setEmailSuccess] = useState('');
 
   const quickMessages = [
-    { label: "Processing", text: "We have received your order and are currently processing it." },
-    { label: "Out for Delivery", text: "Great news! Your order is out for delivery." },
-    { label: "Ready for Pickup", text: "Your order is packed and ready for pickup!" },
-    { label: "Delayed", text: "There is a slight delay with your order, we will keep you updated." },
+    { label: t('qm_processing') || "Processing", text: t('qm_processing_text') || "We have received your order and are currently processing it." },
+    { label: t('qm_out_for_delivery') || "Out for Delivery", text: t('qm_out_for_delivery_text') || "Great news! Your order is out for delivery." },
+    { label: t('qm_ready_for_pickup') || "Ready for Pickup", text: t('qm_ready_for_pickup_text') || "Your order is packed and ready for pickup!" },
+    { label: t('qm_delayed') || "Delayed", text: t('qm_delayed_text') || "There is a slight delay with your order, we will keep you updated." },
   ];
 
   // More Actions State
@@ -72,6 +72,37 @@ const OrderDetailsPage = () => {
     };
     fetchOrder();
   }, [id]);
+
+  
+  
+  const getTranslatedDeliveryMode = (mode: string) => {
+    if (!mode) return 'N/A';
+    const m = mode.toLowerCase();
+    if (m.includes('self') || m.includes('collect')) return t('self_collect') || 'Self Collect';
+    if (m.includes('delivery')) return t('delivery') || 'Delivery';
+    return mode;
+  };
+
+  
+  const getTranslatedStatus = (status: string) => {
+    switch(status) {
+      case 'Completed': return t('completed_filter') || 'Completed';
+      case 'Pending': return t('pending_filter') || 'Pending';
+      case 'In Process': return t('in_process_filter') || 'In Process';
+      case 'Delivering': return t('delivering_filter') || 'Delivering';
+      case 'Cancelled': return t('cancelled_filter') || 'Cancelled';
+      default: return status;
+    }
+  };
+
+  const getTranslatedPaymentMethod = (method: string) => {
+    if (!method) return 'N/A';
+    const pm = method.toLowerCase();
+    if (pm.includes('cash') || pm.includes('cod') || pm.includes('delivery')) return t('cash_on_delivery') || 'Cash On Delivery';
+    if (pm.includes('bank') || pm.includes('transfer')) return t('bank_transfer') || 'Bank Transfer';
+    if (pm.includes('duitnow') || pm.includes('qr')) return t('qr_code') || 'DuitNow QR Code';
+    return method;
+  };
 
   const handleUpdateStatus = async (statusArg?: string | React.MouseEvent) => {
     const statusToSet = typeof statusArg === 'string' ? statusArg : newStatus;
@@ -263,7 +294,7 @@ const OrderDetailsPage = () => {
               <ArrowLeft size={20} />
             </button>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-zinc-900">Orders</h1>
+              <h1 className="text-2xl font-bold text-zinc-900">{t('orders') || 'Orders'}</h1>
               <span className="text-2xl font-black text-zinc-900">#{order.id.slice(-8).toUpperCase()}</span>
               <span className={cn(
                 "px-2.5 py-1 text-xs font-bold uppercase rounded-md tracking-wider ml-2",
@@ -273,7 +304,7 @@ const OrderDetailsPage = () => {
                 order.status === 'Completed' ? "bg-green-100 text-green-700" :
                 "bg-red-100 text-red-700"
               )}>
-                {order.status}
+                {getTranslatedStatus(order.status)}
               </span>
             </div>
           </div>
@@ -284,7 +315,7 @@ const OrderDetailsPage = () => {
                 onClick={() => setIsMoreActionsOpen(!isMoreActionsOpen)}
                 className="px-4 py-2 bg-white border border-zinc-200 rounded-lg text-sm font-semibold text-zinc-700 hover:bg-zinc-50 flex items-center gap-2 shadow-sm"
               >
-                More actions <ChevronDown size={16} className={cn("transition-transform", isMoreActionsOpen && "rotate-180")} />
+                {t('more_actions') || 'More actions'} <ChevronDown size={16} className={cn("transition-transform", isMoreActionsOpen && "rotate-180")} />
               </button>
               
               <AnimatePresence>
@@ -307,7 +338,7 @@ const OrderDetailsPage = () => {
                         className="w-full text-left px-4 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 flex items-center gap-3"
                       >
                         <MapPin size={16} className="text-zinc-400" />
-                        Edit Shipping Address
+                        {t('edit_shipping_address') || 'Edit Shipping Address'}
                       </button>
                       
                       <button 
@@ -315,7 +346,7 @@ const OrderDetailsPage = () => {
                         className="w-full text-left px-4 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 flex items-center gap-3"
                       >
                         {isResendingEmail ? <Activity size={16} className="text-zinc-400 animate-spin" /> : <Mail size={16} className="text-zinc-400" />}
-                        {isResendingEmail ? 'Sending...' : 'Resend Confirmation'}
+                        {isResendingEmail ? (t('sending') || 'Sending...') : (t('resend_confirmation') || 'Resend Confirmation')}
                       </button>
                       
                       <div className="h-px bg-zinc-200 my-1 mx-2" />
@@ -328,7 +359,7 @@ const OrderDetailsPage = () => {
                         className="w-full text-left px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 flex items-center gap-3"
                       >
                         <AlertCircle size={16} />
-                        Refund / Cancel Order
+                        {t('refund_cancel_order') || 'Refund / Cancel Order'}
                       </button>
                     </motion.div>
                   </>
@@ -341,12 +372,12 @@ const OrderDetailsPage = () => {
               className="px-4 py-2 bg-yellow-500 text-white rounded-lg text-sm font-bold hover:bg-yellow-600 disabled:opacity-50 transition-colors flex items-center gap-2 shadow-sm"
             >
               {isUpdating ? <Activity size={16} className="animate-spin" /> : <Save size={16} />}
-              Save changes
+              {t('save_changes') || 'Save changes'}
             </button>
           </div>
         </div>
         <div className="px-10 -mt-6 mb-6">
-           <p className="text-xs font-medium text-zinc-500">Placed on {new Date(order.createdAt).toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
+           <p className="text-xs font-medium text-zinc-500">{t('placed_on') || 'Placed on'} {new Date(order.createdAt).toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
         </div>
 
         {/* Top Stats Grid */}
@@ -357,8 +388,8 @@ const OrderDetailsPage = () => {
               <Clock size={20} />
             </div>
             <div>
-              <p className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Order Status</p>
-              <p className="font-bold text-zinc-900">{order.status}</p>
+              <p className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">{t('order_status_title') || 'Order Status'}</p>
+              <p className="font-bold text-zinc-900">{getTranslatedStatus(order.status)}</p>
             </div>
           </div>
           {/* Payment Method */}
@@ -367,8 +398,8 @@ const OrderDetailsPage = () => {
               <CreditCard size={20} />
             </div>
             <div>
-              <p className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Payment Method</p>
-              <p className="font-bold text-zinc-900">{order.paymentMethod || 'N/A'}</p>
+              <p className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">{t('payment_method_title') || 'Payment Method'}</p>
+              <p className="font-bold text-zinc-900">{getTranslatedPaymentMethod(order.paymentMethod)}</p>
             </div>
           </div>
           {/* Fulfillment Method */}
@@ -377,8 +408,8 @@ const OrderDetailsPage = () => {
               <Truck size={20} />
             </div>
             <div>
-              <p className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Fulfillment Method</p>
-              <p className="font-bold text-zinc-900">{order.deliveryMode || 'N/A'}</p>
+              <p className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">{t('fulfillment_method_title') || 'Fulfillment Method'}</p>
+              <p className="font-bold text-zinc-900">{getTranslatedDeliveryMode(order.deliveryMode)}</p>
             </div>
           </div>
           {/* Total Amount */}
@@ -387,7 +418,7 @@ const OrderDetailsPage = () => {
               <CreditCard size={20} />
             </div>
             <div>
-              <p className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Total Amount</p>
+              <p className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">{t('total_amount') || 'Total Amount'}</p>
               <p className="font-bold text-green-600 text-lg">RM {order.totalAmount?.toFixed(2)}</p>
             </div>
           </div>
@@ -404,7 +435,7 @@ const OrderDetailsPage = () => {
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
                       <User size={18} className="text-blue-500" />
-                      <h3 className="font-bold text-sm text-zinc-800">Customer Information</h3>
+                      <h3 className="font-bold text-sm text-zinc-800">{t('customer_info') || 'Customer Information'}</h3>
                     </div>
                   </div>
                   
@@ -427,10 +458,10 @@ const OrderDetailsPage = () => {
                 </div>
                 
                 <div className="border-t border-zinc-100 pt-4">
-                  <p className="text-[10px] uppercase font-bold text-zinc-400 mb-2">Shipping Address</p>
+                  <p className="text-[10px] uppercase font-bold text-zinc-400 mb-2">{t('shipping_address') || 'Shipping Address'}</p>
                   <div className="flex items-start gap-2 text-sm text-zinc-700">
                     <MapPin size={16} className="text-zinc-400 mt-0.5 shrink-0" />
-                    <p>{order.address || order.customer?.address || 'No address provided'}</p>
+                    <p>{(order.address === 'Self Collect' || order.customer?.address === 'Self Collect') ? (t('self_collect') || 'Self Collect') : (order.address || order.customer?.address || (t('no_address_provided') || 'No address provided'))}</p>
                   </div>
                 </div>
               </div>
@@ -441,25 +472,25 @@ const OrderDetailsPage = () => {
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
                       <CreditCard size={18} className="text-blue-500" />
-                      <h3 className="font-bold text-sm text-zinc-800">Payment & Fulfillment</h3>
+                      <h3 className="font-bold text-sm text-zinc-800">{t('payment_fulfillment') || 'Payment & Fulfillment'}</h3>
                     </div>
                     {order.paymentReceiptUrl && (
-                      <button onClick={() => setIsReceiptModalOpen(true)} className="text-xs text-zinc-500 hover:text-zinc-800 font-medium transition-colors">View receipt</button>
+                      <button onClick={() => setIsReceiptModalOpen(true)} className="text-xs text-zinc-500 hover:text-zinc-800 font-medium transition-colors">{t('view_receipt') || 'View receipt'}</button>
                     )}
                   </div>
 
                   <div className="space-y-4">
                     <div>
-                      <p className="text-[10px] uppercase font-bold text-zinc-400 mb-1">Payment Method</p>
-                      <p className="text-sm font-semibold text-zinc-900">{order.paymentMethod || 'N/A'}</p>
+                      <p className="text-[10px] uppercase font-bold text-zinc-400 mb-1">{t('payment_method_title') || 'Payment Method'}</p>
+                      <p className="text-sm font-semibold text-zinc-900">{getTranslatedPaymentMethod(order.paymentMethod)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase font-bold text-zinc-400 mb-1">Fulfillment Method</p>
+                      <p className="text-[10px] uppercase font-bold text-zinc-400 mb-1">{t('fulfillment_method_title') || 'Fulfillment Method'}</p>
                       <p className="text-sm font-semibold text-zinc-900">{order.deliveryMode || 'N/A'}</p>
                     </div>
                     {order.paymentReceiptUrl && (
                       <div>
-                        <p className="text-[10px] uppercase font-bold text-zinc-400 mb-1">Payment Receipt</p>
+                        <p className="text-[10px] uppercase font-bold text-zinc-400 mb-1">{t('payment_receipt') || 'Payment Receipt'}</p>
                         <button onClick={() => setIsReceiptModalOpen(true)} className="flex items-center gap-1 text-sm text-blue-500 hover:underline">
                           <FileText size={14} /> view receipt
                         </button>
@@ -475,7 +506,7 @@ const OrderDetailsPage = () => {
                     className="w-full py-3 bg-zinc-900 text-white rounded-xl font-bold text-sm hover:bg-zinc-800 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                   >
                     {isGeneratingPdf ? <Activity size={16} className="animate-spin" /> : <FileDown size={16} />}
-                    Generate Receipt
+                    {t('generate_receipt') || 'Generate Receipt'}
                   </button>
                 </div>
               </div>
@@ -486,9 +517,11 @@ const OrderDetailsPage = () => {
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
                   <Package size={18} className="text-blue-500" />
-                  <h3 className="font-bold text-sm text-zinc-800">Order Contents</h3>
+                  <h3 className="font-bold text-sm text-zinc-800">{t('order_contents') || 'Order Contents'}</h3>
                 </div>
-                <span className="text-xs font-bold text-zinc-500">{order.items?.length || 0} Item{order.items?.length !== 1 ? 's' : ''}</span>
+                <span className="text-xs font-bold text-zinc-500">
+                  {order.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0} Item{(order.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0) !== 1 ? 's' : ''}
+                </span>
               </div>
 
               <div className="space-y-4">
@@ -499,7 +532,7 @@ const OrderDetailsPage = () => {
                         <Package size={20} />
                       </div>
                       <div>
-                        <p className="font-semibold text-sm text-zinc-900">{item.name}</p>
+                        <p className="font-semibold text-sm text-zinc-900">{language === 'zh' ? item.product?.nameZh || item.nameZh || item.name : language === 'ms' ? item.product?.nameMs || item.nameMs || item.name : item.name}</p>
                         <p className="text-xs text-zinc-500 mt-0.5">RM {item.price.toFixed(2)} × {item.quantity}</p>
                       </div>
                     </div>
@@ -512,11 +545,11 @@ const OrderDetailsPage = () => {
 
               <div className="mt-6 pt-6 border-t border-zinc-100 space-y-3">
                 <div className="flex justify-between text-sm text-zinc-500">
-                  <span>Subtotal</span>
+                  <span>{t('subtotal') || 'Subtotal'}</span>
                   <span>RM {order.totalAmount?.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center pt-2">
-                  <span className="font-bold text-zinc-900">Total Amount</span>
+                  <span className="font-bold text-zinc-900">{t('total_amount') || 'Total Amount'}</span>
                   <span className="text-xl font-bold text-green-600">RM {order.totalAmount?.toFixed(2)}</span>
                 </div>
               </div>
@@ -530,7 +563,7 @@ const OrderDetailsPage = () => {
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
                   <Clock size={18} className="text-blue-500" />
-                  <h3 className="font-bold text-sm text-zinc-800">Order Status</h3>
+                  <h3 className="font-bold text-sm text-zinc-800">{t('order_status_title') || 'Order Status'}</h3>
                 </div>
                 <button 
                   onClick={() => setIsTutorialModalOpen(true)}
@@ -573,12 +606,16 @@ const OrderDetailsPage = () => {
                             "text-sm font-semibold transition-colors",
                             isActive ? "text-yellow-700" : "text-zinc-600"
                           )}>
-                            {status.value}
+                            {status.value === 'Completed' ? (t('completed_filter') || 'Completed') :
+                             status.value === 'Pending' ? (t('pending_filter') || 'Pending') :
+                             status.value === 'In Process' ? (t('in_process_filter') || 'In Process') :
+                             status.value === 'Delivering' ? (t('delivering_filter') || 'Delivering') :
+                             status.value === 'Cancelled' ? (t('cancelled_filter') || 'Cancelled') : status.value}
                           </span>
                         </div>
                         {isCurrent && (
                           <span className="text-[10px] uppercase font-bold text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-md">
-                            Current
+                            {t('current') || 'Current'}
                           </span>
                         )}
                       </button>
@@ -589,7 +626,7 @@ const OrderDetailsPage = () => {
               
               <div className="mt-6 p-3 bg-yellow-50/50 border border-yellow-100 rounded-lg flex gap-2 text-yellow-700">
                 <Info size={16} className="shrink-0 mt-0.5" />
-                <p className="text-xs font-medium leading-relaxed">Update the status to keep your customer informed.</p>
+                <p className="text-xs font-medium leading-relaxed">{t('update_status_desc') || 'Update the status to keep your customer informed.'}</p>
               </div>
             </div>
 
@@ -597,12 +634,12 @@ const OrderDetailsPage = () => {
             <div className="bg-white rounded-2xl border border-zinc-200 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-6">
                 <MessageSquare size={18} className="text-blue-500" />
-                <h3 className="font-bold text-sm text-zinc-800">Communication</h3>
+                <h3 className="font-bold text-sm text-zinc-800">{t('communication') || 'Communication'}</h3>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-xs font-semibold text-zinc-700 mb-2">Quick Messages</p>
+                  <p className="text-xs font-semibold text-zinc-700 mb-2">{t('quick_messages') || 'Quick Messages'}</p>
                   <div className="flex flex-wrap gap-2">
                     {quickMessages.map((msg, i) => (
                       <button
@@ -620,7 +657,7 @@ const OrderDetailsPage = () => {
                   <textarea
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
-                    placeholder="Type a message to the customer..."
+                    placeholder={t('type_message_placeholder') || 'Type a message to the customer...'}
                     className="w-full min-h-[100px] p-3 rounded-lg border border-zinc-200 text-sm text-zinc-900 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 outline-none transition-all resize-none"
                   />
                 </div>
@@ -637,7 +674,7 @@ const OrderDetailsPage = () => {
                     )}
                   >
                     {isSendingEmail ? <Activity size={14} className="animate-spin" /> : <Mail size={14} />}
-                    {isSendingEmail ? 'Sending...' : 'Email'}
+                    {isSendingEmail ? (t('sending') || 'Sending...') : (t('email') || 'Email')}
                   </button>
                   <button
                     onClick={handleSendWhatsApp}
@@ -645,7 +682,7 @@ const OrderDetailsPage = () => {
                     className="flex-1 py-2.5 px-4 bg-[#25D366] text-white rounded-lg font-bold text-xs hover:bg-[#20bd5a] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm shadow-[#25D366]/20"
                   >
                     <Smartphone size={14} />
-                    WhatsApp
+                    {t('whatsapp') || 'WhatsApp'}
                   </button>
                 </div>
               </div>
@@ -715,14 +752,14 @@ const OrderDetailsPage = () => {
                   <Info size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black italic uppercase text-zinc-900">Status Flow Tutorial</h2>
-                  <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mt-1">Understanding Order Progression</p>
+                  <h2 className="text-xl font-black italic uppercase text-zinc-900">{t('status_tutorial_title') || 'Status Flow Tutorial'}</h2>
+                  <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mt-1">{t('status_tutorial_subtitle') || 'Understanding Order Progression'}</p>
                 </div>
               </div>
 
               <div className="space-y-6">
                 <p className="text-sm text-zinc-600 leading-relaxed font-medium">
-                  Order statuses follow a strict sequential flow to ensure accurate tracking. You can only progress an order forward step-by-step.
+                  {t('status_tutorial_desc') || 'Order statuses follow a strict sequential flow to ensure accurate tracking. You can only progress an order forward step-by-step.'}
                 </p>
                 
                 <div className="relative w-full overflow-x-auto bg-zinc-50 rounded-2xl p-10 border border-zinc-200">
@@ -735,8 +772,8 @@ const OrderDetailsPage = () => {
                         <SpotlightCard spotlightColor="rgba(249, 115, 22, 0.2)" className="w-full py-6 px-4 bg-orange-500/5 text-orange-600 rounded-2xl border border-orange-500/20 flex flex-col items-center gap-3 relative z-20 bg-white shadow-sm hover:shadow-md transition-shadow">
                           <Clock size={28} />
                           <div className="text-center">
-                             <span className="font-black text-xs uppercase tracking-widest block">Pending</span>
-                             <p className="text-[10px] text-zinc-500 mt-2 font-medium leading-relaxed hidden sm:block">Order is received. Awaiting admin review or payment confirmation.</p>
+                             <span className="font-black text-xs uppercase tracking-widest block">{t('pending_filter') || 'Pending'}</span>
+                             <p className="text-[10px] text-zinc-500 mt-2 font-medium leading-relaxed hidden sm:block">{t('status_pending_desc') || 'Order is received. Awaiting admin review or payment confirmation.'}</p>
                           </div>
                         </SpotlightCard>
                         {/* Horizontal Line connecting to next */}
@@ -749,8 +786,8 @@ const OrderDetailsPage = () => {
                         <SpotlightCard spotlightColor="rgba(59, 130, 246, 0.2)" className="w-full py-6 px-4 bg-blue-500/5 text-blue-600 rounded-2xl border border-blue-500/20 flex flex-col items-center gap-3 relative z-20 bg-white shadow-sm hover:shadow-md transition-shadow">
                           <Activity size={28} />
                           <div className="text-center">
-                             <span className="font-black text-xs uppercase tracking-widest block">In Process</span>
-                             <p className="text-[10px] text-zinc-500 mt-2 font-medium leading-relaxed hidden sm:block">Order is confirmed. Items are being packed and prepared.</p>
+                             <span className="font-black text-xs uppercase tracking-widest block">{t('in_process_filter') || 'In Process'}</span>
+                             <p className="text-[10px] text-zinc-500 mt-2 font-medium leading-relaxed hidden sm:block">{t('status_in_process_desc') || 'Order is confirmed. Items are being packed and prepared.'}</p>
                           </div>
                         </SpotlightCard>
                         <div className="absolute top-1/2 left-[50%] w-full h-[2px] bg-zinc-200 z-10 -translate-y-1/2"></div>
@@ -762,8 +799,8 @@ const OrderDetailsPage = () => {
                         <SpotlightCard spotlightColor="rgba(168, 85, 247, 0.2)" className="w-full py-6 px-4 bg-purple-500/5 text-purple-600 rounded-2xl border border-purple-500/20 flex flex-col items-center gap-3 relative z-20 bg-white shadow-sm hover:shadow-md transition-shadow">
                           <Truck size={28} />
                           <div className="text-center">
-                             <span className="font-black text-xs uppercase tracking-widest block">Delivering</span>
-                             <p className="text-[10px] text-zinc-500 mt-2 font-medium leading-relaxed hidden sm:block">Package is out for delivery or ready for customer pickup.</p>
+                             <span className="font-black text-xs uppercase tracking-widest block">{t('delivering_filter') || 'Delivering'}</span>
+                             <p className="text-[10px] text-zinc-500 mt-2 font-medium leading-relaxed hidden sm:block">{t('status_delivering_desc') || 'Package is out for delivery or ready for customer pickup.'}</p>
                           </div>
                         </SpotlightCard>
                         <div className="absolute top-1/2 left-[50%] w-full h-[2px] bg-zinc-200 z-10 -translate-y-1/2"></div>
@@ -775,8 +812,8 @@ const OrderDetailsPage = () => {
                         <SpotlightCard spotlightColor="rgba(34, 197, 94, 0.2)" className="w-full py-6 px-4 bg-green-500/5 text-green-600 rounded-2xl border border-green-500/20 flex flex-col items-center gap-3 relative z-20 bg-white shadow-sm shadow-green-500/10 hover:shadow-md transition-shadow">
                           <CheckCircle2 size={28} />
                           <div className="text-center">
-                             <span className="font-black text-xs uppercase tracking-widest block">Completed</span>
-                             <p className="text-[10px] text-green-600/70 mt-2 font-bold leading-relaxed hidden sm:block">Successfully fulfilled. No further actions can be taken.</p>
+                             <span className="font-black text-xs uppercase tracking-widest block">{t('completed_filter') || 'Completed'}</span>
+                             <p className="text-[10px] text-green-600/70 mt-2 font-bold leading-relaxed hidden sm:block">{t('status_completed_desc') || 'Successfully fulfilled. No further actions can be taken.'}</p>
                           </div>
                         </SpotlightCard>
                       </div>
@@ -802,8 +839,8 @@ const OrderDetailsPage = () => {
                         <SpotlightCard spotlightColor="rgba(239, 68, 68, 0.2)" className="w-full py-5 px-6 bg-red-500/5 text-red-600 rounded-2xl border border-red-500/20 flex flex-col sm:flex-row items-center justify-center gap-3 bg-white relative z-20 shadow-sm shadow-red-500/5 hover:shadow-md transition-shadow">
                           <AlertCircle size={24} />
                           <div className="text-center sm:text-left">
-                             <span className="font-black text-xs uppercase tracking-widest block">Cancelled</span>
-                             <p className="text-[10px] text-red-500/80 mt-1 font-medium hidden sm:block">Order was cancelled before fulfillment. Stock may be returned.</p>
+                             <span className="font-black text-xs uppercase tracking-widest block">{t('cancelled_filter') || 'Cancelled'}</span>
+                             <p className="text-[10px] text-red-500/80 mt-1 font-medium hidden sm:block">{t('status_cancelled_desc') || 'Order was cancelled before fulfillment. Stock may be returned.'}</p>
                           </div>
                         </SpotlightCard>
                       </div>
@@ -812,7 +849,7 @@ const OrderDetailsPage = () => {
                           Important Note:
                         </p>
                         <p className="text-[10px] font-medium text-zinc-500 mt-1 leading-relaxed">
-                          Orders <strong className="text-red-500">cannot</strong> be cancelled once they reach the Completed state.
+                          {t('orders') || 'Orders'} <strong className="text-red-500">{t('cannot') || 'cannot'}</strong> be cancelled once they reach the Completed state.
                         </p>
                       </div>
                     </div>
@@ -843,7 +880,7 @@ const OrderDetailsPage = () => {
               <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center text-green-500 mb-6">
                 <CheckCircle2 size={32} />
               </div>
-              <h2 className="text-lg font-black text-zinc-900 uppercase tracking-widest mb-2">Success!</h2>
+              <h2 className="text-lg font-black text-zinc-900 uppercase tracking-widest mb-2">{t('success_exclaim') || 'Success!'}</h2>
               <p className="text-sm font-medium text-zinc-500 leading-relaxed mb-6">
                 {emailSuccess}
               </p>
@@ -874,12 +911,12 @@ const OrderDetailsPage = () => {
               className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl flex flex-col relative overflow-hidden"
             >
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-zinc-900">Edit Shipping Address</h2>
+                <h2 className="text-xl font-bold text-zinc-900">{t('edit_shipping_address') || 'Edit Shipping Address'}</h2>
                 <button onClick={() => setIsEditAddressModalOpen(false)} className="text-zinc-400 hover:text-zinc-600">
                   <X size={20} />
                 </button>
               </div>
-              <p className="text-sm text-zinc-500 mb-4">Update the delivery address for this order.</p>
+              <p className="text-sm text-zinc-500 mb-4">{t('update_address_desc') || 'Update the delivery address for this order.'}</p>
               <textarea
                 value={editAddressText}
                 onChange={(e) => setEditAddressText(e.target.value)}
@@ -891,14 +928,14 @@ const OrderDetailsPage = () => {
                   onClick={() => setIsEditAddressModalOpen(false)}
                   className="flex-1 py-3 bg-zinc-100 text-zinc-600 rounded-xl font-bold text-sm hover:bg-zinc-200 transition-colors"
                 >
-                  Cancel
+                  {t('cancel') || 'Cancel'}
                 </button>
                 <button
                   onClick={handleSaveAddress}
                   disabled={isSavingAddress || !editAddressText.trim()}
                   className="flex-1 py-3 bg-zinc-900 text-white rounded-xl font-bold text-sm hover:bg-zinc-800 transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
                 >
-                  {isSavingAddress ? <Activity size={16} className="animate-spin" /> : 'Save Address'}
+                  {isSavingAddress ? <Activity size={16} className="animate-spin" /> : (t('save_address') || 'Save Address')}
                 </button>
               </div>
             </motion.div>
@@ -925,9 +962,9 @@ const OrderDetailsPage = () => {
               <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-red-500 mb-6">
                 <AlertCircle size={32} />
               </div>
-              <h2 className="text-lg font-black text-zinc-900 mb-2">Cancel Order?</h2>
+              <h2 className="text-lg font-black text-zinc-900 mb-2">{t('cancel_order_q') || 'Cancel Order?'}</h2>
               <p className="text-sm font-medium text-zinc-500 leading-relaxed mb-6">
-                Are you sure you want to cancel this order? <strong className="text-red-500">The product stock will be automatically restored to your inventory.</strong> This action cannot be undone.
+                {t('cancel_order_confirm') || 'Are you sure you want to cancel this order?'} <strong className="text-red-500">{t('cancel_order_desc1') || 'The product stock will be automatically restored to your inventory.'}</strong> {t('cancel_order_desc2') || 'This action cannot be undone.'}
               </p>
               <div className="flex w-full gap-3">
                 <button
@@ -941,7 +978,7 @@ const OrderDetailsPage = () => {
                   disabled={isUpdating}
                   className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-700 transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
                 >
-                  {isUpdating ? <Activity size={16} className="animate-spin" /> : 'Cancel Order'}
+                  {isUpdating ? <Activity size={16} className="animate-spin" /> : (t('cancel_order') || 'Cancel Order')}
                 </button>
               </div>
             </motion.div>

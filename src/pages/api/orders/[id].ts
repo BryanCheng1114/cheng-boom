@@ -27,7 +27,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).json({ message: 'Order not found' });
       }
 
+      // Fetch translated product names manually
+      for (const item of order.items) {
+        if (item.productId) {
+          const product = await prisma.product.findUnique({
+            where: { id: item.productId },
+            select: { nameZh: true, nameMs: true }
+          });
+          if (product) {
+            (item as any).nameZh = product.nameZh;
+            (item as any).nameMs = product.nameMs;
+          }
+        }
+      }
+
       return res.status(200).json(order);
+
     } catch (error) {
       console.error('Fetch order error:', error);
       return res.status(500).json({ message: 'Internal server error' });

@@ -49,7 +49,7 @@ const FONT_MAP: Record<string, string> = {
 };
 
 export function Navbar() {
-  const { settings } = useBusiness();
+  const { settings, isLoading } = useBusiness();
   const { totalItems, clearCart } = useCart();
   const { registerCelebrationTrigger } = useFlyToCart();
   const router = useRouter();
@@ -236,13 +236,15 @@ export function Navbar() {
           <div className="flex flex-1 justify-start items-center h-full gap-8 lg:gap-14">
             
             {/* Brand */}
-            <Link href="/" className="flex shrink-0 items-center h-full cursor-pointer py-1" aria-label={`${businessName} home`}>
-              {settings?.logoUrl ? (
+            <Link href="/" className="flex shrink-0 items-center cursor-pointer" aria-label={`${businessName} home`}>
+              {isLoading ? (
+                <div className="w-[120px] h-[32px] sm:h-[40px]" />
+              ) : settings?.logoUrl ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img 
                   src={settings.logoUrl} 
                   alt={businessName} 
-                  className="max-h-[32px] sm:max-h-[200px] max-w-[200px] object-contain"
+                  className="w-auto h-auto max-h-[60px] sm:max-h-[120px] max-w-[250px] object-contain transform translate-y-[-4px]"
                 />
               ) : (
                 <span
@@ -572,7 +574,9 @@ export function Navbar() {
             >
               {/* Top Header (Matches exactly with Mobile Navbar Header Size) */}
               <div className="flex h-16 shrink-0 items-center justify-between px-3 sm:px-5 border-b border-zinc-100">
-                {settings?.logoUrl ? (
+                {isLoading ? (
+                  <div className="w-[120px] h-[28px] sm:h-[32px]" />
+                ) : settings?.logoUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img 
                     src={settings.logoUrl} 
@@ -819,7 +823,9 @@ export function Navbar() {
               <div className="flex h-16 items-center justify-between px-3 sm:px-5 lg:px-6">
                 {/* Brand */}
                 <div className="hidden sm:flex shrink-0 items-center w-[120px] py-1">
-                  {settings?.logoUrl ? (
+                  {isLoading ? (
+                    <div className="w-full h-[32px]" />
+                  ) : settings?.logoUrl ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img 
                       src={settings.logoUrl} 

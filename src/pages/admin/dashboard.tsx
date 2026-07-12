@@ -28,10 +28,8 @@ import { useLanguage } from '../../context/LanguageContext';
 
 const DashboardPage = () => {
   const router = useRouter();
-  const { t } = useLanguage();
-  const locale = router.locale || 'en';
+  const { t, language: locale } = useLanguage();
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-  const [modalStep, setModalStep] = useState(1);
   const [todaysOrders, setTodaysOrders] = useState<any[]>([]);
   const [lowStockItems, setLowStockItems] = useState<any[]>([]);
   const [soldOutItems, setSoldOutItems] = useState<any[]>([]);
@@ -93,9 +91,10 @@ const DashboardPage = () => {
         setSoldOutItems(soldOut);
         setTodaysOrders(incomingToday);
 
-        if (incomingToday.length > 0 || lowStock.length > 0 || soldOut.length > 0) {
+        const hasShownWelcome = sessionStorage.getItem('hasShownWelcome');
+        if (!hasShownWelcome && (incomingToday.length > 0 || lowStock.length > 0 || soldOut.length > 0)) {
           setShowWelcomeModal(true);
-          setModalStep(incomingToday.length > 0 ? 1 : 2); // Start at stock if no orders today
+          sessionStorage.setItem('hasShownWelcome', 'true');
         }
       } catch (err) {
         console.error('Dashboard fetch error:', err);
@@ -196,7 +195,7 @@ const DashboardPage = () => {
             className="bg-white border border-zinc-100 rounded-3xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg cursor-pointer transition-all duration-300 group flex flex-col justify-between"
           >
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-[18px] font-bold text-zinc-800 tracking-wide">Order Information</h3>
+              <h3 className="text-[18px] font-bold text-zinc-800 tracking-wide">{t('order_information') || 'Order Information'}</h3>
               <MoreHorizontal size={20} className="text-zinc-400 cursor-pointer hover:text-zinc-600 transition-colors" />
             </div>
 
@@ -264,9 +263,7 @@ const DashboardPage = () => {
                 <h4 className="text-[28px] font-bold text-zinc-800 tracking-wide leading-none mb-1 mt-1">
                   {stats.totalOrders.toLocaleString()}
                 </h4>
-                <p className="text-[10px] font-bold text-zinc-500 capitalize tracking-wide text-center mt-0.5">
-                  Total Order<br/>On This Week
-                </p>
+                <p className="text-[10px] font-bold text-zinc-500 capitalize tracking-wide text-center mt-0.5" dangerouslySetInnerHTML={{ __html: t('total_orders_this_week') || 'Total Order<br/>On This Week' }} />
               </div>
             </div>
 
@@ -292,10 +289,10 @@ const DashboardPage = () => {
         <div className="space-y-6">
           <div className="flex items-center justify-between px-4">
             <h3 className="text-[18px] font-bold text-zinc-800 tracking-wide flex items-center gap-2">
-              <Clock size={20} /> Recent Transactions
+              <Clock size={20} /> {t('recent_transactions') || 'Recent Transactions'}
             </h3>
             <Link href="/admin/orders" className="text-[14px] font-bold tracking-wide text-yellow-500 hover:gap-2 flex items-center gap-1 transition-all">
-              View More <ChevronRight size={16} />
+              {t('view_more') || 'View More'} <ChevronRight size={16} />
             </Link>
           </div>
           
@@ -329,12 +326,12 @@ const DashboardPage = () => {
                       </td>
                       <td className="px-5 py-3">
                         <span className="text-xs font-bold text-zinc-700 capitalize">
-                          {order.paymentMethod?.replace(/_/g, ' ') || '-'}
+                          {order.paymentMethod ? (t(order.paymentMethod.toLowerCase().replace(/ /g, '_')) || order.paymentMethod.replace(/_/g, ' ')) : '-'}
                         </span>
                       </td>
                       <td className="px-5 py-3">
                         <span className="text-xs font-bold text-zinc-700 capitalize">
-                          {order.deliveryMode?.replace(/_/g, ' ') || '-'}
+                          {order.deliveryMode ? (t(order.deliveryMode.toLowerCase().replace(/ /g, '_')) || order.deliveryMode.replace(/_/g, ' ')) : '-'}
                         </span>
                       </td>
                       <td className="px-5 py-3">
@@ -394,35 +391,28 @@ const DashboardPage = () => {
 
               {/* Body */}
               <div className="p-6 overflow-y-auto space-y-6 flex-1">
-                
-                {/* Step Indicators */}
-                <div className="flex items-center justify-center gap-2 mb-6">
-                  <div className={`h-1.5 w-12 rounded-full transition-colors ${modalStep === 1 ? 'bg-yellow-500' : 'bg-zinc-200'}`} />
-                  <div className={`h-1.5 w-12 rounded-full transition-colors ${modalStep === 2 ? 'bg-yellow-500' : 'bg-zinc-200'}`} />
-                </div>
-
-                {modalStep === 1 && (
-                  <motion.div 
-                    initial={{ opacity: 0, x: -20 }} 
-                    animate={{ opacity: 1, x: 0 }} 
-                    exit={{ opacity: 0, x: 20 }}
-                    className="space-y-6"
-                  >
-                    <div className="flex items-center gap-4 p-5 bg-blue-50/50 border border-blue-100/50 rounded-2xl">
-                      <div className="p-3.5 bg-blue-500/10 text-blue-600 rounded-xl">
-                        <ShoppingBag size={24} />
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }} 
+                  animate={{ opacity: 1, y: 0 }} 
+                  className="space-y-6"
+                >
+                  {/* Today's Orders */}
+                  {todaysOrders.length > 0 && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4 p-5 bg-blue-50/50 border border-blue-100/50 rounded-2xl">
+                        <div className="p-3.5 bg-blue-500/10 text-blue-600 rounded-xl">
+                          <ShoppingBag size={24} />
+                        </div>
+                        <div>
+                          <p className="text-sm text-blue-600/80 mb-0.5">
+                            {locale === 'zh' ? '今日新订单' : locale === 'ms' ? 'Pesanan Baru Hari Ini' : 'New Orders Today'}
+                          </p>
+                          <p className="text-2xl font-semibold text-blue-900">
+                            {todaysOrders.length} {locale === 'zh' ? '单' : locale === 'ms' ? 'pesanan' : 'orders'}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm text-blue-600/80 mb-0.5">
-                          {locale === 'zh' ? '今日新订单' : locale === 'ms' ? 'Pesanan Baru Hari Ini' : 'New Orders Today'}
-                        </p>
-                        <p className="text-2xl font-semibold text-blue-900">
-                          {todaysOrders.length} {locale === 'zh' ? '单' : locale === 'ms' ? 'pesanan' : 'orders'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {todaysOrders.length > 0 && (
+                      
                       <div>
                         <h4 className="text-sm font-medium text-zinc-700 mb-3">
                           {locale === 'zh' ? '订单概览' : locale === 'ms' ? 'Gambaran Pesanan' : 'Order Overview'}
@@ -448,101 +438,67 @@ const DashboardPage = () => {
                           </ul>
                         </div>
                       </div>
-                    )}
-                  </motion.div>
-                )}
+                    </div>
+                  )}
 
-                {modalStep === 2 && (
-                  <motion.div 
-                    initial={{ opacity: 0, x: 20 }} 
-                    animate={{ opacity: 1, x: 0 }} 
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-6"
-                  >
-                    {soldOutItems.length === 0 && lowStockItems.length === 0 ? (
-                      <div className="text-center py-10">
-                        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <CheckCircle2 className="text-green-500" size={32} />
+                  {/* Stock Information */}
+                  {(soldOutItems.length > 0 || lowStockItems.length > 0) && (
+                    <div className="space-y-4">
+                      {/* Sold Out */}
+                      {soldOutItems.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-medium text-red-600 mb-3 flex items-center gap-2">
+                            <AlertTriangle size={16} /> {locale === 'zh' ? '已售罄商品' : locale === 'ms' ? 'Item Habis Dijual' : 'Sold Out Items'} ({soldOutItems.length})
+                          </h4>
+                          <div className="bg-red-50/50 border border-red-100 rounded-2xl p-4 max-h-48 overflow-y-auto">
+                            <ul className="space-y-2">
+                              {soldOutItems.map(p => (
+                                <li key={p.id} className="flex items-start gap-2">
+                                  <div className="mt-2 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                                  <span className="text-sm text-zinc-700">{p.name}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
                         </div>
-                        <h3 className="text-lg font-medium text-zinc-900 mb-2">All Stock Looks Good!</h3>
-                        <p className="text-sm text-zinc-500">No sold out or low stock items at the moment.</p>
-                      </div>
-                    ) : (
-                      <>
-                        {/* Sold Out */}
-                        {soldOutItems.length > 0 && (
-                          <div>
-                            <h4 className="text-sm font-medium text-red-600 mb-3 flex items-center gap-2">
-                              <AlertTriangle size={16} /> {locale === 'zh' ? '已售罄商品' : locale === 'ms' ? 'Item Habis Dijual' : 'Sold Out Items'} ({soldOutItems.length})
-                            </h4>
-                            <div className="bg-red-50/50 border border-red-100 rounded-2xl p-4 max-h-48 overflow-y-auto">
-                              <ul className="space-y-2">
-                                {soldOutItems.map(p => (
-                                  <li key={p.id} className="flex items-start gap-2">
-                                    <div className="mt-2 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
-                                    <span className="text-sm text-zinc-700">{p.name}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                        )}
+                      )}
 
-                        {/* Low Stock */}
-                        {lowStockItems.length > 0 && (
-                          <div>
-                            <h4 className="text-sm font-medium text-amber-600 mb-3 flex items-center gap-2">
-                              <PackageOpen size={16} /> {locale === 'zh' ? '库存紧张 (< 5)' : locale === 'ms' ? 'Stok Rendah (< 5)' : 'Low Stock (< 5)'} ({lowStockItems.length})
-                            </h4>
-                            <div className="bg-amber-50/50 border border-amber-100 rounded-2xl p-4 max-h-48 overflow-y-auto">
-                              <ul className="space-y-2">
-                                {lowStockItems.map(p => (
-                                  <li key={p.id} className="flex items-start justify-between gap-2">
-                                    <div className="flex items-start gap-2">
-                                      <div className="mt-2 w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-                                      <span className="text-sm text-zinc-700">{p.name}</span>
-                                    </div>
-                                    <span className="text-xs font-medium text-amber-700 bg-amber-100/50 px-2.5 py-1 rounded-full shrink-0">
-                                      {p.stock} left
-                                    </span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
+                      {/* Low Stock */}
+                      {lowStockItems.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-medium text-amber-600 mb-3 flex items-center gap-2">
+                            <PackageOpen size={16} /> {locale === 'zh' ? '库存紧张 (< 5)' : locale === 'ms' ? 'Stok Rendah (< 5)' : 'Low Stock (< 5)'} ({lowStockItems.length})
+                          </h4>
+                          <div className="bg-amber-50/50 border border-amber-100 rounded-2xl p-4 max-h-48 overflow-y-auto">
+                            <ul className="space-y-2">
+                              {lowStockItems.map(p => (
+                                <li key={p.id} className="flex items-start justify-between gap-2">
+                                  <div className="flex items-start gap-2">
+                                    <div className="mt-2 w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                                    <span className="text-sm text-zinc-700">{p.name}</span>
+                                  </div>
+                                  <span className="text-xs font-medium text-amber-700 bg-amber-100/50 px-2.5 py-1 rounded-full shrink-0">
+                                    {p.stock} left
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
                           </div>
-                        )}
-                      </>
-                    )}
-                  </motion.div>
-                )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
               </div>
 
               {/* Footer Buttons */}
               <div className="p-6 border-t border-zinc-100 flex gap-3 shrink-0">
-                {modalStep === 1 ? (
-                  <>
-                    <button
-                      onClick={() => setShowWelcomeModal(false)}
-                      className="flex-1 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 rounded-xl font-medium transition-colors text-sm"
-                    >
-                      {locale === 'zh' ? '跳过' : locale === 'ms' ? 'Langkau' : 'Skip'}
-                    </button>
-                    <button
-                      onClick={() => setModalStep(2)}
-                      className="flex-[2] py-3 bg-yellow-500 hover:bg-yellow-400 text-zinc-900 rounded-xl font-semibold transition-all text-sm flex items-center justify-center gap-2"
-                    >
-                      {locale === 'zh' ? '下一步：库存状态' : locale === 'ms' ? 'Seterusnya: Status Stok' : 'Next: Stock Info'}
-                      <ArrowRight size={16} />
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => setShowWelcomeModal(false)}
-                    className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-medium transition-all text-sm shadow-md shadow-zinc-900/10"
-                  >
-                    {locale === 'zh' ? '关闭并前往控制台' : locale === 'ms' ? 'Tutup & Ke Papan Pemuka' : 'Close & Go to Dashboard'}
-                  </button>
-                )}
+                <button
+                  onClick={() => setShowWelcomeModal(false)}
+                  className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-medium transition-all text-sm shadow-md shadow-zinc-900/10"
+                >
+                  {locale === 'zh' ? '关闭并前往控制台' : locale === 'ms' ? 'Tutup & Ke Papan Pemuka' : 'Close & Go to Dashboard'}
+                </button>
               </div>
             </motion.div>
           </motion.div>
