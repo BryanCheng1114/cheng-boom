@@ -5,7 +5,7 @@ import {
   ArrowLeft, Package, User, Phone, MapPin, CreditCard, Truck, 
   Calendar, Clock, CheckCircle2, AlertCircle, Activity, MessageSquare, 
   Save, Zap, ExternalLink, Mail, Smartphone, X, FileText, FileDown,
-  Info, ArrowDown, ArrowRight, ChevronDown, Edit
+  Info, ArrowDown, ArrowRight, ChevronDown, Edit, BookOpen, Bell, List, Shield, Check, XCircle, Flag
 } from 'lucide-react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { useLanguage } from '../../../context/LanguageContext';
@@ -727,133 +727,399 @@ const OrderDetailsPage = () => {
       {/* Tutorial Modal */}
       <AnimatePresence>
         {isTutorialModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 md:p-8"
-            onClick={() => setIsTutorialModalOpen(false)}
-          >
-            <button 
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 md:p-8"
               onClick={() => setIsTutorialModalOpen(false)}
-              className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors"
             >
-              <X size={24} />
-            </button>
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-5xl bg-white rounded-[32px] overflow-hidden shadow-2xl p-8"
+              className="relative w-full max-w-[1400px] bg-white rounded-[32px] overflow-hidden shadow-2xl p-10 max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex items-center gap-3 mb-8 pb-6 border-b border-zinc-100">
-                <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500">
-                  <Info size={24} />
+              {/* Header */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10 pb-6 border-b border-zinc-100">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 shrink-0">
+                    <BookOpen size={24} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-zinc-900">{t('status_tutorial_title') || 'Status Flow Tutorial'}</h2>
+                    <p className="text-sm text-zinc-500 mt-1">{t('status_flow_tutorial_subtitle') || 'Learn how orders move through each stage and the actions you can take.'}</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-xl font-black italic uppercase text-zinc-900">{t('status_tutorial_title') || 'Status Flow Tutorial'}</h2>
-                  <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mt-1">{t('status_tutorial_subtitle') || 'Understanding Order Progression'}</p>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 max-w-sm hidden md:flex">
+                    <Info size={20} className="text-orange-500 shrink-0" />
+                    <p className="text-xs text-zinc-600 leading-relaxed font-medium">
+                      {t('status_flow_info') || 'Order statuses follow a strict sequential flow to ensure accurate tracking and smooth fulfillment.'}
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => setIsTutorialModalOpen(false)}
+                    className="w-10 h-10 rounded-full bg-zinc-100 text-zinc-500 flex items-center justify-center hover:bg-zinc-200 transition-colors shrink-0"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <p className="text-sm text-zinc-600 leading-relaxed font-medium">
-                  {t('status_tutorial_desc') || 'Order statuses follow a strict sequential flow to ensure accurate tracking. You can only progress an order forward step-by-step.'}
-                </p>
-                
-                <div className="relative w-full overflow-x-auto bg-zinc-50 rounded-2xl p-10 border border-zinc-200">
-                  <div className="min-w-[800px]">
-                    {/* Main Flow (Grid) */}
-                    <div className="grid grid-cols-4 gap-8 relative z-10">
+              <div className="space-y-12">
+                {/* Flowchart Container */}
+                <div className="relative w-full overflow-x-auto custom-scrollbar pb-4">
+                  <div className="min-w-fit px-6 pt-6 relative">
+                    {/* Connection Arrows (horizontal) */}
+                    <div className="absolute top-[136px] left-[12.5%] right-[12.5%] h-[2px] bg-zinc-200 z-0 hidden lg:block"></div>
+                    
+                    {/* Grid for main 4 steps */}
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 relative z-10">
                       
-                      {/* 1. Pending */}
-                      <div className="relative flex justify-center">
-                        <SpotlightCard spotlightColor="rgba(249, 115, 22, 0.2)" className="w-full py-6 px-4 bg-orange-500/5 text-orange-600 rounded-2xl border border-orange-500/20 flex flex-col items-center gap-3 relative z-20 bg-white shadow-sm hover:shadow-md transition-shadow">
-                          <Clock size={28} />
-                          <div className="text-center">
-                             <span className="font-black text-xs uppercase tracking-widest block">{t('pending_filter') || 'Pending'}</span>
-                             <p className="text-[10px] text-zinc-500 mt-2 font-medium leading-relaxed hidden sm:block">{t('status_pending_desc') || 'Order is received. Awaiting admin review or payment confirmation.'}</p>
+                      {/* Step 1: Pending */}
+                      <div className="relative">
+                        <div className="absolute -top-3 -left-3 w-8 h-8 bg-white border-2 border-orange-500 text-orange-500 rounded-full flex items-center justify-center font-black text-xs z-20">01</div>
+                        
+                        <div className="bg-white border border-zinc-200 rounded-2xl p-6 h-full flex flex-col shadow-sm relative z-10">
+                          <div className="flex flex-col items-center text-center mb-6">
+                            <div className="w-16 h-16 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mb-4">
+                              <Clock size={32} />
+                            </div>
+                            <h3 className="font-black text-lg text-zinc-900">{t('pending_filter') || 'Pending'}</h3>
+                            <p className="text-xs text-zinc-500 mt-2 h-10">{t('pending_table_desc') || 'Awaiting confirmation or payment review.'}</p>
                           </div>
-                        </SpotlightCard>
-                        {/* Horizontal Line connecting to next */}
-                        <div className="absolute top-1/2 left-[50%] w-full h-[2px] bg-zinc-200 z-10 -translate-y-1/2"></div>
-                        <ArrowRight size={24} className="absolute top-1/2 -translate-y-1/2 -right-5 text-zinc-400 z-30 bg-zinc-50 rounded-full p-1 border border-zinc-200" />
+                          
+                          <div className="mt-auto border-t border-zinc-100 pt-4">
+                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3 block">{t('actions_label') || 'ACTIONS'}</span>
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 bg-green-50 border border-green-100 text-green-700 px-4 py-2.5 rounded-xl text-sm font-bold">
+                                <CheckCircle2 size={16} className="text-green-500" />
+                                {t('confirm_order_action') || 'Confirm Order'}
+                              </div>
+                              <div className="flex items-center gap-2 bg-red-50 border border-red-100 text-red-700 px-4 py-2.5 rounded-xl text-sm font-bold">
+                                <XCircle size={16} className="text-red-500" />
+                                {t('cancel_order_action') || 'Cancel Order'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="absolute top-28 -right-3 w-6 h-6 bg-white border border-zinc-200 text-zinc-400 rounded-full flex items-center justify-center z-20 hidden lg:flex">
+                           <ArrowRight size={14} />
+                        </div>
                       </div>
 
-                      {/* 2. In Process */}
-                      <div className="relative flex justify-center">
-                        <SpotlightCard spotlightColor="rgba(59, 130, 246, 0.2)" className="w-full py-6 px-4 bg-blue-500/5 text-blue-600 rounded-2xl border border-blue-500/20 flex flex-col items-center gap-3 relative z-20 bg-white shadow-sm hover:shadow-md transition-shadow">
-                          <Activity size={28} />
-                          <div className="text-center">
-                             <span className="font-black text-xs uppercase tracking-widest block">{t('in_process_filter') || 'In Process'}</span>
-                             <p className="text-[10px] text-zinc-500 mt-2 font-medium leading-relaxed hidden sm:block">{t('status_in_process_desc') || 'Order is confirmed. Items are being packed and prepared.'}</p>
+                      {/* Step 2: In Process */}
+                      <div className="relative">
+                        <div className="absolute -top-3 -left-3 w-8 h-8 bg-white border-2 border-blue-500 text-blue-500 rounded-full flex items-center justify-center font-black text-xs z-20">02</div>
+                        
+                        <div className="bg-white border border-zinc-200 rounded-2xl p-6 h-full flex flex-col shadow-sm relative z-10">
+                          <div className="flex flex-col items-center text-center mb-6">
+                            <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4">
+                              <Package size={32} />
+                            </div>
+                            <h3 className="font-black text-lg text-zinc-900">{t('in_process_filter') || 'In Process'}</h3>
+                            <p className="text-xs text-zinc-500 mt-2 h-10">{t('in_process_table_desc') || 'Order is confirmed. Items are being packed and prepared.'}</p>
                           </div>
-                        </SpotlightCard>
-                        <div className="absolute top-1/2 left-[50%] w-full h-[2px] bg-zinc-200 z-10 -translate-y-1/2"></div>
-                        <ArrowRight size={24} className="absolute top-1/2 -translate-y-1/2 -right-5 text-zinc-400 z-30 bg-zinc-50 rounded-full p-1 border border-zinc-200" />
+                          
+                          <div className="mt-auto border-t border-zinc-100 pt-4">
+                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3 block">{t('actions_label') || 'ACTIONS'}</span>
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 bg-purple-50 border border-purple-100 text-purple-700 px-4 py-2.5 rounded-xl text-sm font-bold">
+                                <Truck size={16} className="text-purple-500" />
+                                {t('start_delivery_action') || 'Start Delivery'}
+                              </div>
+                              <div className="flex items-center gap-2 bg-red-50 border border-red-100 text-red-700 px-4 py-2.5 rounded-xl text-sm font-bold">
+                                <XCircle size={16} className="text-red-500" />
+                                {t('cancel_order_action') || 'Cancel Order'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="absolute top-28 -right-3 w-6 h-6 bg-white border border-zinc-200 text-zinc-400 rounded-full flex items-center justify-center z-20 hidden lg:flex">
+                           <ArrowRight size={14} />
+                        </div>
                       </div>
 
-                      {/* 3. Delivering */}
-                      <div className="relative flex justify-center">
-                        <SpotlightCard spotlightColor="rgba(168, 85, 247, 0.2)" className="w-full py-6 px-4 bg-purple-500/5 text-purple-600 rounded-2xl border border-purple-500/20 flex flex-col items-center gap-3 relative z-20 bg-white shadow-sm hover:shadow-md transition-shadow">
-                          <Truck size={28} />
-                          <div className="text-center">
-                             <span className="font-black text-xs uppercase tracking-widest block">{t('delivering_filter') || 'Delivering'}</span>
-                             <p className="text-[10px] text-zinc-500 mt-2 font-medium leading-relaxed hidden sm:block">{t('status_delivering_desc') || 'Package is out for delivery or ready for customer pickup.'}</p>
+                      {/* Step 3: Delivering */}
+                      <div className="relative">
+                        <div className="absolute -top-3 -left-3 w-8 h-8 bg-white border-2 border-purple-500 text-purple-500 rounded-full flex items-center justify-center font-black text-xs z-20">03</div>
+                        
+                        <div className="bg-white border border-zinc-200 rounded-2xl p-6 h-full flex flex-col shadow-sm relative z-10">
+                          <div className="flex flex-col items-center text-center mb-6">
+                            <div className="w-16 h-16 bg-purple-50 text-purple-500 rounded-full flex items-center justify-center mb-4">
+                              <Truck size={32} />
+                            </div>
+                            <h3 className="font-black text-lg text-zinc-900">{t('delivering_filter') || 'Delivering'}</h3>
+                            <p className="text-xs text-zinc-500 mt-2 h-10">{t('delivering_table_desc') || 'Package is out for delivery or ready for customer pickup.'}</p>
                           </div>
-                        </SpotlightCard>
-                        <div className="absolute top-1/2 left-[50%] w-full h-[2px] bg-zinc-200 z-10 -translate-y-1/2"></div>
-                        <ArrowRight size={24} className="absolute top-1/2 -translate-y-1/2 -right-5 text-zinc-400 z-30 bg-zinc-50 rounded-full p-1 border border-zinc-200" />
+                          
+                          <div className="mt-auto border-t border-zinc-100 pt-4">
+                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3 block">{t('actions_label') || 'ACTIONS'}</span>
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 bg-green-50 border border-green-100 text-green-700 px-4 py-2.5 rounded-xl text-sm font-bold">
+                                <CheckCircle2 size={16} className="text-green-500" />
+                                {t('mark_completed_action') || 'Mark Completed'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="absolute top-28 -right-3 w-6 h-6 bg-white border border-zinc-200 text-zinc-400 rounded-full flex items-center justify-center z-20 hidden lg:flex">
+                           <ArrowRight size={14} />
+                        </div>
                       </div>
 
-                      {/* 4. Completed */}
-                      <div className="relative flex justify-center">
-                        <SpotlightCard spotlightColor="rgba(34, 197, 94, 0.2)" className="w-full py-6 px-4 bg-green-500/5 text-green-600 rounded-2xl border border-green-500/20 flex flex-col items-center gap-3 relative z-20 bg-white shadow-sm shadow-green-500/10 hover:shadow-md transition-shadow">
-                          <CheckCircle2 size={28} />
-                          <div className="text-center">
-                             <span className="font-black text-xs uppercase tracking-widest block">{t('completed_filter') || 'Completed'}</span>
-                             <p className="text-[10px] text-green-600/70 mt-2 font-bold leading-relaxed hidden sm:block">{t('status_completed_desc') || 'Successfully fulfilled. No further actions can be taken.'}</p>
+                      {/* Step 4: Completed */}
+                      <div className="relative h-full flex flex-col">
+                        <div className="absolute -top-3 -left-3 w-8 h-8 bg-white border-2 border-green-500 text-green-500 rounded-full flex items-center justify-center font-black text-xs z-20">04</div>
+                        
+                        <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex-1 flex flex-col shadow-sm relative z-10">
+                          <div className="flex flex-col items-center text-center mb-6">
+                            <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-4">
+                              <CheckCircle2 size={32} />
+                            </div>
+                            <h3 className="font-black text-lg text-zinc-900">{t('completed_filter') || 'Completed'}</h3>
+                            <p className="text-xs text-zinc-500 mt-2">{t('completed_table_desc') || 'Order successfully fulfilled. No further actions required.'}</p>
                           </div>
-                        </SpotlightCard>
+                          
+                          <div className="mt-auto flex justify-center pt-4">
+                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                              {t('final_status') || 'FINAL STATUS'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Downward Arrows Row */}
-                    <div className="grid grid-cols-4 gap-8 h-12 mt-4 relative">
-                      <div className="flex justify-center border-r-2 border-dashed border-red-200 w-1/2 relative">
-                        <ArrowDown size={16} className="absolute bottom-0 -right-[9px] text-red-400 bg-zinc-50" />
+                    {/* Connecting Lines for Cancelled Block (Grid Overlay) */}
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 relative mt-[-10px] h-14 hidden lg:grid pointer-events-none z-0">
+                      {/* Col 1: Pending Lines */}
+                      <div className="relative">
+                        {/* Vertical line down from center of Pending Cancel button */}
+                        <div className="absolute top-0 left-1/2 w-px h-6 bg-red-300 -translate-x-1/2"></div>
+                        {/* Horizontal line from center going right */}
+                        <div className="absolute top-6 left-1/2 w-[35%] h-px bg-red-300"></div>
+                        {/* Downward arrow */}
+                        <div className="absolute top-6 left-[85%] w-px h-8 bg-red-300">
+                          <div className="absolute -bottom-[2px] -left-[4px] border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[6px] border-t-red-300"></div>
+                        </div>
                       </div>
-                      <div className="flex justify-center border-r-2 border-dashed border-red-200 w-1/2 relative">
-                        <ArrowDown size={16} className="absolute bottom-0 -right-[9px] text-red-400 bg-zinc-50" />
+
+                      {/* Col 2: In Process Lines */}
+                      <div className="relative">
+                        {/* Vertical line down from center of In Process Cancel button */}
+                        <div className="absolute top-0 left-1/2 w-px h-6 bg-red-300 -translate-x-1/2"></div>
+                        {/* Horizontal line from center going left */}
+                        <div className="absolute top-6 right-1/2 w-[35%] h-px bg-red-300"></div>
+                        {/* Downward arrow */}
+                        <div className="absolute top-6 left-[15%] w-px h-8 bg-red-300">
+                          <div className="absolute -bottom-[2px] -left-[4px] border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[6px] border-t-red-300"></div>
+                        </div>
                       </div>
-                      <div className="flex justify-center border-r-2 border-dashed border-red-200 w-1/2 relative">
-                        <ArrowDown size={16} className="absolute bottom-0 -right-[9px] text-red-400 bg-zinc-50" />
-                      </div>
-                      <div></div>
                     </div>
 
                     {/* Cancelled Block */}
-                    <div className="grid grid-cols-4 gap-8 mt-4">
-                      <div className="col-span-3">
-                        <SpotlightCard spotlightColor="rgba(239, 68, 68, 0.2)" className="w-full py-5 px-6 bg-red-500/5 text-red-600 rounded-2xl border border-red-500/20 flex flex-col sm:flex-row items-center justify-center gap-3 bg-white relative z-20 shadow-sm shadow-red-500/5 hover:shadow-md transition-shadow">
-                          <AlertCircle size={24} />
-                          <div className="text-center sm:text-left">
-                             <span className="font-black text-xs uppercase tracking-widest block">{t('cancelled_filter') || 'Cancelled'}</span>
-                             <p className="text-[10px] text-red-500/80 mt-1 font-medium hidden sm:block">{t('status_cancelled_desc') || 'Order was cancelled before fulfillment. Stock may be returned.'}</p>
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-[2.5rem] relative z-10">
+                      <div className="col-start-1 lg:col-span-2 flex justify-center">
+                        <div className="w-[85%] bg-white border-2 border-red-200 border-dashed rounded-2xl p-6 shadow-sm flex items-center gap-6 relative">
+                          <div className="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center shrink-0">
+                            <X size={24} />
                           </div>
-                        </SpotlightCard>
+                          <div>
+                            <h3 className="font-black text-lg text-red-600">{t('cancelled_filter') || 'Cancelled'}</h3>
+                            <p className="text-xs text-zinc-500 mt-1">{t('cancelled_table_desc') || 'Order was cancelled before fulfillment.'}</p>
+                          </div>
+                          <div className="ml-auto">
+                            <span className="bg-red-50 text-red-700 border border-red-100 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+                              {t('terminal_status') || 'TERMINAL STATUS'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex flex-col justify-center pl-4 border-l-4 border-red-100 rounded-lg">
-                        <p className="text-xs font-black text-red-500 uppercase tracking-widest leading-relaxed">
-                          Important Note:
-                        </p>
-                        <p className="text-[10px] font-medium text-zinc-500 mt-1 leading-relaxed">
-                          {t('orders') || 'Orders'} <strong className="text-red-500">{t('cannot') || 'cannot'}</strong> be cancelled once they reach the Completed state.
-                        </p>
+                    </div>
+
+                    {/* Customer Notifications Box (Full width below cards) */}
+                    <div className="mt-8 relative z-10">
+                      <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
+                        <div className="flex items-center gap-2 mb-6">
+                          <Bell size={18} className="text-zinc-600" />
+                          <h4 className="font-bold text-sm text-zinc-900">{t('customer_notifications') || 'Customer Notifications'}</h4>
+                        </div>
+                        <div className="flex items-start justify-between">
+                          {[
+                            { icon: Mail, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-100', text: t('pending_filter') || 'Pending', msg: t('notif_pending') || '"Your order has been received."' },
+                            { icon: Mail, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-100', text: t('in_process_filter') || 'In Process', msg: t('notif_in_process') || '"We\'re preparing your order."' },
+                            { icon: Mail, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-100', text: t('delivering_filter') || 'Delivering', msg: t('notif_delivering') || '"Your order is on the way."' },
+                            { icon: Mail, color: 'text-green-500', bg: 'bg-green-50', border: 'border-green-100', text: t('completed_filter') || 'Completed', msg: t('notif_completed') || '"Your order has been delivered."' },
+                            { icon: Mail, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-100', text: t('cancelled_filter') || 'Cancelled', msg: t('notif_cancelled') || '"Your order was cancelled."' }
+                          ].map((item, idx, arr) => (
+                            <div key={idx} className="flex flex-col items-center w-[72px] text-center relative flex-1">
+                              <div className={`w-10 h-10 rounded-full border ${item.border} ${item.bg} ${item.color} flex items-center justify-center mb-2 mx-auto`}>
+                                <item.icon size={16} />
+                              </div>
+                              <span className="font-bold text-[10px] text-zinc-900 mb-1 leading-tight">{item.text}</span>
+                              <span className="text-[9px] text-zinc-500 leading-tight block px-2">{item.msg}</span>
+                              {idx < arr.length - 1 && (
+                                <ArrowRight size={14} className="text-zinc-300 absolute top-3 -right-3 hidden md:block" />
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
+                </div>
+                
+                {/* Bottom Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Status Overview Table */}
+                  <div className="bg-white border border-zinc-200 rounded-2xl overflow-hidden flex flex-col shadow-sm">
+                    <div className="p-4 border-b border-zinc-100 flex items-center gap-2 bg-zinc-50">
+                      <List size={18} className="text-orange-500" />
+                      <h4 className="font-bold text-sm text-zinc-900">{t('status_overview') || 'Status Overview'}</h4>
+                    </div>
+                    <div className="p-4 flex-1 overflow-x-auto custom-scrollbar">
+                      <table className="w-full text-left text-[11px]">
+                        <thead>
+                          <tr className="text-zinc-500 border-b border-zinc-100">
+                            <th className="pb-3 font-bold">{t('status_col') || 'Status'}</th>
+                            <th className="pb-3 font-bold">{t('desc_col') || 'Description'}</th>
+                            <th className="pb-3 font-bold">{t('allowed_actions_col') || 'Allowed Actions'}</th>
+                            <th className="pb-3 font-bold">{t('type_col') || 'Type'}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-50">
+                          {[
+                            { status: t('pending_filter') || 'Pending', desc: t('pending_table_desc'), actions: t('action_confirm_cancel'), type: t('type_active'), dot: 'bg-orange-500', tColor: 'text-orange-700', bg: 'bg-orange-50' },
+                            { status: t('in_process_filter') || 'In Process', desc: t('in_process_table_desc'), actions: t('action_start_cancel'), type: t('type_active'), dot: 'bg-blue-500', tColor: 'text-blue-700', bg: 'bg-blue-50' },
+                            { status: t('delivering_filter') || 'Delivering', desc: t('delivering_table_desc'), actions: t('action_mark_complete'), type: t('type_active'), dot: 'bg-purple-500', tColor: 'text-purple-700', bg: 'bg-purple-50' },
+                            { status: t('completed_filter') || 'Completed', desc: t('completed_table_desc'), actions: t('action_none'), type: t('type_terminal'), dot: 'bg-green-500', tColor: 'text-green-700', bg: 'bg-green-50' },
+                            { status: t('cancelled_filter') || 'Cancelled', desc: t('cancelled_table_desc'), actions: t('action_none'), type: t('type_terminal'), dot: 'bg-red-500', tColor: 'text-red-700', bg: 'bg-red-50' }
+                          ].map((row, i) => (
+                            <tr key={i} className="text-zinc-600">
+                              <td className="py-3 pr-3 font-bold text-zinc-900 flex items-center gap-1.5 whitespace-nowrap">
+                                <span className={`w-1.5 h-1.5 rounded-full ${row.dot}`}></span>
+                                {row.status}
+                              </td>
+                              <td className="py-3 pr-3 leading-snug">{row.desc}</td>
+                              <td className="py-3 pr-3">{row.actions}</td>
+                              <td className="py-3">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${row.tColor} ${row.bg}`}>
+                                  {row.type}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* System Rules */}
+                  <div className="bg-white border border-zinc-200 rounded-2xl flex flex-col shadow-sm">
+                    <div className="p-4 border-b border-zinc-100 flex items-center gap-2 bg-zinc-50 rounded-t-2xl">
+                      <Shield size={18} className="text-orange-500" />
+                      <h4 className="font-bold text-sm text-zinc-900">{t('system_rules') || 'System Rules'}</h4>
+                    </div>
+                    <div className="p-5 flex-1">
+                      <ul className="space-y-3.5">
+                        {[
+                          t('rule_1') || 'Orders can only move forward to the next status.',
+                          t('rule_2') || 'You cannot skip any status.',
+                          t('rule_3') || 'Cancellation is only allowed before delivery begins.',
+                          t('rule_4') || 'Completed and Cancelled orders are terminal and cannot be changed.',
+                          t('rule_5') || 'Every status update automatically notifies the customer.',
+                          t('rule_6') || 'Inventory is reserved after confirmation.',
+                          t('rule_7') || 'Cancelled orders automatically restore inventory.',
+                          t('rule_8') || 'All actions are recorded in the order timeline.'
+                        ].map((rule, i) => (
+                          <li key={i} className="flex items-start gap-2 text-xs text-zinc-600">
+                            <CheckCircle2 size={14} className="text-green-500 mt-0.5 shrink-0" />
+                            <span className="leading-snug">{rule}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* What Happens When You Take Action? */}
+                  <div className="bg-white border border-zinc-200 rounded-2xl flex flex-col shadow-sm">
+                    <div className="p-4 border-b border-zinc-100 flex items-center gap-2 bg-zinc-50 rounded-t-2xl">
+                      <Zap size={18} className="text-orange-500" />
+                      <h4 className="font-bold text-sm text-zinc-900">{t('action_effects_title') || 'What Happens When You Take Action?'}</h4>
+                    </div>
+                    <div className="p-5 flex-1 overflow-y-auto custom-scrollbar">
+                      <div className="space-y-5">
+                        <div className="flex gap-3">
+                          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-green-50 text-green-600 shrink-0">
+                            <Check size={12} />
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-bold text-green-700">{t('confirm_order_action')}</span>
+                            <ul className="list-disc list-outside ml-3 text-[10px] text-zinc-600 mt-1 space-y-0.5">
+                              <li>{t('effect_confirm_1')}</li>
+                              <li>{t('effect_confirm_2')}</li>
+                              <li>{t('effect_confirm_3')}</li>
+                            </ul>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-50 text-purple-600 shrink-0">
+                            <Truck size={12} />
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-bold text-purple-700">{t('start_delivery_action')}</span>
+                            <ul className="list-disc list-outside ml-3 text-[10px] text-zinc-600 mt-1 space-y-0.5">
+                              <li>{t('effect_start_1')}</li>
+                              <li>{t('effect_start_2')}</li>
+                              <li>{t('effect_start_3')}</li>
+                            </ul>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-green-50 text-green-600 shrink-0">
+                            <CheckCircle2 size={12} />
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-bold text-green-700">{t('mark_completed_action')}</span>
+                            <ul className="list-disc list-outside ml-3 text-[10px] text-zinc-600 mt-1 space-y-0.5">
+                              <li>{t('effect_complete_1')}</li>
+                              <li>{t('effect_complete_2')}</li>
+                              <li>{t('effect_complete_3')}</li>
+                            </ul>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-red-50 text-red-600 shrink-0">
+                            <X size={12} />
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-bold text-red-700">{t('cancel_order_action')}</span>
+                            <ul className="list-disc list-outside ml-3 text-[10px] text-zinc-600 mt-1 space-y-0.5">
+                              <li>{t('effect_cancel_1')}</li>
+                              <li>{t('effect_cancel_2')}</li>
+                              <li>{t('effect_cancel_3')}</li>
+                              <li>{t('effect_cancel_4')}</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tip Footer */}
+                <div className="bg-[#fff9eb] border border-[#ffe099] rounded-xl p-4 flex items-center gap-3">
+                  <div className="text-orange-500 shrink-0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                  </div>
+                  <p className="text-xs text-orange-900 font-medium">
+                    {t('tutorial_tip') || 'Tip: Keeping the status updated helps build customer trust and improves overall order management.'}
+                  </p>
                 </div>
               </div>
             </motion.div>

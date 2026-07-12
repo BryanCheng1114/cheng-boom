@@ -16,7 +16,8 @@ import {
   Calendar,
   BadgeDollarSign,
   X,
-  Mail
+  Mail,
+  UserRound
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { useLanguage } from '../../context/LanguageContext';
@@ -24,7 +25,7 @@ import { cn } from '../../utils/cn';
 
 const CustomerPage = () => {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [customers, setCustomers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -140,7 +141,7 @@ const CustomerPage = () => {
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-blue-500">
                   <Users size={18} strokeWidth={2.5} />
                 </div>
-                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">Total Customer</span>
+                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('total_customers')}</span>
               </div>
               <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
             </div>
@@ -149,7 +150,7 @@ const CustomerPage = () => {
                 {totalCount}
               </h3>
               <p className="text-[12px] font-medium text-emerald-500 pb-0.5 flex items-center gap-1">
-                +12% <span className="text-zinc-500">this month</span>
+                +12% <span className="text-zinc-500">{t('this_month_label')}</span>
               </p>
             </div>
           </div>
@@ -163,7 +164,7 @@ const CustomerPage = () => {
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-[#8b5cf6]">
                   <Shield size={18} strokeWidth={2.5} />
                 </div>
-                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">Seller Account</span>
+                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('seller_account')}</span>
               </div>
               <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
             </div>
@@ -172,7 +173,7 @@ const CustomerPage = () => {
                 {sellerCount}
               </h3>
               <p className="text-[12px] font-medium text-emerald-500 pb-0.5 flex items-center gap-1">
-                +3 <span className="text-zinc-500">new</span>
+                +3 <span className="text-zinc-500">{t('new_label')}</span>
               </p>
             </div>
           </div>
@@ -186,7 +187,7 @@ const CustomerPage = () => {
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-[#10b981]">
                   <UserCheck size={18} strokeWidth={2.5} />
                 </div>
-                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">Members Account</span>
+                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('members_account')}</span>
               </div>
               <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
             </div>
@@ -195,7 +196,7 @@ const CustomerPage = () => {
                 {memberCount}
               </h3>
               <p className="text-[12px] font-medium text-emerald-500 pb-0.5 flex items-center gap-1">
-                +8% <span className="text-zinc-500">this month</span>
+                +8% <span className="text-zinc-500">{t('this_month_label')}</span>
               </p>
             </div>
           </div>
@@ -209,7 +210,7 @@ const CustomerPage = () => {
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-600 bg-zinc-200">
                   <Users size={18} strokeWidth={2.5} />
                 </div>
-                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">Guests Account</span>
+                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('guests_account')}</span>
               </div>
               <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
             </div>
@@ -218,7 +219,7 @@ const CustomerPage = () => {
                 {guestCount}
               </h3>
               <p className="text-[12px] font-medium text-emerald-500 pb-0.5 flex items-center gap-1">
-                +24 <span className="text-zinc-500">active</span>
+                +24 <span className="text-zinc-500">{t('active_label')}</span>
               </p>
             </div>
           </div>
@@ -226,7 +227,7 @@ const CustomerPage = () => {
 
         {/* Unified Table Section */}
         <div className="mt-8">
-          <h3 className="text-xl font-bold text-zinc-800 tracking-wide px-2 mb-6">Customer List</h3>
+          <h3 className="text-xl font-bold text-zinc-800 tracking-wide px-2 mb-6">{t('customer_list')}</h3>
           
           <div className="bg-white border border-zinc-100 rounded-[40px] shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
             
@@ -235,10 +236,10 @@ const CustomerPage = () => {
               {/* Filter Pills */}
               <div className="flex flex-wrap items-center gap-2">
                 {[
-                  { id: 'All', label: 'All', count: totalCount },
-                  { id: 'Seller', label: 'Seller', count: sellerCount },
-                  { id: 'Member', label: 'Member', count: memberCount },
-                  { id: 'Guest', label: 'Guest', count: guestCount },
+                  { id: 'All', label: t('all_filter'), count: totalCount },
+                  { id: 'Seller', label: t('seller'), count: sellerCount },
+                  { id: 'Member', label: t('member'), count: memberCount },
+                  { id: 'Guest', label: t('guest'), count: guestCount },
                 ].map(filter => (
                   <button
                     key={filter.id}
@@ -260,7 +261,7 @@ const CustomerPage = () => {
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
                   <input
                     type="text"
-                    placeholder="Search customer..."
+                  placeholder={t('search_customer_placeholder')}
                     value={searchTerm}
                     onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                     className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-full text-sm font-medium outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-zinc-400"
@@ -301,7 +302,7 @@ const CustomerPage = () => {
                           className="absolute right-0 top-full mt-2 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-20 p-4 w-[280px]"
                         >
                           <div className="flex items-center justify-between mb-4">
-                            <h4 className="text-sm font-bold text-zinc-800">Filter by Join Month</h4>
+                            <h4 className="text-sm font-bold text-zinc-800">{t('filter_by_join_month')}</h4>
                             <button onClick={() => setShowCalendar(false)} className="text-zinc-400 hover:text-zinc-600">
                               <X size={16} />
                             </button>
@@ -319,13 +320,13 @@ const CustomerPage = () => {
                               onClick={() => { setMonthFilter(''); setCurrentPage(1); setShowCalendar(false); }}
                               className="flex-1 py-2 bg-zinc-100 text-zinc-600 rounded-xl text-xs font-bold hover:bg-zinc-200 transition-colors"
                             >
-                              Clear
+                              {t('clear')}
                             </button>
                             <button 
                               onClick={() => setShowCalendar(false)}
                               className="flex-1 py-2 bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 hover:brightness-110 transition-all"
                             >
-                              Apply
+                              {t('apply')}
                             </button>
                           </div>
                         </motion.div>
@@ -345,43 +346,43 @@ const CustomerPage = () => {
                       onClick={() => handleSort('id')}
                       className="py-4 px-6 text-[12px] font-bold text-zinc-500 cursor-pointer group hover:bg-zinc-100/50 transition-colors"
                     >
-                      <div className="flex items-center gap-1.5">ID <SortIndicator column="id" /></div>
+                      <div className="flex items-center gap-1.5">{t('id_label')} <SortIndicator column="id" /></div>
                     </th>
                     <th 
                       onClick={() => handleSort('name')}
                       className="py-4 px-6 text-[12px] font-bold text-zinc-500 cursor-pointer group hover:bg-zinc-100/50 transition-colors"
                     >
-                      <div className="flex items-center gap-1.5">Customer Name <SortIndicator column="name" /></div>
+                      <div className="flex items-center gap-1.5">{t('customer_name')} <SortIndicator column="name" /></div>
                     </th>
                     <th 
                       onClick={() => handleSort('email')}
                       className="py-4 px-6 text-[12px] font-bold text-zinc-500 cursor-pointer group hover:bg-zinc-100/50 transition-colors"
                     >
-                      <div className="flex items-center gap-1.5">Email Address <SortIndicator column="email" /></div>
+                      <div className="flex items-center gap-1.5">{t('email_address_label')} <SortIndicator column="email" /></div>
                     </th>
                     <th 
                       onClick={() => handleSort('phone')}
                       className="py-4 px-6 text-[12px] font-bold text-zinc-500 cursor-pointer group hover:bg-zinc-100/50 transition-colors"
                     >
-                      <div className="flex items-center gap-1.5">Phone Number <SortIndicator column="phone" /></div>
+                      <div className="flex items-center gap-1.5">{t('phone_number')} <SortIndicator column="phone" /></div>
                     </th>
                     <th 
                       onClick={() => handleSort('role')}
                       className="py-4 px-6 text-[12px] font-bold text-zinc-500 cursor-pointer group hover:bg-zinc-100/50 transition-colors"
                     >
-                      <div className="flex items-center gap-1.5">Role <SortIndicator column="role" /></div>
+                      <div className="flex items-center gap-1.5">{t('role')} <SortIndicator column="role" /></div>
                     </th>
                     <th 
                       onClick={() => handleSort('totalSpent')}
                       className="py-4 px-6 text-[12px] font-bold text-zinc-500 cursor-pointer group hover:bg-zinc-100/50 transition-colors"
                     >
-                      <div className="flex items-center gap-1.5">Total Spent <SortIndicator column="totalSpent" /></div>
+                      <div className="flex items-center gap-1.5">{t('total_spent')} <SortIndicator column="totalSpent" /></div>
                     </th>
                     <th 
                       onClick={() => handleSort('createdAt')}
                       className="py-4 px-6 text-[12px] font-bold text-zinc-500 cursor-pointer group hover:bg-zinc-100/50 transition-colors"
                     >
-                      <div className="flex items-center gap-1.5">Join Date <SortIndicator column="createdAt" /></div>
+                      <div className="flex items-center gap-1.5">{t('join_date')} <SortIndicator column="createdAt" /></div>
                     </th>
                   </tr>
                 </thead>
@@ -391,14 +392,14 @@ const CustomerPage = () => {
                       <td colSpan={6} className="py-20 text-center">
                         <div className="flex flex-col items-center gap-3">
                           <div className="w-6 h-6 border-2 border-zinc-200 border-t-blue-500 rounded-full animate-spin"></div>
-                          <p className="text-sm font-medium text-zinc-500">Loading customers...</p>
+                          <p className="text-sm font-medium text-zinc-500">{t('loading_customers')}</p>
                         </div>
                       </td>
                     </tr>
                   ) : paginatedCustomers.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="py-20 text-center">
-                        <p className="text-sm font-medium text-zinc-500">No customers found.</p>
+                        <p className="text-sm font-medium text-zinc-500">{t('no_customers_found')}</p>
                       </td>
                     </tr>
                   ) : (
@@ -429,24 +430,21 @@ const CustomerPage = () => {
                           </div>
                         </td>
                         <td className="py-4 px-6">
-                          {c.role === 'Seller' && (
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-50 text-purple-600 border border-purple-100">
-                              <Shield size={12} strokeWidth={2.5} />
-                              <span className="text-[11px] font-bold">Seller</span>
-                            </div>
-                          )}
-                          {c.role === 'Member' && (
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
-                              <UserCheck size={12} strokeWidth={2.5} />
-                              <span className="text-[11px] font-bold">Member</span>
-                            </div>
-                          )}
-                          {c.role === 'Guest' && (
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-100 text-zinc-500 border border-zinc-200">
-                              <Users size={12} strokeWidth={2.5} />
-                              <span className="text-[11px] font-bold">Guest</span>
-                            </div>
-                          )}
+                          <div className={cn(
+                            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all",
+                            c.role === 'Seller' ? "bg-purple-100 text-purple-700" :
+                            c.role === 'Member' ? "bg-emerald-100 text-emerald-700" :
+                            c.role === 'Guest' ? "bg-slate-100 text-slate-600" :
+                            "bg-zinc-100 text-zinc-600"
+                          )}>
+                            {c.role === 'Seller' ? <Shield size={12} strokeWidth={2.5} /> :
+                             c.role === 'Member' ? <UserCheck size={12} strokeWidth={2.5} /> :
+                             c.role === 'Guest' ? <UserRound size={12} strokeWidth={2.5} /> :
+                             <Users size={12} strokeWidth={2.5} />}
+                            {c.role === 'Seller' ? t('seller') :
+                             c.role === 'Member' ? t('member') :
+                             c.role === 'Guest' ? t('guest') : c.role}
+                          </div>
                         </td>
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-1.5">
@@ -460,7 +458,10 @@ const CustomerPage = () => {
                           <div className="flex items-center gap-2">
                             <Calendar size={14} className="text-zinc-400" />
                             <span className="text-[13px] font-medium text-zinc-600">
-                              {new Date(c.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                              {new Date(c.createdAt).toLocaleDateString(
+                                language === 'zh' ? 'zh-CN' : language === 'ms' ? 'ms-MY' : 'en-US',
+                                { year: 'numeric', month: 'short', day: 'numeric' }
+                              )}
                             </span>
                           </div>
                         </td>
@@ -474,7 +475,7 @@ const CustomerPage = () => {
             {/* Pagination Controls */}
             <div className="p-6 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-50/50">
               <p className="text-[13px] font-medium text-zinc-500">
-                Showing <span className="font-bold text-zinc-800">{sortedCustomers.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> to <span className="font-bold text-zinc-800">{Math.min(currentPage * itemsPerPage, sortedCustomers.length)}</span> of <span className="font-bold text-zinc-800">{sortedCustomers.length}</span> records
+                {t('showing')} <span className="font-bold text-zinc-800">{sortedCustomers.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> {t('to')} <span className="font-bold text-zinc-800">{Math.min(currentPage * itemsPerPage, sortedCustomers.length)}</span> {t('of')} <span className="font-bold text-zinc-800">{sortedCustomers.length}</span> {t('records')}
               </p>
               
               <div className="flex items-center gap-1.5">

@@ -1096,24 +1096,24 @@ const ProductPage = () => {
                               setStatusFilter(p.stock <= 0 ? 'Out of Stock' : p.stock < 10 ? 'Low Stock' : p.status);
                               setCurrentPage(1);
                             }}
-                            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer hover:scale-105 hover:brightness-110 ${
-                            p.stock <= 0 ? 'bg-red-500/10 text-red-600  border border-red-500/20' :
-                            p.stock < 10 ? 'bg-yellow-500/10 text-yellow-600  border border-yellow-500/20' :
-                            p.status === 'Live' ? 'bg-green-500/10 text-green-600  border border-green-500/20' :
-                            p.status === 'Hold' ? 'bg-orange-500/10 text-orange-600  border border-orange-500/20' :
-                            'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all cursor-pointer hover:scale-105 ${
+                            p.stock <= 0 ? 'bg-red-100 text-red-700' :
+                            p.stock < 10 ? 'bg-amber-100 text-amber-700' :
+                            p.status === 'Live' ? 'bg-emerald-100 text-emerald-700' :
+                            p.status === 'Hold' ? 'bg-orange-100 text-orange-700' :
+                            'bg-zinc-100 text-zinc-600'
                           }`}>
-                            <div className={`w-1.5 h-1.5 rounded-full shadow-sm ${
-                              p.stock <= 0 ? 'bg-red-500 shadow-red-500/50' :
-                              p.stock < 10 ? 'bg-yellow-500 shadow-yellow-500/50' :
-                              p.status === 'Live' ? 'bg-green-500 shadow-green-500/50' :
-                              p.status === 'Hold' ? 'bg-orange-500 shadow-orange-500/50' :
-                              'bg-zinc-500 shadow-zinc-500/50'
-                            }`} />
-                            {p.stock <= 0 ? t('out_of_stock') : p.stock < 10 ? t('low_stock') : 
-                              p.status === 'Live' ? t('live_products') : p.status === 'Hold' ? t('hold') : t('deactive')
-                            }
-                          </div>
+                             <div className={`w-1.5 h-1.5 rounded-full ${
+                               p.stock <= 0 ? 'bg-red-500' :
+                               p.stock < 10 ? 'bg-amber-500' :
+                               p.status === 'Live' ? 'bg-emerald-500' :
+                               p.status === 'Hold' ? 'bg-orange-500' :
+                               'bg-zinc-400'
+                             }`} />
+                             {p.stock <= 0 ? t('out_of_stock') : p.stock < 10 ? t('low_stock') : 
+                               p.status === 'Live' ? t('live_products') : p.status === 'Hold' ? t('hold') : t('deactive')
+                             }
+                           </div>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right relative" onClick={(e) => e.stopPropagation()}>

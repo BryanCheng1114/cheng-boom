@@ -108,7 +108,7 @@ const BusinessSetupPage = () => {
       setIsDirty(true);
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Failed to upload image. Please try again.');
+      alert(t('upload_failed'));
     } finally {
       setIsUploading(prev => ({ ...prev, [fieldName]: false }));
     }
@@ -121,10 +121,10 @@ const BusinessSetupPage = () => {
 
   const validate = () => {
     const newErrors: any = {};
-    if (!formData.businessName?.trim()) newErrors.businessName = t('business_name_required') || 'Required';
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = t('invalid_email') || 'Invalid format';
-    if (formData.phone && !/^\+?\d{8,15}$/.test(formData.phone.replace(/\s+/g, ''))) newErrors.phone = t('invalid_phone') || 'Invalid format';
-    if (formData.whatsapp && !/^\+?\d{8,15}$/.test(formData.whatsapp.replace(/\s+/g, ''))) newErrors.whatsapp = t('invalid_whatsapp') || 'Invalid format';
+    if (!formData.businessName?.trim()) newErrors.businessName = t('business_name_required');
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = t('invalid_email');
+    if (formData.phone && !/^\+?\d{8,15}$/.test(formData.phone.replace(/\s+/g, ''))) newErrors.phone = t('invalid_phone');
+    if (formData.whatsapp && !/^\+?\d{8,15}$/.test(formData.whatsapp.replace(/\s+/g, ''))) newErrors.whatsapp = t('invalid_whatsapp');
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -146,7 +146,7 @@ const BusinessSetupPage = () => {
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert('Failed to save settings.');
+      alert(t('save_failed'));
     } finally {
       setIsSaving(false);
     }
@@ -176,11 +176,11 @@ const BusinessSetupPage = () => {
   };
 
   const completionStatus = [
-    { id: 'branding', label: 'Branding', icon: <Tag size={14}/> },
-    { id: 'businessInfo', label: 'Business Information', icon: <Building size={14}/> },
-    { id: 'paymentSettings', label: 'Payment Settings', icon: <CreditCard size={14}/> },
-    { id: 'promoteBusiness', label: 'Promote Business', icon: <Send size={14}/> },
-    { id: 'socialMedia', label: 'Social Media Links', icon: <Share2 size={14}/> },
+    { id: 'branding', label: t('branding'), icon: <Tag size={14}/> },
+    { id: 'businessInfo', label: t('business_info'), icon: <Building size={14}/> },
+    { id: 'paymentSettings', label: t('payment_settings'), icon: <CreditCard size={14}/> },
+    { id: 'promoteBusiness', label: t('promote_business'), icon: <Send size={14}/> },
+    { id: 'socialMedia', label: t('social_media'), icon: <Share2 size={14}/> },
   ];
 
   const FONTS = [
@@ -201,8 +201,8 @@ const BusinessSetupPage = () => {
         {/* Header Description & Actions */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Business Setup</h1>
-            <p className="text-zinc-500 text-sm mt-0.5">Manage your business identity, contact information and customer-facing details.</p>
+            <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">{t('business_setup')}</h1>
+            <p className="text-zinc-500 text-sm mt-0.5">{t('business_setup_desc')}</p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -210,12 +210,12 @@ const BusinessSetupPage = () => {
               {isDirty ? (
                 <>
                   <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
-                  <span className="text-zinc-700 font-medium text-xs">Unsaved changes</span>
+                  <span className="text-zinc-700 font-medium text-xs">{t('unsaved_changes')}</span>
                 </>
               ) : (
                 <>
                   <div className="w-4 h-4 rounded-full bg-green-50 flex items-center justify-center"><Check size={10} className="text-green-600"/></div>
-                  <span className="text-zinc-700 font-medium text-xs">All changes saved</span>
+                  <span className="text-zinc-700 font-medium text-xs">{t('all_changes_saved')}</span>
                 </>
               )}
             </div>
@@ -225,7 +225,7 @@ const BusinessSetupPage = () => {
               className="px-5 py-2.5 bg-white border border-zinc-200 text-zinc-600 rounded-xl font-medium text-sm hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Undo2 size={16} />
-              Discard Changes
+              {t('discard_changes')}
             </button>
             <button
               onClick={handleSave}
@@ -233,7 +233,7 @@ const BusinessSetupPage = () => {
               className="px-6 py-2.5 bg-[#FF6B00] text-white rounded-xl font-medium text-sm hover:bg-[#e66000] transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm"
             >
               {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-              Save Changes
+              {t('save_changes')}
             </button>
           </div>
         </div>
@@ -241,11 +241,11 @@ const BusinessSetupPage = () => {
         {/* Navigation Tabs */}
         <div className="bg-white rounded-[16px] border border-zinc-200 p-1 flex flex-wrap gap-1 shadow-sm">
           {[
-            { id: 'branding', label: 'Branding', icon: <Tag size={16}/> },
-            { id: 'businessInfo', label: 'Business Information', icon: <LayoutList size={16}/> },
-            { id: 'paymentSettings', label: 'Payment Settings', icon: <CreditCard size={16}/> },
-            { id: 'promoteBusiness', label: 'Promote Business', icon: <Send size={16}/> },
-            { id: 'socialMedia', label: 'Social Media Links', icon: <Share2 size={16}/> },
+            { id: 'branding', label: t('branding'), icon: <Tag size={16}/> },
+            { id: 'businessInfo', label: t('business_info'), icon: <LayoutList size={16}/> },
+            { id: 'paymentSettings', label: t('payment_settings'), icon: <CreditCard size={16}/> },
+            { id: 'promoteBusiness', label: t('promote_business'), icon: <Send size={16}/> },
+            { id: 'socialMedia', label: t('social_media'), icon: <Share2 size={16}/> },
           ].map((tab) => (
             <button 
               key={tab.id}
@@ -273,41 +273,41 @@ const BusinessSetupPage = () => {
                   <ImageIcon size={14} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">Branding</h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">Manage how your business appears to your customers.</p>
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">{t('branding')}</h2>
+                  <p className="text-xs text-zinc-500 mt-0.5">{t('branding_desc')}</p>
                 </div>
               </div>
 
               <div className="space-y-5">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-2">Business Name</label>
+                  <label className="text-xs font-semibold text-zinc-700 block mb-2">{t('business_name')}</label>
                   <input 
                     type="text" 
                     name="businessName"
                     value={formData.businessName || ''}
                     onChange={handleChange}
                     className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-orange-500 transition-colors"
-                    placeholder="e.g. Cheng-BOOM"
+                    placeholder={t('business_name_placeholder')}
                   />
                   {errors.businessName && <p className="text-red-500 text-xs mt-1">{errors.businessName}</p>}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <label className="text-xs font-semibold text-zinc-700 block mb-2">Main Logo</label>
+                    <label className="text-xs font-semibold text-zinc-700 block mb-2">{t('main_logo')}</label>
                     <div className="flex flex-col gap-3">
                       <div className="w-full aspect-square bg-zinc-50/50 border border-zinc-200 rounded-2xl flex items-center justify-center p-2 overflow-hidden">
                         {formData.logoUrl ? (
-                          <img src={formData.logoUrl} alt="Main Logo" className="h-full w-full object-contain" />
+                          <img src={formData.logoUrl} alt={t('main_logo')} className="h-full w-full object-contain" />
                         ) : (
-                          <span className="text-xs text-zinc-400 font-medium">No Logo</span>
+                          <span className="text-xs text-zinc-400 font-medium">{t('no_logo')}</span>
                         )}
                       </div>
                       <div className="flex gap-2">
                         <div className="relative flex-1">
                           <button className="w-full h-[42px] px-4 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2">
                             {isUploading['logoUrl'] ? <Loader2 size={14} className="animate-spin"/> : <Upload size={14} />}
-                            Change Logo
+                            {t('change_logo')}
                           </button>
                           <input 
                             type="file" 
@@ -330,20 +330,20 @@ const BusinessSetupPage = () => {
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-zinc-700 block mb-2">Transparent Logo (Optional)</label>
+                    <label className="text-xs font-semibold text-zinc-700 block mb-2">{t('transparent_logo')}</label>
                     <div className="flex flex-col gap-3">
                       <div className="w-full aspect-square bg-zinc-50/50 border border-zinc-200 rounded-2xl flex items-center justify-center p-2 overflow-hidden">
                         {formData.watermarkUrl ? (
-                          <img src={formData.watermarkUrl} alt="Watermark" className="h-full w-full object-contain" />
+                          <img src={formData.watermarkUrl} alt={t('transparent_logo')} className="h-full w-full object-contain" />
                         ) : (
-                          <span className="text-xs text-zinc-400 font-medium">No Logo</span>
+                          <span className="text-xs text-zinc-400 font-medium">{t('no_logo')}</span>
                         )}
                       </div>
                       <div className="flex gap-2">
                         <div className="relative flex-1">
                           <button className="w-full h-[42px] px-4 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2">
                             {isUploading['watermarkUrl'] ? <Loader2 size={14} className="animate-spin"/> : <Upload size={14} />}
-                            Change Logo
+                            {t('change_logo')}
                           </button>
                           <input 
                             type="file" 
@@ -375,8 +375,8 @@ const BusinessSetupPage = () => {
                   <Share2 size={14} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">Social Media Links</h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">Connect your social media accounts.</p>
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">{t('social_media')}</h2>
+                  <p className="text-xs text-zinc-500 mt-0.5">{t('social_media_desc')}</p>
                 </div>
               </div>
 
@@ -394,7 +394,7 @@ const BusinessSetupPage = () => {
                       name="facebook" 
                       value={formData.facebook || ''} 
                       onChange={handleChange} 
-                      placeholder="username"
+                      placeholder={t('username_placeholder')}
                       className="flex-1 px-3 py-2.5 text-xs font-medium text-zinc-900 focus:outline-none placeholder:text-zinc-400" 
                     />
                   </div>
@@ -413,7 +413,7 @@ const BusinessSetupPage = () => {
                       name="instagram" 
                       value={formData.instagram || ''} 
                       onChange={handleChange} 
-                      placeholder="username"
+                      placeholder={t('username_placeholder')}
                       className="flex-1 px-3 py-2.5 text-xs font-medium text-zinc-900 focus:outline-none placeholder:text-zinc-400" 
                     />
                   </div>
@@ -432,7 +432,7 @@ const BusinessSetupPage = () => {
                       name="tiktok" 
                       value={formData.tiktok || ''} 
                       onChange={handleChange} 
-                      placeholder="username"
+                      placeholder={t('username_placeholder')}
                       className="flex-1 px-3 py-2.5 text-xs font-medium text-zinc-900 focus:outline-none placeholder:text-zinc-400" 
                     />
                   </div>
@@ -442,7 +442,7 @@ const BusinessSetupPage = () => {
                   <div className="bg-pink-50/50 rounded-xl p-3 flex items-start gap-2 border border-pink-100">
                     <Share2 size={14} className="text-pink-500 mt-0.5 shrink-0" />
                     <p className="text-[10px] font-medium text-pink-700 leading-relaxed">
-                      Adding your social links helps build trust and directs store traffic to your platforms.
+                      {t('social_media_tip')}
                     </p>
                   </div>
                 </div>
@@ -459,15 +459,15 @@ const BusinessSetupPage = () => {
                   <Building size={14} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">Business Information</h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">Your contact details and business address.</p>
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">{t('business_info')}</h2>
+                  <p className="text-xs text-zinc-500 mt-0.5">{t('business_info_desc')}</p>
                 </div>
               </div>
 
               <div className="space-y-5">
                 <div>
                   <label className="text-xs font-semibold text-zinc-700 flex items-center gap-2 mb-2">
-                    <Phone size={14} className="text-zinc-400"/> Phone Number
+                    <Phone size={14} className="text-zinc-400"/> {t('phone_number')}
                   </label>
                   <div className="flex gap-2">
                     <select 
@@ -496,7 +496,7 @@ const BusinessSetupPage = () => {
 
                 <div>
                   <label className="text-xs font-semibold text-zinc-700 flex items-center gap-2 mb-2">
-                    <Mail size={14} className="text-zinc-400"/> Email Address
+                    <Mail size={14} className="text-zinc-400"/> {t('email_address')}
                   </label>
                   <input 
                     type="email" 
@@ -510,7 +510,7 @@ const BusinessSetupPage = () => {
 
                 <div>
                   <label className="text-xs font-semibold text-zinc-700 flex items-center gap-2 mb-2">
-                    <Smartphone size={14} className="text-zinc-400"/> WhatsApp Number
+                    <Smartphone size={14} className="text-zinc-400"/> {t('whatsapp_number')}
                   </label>
                   <div className="flex gap-2">
                     <select 
@@ -539,7 +539,7 @@ const BusinessSetupPage = () => {
 
                 <div>
                   <label className="text-xs font-semibold text-zinc-700 flex items-center gap-2 mb-2">
-                    <MapPin size={14} className="text-zinc-400"/> Business Address
+                    <MapPin size={14} className="text-zinc-400"/> {t('business_address')}
                   </label>
                   <textarea 
                     name="address" 
@@ -559,14 +559,14 @@ const BusinessSetupPage = () => {
                   <QrCode size={14} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">Promote Business</h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">Share your store link or QR code with customers.</p>
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">{t('promote_business')}</h2>
+                  <p className="text-xs text-zinc-500 mt-0.5">{t('promote_business_desc')}</p>
                 </div>
               </div>
 
               <div className="space-y-5">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-2">Website Link</label>
+                  <label className="text-xs font-semibold text-zinc-700 block mb-2">{t('website_link')}</label>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-zinc-700 truncate">
                       {websiteUrl}
@@ -586,19 +586,19 @@ const BusinessSetupPage = () => {
                     className="flex-[2] py-2.5 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2"
                   >
                     {copySuccess ? <CheckCircle2 size={14} className="text-green-500" /> : <Copy size={14} />}
-                    {copySuccess ? 'Copied!' : 'Copy Link'}
+                    {copySuccess ? t('copied') : t('copy_link')}
                   </button>
                   <button 
                     onClick={handleShare}
                     className="flex-[3] py-2.5 bg-[#8b5cf6] text-white rounded-xl font-medium text-xs hover:bg-[#7c3aed] transition-colors flex items-center justify-center gap-2"
                   >
                     <Share2 size={14} />
-                    Share & Forward
+                    {t('share_forward')}
                   </button>
                 </div>
                 <div className="flex flex-col sm:flex-row items-start gap-6 mt-auto pt-5">
                   <div className="shrink-0 flex flex-col">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">Store QR Code</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">{t('store_qr_code')}</span>
                     <div className="bg-white p-3 rounded-2xl shadow-sm border border-zinc-200 shrink-0">
                       {isRefreshingQR ? (
                         <div className="w-[160px] h-[160px] flex items-center justify-center bg-zinc-50 rounded-xl">
@@ -628,20 +628,20 @@ const BusinessSetupPage = () => {
                         onClick={handleDownloadQR}
                         className="w-full py-2.5 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2"
                       >
-                        <Download size={14} /> Download QR
+                        <Download size={14} /> {t('download_qr')}
                       </button>
                       <button 
                         onClick={handleRefreshQR}
                         className="w-full py-2.5 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2"
                       >
-                        <RefreshCw size={14} className={isRefreshingQR ? "animate-spin" : ""} /> Refresh
+                        <RefreshCw size={14} className={isRefreshingQR ? "animate-spin" : ""} /> {t('refresh')}
                       </button>
                     </div>
                     <div className="mt-auto pt-4">
                       <div className="bg-zinc-50 rounded-xl p-3 border border-zinc-100 flex items-start gap-2">
                         <QrCode size={14} className="text-zinc-400 mt-0.5 shrink-0" />
                         <p className="text-[10px] text-zinc-500 leading-relaxed font-medium">
-                          Customers can scan this QR code using their mobile device camera to easily visit your online store and place orders.
+                          {t('qr_code_tip')}
                         </p>
                       </div>
                     </div>
@@ -660,18 +660,18 @@ const BusinessSetupPage = () => {
                   <CreditCard size={14} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">Payment Settings</h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">Configure your bank account or payment details.</p>
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">{t('payment_settings')}</h2>
+                  <p className="text-xs text-zinc-500 mt-0.5">{t('payment_settings_desc')}</p>
                 </div>
               </div>
 
               <div className="space-y-4 flex flex-col flex-1">
                 <label className="text-xs font-semibold text-zinc-700 flex items-center gap-2">
-                  DuitNow / Bank Transfer / QR
+                  {t('bank_transfer_qr')}
                   <div className="group relative flex items-center">
                     <HelpCircle size={14} className="text-zinc-400 cursor-help" />
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-zinc-800 text-white text-[10px] font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-center">
-                      Upload your bank's QR code or account details image here for manual payments.
+                      {t('bank_transfer_tip')}
                       <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-zinc-800"></div>
                     </div>
                   </div>
@@ -683,7 +683,7 @@ const BusinessSetupPage = () => {
                   ) : (
                     <>
                       {isUploading['bankTransferImage'] ? <Loader2 className="animate-spin text-zinc-400 mb-2" size={24} /> : <Upload className="text-zinc-300 mb-2" size={24} />}
-                      <span className="text-xs font-medium text-zinc-500">Upload Image</span>
+                      <span className="text-xs font-medium text-zinc-500">{t('upload_image')}</span>
                     </>
                   )}
                 </div>
@@ -692,7 +692,7 @@ const BusinessSetupPage = () => {
                   <div className="relative flex-1">
                     <button className="w-full py-2.5 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2">
                       {isUploading['bankTransferImage'] ? <Loader2 size={14} className="animate-spin"/> : <Upload size={14} />}
-                      Change Image
+                      {t('change_image')}
                     </button>
                     <input 
                       type="file" 
@@ -716,7 +716,7 @@ const BusinessSetupPage = () => {
                   <div className="bg-emerald-50/50 rounded-xl p-3 flex items-start gap-2 border border-emerald-100">
                     <CreditCard size={14} className="text-emerald-500 mt-0.5 shrink-0" />
                     <p className="text-[10px] font-medium text-emerald-700 leading-relaxed">
-                      This payment QR code or bank transfer details will be displayed to your customers at checkout. Ensure the details are clear and accurate to avoid payment delays.
+                      {t('payment_qr_tip')}
                     </p>
                   </div>
                 </div>
@@ -730,8 +730,8 @@ const BusinessSetupPage = () => {
                   <Store size={14} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">Quick Summary</h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">Overview of your current business setup.</p>
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">{t('quick_summary')}</h2>
+                  <p className="text-xs text-zinc-500 mt-0.5">{t('quick_summary_desc')}</p>
                 </div>
               </div>
 
@@ -745,7 +745,7 @@ const BusinessSetupPage = () => {
                         {item.label}
                       </div>
                       <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${complete ? 'text-green-500' : 'text-zinc-400'}`}>
-                        {complete ? 'Completed' : 'Pending'}
+                        {complete ? t('completed') : t('pending')}
                         <CheckCircle2 size={14} className={complete ? 'text-green-500' : 'text-zinc-300'} />
                       </div>
                     </div>
@@ -756,9 +756,9 @@ const BusinessSetupPage = () => {
               <div className="bg-orange-50/50 rounded-xl p-4 flex items-start gap-3 border border-orange-100/50">
                 <Medal size={20} className="text-[#FF6B00] shrink-0" />
                 <div>
-                  <p className="text-xs font-bold text-zinc-900 mb-0.5">Great! Your business profile is complete.</p>
+                  <p className="text-xs font-bold text-zinc-900 mb-0.5">{t('profile_complete_title')}</p>
                   <p className="text-[10px] text-zinc-500 leading-relaxed font-medium">
-                    Keep your information up to date for the best customer experience.
+                    {t('profile_complete_desc')}
                   </p>
                 </div>
               </div>
@@ -785,15 +785,15 @@ const BusinessSetupPage = () => {
             <div className="mx-auto w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-6">
               <CheckCircle2 size={32} />
             </div>
-            <h3 className="text-xl font-bold text-zinc-900 mb-2">{t('saved_successfully') || 'Saved Successfully'}</h3>
+            <h3 className="text-xl font-bold text-zinc-900 mb-2">{t('saved_successfully')}</h3>
             <p className="text-sm text-zinc-500 mb-8 font-medium">
-              {t('saved_successfully_desc') || 'Your business settings have been successfully updated.'}
+              {t('saved_successfully_desc')}
             </p>
             <button
               onClick={() => setShowSuccessModal(false)}
               className="w-full py-3 bg-[#FF6B00] text-white rounded-xl font-medium text-sm hover:bg-[#e66000] transition-colors shadow-sm"
             >
-              {t('close') || 'Close'}
+              {t('close')}
             </button>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { Award, Users, Plus, Edit, Trash2, Shield, Loader2, ArrowRight, HelpCircle, X, ChevronRight, Info, BarChart2, Search, Filter, Download, MoreVertical, ChevronDown, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import { Award, Users, Plus, Edit, Trash2, Shield, Loader2, ArrowRight, HelpCircle, X, ChevronRight, Info, BarChart2, Search, Filter, Download, UserX, ChevronDown, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../../context/LanguageContext';
 import { useRouter } from 'next/router';
@@ -8,7 +8,7 @@ import { useRouter } from 'next/router';
 
 const SellerSetupPage = () => {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [levels, setLevels] = useState<any[]>([]);
   const [sellers, setSellers] = useState<any[]>([]);
   const [levelFilter, setLevelFilter] = useState('all');
@@ -22,6 +22,11 @@ const SellerSetupPage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [levelToDelete, setLevelToDelete] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Revoke seller state
+  const [showRevokeModal, setShowRevokeModal] = useState(false);
+  const [sellerToRevoke, setSellerToRevoke] = useState<any>(null);
+  const [isRevoking, setIsRevoking] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -110,6 +115,29 @@ const SellerSetupPage = () => {
     }
   };
 
+  const handleRevokeSeller = async () => {
+    if (!sellerToRevoke) return;
+    setIsRevoking(true);
+    try {
+      const res = await fetch(`/api/customers/${sellerToRevoke.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: 'Member', sellerLevelId: null }),
+      });
+      if (res.ok) {
+        setShowRevokeModal(false);
+        setSellerToRevoke(null);
+        fetchData();
+      } else {
+        alert('Failed to revoke seller.');
+      }
+    } catch (err) {
+      alert('Failed to revoke seller.');
+    } finally {
+      setIsRevoking(false);
+    }
+  };
+
   return (
     <AdminLayout title={t('seller_setup')} hideTitle={true}>
       <div className="space-y-6">
@@ -117,21 +145,21 @@ const SellerSetupPage = () => {
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-[28px] font-black text-zinc-900 tracking-tight">Seller Setup</h1>
-            <p className="text-sm font-medium text-zinc-500 mt-1">Manage seller levels, discounts and monitor seller performance.</p>
+            <h1 className="text-[28px] font-black text-zinc-900 tracking-tight">{t('seller_setup_title')}</h1>
+            <p className="text-sm font-medium text-zinc-500 mt-1">{t('seller_setup_desc')}</p>
           </div>
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setShowTutorial(true)}
               className="px-5 py-2.5 rounded-xl border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 text-sm font-bold flex items-center gap-2 transition-colors shadow-sm"
             >
-              <HelpCircle size={16} className="text-zinc-400" /> Help Guide
+              <HelpCircle size={16} className="text-zinc-400" /> {t('help_guide')}
             </button>
             <button 
               onClick={() => openLevelModal()}
               className="flex items-center gap-2 px-6 py-2.5 bg-zinc-900 text-white rounded-xl font-bold text-sm hover:bg-zinc-800 transition-colors shadow-sm"
             >
-              <Plus size={16} /> Add Level
+              <Plus size={16} /> {t('add_level')}
             </button>
           </div>
         </div>
@@ -185,19 +213,19 @@ const SellerSetupPage = () => {
 
                     <div className="mt-8 pt-6 border-t border-zinc-100 grid grid-cols-4 gap-4">
                       <div className="flex flex-col items-center">
-                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Discount</span>
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('discount')}</span>
                         <span className="text-sm font-black text-green-500">{level.discountPercent}%</span>
                       </div>
                       <div className="flex flex-col items-center">
-                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1 whitespace-nowrap">Free Shipping</span>
-                        <span className={`text-sm font-black ${level.freeShipping ? 'text-green-500' : 'text-zinc-900'}`}>{level.freeShipping ? 'Yes' : 'No'}</span>
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1 whitespace-nowrap">{t('free_shipping_label')}</span>
+                        <span className={`text-sm font-black ${level.freeShipping ? 'text-green-500' : 'text-zinc-900'}`}>{level.freeShipping ? t('yes_label') : t('no_label')}</span>
                       </div>
                       <div className="flex flex-col items-center">
-                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Sellers</span>
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('sellers_label')}</span>
                         <span className="text-sm font-black text-zinc-900">{levelSellers.length}</span>
                       </div>
                       <div className="flex flex-col items-center">
-                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Active</span>
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{t('active_count_label')}</span>
                         <span className="text-sm font-black text-green-500">{activeSellers}</span>
                       </div>
                     </div>
@@ -213,12 +241,12 @@ const SellerSetupPage = () => {
                   <Info size={20} className="text-blue-500" strokeWidth={2} />
                 </div>
                 <div>
-                  <p className="text-sm text-zinc-800 font-medium">Discount is applied to all orders placed by sellers at their respective tier level.</p>
-                  <p className="text-sm text-zinc-500">You can create, edit or delete tiers to match your business needs.</p>
+                  <p className="text-sm text-zinc-800 font-medium">{t('discount_info_desc')}</p>
+                  <p className="text-sm text-zinc-500">{t('discount_info_sub')}</p>
                 </div>
               </div>
               <button onClick={() => router.push('/admin/seller-performance')} className="shrink-0 whitespace-nowrap px-4 py-2 bg-white border border-zinc-200 text-zinc-700 text-sm font-bold rounded-xl flex items-center gap-2 hover:bg-zinc-50 transition-colors shadow-sm">
-                <BarChart2 size={16} className="text-zinc-400" /> View Performance Report
+                <BarChart2 size={16} className="text-zinc-400" /> {t('view_performance_report')}
               </button>
             </div>
             
@@ -226,8 +254,8 @@ const SellerSetupPage = () => {
             <div className="bg-white border border-zinc-200 rounded-[24px] shadow-sm flex flex-col">
               <div className="p-6 border-b border-zinc-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-zinc-900 tracking-tight">Sellers List</h2>
-                  <p className="text-sm text-zinc-500 font-medium mt-1">Manage all seller accounts and their level assignments.</p>
+                  <h2 className="text-xl font-bold text-zinc-900 tracking-tight">{t('sellers_list')}</h2>
+                  <p className="text-sm text-zinc-500 font-medium mt-1">{t('manage_sellers_desc')}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="relative">
@@ -236,7 +264,7 @@ const SellerSetupPage = () => {
                       onChange={(e) => setLevelFilter(e.target.value)}
                       className="appearance-none bg-white border border-zinc-200 text-zinc-700 text-sm font-semibold pl-4 pr-10 py-2.5 rounded-xl focus:outline-none focus:border-zinc-400 transition-colors shadow-sm cursor-pointer"
                     >
-                      <option value="all">All Levels</option>
+                      <option value="all">{t('all_levels')}</option>
                       {levels.map(l => (
                         <option key={l.id} value={l.id}>{l.name}</option>
                       ))}
@@ -245,7 +273,7 @@ const SellerSetupPage = () => {
                   </div>
                   <div className="relative">
                     <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-                    <input type="text" placeholder="Search by name, email or phone..." className="pl-9 pr-4 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm font-medium w-64 focus:outline-none focus:border-yellow-500 transition-colors shadow-sm placeholder:text-zinc-400" />
+                    <input type="text" placeholder={t('search_seller_placeholder')} className="pl-9 pr-4 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm font-medium w-64 focus:outline-none focus:border-yellow-500 transition-colors shadow-sm placeholder:text-zinc-400" />
                   </div>
                 </div>
               </div>
@@ -254,15 +282,15 @@ const SellerSetupPage = () => {
                 <table className="w-full text-left border-collapse min-w-[1100px]">
                   <thead>
                     <tr className="border-b border-zinc-100 bg-zinc-50/50">
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Seller</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Contact</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Joined Date</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('seller_col')}</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('contact')}</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('joined_date')}</th>
                       <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">
-                        <div className="flex items-center gap-1">Performance (30 Days) <Info size={12} className="text-zinc-400" /></div>
+                        <div className="flex items-center gap-1">{t('performance_30_days')} <Info size={12} className="text-zinc-400" /></div>
                       </th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Current Level</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Status</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap text-right">Actions</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('current_level')}</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('status')}</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap text-right">{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100">
@@ -306,8 +334,18 @@ const SellerSetupPage = () => {
                             <div className="text-xs text-zinc-500 mt-0.5">{seller.email || '-'}</div>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm font-semibold text-zinc-700">{new Date(seller.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-                            <div className="text-[11px] text-zinc-400 font-medium mt-0.5">{new Date(seller.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
+                            <div className="text-sm font-semibold text-zinc-700">
+                              {new Date(seller.createdAt).toLocaleDateString(
+                                language === 'zh' ? 'zh-CN' : language === 'ms' ? 'ms-MY' : 'en-US',
+                                { month: 'short', day: 'numeric', year: 'numeric' }
+                              )}
+                            </div>
+                            <div className="text-[11px] text-zinc-400 font-medium mt-0.5">
+                              {new Date(seller.createdAt).toLocaleTimeString(
+                                language === 'zh' ? 'zh-CN' : language === 'ms' ? 'ms-MY' : 'en-US',
+                                { hour: 'numeric', minute: '2-digit' }
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
@@ -316,7 +354,7 @@ const SellerSetupPage = () => {
                                 {trendUp ? '↑' : '↓'} {trendVal}%
                               </span>
                             </div>
-                            <div className="text-[11px] text-zinc-400 font-medium mt-0.5">vs last 30 days</div>
+                            <div className="text-[11px] text-zinc-400 font-medium mt-0.5">{t('vs_last_30_days')}</div>
                           </td>
                           <td className="px-6 py-4">
                             <div className="relative inline-block w-40">
@@ -329,7 +367,7 @@ const SellerSetupPage = () => {
                                 onClick={(e) => e.stopPropagation()}
                                 className="appearance-none w-full bg-white border border-zinc-200 text-zinc-700 text-sm font-semibold pl-10 pr-8 py-2 rounded-xl focus:outline-none focus:border-zinc-400 transition-colors cursor-pointer relative z-10"
                               >
-                                <option value="">No Level</option>
+                                <option value="">{t('no_level')}</option>
                                 {levels.map(l => (
                                   <option key={l.id} value={l.id}>{l.name}</option>
                                 ))}
@@ -350,13 +388,21 @@ const SellerSetupPage = () => {
                                 seller.isActive ? 'bg-green-100 text-green-600' : 'bg-zinc-100 text-zinc-500'
                               }`}
                             >
-                              {seller.isActive ? 'Active' : 'Inactive'}
+                              {seller.isActive ? t('active_status') : t('inactive_status')}
                             </button>
                           </td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex items-center justify-end gap-2 relative z-10">
-                              <button onClick={(e) => { e.stopPropagation(); router.push(`/admin/customer/${seller.id}`); }} className="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent hover:border-zinc-200 hover:bg-zinc-50 text-zinc-400 transition-colors">
-                                <MoreVertical size={16} />
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSellerToRevoke(seller);
+                                  setShowRevokeModal(true);
+                                }}
+                                className="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent hover:border-red-200 hover:bg-red-50 text-zinc-400 hover:text-red-500 transition-colors"
+                                title={t('revoke_seller')}
+                              >
+                                <UserX size={16} />
                               </button>
                             </div>
                           </td>
@@ -366,7 +412,7 @@ const SellerSetupPage = () => {
                     {sellers.length === 0 && (
                       <tr>
                         <td colSpan={7} className="px-6 py-12 text-center text-zinc-500 text-sm font-medium">
-                          No sellers found.
+                          {t('no_sellers_found')}
                         </td>
                       </tr>
                     )}
@@ -377,12 +423,12 @@ const SellerSetupPage = () => {
               {/* Pagination Footer */}
               <div className="p-4 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <span className="text-xs font-medium text-zinc-500">
-                  Showing 1 to {Math.min(sellers.length, 5)} of {sellers.length} sellers
+                  {t('showing')} 1 {t('to')} {Math.min(sellers.length, 5)} {t('of')} {sellers.length} {t('sellers_label')}
                 </span>
                 <div className="flex items-center gap-4">
                   <div className="relative">
                     <select className="appearance-none bg-white border border-zinc-200 text-zinc-700 text-xs font-bold pl-3 pr-8 py-1.5 rounded-lg focus:outline-none cursor-pointer">
-                      <option>10 per page</option>
+                      <option>10 {t('per_page')}</option>
                     </select>
                     <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                   </div>
@@ -414,7 +460,7 @@ const SellerSetupPage = () => {
                 <input type="text" value={levelForm.name} onChange={e => setLevelForm({...levelForm, name: e.target.value})} placeholder="e.g. Gold Tier" className="w-full bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-3 text-sm font-bold focus:border-yellow-500 outline-none " />
               </div>
               <div>
-                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Description</label>
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">{t('description_label')}</label>
                 <textarea value={levelForm.description} onChange={e => setLevelForm({...levelForm, description: e.target.value})} placeholder="e.g. Top tier for high performing sellers." className="w-full bg-zinc-500/5 border border-zinc-500/20 rounded-2xl px-4 py-3 text-sm font-bold focus:border-yellow-500 outline-none resize-none h-20" />
               </div>
               <div>
@@ -480,6 +526,62 @@ const SellerSetupPage = () => {
                     className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/20"
                   >
                     {t('delete')}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Revoke Confirmation Modal */}
+      <AnimatePresence>
+        {showRevokeModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowRevokeModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white border border-zinc-200 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center p-6 border-b border-zinc-100">
+                <h3 className="text-lg font-black text-zinc-900">
+                  {t('revoke_seller')}
+                </h3>
+                <button 
+                  onClick={() => setShowRevokeModal(false)}
+                  className="text-zinc-400 hover:text-zinc-900 transition-colors p-1"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="p-6 text-left">
+                <p className="text-zinc-600 font-medium">
+                  {t('revoke_seller_confirm')}
+                </p>
+                
+                <div className="mt-8 flex gap-3">
+                  <button
+                    onClick={() => setShowRevokeModal(false)}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-zinc-100 hover:bg-zinc-200 text-zinc-900 transition-colors"
+                  >
+                    {t('cancel')}
+                  </button>
+                  <button
+                    onClick={handleRevokeSeller}
+                    disabled={isRevoking}
+                    className="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isRevoking ? <Loader2 size={16} className="animate-spin" /> : <UserX size={16} />}
+                    {t('revoke')}
                   </button>
                 </div>
               </div>

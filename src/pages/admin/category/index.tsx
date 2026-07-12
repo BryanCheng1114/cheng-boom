@@ -265,18 +265,18 @@ const CategoryOverviewPage = () => {
                         <td className="px-4 py-5 text-center text-xs font-black text-zinc-400">
                           {count}
                         </td>
-                        <td className="px-4 py-5">
+                        <td className="px-4 py-5 text-center">
                           <div 
-                            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer hover:scale-105 hover:brightness-110 ${
-                              cat.status === 'Live' ? 'bg-green-500/10 text-green-600  border border-green-500/20' :
-                              cat.status === 'Hold' ? 'bg-orange-500/10 text-orange-600  border border-orange-500/20' :
-                              'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
+                              cat.status === 'Live' ? 'bg-emerald-100 text-emerald-700' :
+                              cat.status === 'Hold' ? 'bg-orange-100 text-orange-700' :
+                              'bg-zinc-100 text-zinc-600'
                             }`}
                           >
-                            <div className={`w-1.5 h-1.5 rounded-full shadow-sm ${
-                              cat.status === 'Live' ? 'bg-green-500 shadow-green-500/50' :
-                              cat.status === 'Hold' ? 'bg-orange-500 shadow-orange-500/50' :
-                              'bg-zinc-500 shadow-zinc-500/50'
+                            <div className={`w-1.5 h-1.5 rounded-full ${
+                              cat.status === 'Live' ? 'bg-emerald-500' :
+                              cat.status === 'Hold' ? 'bg-orange-500' :
+                              'bg-zinc-400'
                             }`} />
                             {cat.status === 'Live' ? (t('live') || 'Live') : cat.status === 'Hold' ? (t('hold') || 'Hold') : 'Unknown'}
                           </div>

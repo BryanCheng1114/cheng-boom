@@ -29,9 +29,9 @@ import { cn } from '../../../utils/cn';
 const CustomerDetailsPage = () => {
   const router = useRouter();
   const { id, from } = router.query;
-  const backUrl = from === 'seller' ? '/admin/seller-setup' : '/admin/customer';
-  const backTitle = from === 'seller' ? 'Back to Sellers' : 'Back to Customers';
   const { t, language: locale } = useLanguage();
+  const backUrl = from === 'seller' ? '/admin/seller-setup' : '/admin/customer';
+  const backTitle = from === 'seller' ? t('back_to_sellers') : t('back_to_customers');
   const [customer, setCustomer] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
@@ -126,6 +126,32 @@ const CustomerDetailsPage = () => {
     return status;
   };
 
+  const translateRole = (role: string) => {
+    if (locale === 'zh') {
+      if (role === 'Seller') return '卖家';
+      if (role === 'Member') return '会员';
+      if (role === 'Guest') return '游客';
+    }
+    if (locale === 'ms') {
+      if (role === 'Seller') return 'Penjual';
+      if (role === 'Member') return 'Ahli';
+      if (role === 'Guest') return 'Tetamu';
+    }
+    return role;
+  };
+
+  const formatDate = (dateStr: string, options: Intl.DateTimeFormatOptions) => {
+    if (!dateStr) return '-';
+    const dateLocale = locale === 'zh' ? 'zh-CN' : locale === 'ms' ? 'ms-MY' : 'en-US';
+    return new Date(dateStr).toLocaleDateString(dateLocale, options);
+  };
+
+  const formatTime = (dateStr: string) => {
+    if (!dateStr) return '';
+    const dateLocale = locale === 'zh' ? 'zh-CN' : locale === 'ms' ? 'ms-MY' : 'en-US';
+    return new Date(dateStr).toLocaleTimeString(dateLocale, { hour: 'numeric', minute: '2-digit' });
+  };
+
   if (isLoading) {
     return (
       <AdminLayout title="Customer Details">
@@ -201,7 +227,7 @@ const CustomerDetailsPage = () => {
             </button>
             <h1 className="text-2xl font-bold text-zinc-900">{customer.name}</h1>
             <span className="px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-bold border border-green-100">
-              Active Customer
+              {t('active_customer')}
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -211,7 +237,7 @@ const CustomerDetailsPage = () => {
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-yellow-500 text-white font-bold text-sm hover:bg-yellow-600 transition-colors shadow-sm"
               >
                 <Shield size={16} />
-                Promote to Seller
+                {t('promote_to_seller')}
               </button>
             )}
           </div>
@@ -234,20 +260,20 @@ const CustomerDetailsPage = () => {
                     ID: {customer.id} <Copy size={12} className="cursor-pointer hover:text-zinc-800" onClick={() => copyToClipboard(customer.id)} />
                   </div>
                   <div className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest bg-yellow-100 text-yellow-600">
-                    {customer.role}
+                    {translateRole(customer.role)}
                   </div>
                 </div>
               </div>
 
               {/* Contact Information */}
               <div className="mb-6">
-                <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-3">Contact Information</h4>
+                <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-3">{t('contact_information')}</h4>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between group">
                     <div className="flex items-center gap-3 text-sm">
                       <Phone size={16} className="text-zinc-400" />
                       <div>
-                        <div className="text-xs text-zinc-500 font-semibold mb-0.5">Phone</div>
+                        <div className="text-xs text-zinc-500 font-semibold mb-0.5">{t('phone')}</div>
                         <div className="font-semibold text-zinc-900">{customer.phone || '-'}</div>
                       </div>
                     </div>
@@ -262,7 +288,7 @@ const CustomerDetailsPage = () => {
                     <div className="flex items-center gap-3 text-sm">
                       <Mail size={16} className="text-zinc-400" />
                       <div>
-                        <div className="text-xs text-zinc-500 font-semibold mb-0.5">Email</div>
+                        <div className="text-xs text-zinc-500 font-semibold mb-0.5">{t('email')}</div>
                         <div className="font-semibold text-zinc-900 break-all">{customer.email || '-'}</div>
                       </div>
                     </div>
@@ -277,33 +303,33 @@ const CustomerDetailsPage = () => {
 
               {/* Personal & Account Details */}
               <div className="mb-6 pt-6 border-t border-zinc-100">
-                <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-4">Personal & Account Details</h4>
+                <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-4">{t('personal_account_details')}</h4>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-3 text-zinc-500 font-semibold">
-                      <User size={14} /> Role
+                      <User size={14} /> {t('role')}
                     </div>
-                    <div className="font-semibold text-zinc-900">{customer.role}</div>
+                    <div className="font-semibold text-zinc-900">{translateRole(customer.role)}</div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-3 text-zinc-500 font-semibold">
-                      <User size={14} /> Seller Level
+                      <User size={14} /> {t('seller_level')}
                     </div>
-                    <div className="font-semibold text-zinc-900">{customer.role === 'Seller' ? (customer.sellerLevel?.name || 'Level 1') : 'Not a Seller'}</div>
+                    <div className="font-semibold text-zinc-900">{customer.role === 'Seller' ? (customer.sellerLevel?.name || 'Level 1') : t('not_a_seller')}</div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-3 text-zinc-500 font-semibold">
-                      <Calendar size={14} /> Registered Since
+                      <Calendar size={14} /> {t('registered_since')}
                     </div>
                     <div className="font-semibold text-zinc-900">
-                      {new Date(customer.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      {formatDate(customer.createdAt, { month: 'long', day: 'numeric', year: 'numeric' })}
                     </div>
                   </div>
                   <div className="flex justify-between text-sm">
                     <div className="flex items-start gap-3 text-zinc-500 font-semibold pt-0.5">
                       <Wallet size={14} /> 
                       <div className="flex flex-col">
-                        <span>Preferred Payment</span>
+                        <span>{t('preferred_payment')}</span>
                         <span className="text-zinc-900 mt-1">{translatePayment(customer.preferredPayment) || '-'}</span>
                       </div>
                     </div>
@@ -318,12 +344,12 @@ const CustomerDetailsPage = () => {
 
               {/* Address */}
               <div className="mb-6 pt-6 border-t border-zinc-100">
-                <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-3">Address</h4>
+                <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-3">{t('address')}</h4>
                 <div className="flex items-start justify-between group">
                   <div className="flex items-start gap-3 text-sm">
                     <MapPin size={16} className="text-zinc-400 mt-0.5" />
                     <div>
-                      <div className="text-xs text-zinc-500 font-semibold mb-1">Address</div>
+                      <div className="text-xs text-zinc-500 font-semibold mb-1">{t('address')}</div>
                       <div className="font-semibold text-zinc-900 leading-relaxed text-[13px]">{customer.address || '-'}</div>
                     </div>
                   </div>
@@ -337,12 +363,12 @@ const CustomerDetailsPage = () => {
 
               {/* Delivery Details */}
               <div className="mb-6 pt-6 border-t border-zinc-100">
-                <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-3">Delivery Details</h4>
+                <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-3">{t('delivery_details')}</h4>
                 <div className="flex items-start justify-between group">
                   <div className="flex items-start gap-3 text-sm">
                     <Box size={16} className="text-zinc-400 mt-0.5" />
                     <div>
-                      <div className="text-xs text-zinc-500 font-semibold mb-1">Default Method</div>
+                      <div className="text-xs text-zinc-500 font-semibold mb-1">{t('default_method')}</div>
                       <div className="font-semibold text-zinc-900 leading-relaxed text-[13px]">{translateOrderMode(customer.orderMode) || '-'}</div>
                     </div>
                   </div>
@@ -351,12 +377,12 @@ const CustomerDetailsPage = () => {
 
               {/* Notes */}
               <div className="pt-6 border-t border-zinc-100">
-                <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-3">Notes</h4>
+                <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-3">{t('notes')}</h4>
                 <div className="flex items-start justify-between group">
                   <div className="flex items-start gap-3 text-sm">
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-text text-zinc-400 mt-0.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" x2="8" y1="13" y2="13"></line><line x1="16" x2="8" y1="17" y2="17"></line><line x1="10" x2="8" y1="9" y2="9"></line></svg>
                     <div>
-                      <div className="font-semibold text-zinc-500 leading-relaxed text-[13px]">{customer.notes || 'No notes added yet.'}</div>
+                      <div className="font-semibold text-zinc-500 leading-relaxed text-[13px]">{customer.notes || t('no_notes_added')}</div>
                     </div>
                   </div>
                 </div>
@@ -375,7 +401,7 @@ const CustomerDetailsPage = () => {
                   <Box size={20} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Total Orders</div>
+                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">{t('total_orders_label')}</div>
                   <div className="text-lg font-bold text-zinc-900">{totalOrders}</div>
                 </div>
               </div>
@@ -385,7 +411,7 @@ const CustomerDetailsPage = () => {
                   <Wallet size={20} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Total Spent</div>
+                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">{t('total_spent_label')}</div>
                   <div className="text-lg font-bold text-zinc-900">RM {totalSpent.toFixed(2)}</div>
                 </div>
               </div>
@@ -395,7 +421,7 @@ const CustomerDetailsPage = () => {
                   <Package size={20} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Average Order Value</div>
+                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">{t('avg_order_value')}</div>
                   <div className="text-lg font-bold text-zinc-900">RM {averageOrderValue.toFixed(2)}</div>
                 </div>
               </div>
@@ -405,9 +431,9 @@ const CustomerDetailsPage = () => {
                   <Calendar size={20} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Last Order</div>
+                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">{t('last_order')}</div>
                   <div className="text-sm font-bold text-zinc-900">
-                    {lastOrderDate ? lastOrderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}
+                    {lastOrderDate ? formatDate(lastOrderDate.toISOString(), { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}
                   </div>
                 </div>
               </div>
@@ -419,7 +445,7 @@ const CustomerDetailsPage = () => {
               {/* Table Header area */}
               <div className="p-6 border-b border-zinc-100 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-                  <h3 className="text-[15px] font-black italic uppercase tracking-wider text-zinc-900">Order History</h3>
+                  <h3 className="text-[15px] font-black italic uppercase tracking-wider text-zinc-900">{t('order_history_label')}</h3>
                   
                   <div className="flex flex-wrap items-center gap-2">
                     {['All Status', 'Pending', 'Processing', 'Completed', 'Cancelled'].map((status) => (
@@ -432,7 +458,7 @@ const CustomerDetailsPage = () => {
                             : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
                         }`}
                       >
-                        {status === 'All Status' ? 'All' : status}
+                        {status === 'All Status' ? t('all_filter') : translateStatus(status)}
                         <span className={`px-1.5 py-0.5 rounded-md text-[10px] leading-none flex items-center justify-center ${statusFilter === status ? 'bg-white/20 text-white' : 'bg-zinc-200 text-zinc-500'}`}>
                           {orderCounts[status as keyof typeof orderCounts]}
                         </span>
@@ -467,7 +493,7 @@ const CustomerDetailsPage = () => {
                           className="absolute right-0 top-full mt-2 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-20 p-4 w-[280px]"
                         >
                           <div className="flex items-center justify-between mb-4">
-                            <h4 className="text-sm font-bold text-zinc-800">Filter by Month</h4>
+                            <h4 className="text-sm font-bold text-zinc-800">{t('filter_by_month')}</h4>
                             <button onClick={() => setShowCalendar(false)} className="text-zinc-400 hover:text-zinc-600">
                               <X size={16} />
                             </button>
@@ -485,13 +511,13 @@ const CustomerDetailsPage = () => {
                               onClick={() => { setMonthFilter(''); setCurrentPage(1); setShowCalendar(false); }}
                               className="flex-1 py-2 bg-zinc-100 text-zinc-600 rounded-xl text-xs font-bold hover:bg-zinc-200 transition-colors"
                             >
-                              Clear
+                              {t('clear')}
                             </button>
                             <button 
                               onClick={() => setShowCalendar(false)}
                               className="flex-1 py-2 bg-zinc-900 text-white rounded-xl text-xs font-bold shadow-md shadow-zinc-900/20 hover:brightness-110 transition-all"
                             >
-                              Apply
+                              {t('apply')}
                             </button>
                           </div>
                         </motion.div>
@@ -506,13 +532,13 @@ const CustomerDetailsPage = () => {
                 <table className="w-full text-left min-w-[700px]">
                   <thead>
                     <tr className="border-b border-zinc-100 bg-zinc-50/50">
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Order ID</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Item Count</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Date</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Order Mode</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Status</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">Total</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap text-right">Actions</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('order_id')}</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('item_count')}</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('date')}</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('order_mode')}</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('status')}</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('total')}</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap text-right">{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -530,8 +556,8 @@ const CustomerDetailsPage = () => {
                             {order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''}
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm font-semibold text-zinc-700">{new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-                            <div className="text-[11px] text-zinc-400 font-medium mt-0.5">{new Date(order.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
+                            <div className="text-sm font-semibold text-zinc-700">{formatDate(order.createdAt, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                            <div className="text-[11px] text-zinc-400 font-medium mt-0.5">{formatTime(order.createdAt)}</div>
                           </td>
                           <td className="px-6 py-4">
                             <span className="text-sm font-semibold text-zinc-700">
@@ -575,7 +601,7 @@ const CustomerDetailsPage = () => {
               {totalPages > 1 && (
                 <div className="p-4 border-t border-zinc-100 flex items-center justify-between text-sm">
                   <div className="text-zinc-500 font-medium">
-                    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredOrders.length)} of {filteredOrders.length} order{filteredOrders.length !== 1 ? 's' : ''}
+                  {t('showing')} {(currentPage - 1) * itemsPerPage + 1} {t('to')} {Math.min(currentPage * itemsPerPage, filteredOrders.length)} {t('of')} {filteredOrders.length} {t('records')}
                   </div>
                   <div className="flex items-center gap-1">
                     <button 
