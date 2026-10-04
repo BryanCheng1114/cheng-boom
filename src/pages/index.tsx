@@ -11,16 +11,16 @@ import { cn } from '../utils/cn';
 import LightRays from '../components/ui/LightRays';
 // Pre-computed CNY gold spark positions (no Math.random — avoids SSR mismatch)
 const CNY_SPARKS = [
-  { bottom: '5%',  left: '8%',  delay: '0s',    dur: '3.2s', size: 8,  color: '#FCD34D' },
-  { bottom: '12%', left: '20%', delay: '0.6s',  dur: '4.1s', size: 6,  color: '#F59E0B' },
-  { bottom: '7%',  left: '38%', delay: '1.2s',  dur: '2.9s', size: 10, color: '#FBBF24' },
-  { bottom: '15%', left: '55%', delay: '0.3s',  dur: '3.7s', size: 7,  color: '#FCD34D' },
-  { bottom: '9%',  left: '70%', delay: '1.8s',  dur: '4.4s', size: 9,  color: '#F59E0B' },
-  { bottom: '18%', left: '85%', delay: '0.9s',  dur: '3.0s', size: 6,  color: '#FBBF24' },
-  { bottom: '4%',  left: '93%', delay: '2.1s',  dur: '3.8s', size: 8,  color: '#FCD34D' },
-  { bottom: '22%', left: '3%',  delay: '1.5s',  dur: '4.8s', size: 5,  color: '#F59E0B' },
-  { bottom: '10%', left: '48%', delay: '2.7s',  dur: '3.4s', size: 7,  color: '#EF4444' },
-  { bottom: '6%',  left: '62%', delay: '0.4s',  dur: '5.0s', size: 5,  color: '#FCA5A5' },
+  { bottom: '5%', left: '8%', delay: '0s', dur: '3.2s', size: 8, color: '#FCD34D' },
+  { bottom: '12%', left: '20%', delay: '0.6s', dur: '4.1s', size: 6, color: '#F59E0B' },
+  { bottom: '7%', left: '38%', delay: '1.2s', dur: '2.9s', size: 10, color: '#FBBF24' },
+  { bottom: '15%', left: '55%', delay: '0.3s', dur: '3.7s', size: 7, color: '#FCD34D' },
+  { bottom: '9%', left: '70%', delay: '1.8s', dur: '4.4s', size: 9, color: '#F59E0B' },
+  { bottom: '18%', left: '85%', delay: '0.9s', dur: '3.0s', size: 6, color: '#FBBF24' },
+  { bottom: '4%', left: '93%', delay: '2.1s', dur: '3.8s', size: 8, color: '#FCD34D' },
+  { bottom: '22%', left: '3%', delay: '1.5s', dur: '4.8s', size: 5, color: '#F59E0B' },
+  { bottom: '10%', left: '48%', delay: '2.7s', dur: '3.4s', size: 7, color: '#EF4444' },
+  { bottom: '6%', left: '62%', delay: '0.4s', dur: '5.0s', size: 5, color: '#FCA5A5' },
 ];
 
 function CnySpark({ bottom, left, delay, dur, size, color }: {
@@ -54,26 +54,26 @@ function Lantern({ side, size = 1, delay = '0s' }: { side: 'left' | 'right'; siz
     >
       <svg width={w} height={h} viewBox="0 0 56 84" fill="none" xmlns="http://www.w3.org/2000/svg">
         {/* String */}
-        <line x1="28" y1="0" x2="28" y2="9" stroke="#F4A724" strokeWidth="1.5"/>
+        <line x1="28" y1="0" x2="28" y2="9" stroke="#F4A724" strokeWidth="1.5" />
         {/* Top ring */}
-        <ellipse cx="28" cy="11" rx="10" ry="3.5" fill="#C41E3A" stroke="#F4A724" strokeWidth="1"/>
+        <ellipse cx="28" cy="11" rx="10" ry="3.5" fill="#C41E3A" stroke="#F4A724" strokeWidth="1" />
         {/* Body */}
-        <ellipse cx="28" cy="38" rx="20" ry="27" fill="#C41E3A"/>
+        <ellipse cx="28" cy="38" rx="20" ry="27" fill="#C41E3A" />
         {/* Inner warm glow */}
-        <ellipse cx="28" cy="34" rx="13" ry="18" fill="#FF8C00" opacity="0.35"/>
+        <ellipse cx="28" cy="34" rx="13" ry="18" fill="#FF8C00" opacity="0.35" />
         {/* Ribs */}
-        <ellipse cx="28" cy="22" rx="14" ry="2" fill="none" stroke="#F4A724" strokeWidth="0.7" opacity="0.7"/>
-        <ellipse cx="28" cy="33" rx="20" ry="2.5" fill="none" stroke="#F4A724" strokeWidth="0.7" opacity="0.5"/>
-        <ellipse cx="28" cy="44" rx="20" ry="2.5" fill="none" stroke="#F4A724" strokeWidth="0.7" opacity="0.5"/>
-        <ellipse cx="28" cy="55" rx="14" ry="2" fill="none" stroke="#F4A724" strokeWidth="0.7" opacity="0.7"/>
+        <ellipse cx="28" cy="22" rx="14" ry="2" fill="none" stroke="#F4A724" strokeWidth="0.7" opacity="0.7" />
+        <ellipse cx="28" cy="33" rx="20" ry="2.5" fill="none" stroke="#F4A724" strokeWidth="0.7" opacity="0.5" />
+        <ellipse cx="28" cy="44" rx="20" ry="2.5" fill="none" stroke="#F4A724" strokeWidth="0.7" opacity="0.5" />
+        <ellipse cx="28" cy="55" rx="14" ry="2" fill="none" stroke="#F4A724" strokeWidth="0.7" opacity="0.7" />
         {/* Bottom ring */}
-        <ellipse cx="28" cy="65" rx="10" ry="3.5" fill="#C41E3A" stroke="#F4A724" strokeWidth="1"/>
+        <ellipse cx="28" cy="65" rx="10" ry="3.5" fill="#C41E3A" stroke="#F4A724" strokeWidth="1" />
         {/* Tassel strings */}
-        <line x1="23" y1="68" x2="21" y2="84" stroke="#F4A724" strokeWidth="1.2"/>
-        <line x1="28" y1="68" x2="28" y2="84" stroke="#F4A724" strokeWidth="1.2"/>
-        <line x1="33" y1="68" x2="35" y2="84" stroke="#F4A724" strokeWidth="1.2"/>
+        <line x1="23" y1="68" x2="21" y2="84" stroke="#F4A724" strokeWidth="1.2" />
+        <line x1="28" y1="68" x2="28" y2="84" stroke="#F4A724" strokeWidth="1.2" />
+        <line x1="33" y1="68" x2="35" y2="84" stroke="#F4A724" strokeWidth="1.2" />
         {/* Outer flicker glow */}
-        <ellipse cx="28" cy="38" rx="20" ry="27" fill="#FF6B00" opacity="0.12"/>
+        <ellipse cx="28" cy="38" rx="20" ry="27" fill="#FF6B00" opacity="0.12" />
         {/* 福 character */}
         <text x="28" y="43" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#F4A724" opacity="0.9" fontFamily="serif">福</text>
       </svg>
@@ -110,7 +110,7 @@ export default function Home() {
   useEffect(() => {
     if (!isAutoPlaying) return;
     const interval = setInterval(() => {
-      setCurrentHeroSlide(prev => (prev + 1) % 3);
+      setCurrentHeroSlide(prev => (prev + 1) % 4);
     }, 5000); // 5 seconds
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
@@ -127,8 +127,8 @@ export default function Home() {
     }, 8000);
   }, []);
 
-  const nextHeroSlide = () => handleManualNavigation(() => setCurrentHeroSlide(prev => (prev + 1) % 3));
-  const prevHeroSlide = () => handleManualNavigation(() => setCurrentHeroSlide(prev => (prev - 1 + 3) % 3));
+  const nextHeroSlide = () => handleManualNavigation(() => setCurrentHeroSlide(prev => (prev + 1) % 4));
+  const prevHeroSlide = () => handleManualNavigation(() => setCurrentHeroSlide(prev => (prev - 1 + 4) % 4));
   const jumpToSlide = (idx: number) => handleManualNavigation(() => setCurrentHeroSlide(idx));
 
   const minSwipeDistance = 50;
@@ -172,101 +172,121 @@ export default function Home() {
       </Head>
 
       {/* ===== SECTION 1: HERO CAROUSEL ===== */}
-      <section 
-        className="relative h-[600px] md:h-[700px] lg:h-[800px] w-full flex overflow-hidden bg-zinc-900 group/slider"
+      <section
+        className="relative w-full h-[540px] sm:h-[620px] md:h-auto md:aspect-[3360/1278] min-h-[460px] md:min-h-0 max-h-[750px] flex overflow-hidden bg-black group/slider"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEndHandler}
       >
-        
+
         {/* Navigation Arrows */}
-        <button 
+        <button
           onClick={prevHeroSlide}
           className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all hidden md:flex items-center justify-center opacity-0 group-hover/slider:opacity-100"
         >
           <ChevronLeft size={24} />
         </button>
-        <button 
+        <button
           onClick={nextHeroSlide}
           className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all hidden md:flex items-center justify-center opacity-0 group-hover/slider:opacity-100"
         >
           <ChevronRight size={24} />
         </button>
 
-        {/* Slide 0: Chinese New Year Default */}
-        <div 
+        {/* Slide 0: New Banner (Default First Page) */}
+        <div
           className={cn(
-            "absolute inset-0 transition-opacity duration-700",
+            "absolute inset-0 transition-opacity duration-700 bg-black flex items-center justify-center",
             currentHeroSlide === 0 ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
           )}
         >
-          <img src="/home.png" alt="Chinese New Year Fireworks" className="absolute inset-0 z-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent z-[1]" />
-          
-          <div className="relative z-10 w-full max-w-[1200px] mx-auto h-full flex flex-col justify-center px-8 md:px-12 text-left">
-            
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-2 font-sans">
-              {locale === 'zh' ? '欢庆新年！' : locale === 'ms' ? 'Raikan Tahun Baru!' : 'Celebrate New Year!'}
-            </h1>
-            <p className="text-xl md:text-2xl font-bold text-white/90 mb-5">
-              {locale === 'zh' ? '2026 - 马年大吉' : locale === 'ms' ? '2026 - Tahun Kuda' : '2026 - Year of the Horse'}
-            </p>
-            <p className="text-lg md:text-xl text-white/80 max-w-lg mb-8 font-medium leading-relaxed">
-              {locale === 'zh' ? '优质烟花点亮您的庆典，带来安全、璀璨且难忘的记忆。' : locale === 'ms' ? 'Bunga api berkualiti premium untuk menerangi sambutan anda dengan keselamatan, kecemerlangan dan kenangan yang tidak dapat dilupakan.' : 'Premium quality fireworks to light up your celebrations with safety, brilliance and unforgettable memories.'}
-            </p>
-            <div>
-              <Link href="/shop" className="inline-flex items-center justify-center px-8 py-3 bg-[#111] hover:bg-black text-white text-[15px] font-semibold rounded-xl transition-colors border border-white/10">
-                {locale === 'zh' ? '立即选购' : locale === 'ms' ? 'Beli Sekarang' : 'Shop Now'}
-              </Link>
-            </div>
-          </div>
+          {/* Mobile Screen Image (< md) */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/new_banner.jpeg"
+            alt="VIP Fireworks Mobile Banner"
+            className="w-full h-full object-contain object-center block md:hidden"
+          />
+
+          {/* Desktop / Website View Image (>= md) */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/new_banner.jpeg"
+            alt="VIP Fireworks Banner"
+            className="w-full h-full object-cover object-center hidden md:block"
+          />
         </div>
 
-        {/* Slide 1: Joining Us */}
-        <div 
+        {/* Slide 1: Chinese New Year */}
+        <div
           className={cn(
             "absolute inset-0 transition-opacity duration-700",
             currentHeroSlide === 1 ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
           )}
         >
-          <img src="/home1.png" alt="Joining Us" className="absolute inset-0 z-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-l from-black/60 via-black/30 to-transparent z-[1]" />
-          
-          <div className="relative z-10 w-full max-w-[1200px] mx-auto h-full flex flex-col justify-center items-end px-8 md:px-12 text-right">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-5 font-sans">
-              {locale === 'zh' ? <>加入我们的<br />专属会员</> : locale === 'ms' ? <>Sertai Keluarga<br />Eksklusif Kami</> : <>Join Our <br /> Exclusive Family</>}
+          <img src="/home.png" alt="Chinese New Year Fireworks" className="absolute inset-0 z-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent z-[1]" />
+
+          <div className="relative z-10 w-full max-w-[1200px] mx-auto h-full flex flex-col justify-center px-8 md:px-12 text-left">
+            <h1 className="hero-anton-title text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-2 sm:mb-3">
+              {locale === 'zh' ? '欢庆新年！' : locale === 'ms' ? 'RAIKAN TAHUN BARU!' : 'CELEBRATE NEW YEAR'}
             </h1>
-            <p className="text-lg md:text-xl text-white/90 max-w-lg mb-8 font-medium">
-              {locale === 'zh' ? '成为注册会员，享受独家优惠并优先购买我们的优质烟花系列。' : locale === 'ms' ? 'Jadi ahli berdaftar dan nikmati tawaran eksklusif serta akses awal kepada koleksi bunga api premium kami.' : 'Become a registered member and enjoy exclusive deals and early access to our premium fireworks collection.'}
+            <p className="font-sans tracking-wide text-xs sm:text-sm md:text-base text-white/90 max-w-lg mb-6 sm:mb-8 leading-relaxed">
+              {locale === 'zh' ? '优质烟花点亮您的庆典，带来安全、璀璨且难忘的记忆。' : locale === 'ms' ? 'Bunga api berkualiti premium untuk menerangi sambutan anda dengan keselamatan, kecemerlangan dan kenangan yang tidak dapat dilupakan.' : 'Premium quality fireworks to light up your celebrations with safety, brilliance and unforgettable memories.'}
             </p>
             <div>
-              <Link href="/login" className="inline-flex items-center justify-center px-8 py-3 bg-[#111] hover:bg-black text-white text-[15px] font-semibold rounded-xl transition-colors border border-white/10">
-                {locale === 'zh' ? '立即注册' : locale === 'ms' ? 'Daftar Sekarang' : 'Register Now'}
+              <Link href="/shop" className="inline-flex items-center justify-center px-8 py-2.5 bg-black border border-white/20 hover:border-white text-white hover:bg-white hover:text-black text-sm sm:text-base font-semibold rounded-full transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:-translate-y-0.5 active:scale-95 font-sans tracking-wide">
+                {locale === 'zh' ? '立即选购' : locale === 'ms' ? 'BELI SEKARANG' : 'SHOP NOW'}
               </Link>
             </div>
           </div>
         </div>
 
-        {/* Slide 2: Safety Warning */}
-        <div 
+        {/* Slide 2: Joining Us */}
+        <div
           className={cn(
             "absolute inset-0 transition-opacity duration-700",
             currentHeroSlide === 2 ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
           )}
         >
+          <img src="/home1.png" alt="Joining Us" className="absolute inset-0 z-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-l from-black/60 via-black/30 to-transparent z-[1]" />
+
+          <div className="relative z-10 w-full max-w-[1200px] mx-auto h-full flex flex-col justify-center items-end px-8 md:px-12 text-right">
+            <h1 className="hero-anton-title text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-3 sm:mb-5 text-right">
+              {locale === 'zh' ? <>加入我们的<br />专属会员</> : locale === 'ms' ? <>SERTAI KELUARGA<br />EKSKLUSIF KAMI</> : <>JOIN OUR <br /> EXCLUSIVE FAMILY</>}
+            </h1>
+            <p className="font-sans tracking-wide text-xs sm:text-sm md:text-base text-white/90 max-w-lg mb-6 sm:mb-8 leading-relaxed text-right">
+              {locale === 'zh' ? '成为注册会员，享受独家优惠并优先购买我们的优质烟花系列。' : locale === 'ms' ? 'Jadi ahli berdaftar dan nikmati tawaran eksklusif serta akses awal kepada koleksi bunga api premium kami.' : 'Become a registered member and enjoy exclusive deals and early access to our premium fireworks collection.'}
+            </p>
+            <div>
+              <Link href="/login" className="inline-flex items-center justify-center px-8 py-2.5 bg-black border border-white/20 hover:border-white text-white hover:bg-white hover:text-black text-sm sm:text-base font-semibold rounded-full transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:-translate-y-0.5 active:scale-95 font-sans tracking-wide">
+                {locale === 'zh' ? '立即注册' : locale === 'ms' ? 'DAFTAR SEKARANG' : 'REGISTER NOW'}
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Slide 3: Safety Warning */}
+        <div
+          className={cn(
+            "absolute inset-0 transition-opacity duration-700",
+            currentHeroSlide === 3 ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          )}
+        >
           <img src="/home2.png" alt="Safety Warning" className="absolute inset-0 z-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent z-[1]" />
-          
+
           <div className="relative z-10 w-full max-w-[1200px] mx-auto h-full flex flex-col justify-center px-8 md:px-12 text-left">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-5 font-sans">
-              {locale === 'zh' ? <>璀璨。<br />且安全。</> : locale === 'ms' ? <>Spektakular.<br />Dan Selamat.</> : <>Spectacular. <br /> And Safe.</>}
+            <h1 className="hero-anton-title text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-3 sm:mb-5">
+              {locale === 'zh' ? <>璀璨。<br />且安全。</> : locale === 'ms' ? <>SPEKTAKLAR.<br />DAN SELAMAT.</> : <>SPECTACULAR. <br /> AND SAFE.</>}
             </h1>
-            <p className="text-lg md:text-xl text-white/90 max-w-lg mb-8 font-medium">
+            <p className="font-sans tracking-wide text-xs sm:text-sm md:text-base text-white/90 max-w-lg mb-6 sm:mb-8 leading-relaxed">
               {locale === 'zh' ? '您的安全是我们的首要任务。阅读我们全面的安全指南，确保安全的烟花体验。' : locale === 'ms' ? 'Keselamatan anda adalah keutamaan kami. Baca panduan keselamatan komprehensif kami untuk memastikan pengalaman piroteknik yang selamat.' : 'Your safety is our priority. Read our comprehensive safety guide to ensure a secure pyrotechnic experience.'}
             </p>
             <div>
-              <Link href="/safety" className="inline-flex items-center justify-center px-8 py-3 bg-[#111] hover:bg-black text-white text-[15px] font-semibold rounded-xl transition-colors border border-white/10">
-                {locale === 'zh' ? '安全指南' : locale === 'ms' ? 'Panduan Keselamatan' : 'Safety Guide'}
+              <Link href="/safety" className="inline-flex items-center justify-center px-8 py-2.5 bg-black border border-white/20 hover:border-white text-white hover:bg-white hover:text-black text-sm sm:text-base font-semibold rounded-full transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:-translate-y-0.5 active:scale-95 font-sans tracking-wide">
+                {locale === 'zh' ? '安全指南' : locale === 'ms' ? 'PANDUAN KESELAMATAN' : 'SAFETY GUIDE'}
               </Link>
             </div>
           </div>
@@ -274,13 +294,13 @@ export default function Home() {
 
         {/* Xiaomi-style Page Indicators */}
         <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2">
-          {[0, 1, 2].map(idx => (
+          {[0, 1, 2, 3].map(idx => (
             <button
               key={idx}
               onClick={() => jumpToSlide(idx)}
               className={cn(
                 "h-[2.5px] transition-all duration-300",
-                currentHeroSlide === idx ? "w-10 bg-black" : "w-10 bg-white/40 hover:bg-white/70"
+                currentHeroSlide === idx ? "w-10 bg-white shadow-md" : "w-10 bg-white/40 hover:bg-white/70"
               )}
               aria-label={`Go to slide ${idx + 1}`}
             />
@@ -291,7 +311,7 @@ export default function Home() {
       {/* ===== EXPERTISE / CATEGORIES ===== */}
       <section className="bg-white py-16 md:py-24 overflow-hidden border-b border-zinc-100">
         <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-8">
-          
+
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-zinc-900 tracking-tight mb-4">
               {t.home.exploreExpertise}
@@ -302,14 +322,14 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
-            
+
             {/* Card 1 */}
             <div className="group flex flex-col w-full bg-white rounded-none overflow-hidden cursor-default shadow-md hover:shadow-2xl transition-shadow duration-500 border border-zinc-100">
               {/* Top: Image Section */}
               <div className="relative w-full h-[380px] sm:h-[460px] lg:h-[500px] overflow-hidden">
                 <Image src="/expertise1.png" alt={t.home.festiveJoy} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-95" />
-                
+
                 <div className="absolute bottom-0 left-0 w-full p-6 sm:p-8">
                   <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-3 tracking-wide drop-shadow-md">
                     {t.home.festiveJoy}
@@ -346,7 +366,7 @@ export default function Home() {
               <div className="relative w-full h-[380px] sm:h-[460px] lg:h-[500px] overflow-hidden">
                 <Image src="/expertise2.png" alt={t.home.professionalEvent} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-95" />
-                
+
                 <div className="absolute bottom-0 left-0 w-full p-6 sm:p-8">
                   <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-3 tracking-wide drop-shadow-md">
                     {t.home.professionalEvent}
@@ -383,7 +403,7 @@ export default function Home() {
               <div className="relative w-full h-[380px] sm:h-[460px] lg:h-[500px] overflow-hidden">
                 <Image src="/expertise3.png" alt={t.home.fastDelivery} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-95" />
-                
+
                 <div className="absolute bottom-0 left-0 w-full p-6 sm:p-8">
                   <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-3 tracking-wide drop-shadow-md">
                     {t.home.fastDelivery}
@@ -423,7 +443,7 @@ export default function Home() {
         <div className="absolute inset-0 pointer-events-none opacity-30 z-0 mix-blend-multiply">
           <LightRays
             raysOrigin="top-center"
-            raysColor="#a1a1aa" 
+            raysColor="#a1a1aa"
             raysSpeed={0.8}
             lightSpread={1.2}
             rayLength={1.5}
@@ -522,15 +542,15 @@ export default function Home() {
                     className="relative w-[112px] h-[112px] flex items-center justify-center mb-6 z-10 cursor-default"
                   >
                     {/* Outer animated ring */}
-                    <motion.div 
+                    <motion.div
                       className="absolute inset-0 rounded-full border-[1.5px] border-zinc-200"
                       initial={{ scale: 1, borderColor: "#e4e4e7" }}
                       whileHover={{ scale: 1.08, borderColor: "#18181b" }}
                       transition={{ duration: 0.4, ease: "easeOut" }}
                     />
-                    
+
                     {/* Core Solid Circle */}
-                    <motion.div 
+                    <motion.div
                       className="relative w-[76px] h-[76px] rounded-full bg-zinc-900 flex items-center justify-center text-white shadow-xl z-10"
                       whileHover={{ scale: 1.06 }}
                       transition={{ type: "spring", stiffness: 300, damping: 15 }}
@@ -581,7 +601,7 @@ export default function Home() {
             className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-white transition-all duration-200 z-10"
             aria-label="Close"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </button>
           <div
             className="relative w-full max-w-6xl rounded-3xl overflow-hidden shadow-2xl"

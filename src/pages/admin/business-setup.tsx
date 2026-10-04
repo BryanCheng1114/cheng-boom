@@ -101,14 +101,20 @@ const BusinessSetupPage = () => {
     try {
       const form = new FormData();
       form.append('file', file);
+      form.append('files', file);
       const res = await fetch('/api/upload', { method: 'POST', body: form });
-      if (!res.ok) throw new Error('Upload failed');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.details || errorData.error || 'Upload failed');
+      }
       const data = await res.json();
-      setFormData((prev: any) => ({ ...prev, [fieldName]: data.url }));
+      const imageUrl = data.url || data.urls?.[0];
+      if (!imageUrl) throw new Error('No image URL returned');
+      setFormData((prev: any) => ({ ...prev, [fieldName]: imageUrl }));
       setIsDirty(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
-      alert(t('upload_failed'));
+      alert(`${t('upload_failed')}${error?.message ? `: ${error.message}` : ''}`);
     } finally {
       setIsUploading(prev => ({ ...prev, [fieldName]: false }));
     }

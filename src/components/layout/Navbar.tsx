@@ -223,10 +223,7 @@ export function Navbar() {
       <nav 
         className={cn(
           "top-0 z-[100] w-full transition-all duration-300",
-          isTransparentHeroPage ? "fixed" : "sticky",
-          isTransparent
-            ? "bg-transparent text-white border-b border-transparent shadow-none"
-            : "bg-white text-zinc-900 border-b border-zinc-200 shadow-sm"
+          isTransparent ? "fixed bg-transparent text-white border-b border-transparent shadow-none" : "sticky bg-white text-zinc-900 border-b border-zinc-200 shadow-sm"
         )}
       >
       <div className="mx-auto w-full max-w-[1600px] px-6 md:px-10 lg:px-16">
@@ -244,7 +241,7 @@ export function Navbar() {
                 <img 
                   src={settings.logoUrl} 
                   alt={businessName} 
-                  className="w-auto h-auto max-h-[60px] sm:max-h-[120px] max-w-[250px] object-contain transform translate-y-[-4px]"
+                  className="w-auto h-auto max-h-[38px] sm:max-h-[42px] max-w-[190px] object-contain"
                 />
               ) : (
                 <span
@@ -830,7 +827,7 @@ export function Navbar() {
                     <img 
                       src={settings.logoUrl} 
                       alt={businessName} 
-                      className="max-h-[250px] object-contain"
+                      className="max-h-[36px] max-w-full object-contain"
                     />
                   ) : (
                     <span

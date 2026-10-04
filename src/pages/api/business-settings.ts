@@ -18,17 +18,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     if (req.method === 'POST' || req.method === 'PATCH') {
       const existingSettings = await prisma.businessSettings.findFirst();
-      const data = req.body;
+      
+      const allowedFields = [
+        'businessName',
+        'logoUrl',
+        'watermarkUrl',
+        'faviconUrl',
+        'primaryColor',
+        'accentColor',
+        'businessType',
+        'ownerName',
+        'address',
+        'phone',
+        'email',
+        'whatsapp',
+        'description',
+        'operatingHours',
+        'facebook',
+        'instagram',
+        'tiktok',
+        'bankTransferImage',
+        'tngDuitnowImage',
+      ];
+
+      const cleanData: Record<string, any> = {};
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) {
+          cleanData[field] = req.body[field];
+        }
+      }
 
       if (existingSettings) {
         const updated = await prisma.businessSettings.update({
           where: { id: existingSettings.id },
-          data
+          data: cleanData,
         });
         return res.status(200).json(updated);
       } else {
         const created = await prisma.businessSettings.create({
-          data
+          data: cleanData as any,
         });
         return res.status(201).json(created);
       }

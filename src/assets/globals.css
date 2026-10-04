@@ -408,3 +408,22 @@
   position: relative;
   z-index: 1;
 }
+
+/* Custom Typography for Hero Section */
+.hero-anton-title {
+  font-family: 'Anton', Impact, sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  text-shadow: 2px 2px 0px #854d0e, 4px 4px 0px #451a03, 0 8px 24px rgba(0, 0, 0, 0.7);
+}
+
+.hero-mono-tagline {
+  font-family: 'Space Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.25;
+}
+

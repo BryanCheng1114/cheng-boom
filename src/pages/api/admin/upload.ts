@@ -2,17 +2,20 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import cloudinary from '../../../lib/cloudinary';
 import multer from 'multer';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 
 // Setup multer (disk storage for temporary local file before uploading to cloud)
 const storage = multer.diskStorage({
-  destination: '/tmp', // Note: Vercel supports /tmp
+  destination: (req, file, cb) => {
+    cb(null, os.tmpdir());
+  },
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+    cb(null, `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`);
   }
 });
 
-// For Windows/Local dev, ensure /tmp exists or use os.tmpdir()
+// Works across all platforms and serverless
 const upload = multer({ storage });
 
 export const config = {
@@ -37,7 +40,7 @@ export default async function handler(req: any, res: any) {
 
   try {
     // Run multer middleware to handle multi-file upload
-    await runMiddleware(req, res, upload.array('files'));
+    await runMiddleware(req, res, upload.any());
 
     const files = req.files as any[];
     if (!files || files.length === 0) {
@@ -66,9 +69,9 @@ export default async function handler(req: any, res: any) {
 
     const urls = await Promise.all(uploadPromises);
 
-    return res.status(200).json({ urls });
-  } catch (error) {
+    return res.status(200).json({ urls, url: urls[0] });
+  } catch (error: any) {
     console.error('Cloudinary upload error:', error);
-    return res.status(500).json({ error: 'Upload failed' });
+    return res.status(500).json({ error: 'Upload failed', details: error?.message || String(error) });
   }
 }
