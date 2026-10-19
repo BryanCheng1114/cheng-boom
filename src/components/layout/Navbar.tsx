@@ -62,7 +62,6 @@ export function Navbar() {
   const [user, setUser] = useState<NavbarUser | null>(null);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -187,15 +186,6 @@ export function Navbar() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    handleScroll();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const isActive = (path: string) => router.pathname === path;
   const isActivePrefix = (prefix: string, exclude?: string) =>
     router.pathname.startsWith(prefix) && router.pathname !== exclude;
@@ -215,15 +205,14 @@ export function Navbar() {
   const fontFamily = FONT_MAP[selectedFont] || FONT_MAP['Impact'];
   const businessName = settings?.businessName || 'Cheng-BOOM';
   const profileInitial = user?.name?.trim().charAt(0).toUpperCase() || 'U';
-  // Make the navbar fixed on the home page so the background image slides under it.
-  const isTransparentHeroPage = router.pathname === '/';
   const isTransparent = false;
   return (
     <>
       <nav 
         className={cn(
           "top-0 z-[100] w-full transition-all duration-300",
-          isTransparent ? "fixed bg-transparent text-white border-b border-transparent shadow-none" : "sticky bg-white text-zinc-900 border-b border-zinc-200 shadow-sm"
+          "sticky",
+          "bg-white text-zinc-900 border-b border-zinc-200 shadow-sm"
         )}
       >
       <div className="mx-auto w-full max-w-[1600px] px-6 md:px-10 lg:px-16">
@@ -298,7 +287,7 @@ export function Navbar() {
                 <div className={cn(
                   "w-full pb-4 pt-1 transition-all duration-300",
                   isTransparent 
-                    ? "bg-transparent border-transparent" 
+                    ? "bg-zinc-950/95 backdrop-blur-md border-b border-white/10 shadow-2xl"
                     : "bg-white border-b border-zinc-200 shadow-xl"
                 )}>
                   <div className="mx-auto w-full max-w-[1400px] overflow-x-auto scrollbar-hide px-4 py-6">

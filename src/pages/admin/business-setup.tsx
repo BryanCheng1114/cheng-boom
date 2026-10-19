@@ -552,8 +552,13 @@ const BusinessSetupPage = () => {
                     value={formData.address || ''} 
                     onChange={handleChange} 
                     rows={4} 
-                    className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-orange-500 resize-none" 
+                    placeholder="e.g. Lot 1234, Parkcity Commerce Square, 97000 Bintulu, Sarawak"
+                    className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-orange-500 resize-none placeholder:text-zinc-400" 
                   />
+                  <p className="text-[11px] text-zinc-500 mt-1.5 flex items-start gap-1.5 leading-relaxed">
+                    <span className="text-orange-500 mt-0.5">📍</span>
+                    <span>This location is automatically displayed on the homepage interactive map. Customers can click to navigate directly via Google Maps.</span>
+                  </p>
                 </div>
               </div>
             </div>

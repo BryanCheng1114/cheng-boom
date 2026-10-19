@@ -126,6 +126,29 @@
   50%       { transform: translateY(8px); opacity: 0.4; }
 }
 
+@keyframes hero-drift {
+  from { transform: scale(1); }
+  to { transform: scale(1.07); }
+}
+
+.hero-drift {
+  animation: hero-drift 18s ease-in-out infinite alternate;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @keyframes bounce-subtle {
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-3px); }

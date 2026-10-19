@@ -25,13 +25,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!customer || !customer.password) {
-      return res.status(401).json({ message: 'Invalid phone or password' });
+      return res.status(404).json({
+        code: 'USER_NOT_FOUND',
+        message: 'No account is registered with this email yet.',
+      });
     }
 
     const isPasswordValid = await bcrypt.compare(password, customer.password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Invalid phone or password' });
+      return res.status(401).json({ code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' });
     }
 
     // Return user info (omit password)

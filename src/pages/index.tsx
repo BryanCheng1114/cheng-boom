@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, ArrowRight, ArrowUp, ChevronLeft, ChevronRight, FileCheck, ShieldCheck, Headphones, Truck, Search, ShoppingCart, CreditCard, PackageCheck, PartyPopper, Star, Zap, Clock, BadgeCheck, ThumbsUp, Sparkles, Heart, Diamond, Users, Award, MapPin } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUp, ChevronLeft, ChevronRight, FileCheck, ShieldCheck, Headphones, Truck, Search, ShoppingCart, CreditCard, PackageCheck, PartyPopper, Star, Zap, Clock, BadgeCheck, ThumbsUp, Heart, Diamond, Users, Award, MapPin, Navigation, Phone, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 import { useTranslation } from '../hooks/useTranslation';
 import { useBusiness } from '../context/BusinessContext';
 import { cn } from '../utils/cn';
 import LightRays from '../components/ui/LightRays';
+import { ProductCard } from '../components/ui/ProductCard';
 // Pre-computed CNY gold spark positions (no Math.random — avoids SSR mismatch)
 const CNY_SPARKS = [
   { bottom: '5%', left: '8%', delay: '0s', dur: '3.2s', size: 8, color: '#FCD34D' },
@@ -92,11 +93,6 @@ type Category = {
   count?: number | null;
 };
 
-const tickerItems = [
-  '🎆 Child Fireworks', '🎇 Fountains', '✨ Sparklers', '🚀 Skyline',
-  '🔥 Dragon Pili', '💥 Firecrackers', '🌟 Spinning', '🎉 Huge Displays',
-];
-
 export default function Home() {
   const { t, locale } = useTranslation();
   const { settings } = useBusiness();
@@ -150,6 +146,39 @@ export default function Home() {
 
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [homeProducts, setHomeProducts] = useState<any[]>([]);
+  const [homeCategories, setHomeCategories] = useState<any[]>([]);
+  const [isLoadingHomeProducts, setIsLoadingHomeProducts] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadHomeProducts = async () => {
+      try {
+        const [productsResponse, categoriesResponse] = await Promise.all([
+          fetch('/api/products'),
+          fetch('/api/categories'),
+        ]);
+        const [products, categories] = await Promise.all([
+          productsResponse.json(),
+          categoriesResponse.json(),
+        ]);
+        if (cancelled) return;
+        setHomeProducts((Array.isArray(products) ? products : [])
+          .filter((product: any) =>
+            !['Hold', 'Deactive', 'Inactive'].includes(product.status) && Number(product.stock) > 0
+          )
+          .sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+          .slice(0, 10));
+        setHomeCategories(Array.isArray(categories) ? categories : []);
+      } catch (error) {
+        console.error('Failed to load homepage products:', error);
+      } finally {
+        if (!cancelled) setIsLoadingHomeProducts(false);
+      }
+    };
+    loadHomeProducts();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -203,15 +232,15 @@ export default function Home() {
           {/* Mobile Screen Image (< md) */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/new_banner.jpeg"
+            src="/banner_new_1.png"
             alt="VIP Fireworks Mobile Banner"
-            className="w-full h-full object-contain object-center block md:hidden"
+            className="w-full h-full object-cover object-center block md:hidden"
           />
 
           {/* Desktop / Website View Image (>= md) */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/new_banner.jpeg"
+            src="/banner_new_1.png"
             alt="VIP Fireworks Banner"
             className="w-full h-full object-cover object-center hidden md:block"
           />
@@ -224,7 +253,7 @@ export default function Home() {
             currentHeroSlide === 1 ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
           )}
         >
-          <img src="/home.png" alt="Chinese New Year Fireworks" className="absolute inset-0 z-0 w-full h-full object-cover" />
+          <img src="/home.jpg" alt="Chinese New Year Fireworks" className="hero-drift absolute inset-0 z-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent z-[1]" />
 
           <div className="relative z-10 w-full max-w-[1200px] mx-auto h-full flex flex-col justify-center px-8 md:px-12 text-left">
@@ -249,7 +278,7 @@ export default function Home() {
             currentHeroSlide === 2 ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
           )}
         >
-          <img src="/home1.png" alt="Joining Us" className="absolute inset-0 z-0 w-full h-full object-cover" />
+          <img src="/home1.png" alt="Joining Us" className="hero-drift absolute inset-0 z-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-l from-black/60 via-black/30 to-transparent z-[1]" />
 
           <div className="relative z-10 w-full max-w-[1200px] mx-auto h-full flex flex-col justify-center items-end px-8 md:px-12 text-right">
@@ -274,7 +303,7 @@ export default function Home() {
             currentHeroSlide === 3 ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
           )}
         >
-          <img src="/home2.png" alt="Safety Warning" className="absolute inset-0 z-0 w-full h-full object-cover" />
+          <img src="/home2.png" alt="Safety Warning" className="hero-drift absolute inset-0 z-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent z-[1]" />
 
           <div className="relative z-10 w-full max-w-[1200px] mx-auto h-full flex flex-col justify-center px-8 md:px-12 text-left">
@@ -308,286 +337,206 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== EXPERTISE / CATEGORIES ===== */}
-      <section className="bg-white py-16 md:py-24 overflow-hidden border-b border-zinc-100">
-        <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-8">
-
-          <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-zinc-900 tracking-tight mb-4">
-              {t.home.exploreExpertise}
-            </h2>
-            <p className="text-base sm:text-lg text-zinc-500 max-w-3xl mx-auto leading-relaxed">
-              {t.home.exploreExpertiseDesc}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
-
-            {/* Card 1 */}
-            <div className="group flex flex-col w-full bg-white rounded-none overflow-hidden cursor-default shadow-md hover:shadow-2xl transition-shadow duration-500 border border-zinc-100">
-              {/* Top: Image Section */}
-              <div className="relative w-full h-[380px] sm:h-[460px] lg:h-[500px] overflow-hidden">
-                <Image src="/expertise1.png" alt={t.home.festiveJoy} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-95" />
-
-                <div className="absolute bottom-0 left-0 w-full p-6 sm:p-8">
-                  <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-3 tracking-wide drop-shadow-md">
-                    {t.home.festiveJoy}
-                  </h3>
-                  <p className="text-[13px] sm:text-[15px] text-zinc-200 leading-relaxed max-w-[300px]">
-                    {t.home.festiveJoyDesc}
-                  </p>
-                </div>
-              </div>
-
-              {/* Bottom: 3 Features (Black & White) */}
-              <div className="grid grid-cols-3 gap-4 p-6 sm:p-12 bg-white">
-                <div className="flex flex-col items-center text-center">
-                  <ShieldCheck className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
-                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c1f1Title}</h4>
-                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c1f1Desc}</p>
-                </div>
-                <div className="flex flex-col items-center text-center">
-                  <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
-                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c1f2Title}</h4>
-                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c1f2Desc}</p>
-                </div>
-                <div className="flex flex-col items-center text-center">
-                  <Heart className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
-                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c1f3Title}</h4>
-                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c1f3Desc}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 2 */}
-            <div className="group flex flex-col w-full bg-white rounded-none overflow-hidden cursor-default shadow-md hover:shadow-2xl transition-shadow duration-500 border border-zinc-100">
-              {/* Top: Image Section */}
-              <div className="relative w-full h-[380px] sm:h-[460px] lg:h-[500px] overflow-hidden">
-                <Image src="/expertise2.png" alt={t.home.professionalEvent} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-95" />
-
-                <div className="absolute bottom-0 left-0 w-full p-6 sm:p-8">
-                  <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-3 tracking-wide drop-shadow-md">
-                    {t.home.professionalEvent}
-                  </h3>
-                  <p className="text-[13px] sm:text-[15px] text-zinc-200 leading-relaxed max-w-[300px]">
-                    {t.home.professionalEventDesc}
-                  </p>
-                </div>
-              </div>
-
-              {/* Bottom: 3 Features (Black & White) */}
-              <div className="grid grid-cols-3 gap-4 p-6 sm:p-12 bg-white">
-                <div className="flex flex-col items-center text-center">
-                  <Diamond className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
-                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c2f1Title}</h4>
-                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c2f1Desc}</p>
-                </div>
-                <div className="flex flex-col items-center text-center">
-                  <Users className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
-                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c2f2Title}</h4>
-                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c2f2Desc}</p>
-                </div>
-                <div className="flex flex-col items-center text-center">
-                  <Award className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
-                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c2f3Title}</h4>
-                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c2f3Desc}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 3 */}
-            <div className="group flex flex-col w-full bg-white rounded-none overflow-hidden cursor-default shadow-md hover:shadow-2xl transition-shadow duration-500 border border-zinc-100">
-              {/* Top: Image Section */}
-              <div className="relative w-full h-[380px] sm:h-[460px] lg:h-[500px] overflow-hidden">
-                <Image src="/expertise3.png" alt={t.home.fastDelivery} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-95" />
-
-                <div className="absolute bottom-0 left-0 w-full p-6 sm:p-8">
-                  <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-3 tracking-wide drop-shadow-md">
-                    {t.home.fastDelivery}
-                  </h3>
-                  <p className="text-[13px] sm:text-[15px] text-zinc-200 leading-relaxed max-w-[300px]">
-                    {t.home.fastDeliveryDesc}
-                  </p>
-                </div>
-              </div>
-
-              {/* Bottom: 3 Features (Black & White) */}
-              <div className="grid grid-cols-3 gap-4 p-6 sm:p-12 bg-white">
-                <div className="flex flex-col items-center text-center">
-                  <ShieldCheck className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
-                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c3f1Title}</h4>
-                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c3f1Desc}</p>
-                </div>
-                <div className="flex flex-col items-center text-center">
-                  <Clock className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
-                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c3f2Title}</h4>
-                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c3f2Desc}</p>
-                </div>
-                <div className="flex flex-col items-center text-center">
-                  <MapPin className="w-6 h-6 sm:w-7 sm:h-7 text-zinc-800 mb-3" strokeWidth={1.25} />
-                  <h4 className="text-[12px] sm:text-[14px] font-bold text-zinc-900 mb-1 sm:mb-2 leading-tight">{t.home.c3f3Title}</h4>
-                  <p className="text-[11px] sm:text-[12px] text-zinc-500 leading-tight">{t.home.c3f3Desc}</p>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ===== HOW IT WORKS ===== */}
-      <section className="bg-white py-20 md:py-28 overflow-hidden border-t border-zinc-100 relative">
-        <div className="absolute inset-0 pointer-events-none opacity-30 z-0 mix-blend-multiply">
-          <LightRays
-            raysOrigin="top-center"
-            raysColor="#a1a1aa"
-            raysSpeed={0.8}
-            lightSpread={1.2}
-            rayLength={1.5}
-            followMouse={true}
-            mouseInfluence={0.1}
-            noiseAmount={0.05}
-            distortion={0.03}
-          />
-        </div>
-        <div className="w-full max-w-7xl mx-auto px-6 sm:px-10 md:px-16 relative z-10">
-
-          {/* Section Header */}
+      {/* ===== SECTION 2: START SHOPPING ===== */}
+      <section id="start-shopping" className="relative overflow-hidden bg-white px-4 pb-16 pt-16 sm:px-6 md:pb-24 md:pt-24">
+        <div className="relative z-10 mx-auto max-w-[1440px]">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            className="text-center mb-16 md:mb-20"
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-10 text-center max-w-2xl mx-auto"
           >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-zinc-900 leading-tight tracking-tight mb-4">
-              {t.home.howItWorks}
+            <h2 style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900 }} className="text-3xl tracking-tight text-zinc-900 sm:text-4xl md:text-5xl">
+              {locale === 'zh' ? '开始选购' : locale === 'ms' ? 'Mula Membeli-belah' : 'Start Shopping'}
             </h2>
-            <p className="text-lg text-zinc-500 max-w-xl mx-auto leading-relaxed">
-              {t.home.howItWorksDesc}
+            <p className="mt-3 text-sm leading-relaxed text-zinc-600 sm:text-base">
+              {locale === 'zh' ? '精选烟花，为您的下一场庆典带来难忘时刻。' : locale === 'ms' ? 'Pilihan bunga api untuk mencipta detik bermakna dalam sambutan anda.' : 'Discover customer favourites and find something special for your next celebration.'}
             </p>
           </motion.div>
 
-          {/* Horizontal Steps */}
-          <div className="relative">
-            {/* Background track */}
-            <div className="hidden lg:block absolute top-[52px] left-[10%] right-[10%] h-[2px] bg-zinc-100 rounded-full" />
-            {/* Animated fill line */}
-            <motion.div
-              className="hidden lg:block absolute top-[52px] left-[10%] h-[2px] rounded-full bg-zinc-900"
-              style={{ right: '10%' }}
-              initial={{ scaleX: 0, originX: 0 }}
-              whileInView={{ scaleX: 1 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-            />
-
-            {/* Steps row */}
-            <div className="grid grid-cols-1 sm:grid-cols-5 gap-10 lg:gap-6">
-              {[
-                {
-                  step: "01",
-                  icon: <Search className="w-7 h-7" />,
-                  title: t.home.step1Title,
-                  desc: t.home.step1Desc,
-                  delay: 0,
-                },
-                {
-                  step: "02",
-                  icon: <ShoppingCart className="w-7 h-7" />,
-                  title: t.home.step2Title,
-                  desc: t.home.step2Desc,
-                  delay: 0.12,
-                },
-                {
-                  step: "03",
-                  icon: <FileCheck className="w-7 h-7" />,
-                  title: t.home.step3Title,
-                  desc: t.home.step3Desc,
-                  delay: 0.24,
-                },
-                {
-                  step: "04",
-                  icon: <CreditCard className="w-7 h-7" />,
-                  title: t.home.step4Title,
-                  desc: t.home.step4Desc,
-                  delay: 0.36,
-                },
-                {
-                  step: "05",
-                  icon: <PartyPopper className="w-7 h-7" />,
-                  title: t.home.step5Title,
-                  desc: t.home.step5Desc,
-                  delay: 0.48,
-                },
-              ].map((step, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 36 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-30px" }}
-                  transition={{ duration: 0.55, delay: step.delay, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex flex-col items-center text-center group"
-                >
-                  {/* Circle node wrapper */}
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    whileInView={{ scale: 1, opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ type: "spring", stiffness: 260, damping: 18, delay: step.delay + 0.18 }}
-                    whileHover={{ y: -6 }}
-                    className="relative w-[112px] h-[112px] flex items-center justify-center mb-6 z-10 cursor-default"
-                  >
-                    {/* Outer animated ring */}
-                    <motion.div
-                      className="absolute inset-0 rounded-full border-[1.5px] border-zinc-200"
-                      initial={{ scale: 1, borderColor: "#e4e4e7" }}
-                      whileHover={{ scale: 1.08, borderColor: "#18181b" }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                    />
-
-                    {/* Core Solid Circle */}
-                    <motion.div
-                      className="relative w-[76px] h-[76px] rounded-full bg-zinc-900 flex items-center justify-center text-white shadow-xl z-10"
-                      whileHover={{ scale: 1.06 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                      style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
-                    >
-                      <motion.div whileHover={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 0.5 }}>
-                        {step.icon}
-                      </motion.div>
-                    </motion.div>
-
-                    {/* Step badge */}
-                    <span className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-white border-2 border-zinc-200 text-zinc-900 text-[12px] font-black flex items-center justify-center shadow-sm z-20 group-hover:bg-zinc-900 group-hover:text-white group-hover:border-zinc-900 transition-colors duration-300">
-                      {step.step}
-                    </span>
-                  </motion.div>
-
-                  <h3 className="text-[15px] sm:text-base font-bold text-zinc-900 mb-1.5 leading-snug group-hover:text-black transition-colors">{step.title}</h3>
-                  <p className="text-[12px] sm:text-[13px] text-zinc-500 leading-relaxed max-w-[140px] group-hover:text-zinc-700 transition-colors">{step.desc}</p>
-
-                  {/* Mobile connector arrow */}
-                  {i < 4 && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      whileInView={{ opacity: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: step.delay + 0.4 }}
-                      className="sm:hidden mt-5 text-zinc-300 text-2xl"
-                    >
-                      ↓
-                    </motion.div>
-                  )}
-                </motion.div>
+          {isLoadingHomeProducts ? (
+            <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-5 lg:grid-cols-5 lg:gap-6">
+              {Array.from({ length: 10 }).map((_, index) => (
+                <div key={index} className="h-[280px] sm:h-[340px] animate-pulse rounded-2xl border border-zinc-100 bg-zinc-50 shadow-sm" />
               ))}
             </div>
+          ) : homeProducts.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-5 lg:grid-cols-5 lg:gap-6">
+              {homeProducts.map((product, index) => {
+                const category = homeCategories.find((item) => item.name === product.category);
+                return (
+                  <motion.div
+                    key={product.id}
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-30px' }}
+                    transition={{ duration: 0.45, delay: (index % 5) * 0.05, ease: 'easeOut' }}
+                    className="h-full w-full"
+                  >
+                    <ProductCard {...product} categoryZh={category?.nameZh} categoryMs={category?.nameMs} />
+                  </motion.div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-zinc-100 bg-white px-6 py-14 text-center text-zinc-600 shadow-sm">
+              {locale === 'zh' ? '商品即将上架，敬请期待。' : locale === 'ms' ? 'Produk akan datang tidak lama lagi.' : 'Products are coming soon. Please check back shortly.'}
+            </div>
+          )}
+
+          <div className="mt-10 text-center md:mt-12">
+            <Link
+              href="/shop"
+              className="group inline-flex items-center gap-2 text-base sm:text-lg font-bold text-zinc-900 underline underline-offset-8 decoration-zinc-800 hover:text-red-600 hover:decoration-red-600 transition-colors"
+            >
+              <span>{locale === 'zh' ? '查看更多' : locale === 'ms' ? 'Terokai lagi' : 'Explore more'}</span>
+              <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
           </div>
         </div>
       </section>
+
+
+      {/* ===== SECTION 3: STORE LOCATION & MAP ===== */}
+      {(() => {
+        const storeAddress = settings?.address?.trim() || 'Bintulu, Sarawak, Malaysia';
+        const isCustomLink = storeAddress.startsWith('http://') || storeAddress.startsWith('https://');
+        const googleMapsSearchUrl = isCustomLink
+          ? storeAddress
+          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(storeAddress)}`;
+        const embedQuery = isCustomLink ? 'Bintulu, Sarawak, Malaysia' : storeAddress;
+        const embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(embedQuery)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+
+        return (
+          <section id="location" className="relative overflow-hidden border-t border-zinc-200 bg-white p-0">
+            <div className="relative z-10 w-full">
+              <div className="grid grid-cols-1 items-stretch gap-0 lg:grid-cols-12">
+
+                {/* Store Info Card (Left) */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6 }}
+                  className="flex flex-col justify-between rounded-none border-y border-l-0 border-r-0 border-zinc-200 bg-zinc-50/70 p-5 sm:p-6 lg:col-span-3 lg:border-r-0"
+                >
+                  <div className="space-y-5">
+                    <div>
+                      <h2 className="text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl">
+                        {locale === 'zh' ? '欢迎莅临我们的店铺' : locale === 'ms' ? 'Kunjungi Lokasi Kami' : 'Visit Our Store'}
+                      </h2>
+                      <p className="mt-1 text-sm leading-relaxed text-zinc-500">
+                        {locale === 'zh' ? '实体店铺 / 服务据点' : locale === 'ms' ? 'Lokasi kedai kami' : 'Store details'}
+                      </p>
+                      <h3 className="mt-4 text-base font-semibold text-zinc-900">
+                        {settings?.businessName || 'Cheng-BOOM'}
+                      </h3>
+                    </div>
+
+                    <div className="space-y-4">
+                      {/* Address */}
+                      <div className="flex items-start gap-3.5">
+                        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500">
+                          <MapPin size={18} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                            {locale === 'zh' ? '地址' : locale === 'ms' ? 'Alamat' : 'Address'}
+                          </p>
+                          <p className="text-sm font-semibold text-zinc-800 leading-snug mt-0.5">
+                            {storeAddress}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Opening Hours */}
+                      <div className="flex items-start gap-3.5">
+                        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500">
+                          <Clock size={18} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                            {locale === 'zh' ? '营业时间' : locale === 'ms' ? 'Waktu Operasi' : 'Opening Hours'}
+                          </p>
+                          <p className="text-sm font-semibold text-zinc-800 leading-snug mt-0.5">
+                            {settings?.operatingHours || (locale === 'zh' ? '周一至周日：上午 9:00 - 晚上 10:00' : 'Mon - Sun: 9:00 AM - 10:00 PM')}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Contact */}
+                      {(settings?.phone || settings?.whatsapp) && (
+                        <div className="flex items-start gap-3.5">
+                          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500">
+                            <Phone size={18} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                              {locale === 'zh' ? '联络电话 / WhatsApp' : locale === 'ms' ? 'Telefon / WhatsApp' : 'Contact'}
+                            </p>
+                            <p className="text-sm font-semibold text-zinc-800 leading-snug mt-0.5">
+                              {settings?.phone || settings?.whatsapp}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Open in Google Maps Button */}
+                  <div className="mt-5 border-t border-zinc-200 pt-5">
+                    <a
+                      href={googleMapsSearchUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-700"
+                    >
+                      <Navigation size={17} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                      <span>{locale === 'zh' ? '在 Google Maps 开启导航' : locale === 'ms' ? 'Buka dalam Google Maps' : 'Open in Google Maps'}</span>
+                      <ExternalLink size={15} className="opacity-70 group-hover:opacity-100" />
+                    </a>
+                  </div>
+                </motion.div>
+
+                {/* Map Frame (Right) */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6 }}
+                  className="relative flex min-h-[380px] overflow-hidden rounded-none border-y border-r-0 border-l-0 border-zinc-200 bg-zinc-100 sm:min-h-[460px] lg:col-span-9"
+                >
+                  <iframe
+                    title="Store Location Google Map"
+                    src={embedUrl}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0, minHeight: '380px' }}
+                    allowFullScreen={false}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    className="w-full h-full min-h-[380px] sm:min-h-[460px]"
+                  />
+
+                  {/* Floating Action Badge on Map */}
+                  <a
+                    href={googleMapsSearchUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute top-4 right-4 z-20 inline-flex items-center gap-2 rounded-xl border border-zinc-200/90 bg-white/95 px-3.5 py-2 text-xs font-bold text-zinc-900 shadow-md backdrop-blur-sm transition-all hover:bg-zinc-900 hover:text-white hover:border-zinc-900"
+                    title={locale === 'zh' ? '在 Google Maps 查看大地图' : 'Open in Google Maps'}
+                  >
+                    <Navigation size={14} className="text-red-500" />
+                    <span>{locale === 'zh' ? '开启导航' : locale === 'ms' ? 'Buka Peta Penuh' : 'View on Google Maps'}</span>
+                    <ExternalLink size={13} />
+                  </a>
+                </motion.div>
+              </div>
+            </div>
+          </section>
+        );
+      })()}
 
 
       {/* ===== LIGHTBOX MODAL ===== */}

@@ -234,7 +234,7 @@ export default function Shop() {
 
           {/* ── Category Tab Bar ─────────────────────────────────────────── */}
           <div className="relative z-20 w-full">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-2 md:gap-4">
 
               {/* Left Scroll Button */}
@@ -362,7 +362,7 @@ export default function Shop() {
       </div>
 
       {/* ── Product Grid ──────────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         {/* Top Controls Row */}
         {filteredProducts.length > 0 && !isLoading && (
@@ -405,7 +405,7 @@ export default function Shop() {
           </div>
         ) : (
           /* Flat grid */
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+          <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-5 lg:grid-cols-5 lg:gap-6">
             <AnimatePresence>
               {filteredProducts.map((product, index) => {
                 const catObj = categories.find(c => c.name === product.category);
@@ -420,7 +420,7 @@ export default function Shop() {
                     delay: index * 0.03,
                     ease: "easeOut"
                   }}
-                  className="h-full mx-auto w-full max-w-[170px] sm:max-w-[240px] md:max-w-[250px] lg:max-w-[286px]"
+                  className="h-full w-full"
                 >
                   <ProductCard {...product} categoryZh={catObj?.nameZh} categoryMs={catObj?.nameMs} />
                 </motion.div>
