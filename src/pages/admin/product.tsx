@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Plus, 
+  Pencil,
   Search,
   Filter,
   ArrowUpDown,
@@ -25,11 +25,9 @@ import {
   Upload,
   Download,
   FileSpreadsheet,
-  FileText,
   Table,
   HelpCircle,
   UploadCloud,
-  FolderArchive
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import Link from 'next/link';
@@ -66,7 +64,6 @@ const ProductPage = () => {
   const [isSavingFastAction, setIsSavingFastAction] = useState(false);
   const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
-  const [showAddMenu, setShowAddMenu] = useState(false);
   const [showBulkGuideModal, setShowBulkGuideModal] = useState(false);
   const [showQuickEditGuide, setShowQuickEditGuide] = useState(false);
   const [selectedGuideImage, setSelectedGuideImage] = useState<string | null>(null);
@@ -125,18 +122,6 @@ const ProductPage = () => {
     }));
   };
 
-  const downloadCSV = () => {
-    const rows = buildRows();
-    if (!rows.length) return;
-    const headers = Object.keys(rows[0]);
-    const csv = [headers.join(','), ...rows.map(r => headers.map(h => `"${String((r as any)[h]).replace(/"/g, '""')}"`).join(','))].join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'inventory.csv'; a.click();
-    URL.revokeObjectURL(url);
-    setShowDownloadMenu(false);
-  };
-
   const downloadExcel = async () => {
     const XLSX = await import('xlsx');
     const rows = buildRows();
@@ -145,35 +130,6 @@ const ProductPage = () => {
     XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
     XLSX.writeFile(wb, 'inventory.xlsx');
     setShowDownloadMenu(false);
-  };
-
-  const downloadBulkTemplate = async () => {
-    const XLSX = await import('xlsx');
-    const templateData = [{
-      'Code*': 'FW001',
-      'Name_EN*': 'Example Firework',
-      'Name_ZH': '示例烟花',
-      'Category*': 'Cakes',
-      'Description_EN*': 'A beautiful 25 shot cake.',
-      'Description_ZH': '美丽的25发烟花。',
-      'Video_URL': 'https://youtube.com/watch?v=...',
-      'Stock*': 100,
-      'Price*': 99.90,
-      'Promotion_Price': 89.90,
-      'Seller_Price': 79.90,
-      'Items_Per_Box': 24,
-      'Box_Price': 2000.00,
-      'Box_Seller_Price': 1800.00,
-      'Box_Promotion_Price': 1900.00,
-      'Status': 'Live',
-      'Image_Filename*': 'firework1.png'
-    }];
-    
-    const ws = XLSX.utils.json_to_sheet(templateData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Bulk Upload Template');
-    XLSX.writeFile(wb, 'product_bulk_upload_template.xlsx');
-    setShowAddMenu(false);
   };
 
   const downloadPDF = async () => {
@@ -517,238 +473,166 @@ const ProductPage = () => {
   };
 
   const headerActions = (
-    <div className="flex items-center gap-4 w-full md:w-auto">
-      <AnimatePresence>
-        {selectedIds.length > 0 && (
-          <motion.button 
-            initial={{ opacity: 0, scale: 0.9, x: 20 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
-            exit={{ opacity: 0, scale: 0.9, x: 20 }}
-            onClick={() => setShowBulkDeleteModal(true)}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-red-500 text-white rounded-full font-bold text-[14px] tracking-wide hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all"
-          >
-            <Trash2 size={16} />
-            {t('delete_selected')} ({selectedIds.length})
-          </motion.button>
-        )}
-      </AnimatePresence>
-      {/* Add New Product Dropdown */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => setShowBulkGuideModal(true)}
-          className="w-11 h-11 rounded-full flex items-center justify-center bg-zinc-100 text-zinc-500 hover:text-yellow-500 hover:bg-yellow-500/10 transition-colors shadow-inner"
-          title="Bulk Upload Guide"
-        >
-          <HelpCircle size={20} />
-        </button>
-        <div className="relative">
-          <button
-            onClick={() => setShowAddMenu(v => !v)}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-yellow-500 rounded-full text-[14px] font-bold text-zinc-800 tracking-wide hover:brightness-110 shadow-lg shadow-yellow-500/20 transition-all h-11"
-          >
-            <Plus size={16} strokeWidth={3} />
-            {t('add_new_product')}
-          </button>
-          <AnimatePresence>
-            {showAddMenu && (
-              <>
-                {/* Click-away backdrop */}
-                <div className="fixed inset-0 z-10" onClick={() => setShowAddMenu(false)} />
-              <motion.div
-                initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                transition={{ duration: 0.15 }}
-                className="absolute right-0 top-full mt-2 w-56 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-20 overflow-hidden"
-              >
-                <div className="flex flex-col">
-                  <Link 
-                    href="/admin/product/upload" 
-                    onClick={() => setShowAddMenu(false)}
-                    className="flex items-center gap-3 px-5 py-4 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 transition-colors"
-                  >
-                    <Upload size={16} className="text-blue-500" />{t('upload_single_item') || 'Upload Single Item'}</Link>
-                  <Link 
-                    href="/admin/product/bulk-upload" 
-                    onClick={() => setShowAddMenu(false)}
-                    className="flex items-center gap-3 px-5 py-4 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 transition-colors"
-                  >
-                    <Package size={16} className="text-yellow-500" />{t('bulk_upload') || 'Bulk Upload'}</Link>
-                  <div className="h-px bg-zinc-100 my-1 mx-2"></div>
-                  <button 
-                    onClick={downloadBulkTemplate} 
-                    className="w-full flex items-center gap-3 px-5 py-4 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 transition-colors"
-                  >
-                    <Download size={16} className="text-emerald-500" />{t('download_template') || 'Download Template'}</button>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-        </div>
-      </div>
-
-      {/* Download Button */}
+    <div className="flex flex-wrap items-center gap-2">
+      <Link href="/admin/product/upload" className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-800">
+        <Pencil size={14} />New Entry
+      </Link>
+      <Link href="/admin/product/bulk-upload" className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-800">
+        <Upload size={14} />Import Excel
+      </Link>
       <div className="relative">
-        <button
-          onClick={() => setShowDownloadMenu(v => !v)}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-zinc-900 rounded-full hover:bg-zinc-50 shadow-sm transition-all border border-zinc-200"
-          title="Download Inventory"
-        >
-          <Download size={16} strokeWidth={3} />
+        <button onClick={() => setShowDownloadMenu((value) => !value)} className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-800" title="Export inventory">
+          <Download size={14} />Export<ChevronDown size={13} />
         </button>
         <AnimatePresence>
           {showDownloadMenu && (
             <>
-              {/* Click-away backdrop */}
               <div className="fixed inset-0 z-10" onClick={() => setShowDownloadMenu(false)} />
-              <motion.div
-                initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                transition={{ duration: 0.15 }}
-                className="absolute right-0 top-full mt-2 w-52 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-20"
-              >
-                <button onClick={downloadCSV} className="w-full flex items-center gap-3 px-5 py-4 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 transition-colors rounded-t-2xl">
-                  <FileText size={16} className="text-blue-500" /> {t('export_csv')}
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} className="absolute right-0 top-full z-20 mt-2 w-44 border border-slate-200 bg-white shadow-xl">
+                <button onClick={downloadExcel} className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-sky-50">
+                  <Table size={15} className="text-sky-700" />Export Excel
                 </button>
-                <button onClick={downloadExcel} className="w-full flex items-center gap-3 px-5 py-4 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 transition-colors border-t border-zinc-100">
-                  <Table size={16} className="text-green-500" /> {t('export_excel')}
-                </button>
-                <button onClick={downloadPDF} className="w-full flex items-center gap-3 px-5 py-4 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 transition-colors border-t border-zinc-100 rounded-b-2xl">
-                  <FileSpreadsheet size={16} className="text-red-500" /> 
-                  <span className="flex-1 text-left">{t('export_pdf')}</span>
-                  <div 
-                    className="relative"
-                    onMouseEnter={() => setShowPdfTooltip(true)}
-                    onMouseLeave={() => setShowPdfTooltip(false)}
-                    onClick={e => e.stopPropagation()}
-                  >
-                    <HelpCircle size={14} className="text-zinc-400 hover:text-yellow-500 transition-colors" />
-                    {showPdfTooltip && (
-                      <div className="absolute bottom-full right-0 mb-2 w-56 bg-zinc-900 border border-white/10 rounded-2xl p-4 shadow-2xl z-50 pointer-events-none">
-                        <p className="text-[10px] font-bold text-zinc-300 leading-relaxed">
-                          {t('pdf_english_only')}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                <button onClick={downloadPDF} className="flex w-full items-center gap-3 border-t border-slate-100 px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-sky-50">
+                  <FileSpreadsheet size={15} className="text-sky-700" />Export PDF
                 </button>
               </motion.div>
             </>
           )}
         </AnimatePresence>
       </div>
+      <button onClick={() => setShowBulkGuideModal(true)} className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-800">
+        <HelpCircle size={14} />Tutorial
+      </button>
+      <AnimatePresence>
+        {selectedIds.length > 0 && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9, x: 20 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.9, x: 20 }}
+            onClick={() => setShowBulkDeleteModal(true)}
+            className="flex items-center justify-center gap-2 border border-rose-700 bg-rose-700 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-rose-800"
+          >
+            <Trash2 size={15} />{t('delete_selected')} ({selectedIds.length})
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
-
   return (
-    <AdminLayout title={t('inventory')} headerActions={headerActions}>
+    <AdminLayout title={t('inventory')} hideTitle>
       <div className="space-y-6">
+        <header className="space-y-1">
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('inventory') || 'Inventory'}</h1>
+            <span className="text-xs font-normal text-slate-700">[ Access ]</span>
+          </div>
+          <p className="text-xs text-slate-600">Product Information /</p>
+        </header>
+        <div className="flex flex-wrap items-center justify-between gap-3">{headerActions}</div>
         {/* KPI Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
           <div 
             onClick={() => { setStatusFilter('Live'); setCurrentPage(1); }}
-            className="bg-white border border-zinc-100 rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 group shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg cursor-pointer hover:border-[#10b981]/30"
+            className="flex min-h-[150px] cursor-pointer flex-col justify-between border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-[#10b981]">
+                <div className="flex h-8 w-8 items-center justify-center text-slate-500">
                   <CheckCircle size={18} strokeWidth={2.5} />
                 </div>
-                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('live_products')}</span>
+                <span className="text-sm font-medium text-slate-700">{t('live_products')}</span>
               </div>
-              <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+              <MoreVertical size={18} className="text-slate-300" />
             </div>
             <div className="flex items-end gap-3 mt-4">
-              <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
+              <h3 className="text-2xl font-semibold leading-none tracking-tight text-slate-900">
                 {products.filter(p => p.status === 'Live').length}
               </h3>
-              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">{t('available_on_store') || 'Available on store'}</p>
+              <p className="pb-0.5 text-xs font-medium text-slate-500">{t('available_on_store') || 'Available on store'}</p>
             </div>
           </div>
 
           <div 
             onClick={() => { setStatusFilter('Hold'); setCurrentPage(1); }}
-            className="bg-white border border-zinc-100 rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 group shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg cursor-pointer hover:border-[#f59e0b]/30"
+            className="flex min-h-[150px] cursor-pointer flex-col justify-between border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-[#f59e0b]">
+                <div className="flex h-8 w-8 items-center justify-center text-slate-500">
                   <AlertTriangle size={18} strokeWidth={2.5} />
                 </div>
-                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('hold')}</span>
+                <span className="text-sm font-medium text-slate-700">{t('hold')}</span>
               </div>
-              <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+              <MoreVertical size={18} className="text-slate-300" />
             </div>
             <div className="flex items-end gap-3 mt-4">
-              <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
+              <h3 className="text-2xl font-semibold leading-none tracking-tight text-slate-900">
                 {products.filter(p => p.status === 'Hold').length}
               </h3>
-              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">{t('awaiting_action') || 'Awaiting action'}</p>
+              <p className="pb-0.5 text-xs font-medium text-slate-500">{t('awaiting_action') || 'Awaiting action'}</p>
             </div>
           </div>
 
           <div 
             onClick={() => { setStatusFilter('Deactive'); setCurrentPage(1); }}
-            className="bg-white border border-zinc-100 rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 group shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg cursor-pointer hover:border-zinc-300"
+            className="flex min-h-[150px] cursor-pointer flex-col justify-between border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-zinc-400">
+                <div className="flex h-8 w-8 items-center justify-center text-slate-500">
                   <X size={18} strokeWidth={2.5} />
                 </div>
-                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('deactive')}</span>
+                <span className="text-sm font-medium text-slate-700">{t('deactive')}</span>
               </div>
-              <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+              <MoreVertical size={18} className="text-slate-300" />
             </div>
             <div className="flex items-end gap-3 mt-4">
-              <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
+              <h3 className="text-2xl font-semibold leading-none tracking-tight text-slate-900">
                 {products.filter(p => p.status === 'Deactive').length}
               </h3>
-              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">{t('unpublished_items') || 'Unpublished items'}</p>
+              <p className="pb-0.5 text-xs font-medium text-slate-500">{t('unpublished_items') || 'Unpublished items'}</p>
             </div>
           </div>
 
           <div 
             onClick={() => { setStatusFilter('Low Stock'); setCurrentPage(1); }}
-            className="bg-white border border-zinc-100 rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 group shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg cursor-pointer hover:border-orange-500/30"
+            className="flex min-h-[150px] cursor-pointer flex-col justify-between border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-orange-500">
+                <div className="flex h-8 w-8 items-center justify-center text-slate-500">
                   <AlertTriangle size={18} strokeWidth={2.5} />
                 </div>
-                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('low_stock') || 'Low Stock'}</span>
+                <span className="text-sm font-medium text-slate-700">{t('low_stock') || 'Low Stock'}</span>
               </div>
-              <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+              <MoreVertical size={18} className="text-slate-300" />
             </div>
             <div className="flex items-end gap-3 mt-4">
-              <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
+              <h3 className="text-2xl font-semibold leading-none tracking-tight text-slate-900">
                 {products.filter(p => p.stock > 0 && p.stock < 10).length}
               </h3>
-              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">{t('below_10_items') || 'Below 10 items'}</p>
+              <p className="pb-0.5 text-xs font-medium text-slate-500">{t('below_10_items') || 'Below 10 items'}</p>
             </div>
           </div>
 
           <div 
             onClick={() => { setStatusFilter('Out of Stock'); setCurrentPage(1); }}
-            className="bg-white border border-zinc-100 rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 group shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg cursor-pointer hover:border-red-500/30"
+            className="flex min-h-[150px] cursor-pointer flex-col justify-between border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-red-500">
+                <div className="flex h-8 w-8 items-center justify-center text-slate-500">
                   <X size={18} strokeWidth={2.5} />
                 </div>
-                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('out_of_stock') || 'Out of Stock'}</span>
+                <span className="text-sm font-medium text-slate-700">{t('out_of_stock') || 'Out of Stock'}</span>
               </div>
-              <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+              <MoreVertical size={18} className="text-slate-300" />
             </div>
             <div className="flex items-end gap-3 mt-4">
-              <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
+              <h3 className="text-2xl font-semibold leading-none tracking-tight text-slate-900">
                 {products.filter(p => p.stock <= 0).length}
               </h3>
-              <p className="text-[12px] font-medium text-zinc-500 pb-0.5">0 {t('items_left') || 'items left'}</p>
+              <p className="pb-0.5 text-xs font-medium text-slate-500">0 {t('items_left') || 'items left'}</p>
             </div>
           </div>
         </div>
@@ -757,7 +641,7 @@ const ProductPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
           
           {/* Best & Least Selling Products */}
-          <div className="bg-white border border-zinc-100 rounded-3xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col h-[400px]">
+          <div className="flex h-[400px] flex-col border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('best_least_selling') || 'Best & Least Selling Products'}</h3>
             </div>
@@ -801,7 +685,7 @@ const ProductPage = () => {
           </div>
 
           {/* Product Stock Overview */}
-          <div className="bg-white border border-zinc-100 rounded-3xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col h-[400px]">
+          <div className="flex h-[400px] flex-col border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('product_stock_overview') || 'Product Stock Overview'}</h3>
             </div>
@@ -858,12 +742,12 @@ const ProductPage = () => {
 
         {/* Unified Table Section */}
         <div className="mt-8">
-          <h3 className="text-xl font-bold text-zinc-800 tracking-wide px-2 mb-6">{t('inventory_list') || 'Inventory List'}</h3>
+          <h3 className="mb-4 px-1 text-lg font-medium text-slate-800">{t('inventory_list') || 'Inventory List'}</h3>
           
-          <div className="bg-white border border-zinc-100 rounded-[40px] shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
+          <div className="flex flex-col overflow-hidden border border-slate-200 bg-white shadow-sm">
             
             {/* Top Toolbar */}
-            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between p-6 pb-4 border-b border-zinc-100">
+            <div className="flex flex-col items-start justify-between gap-4 border-b border-slate-100 p-5 pb-4 lg:flex-row lg:items-center">
               {/* Filter Pills */}
               <div className="flex flex-wrap items-center gap-2">
                 {[
@@ -877,10 +761,10 @@ const ProductPage = () => {
                   <button
                     key={filter.id}
                     onClick={() => { setStatusFilter(filter.id); setCurrentPage(1); }}
-                    className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all ${
+                    className={`border px-3 py-2 text-xs font-medium transition-colors ${
                       statusFilter === filter.id 
-                        ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' 
-                        : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700'
+                        ? 'border-sky-700 bg-sky-700 text-white'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-800'
                     }`}
                   >
                     {filter.label} <span className="opacity-70 font-medium ml-1">({filter.count})</span>
@@ -892,7 +776,7 @@ const ProductPage = () => {
               <div className="flex flex-1 lg:flex-none items-center gap-3 w-full lg:w-auto">
                 <button
                   onClick={() => setShowQuickEditGuide(true)}
-                  className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-blue-500 hover:bg-blue-500/10 transition-colors shrink-0"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center border border-slate-300 bg-white text-slate-500 transition-colors hover:border-sky-600 hover:text-sky-700"
                   title="Quick Action Guide"
                 >
                   <HelpCircle size={18} />
@@ -904,7 +788,7 @@ const ProductPage = () => {
                     placeholder={t('search_placeholder')}
                     value={searchTerm}
                     onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                    className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-full outline-none focus:border-blue-500 focus:bg-white transition-all text-[13px] font-bold text-zinc-700"
+                    className="w-full border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-[13px] font-medium text-slate-700 outline-none transition-colors focus:border-sky-500 focus:bg-white"
                   />
                 </div>
 
@@ -912,7 +796,7 @@ const ProductPage = () => {
                   <select 
                     value={categoryFilter}
                     onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1); }}
-                    className="appearance-none bg-zinc-50 border border-zinc-200 text-[13px] font-bold text-zinc-700 rounded-full pl-5 pr-10 py-2.5 outline-none focus:border-blue-500 focus:bg-white hover:border-zinc-300 cursor-pointer transition-all"
+                    className="appearance-none border border-slate-200 bg-slate-50 py-2.5 pl-4 pr-10 text-[13px] font-medium text-slate-700 outline-none transition-colors hover:border-slate-300 focus:border-sky-500 focus:bg-white"
                   >
                     <option value="All">{t('all_categories')}</option>
                     {categories.map(cat => (
@@ -931,58 +815,58 @@ const ProductPage = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
-                <tr className="border-b border-zinc-100 bg-zinc-100">
+                <tr className="border-b border-slate-200 bg-slate-50">
                   <th className="px-4 py-3 w-16">
                     <button 
                       onClick={handleSelectAll}
-                      className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+                      className={`flex h-5 w-5 items-center justify-center border transition-colors ${
                         selectedIds.length === paginatedProducts.length && paginatedProducts.length > 0
-                          ? 'bg-yellow-500 border-yellow-500 text-zinc-900' 
-                          : 'border-zinc-500/20 hover:border-zinc-500/50'
+                          ? 'border-sky-700 bg-sky-700 text-white'
+                          : 'border-slate-300 hover:border-sky-600'
                       }`}
                     >
                       {selectedIds.length === paginatedProducts.length && paginatedProducts.length > 0 && <Check size={14} strokeWidth={4} />}
                     </button>
                   </th>
                   <th 
-                    className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
+                    className="cursor-pointer px-4 py-3 text-[11px] font-medium uppercase tracking-wide text-slate-500 transition-colors group hover:text-sky-700"
                   >
                     {t('product_id') || 'Product ID'}
                   </th>
                   <th 
                     onClick={() => handleSort('name')}
-                    className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
+                    className="cursor-pointer px-4 py-3 text-[11px] font-medium uppercase tracking-wide text-slate-500 transition-colors group hover:text-sky-700"
                   >
                     <div className="flex items-center gap-2">{t('product_name') || 'Product Name'} <SortIndicator column="name" /></div>
                   </th>
                   <th 
                     onClick={() => handleSort('category')}
-                    className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
+                    className="cursor-pointer px-4 py-3 text-[11px] font-medium uppercase tracking-wide text-slate-500 transition-colors group hover:text-sky-700"
                   >
                     <div className="flex items-center gap-2">{t('all_categories')} <SortIndicator column="category" /></div>
                   </th>
                   <th 
                     onClick={() => handleSort('stock')}
-                    className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors text-center"
+                    className="cursor-pointer px-4 py-3 text-center text-[11px] font-medium uppercase tracking-wide text-slate-500 transition-colors group hover:text-sky-700"
                   >
                     <div className="flex items-center justify-center gap-2">{t('stock')} <SortIndicator column="stock" /></div>
                   </th>
                   <th 
                     onClick={() => handleSort('price_active')}
-                    className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
+                    className="cursor-pointer px-4 py-3 text-[11px] font-medium uppercase tracking-wide text-slate-500 transition-colors group hover:text-sky-700"
                   >
                     <div className="flex items-center gap-2">{t('price')} <SortIndicator column="price_active" /></div>
                   </th>
                   <th 
                     onClick={() => handleSort('status')}
-                    className="px-4 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest cursor-pointer group hover:text-yellow-500 transition-colors"
+                    className="cursor-pointer px-4 py-3 text-[11px] font-medium uppercase tracking-wide text-slate-500 transition-colors group hover:text-sky-700"
                   >
                     <div className="flex items-center gap-2">{t('status')} <SortIndicator column="status" /></div>
                   </th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-500/5">
+              <tbody className="divide-y divide-slate-200">
                 {isLoading ? (
                   <tr>
                     <td colSpan={7} className="p-20 text-center text-zinc-500 font-bold uppercase tracking-widest text-xs animate-pulse">{t('loading_inventory')}</td>
@@ -991,22 +875,22 @@ const ProductPage = () => {
                   <tr>
                     <td colSpan={7} className="p-20 text-center text-zinc-500 font-bold uppercase tracking-widest text-xs">{t('no_products_found')}</td>
                   </tr>
-                ) : paginatedProducts.map((p) => {
+                ) : paginatedProducts.map((p, index) => {
                   const hasPromotion = p.promotion !== null && p.promotion !== undefined && p.promotion < p.price;
                   const isSelected = selectedIds.includes(p.id);
                   return (
                     <tr 
                       key={p.id} 
-                      className={`group hover:bg-zinc-500/5 transition-colors cursor-pointer ${isSelected ? 'bg-yellow-500/5' : ''}`} 
+                      className={`group cursor-pointer transition-colors hover:bg-sky-50 ${isSelected ? 'bg-sky-50' : index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}
                       onClick={() => router.push(`/admin/product/edit/${p.id}`)}
                     >
                       <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <button 
                           onClick={(e) => toggleSelect(p.id, e)}
-                          className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+                          className={`flex h-5 w-5 items-center justify-center border transition-colors ${
                             isSelected 
-                              ? 'bg-yellow-500 border-yellow-500 text-zinc-900' 
-                              : 'border-zinc-500/20 group-hover:border-zinc-500/50'
+                              ? 'border-sky-700 bg-sky-700 text-white'
+                              : 'border-slate-300 group-hover:border-sky-600'
                           }`}
                         >
                           {isSelected && <Check size={14} strokeWidth={4} />}
@@ -1019,18 +903,18 @@ const ProductPage = () => {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-zinc-500/10 rounded-xl overflow-hidden flex items-center justify-center text-zinc-500 border border-white/5 shrink-0">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden border border-slate-200 bg-slate-100 text-slate-500">
                             {p.images && p.images[0] ? (
                               <img src={p.images[0]} className="w-full h-full object-cover" />
                             ) : (
                               <ImageIcon size={20} />
                             )}
                           </div>
-                          <span className="font-bold text-sm text-zinc-900 group-hover:text-yellow-500 transition-colors line-clamp-1">{getLocalizedName(p)}</span>
+                          <span className="line-clamp-1 text-sm font-medium text-slate-800 transition-colors group-hover:text-sky-700">{getLocalizedName(p)}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="px-3 py-1 bg-zinc-500/10 rounded-full text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                        <span className="bg-slate-100 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-slate-600">
                           {getLocalizedCategoryName(categories.find(c => c.name === p.category) ?? { name: p.category })}
                         </span>
                       </td>
@@ -1040,7 +924,7 @@ const ProductPage = () => {
                             type="number" 
                             value={editValues.stock} 
                             onChange={e => setEditValues({ ...editValues, stock: parseInt(e.target.value) || 0 })}
-                            className="w-20 bg-zinc-100  text-zinc-900  px-2 py-1 rounded text-center border border-zinc-300  outline-none focus:border-yellow-500 :border-yellow-500"
+                            className="w-20 border border-slate-300 bg-slate-50 px-2 py-1 text-center text-slate-900 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
                             onClick={e => e.stopPropagation()}
                           />
                         ) : (
@@ -1051,13 +935,13 @@ const ProductPage = () => {
                         {editingProduct === p.id ? (
                           <div className="flex flex-col gap-1" onClick={e => e.stopPropagation()}>
                             <div className="flex items-center gap-1">
-                              <span className="text-sm font-black text-yellow-500 italic">RM</span>
+                              <span className="text-sm font-medium text-slate-900">RM</span>
                               <input 
                                 type="number" 
                                 step="0.01"
                                 value={editValues.price} 
                                 onChange={e => setEditValues({ ...editValues, price: parseFloat(e.target.value) || 0 })}
-                                className="w-24 bg-zinc-100  text-zinc-900  px-2 py-1 rounded border border-zinc-300  outline-none focus:border-yellow-500 :border-yellow-500 font-bold"
+                                className="w-24 border border-slate-300 bg-slate-50 px-2 py-1 font-medium text-slate-900 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
                               />
                             </div>
                             {hasPromotion && (
@@ -1066,7 +950,7 @@ const ProductPage = () => {
                           </div>
                         ) : (
                           <div className="flex flex-col">
-                            <span className="text-sm font-black text-yellow-500 italic">
+                            <span className="text-sm font-medium text-slate-900">
                               RM {hasPromotion ? p.promotion.toFixed(2) : p.price.toFixed(2)}
                             </span>
                             {hasPromotion && (
@@ -1083,7 +967,7 @@ const ProductPage = () => {
                             onChange={(e) => handleStatusChange(p, e.target.value)}
                             onBlur={() => setEditingStatusId(null)}
                             onClick={e => e.stopPropagation()}
-                            className="bg-zinc-100  text-zinc-900  px-2 py-1 rounded border border-zinc-300  outline-none text-[10px] font-black uppercase tracking-widest cursor-pointer"
+                            className="cursor-pointer border border-slate-300 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-800 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
                           >
                             <option value="Live">{t('status_live')}</option>
                             <option value="Hold">{t('status_hold')}</option>
@@ -1121,17 +1005,17 @@ const ProductPage = () => {
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={(e) => { e.stopPropagation(); setEditingProduct(null); }}
-                              className="px-4 py-2 bg-zinc-500/10 text-zinc-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-500/20 transition-all"
+                              className="border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"
                             >
                               {t('cancel')}
                             </button>
                             <button 
                               onClick={(e) => handleFastActionSave(p, e)}
                               disabled={isSavingFastAction}
-                              className="px-4 py-2 bg-yellow-500 text-zinc-900 rounded-xl font-black text-[10px] uppercase tracking-widest hover:brightness-110 shadow-lg shadow-yellow-500/20 transition-all flex items-center gap-2"
+                              className="flex items-center gap-2 border border-sky-700 bg-sky-700 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               {isSavingFastAction ? (
-                                <div className="w-3 h-3 border-2 border-zinc-900/20 border-t-zinc-900 rounded-full animate-spin" />
+                                <div className="h-3 w-3 animate-spin border-2 border-white/30 border-t-white" />
                               ) : (
                                 <Check size={14} strokeWidth={4} />
                               )}
@@ -1156,8 +1040,8 @@ const ProductPage = () => {
           </div>
 
           {/* Pagination Footer */}
-          <div className="p-6 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-100">
-            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+          <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:flex-row">
+            <p className="text-xs font-medium text-slate-500">
               {t('showing')} {paginatedProducts.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} {t('to')} {Math.min(currentPage * itemsPerPage, sortedProducts.length)} {t('of')} {products.length} {t('records')}
             </p>
             
@@ -1165,7 +1049,7 @@ const ProductPage = () => {
               <button 
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(1)}
-                className="p-2 rounded-xl bg-zinc-500/10 text-zinc-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                className="border border-slate-200 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-30"
                 title="First Page"
               >
                 <ChevronsLeft size={20} />
@@ -1173,7 +1057,7 @@ const ProductPage = () => {
               <button 
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                className="p-2 rounded-xl bg-zinc-500/10 text-zinc-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                className="border border-slate-200 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-30"
                 title="Previous Page"
               >
                 <ChevronLeft size={20} />
@@ -1184,10 +1068,10 @@ const ProductPage = () => {
                   <button
                     key={i + 1}
                     onClick={() => setCurrentPage(i + 1)}
-                    className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all ${
+                    className={`h-9 min-w-9 border px-2 text-xs font-medium transition-colors ${
                       currentPage === i + 1 
-                        ? 'bg-yellow-500 text-zinc-900 shadow-lg shadow-yellow-500/20' 
-                        : 'bg-zinc-500/5 text-zinc-500 hover:bg-zinc-500/10'
+                        ? 'border-sky-700 bg-sky-700 text-white'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-sky-300 hover:bg-sky-50'
                     }`}
                   >
                     {i + 1}
@@ -1198,7 +1082,7 @@ const ProductPage = () => {
               <button 
                 disabled={currentPage === totalPages || totalPages === 0}
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                className="p-2 rounded-xl bg-zinc-500/10 text-zinc-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                className="border border-slate-200 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-30"
                 title="Next Page"
               >
                 <ChevronRight size={20} />
@@ -1206,7 +1090,7 @@ const ProductPage = () => {
               <button 
                 disabled={currentPage === totalPages || totalPages === 0}
                 onClick={() => setCurrentPage(totalPages)}
-                className="p-2 rounded-xl bg-zinc-500/10 text-zinc-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                className="border border-slate-200 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-30"
                 title="Last Page"
               >
                 <ChevronsRight size={20} />
@@ -1363,46 +1247,46 @@ const ProductPage = () => {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white border border-zinc-200 rounded-[32px] w-full max-w-4xl shadow-2xl overflow-hidden relative max-h-[90vh] overflow-y-auto"
+              className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto border border-slate-200 bg-white shadow-2xl"
             >
               <div className="p-8 md:p-10">
-                <div className="flex items-center justify-between mb-8 pb-6 border-b border-zinc-100">
+                <div className="mb-8 flex items-center justify-between border-b border-slate-200 pb-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-yellow-500/20 text-yellow-600 rounded-xl">
-                      <HelpCircle size={24} strokeWidth={2.5} />
+                    <div className="flex h-10 w-10 items-center justify-center border border-sky-200 bg-sky-50 text-sky-700">
+                      <HelpCircle size={21} strokeWidth={2} />
                     </div>
-                    <h3 className="text-2xl font-black italic tracking-tight text-zinc-900">{t('bulk_upload_guidance') || 'Bulk Upload Guidance'}</h3>
+                    <h3 className="text-xl font-medium tracking-tight text-slate-800">{t('bulk_upload_guidance') || 'Bulk Upload Guidance'}</h3>
                   </div>
                   <button
                     onClick={() => setShowBulkGuideModal(false)}
-                    className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200 transition-colors"
+                    className="flex h-9 w-9 items-center justify-center border border-slate-200 bg-white text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
                   >
                     <X size={16} />
                   </button>
                 </div>
 
-                <div className="space-y-12">
-                  <div className="max-w-2xl text-zinc-600 font-medium">
+                <div className="space-y-10">
+                  <div className="max-w-2xl text-sm leading-6 text-slate-600">
                     <p>{t('bulk_guide_intro') || 'Welcome to the Bulk Upload guide. Our bulk import system allows you to easily upload hundreds of products and their corresponding images simultaneously using a single ZIP archive. Follow these professional guidelines to ensure a flawless data import experience.'}</p>
                   </div>
 
                   {/* Step 1 */}
                   <div className="flex flex-col md:flex-row gap-8 items-center">
                     <div 
-                      className="w-full md:w-1/2 bg-zinc-100 rounded-2xl border border-zinc-200 flex items-center justify-center relative overflow-hidden p-2 cursor-pointer hover:border-yellow-500 transition-colors group"
+                      className="group relative flex w-full cursor-pointer items-center justify-center overflow-hidden border border-slate-200 bg-slate-50 p-2 transition-colors hover:border-sky-500 md:w-1/2"
                       onClick={() => setSelectedGuideImage("/excel.png")}
                     >
-                      <img src="/excel.png" alt="Excel Template Example" className="w-full h-auto object-contain rounded-xl shadow-md group-hover:scale-[1.02] transition-transform duration-300" />
+                      <img src="/excel.png" alt="Excel Template Example" className="h-auto w-full object-contain transition-transform duration-300 group-hover:scale-[1.02]" />
                     </div>
                     
                     <div className="w-full md:w-1/2 space-y-3">
-                      <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 font-black text-xs mb-2 shadow-sm border border-blue-500/20">1</div>
-                      <h4 className="text-2xl font-black italic text-zinc-900">{t('prep_excel_template') || 'Prepare the Excel Template'}</h4>
-                      <div className="text-sm text-zinc-500 space-y-3 font-medium">
+                      <div className="mb-2 inline-flex h-8 w-8 items-center justify-center border border-sky-200 bg-sky-50 text-xs font-semibold text-sky-800">1</div>
+                      <h4 className="text-xl font-medium text-slate-800">{t('prep_excel_template') || 'Prepare the Excel Template'}</h4>
+                      <div className="space-y-3 text-sm leading-6 text-slate-600">
                         <p>{t('prep_step1') || 'Begin by downloading the official template from the Products page.'}</p>
                         <ul className="list-disc pl-5 space-y-2">
                           <li>{t('prep_step2_pt1') || 'Fill in all the required columns (marked with an asterisk'} <span className="text-red-500 font-bold">*</span>).</li>
-                          <li>{t('for_the') || 'For the'} <span className="font-bold text-zinc-700">{t('image_filename') || 'Image_Filename'}</span> {t('column_input') || 'column, input the exact filename of your image (e.g.,'} <code className="bg-zinc-100 px-2 py-0.5 rounded text-xs text-pink-600 font-mono">{t('firework_png') || 'firework-01.png'}</code>).</li>
+                          <li>{t('for_the') || 'For the'} <span className="font-semibold text-slate-800">{t('image_filename') || 'Image_Filename'}</span> {t('column_input') || 'column, input the exact filename of your image (e.g.,'} <code className="border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-sky-800">{t('firework_png') || 'firework-01.png'}</code>).</li>
                           <li>{t('prep_step4') || 'Ensure the spelling and file extension (.png, .jpg) matches your actual image file perfectly.'}</li>
                         </ul>
                       </div>
@@ -1412,19 +1296,19 @@ const ProductPage = () => {
                   {/* Step 2 */}
                   <div className="flex flex-col md:flex-row-reverse gap-8 items-center">
                     <div 
-                      className="w-full md:w-1/2 bg-zinc-100 rounded-2xl border border-zinc-200 flex items-center justify-center relative overflow-hidden p-2 cursor-pointer hover:border-yellow-500 transition-colors group"
+                      className="group relative flex w-full cursor-pointer items-center justify-center overflow-hidden border border-slate-200 bg-slate-50 p-2 transition-colors hover:border-sky-500 md:w-1/2"
                       onClick={() => setSelectedGuideImage("/zip.png")}
                     >
-                      <img src="/zip.png" alt="Folder Structure Example" className="w-full h-auto object-contain rounded-xl shadow-md group-hover:scale-[1.02] transition-transform duration-300" />
+                      <img src="/zip.png" alt="Folder Structure Example" className="h-auto w-full object-contain transition-transform duration-300 group-hover:scale-[1.02]" />
                     </div>
                     
                     <div className="w-full md:w-1/2 space-y-3">
-                      <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-yellow-500/10 text-yellow-600 font-black text-xs mb-2 shadow-sm border border-yellow-500/20">2</div>
-                      <h4 className="text-2xl font-black italic text-zinc-900">{t('pack_zip_archive') || 'Package the ZIP Archive'}</h4>
-                      <div className="text-sm text-zinc-500 space-y-3 font-medium">
+                      <div className="mb-2 inline-flex h-8 w-8 items-center justify-center border border-sky-200 bg-sky-50 text-xs font-semibold text-sky-800">2</div>
+                      <h4 className="text-xl font-medium text-slate-800">{t('pack_zip_archive') || 'Package the ZIP Archive'}</h4>
+                      <div className="space-y-3 text-sm leading-6 text-slate-600">
                         <p>{t('pack_step1') || 'Consolidate your filled template and all product images into a single folder.'}</p>
-                        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-xs text-yellow-800">
-                          <span className="font-bold">{t('note_on_folders') || 'Note on Folders:'}</span> {t('do_not_place_images') || 'Our system utilizes a smart-scan engine. Folder names do not matter. We automatically search all directories within your ZIP archive to match filenames perfectly.'}
+                        <div className="border border-sky-200 bg-sky-50 p-3 text-xs leading-5 text-sky-900">
+                          <span className="font-semibold">{t('note_on_folders') || 'Note on Folders:'}</span> {t('do_not_place_images') || 'Our system utilizes a smart-scan engine. Folder names do not matter. We automatically search all directories within your ZIP archive to match filenames perfectly.'}
                         </div>
                         <ul className="list-disc pl-5 space-y-2">
                           <li>{t('pack_step3') || 'Create a new folder on your computer.'}</li>
@@ -1438,16 +1322,16 @@ const ProductPage = () => {
                   {/* Step 3 */}
                   <div className="flex flex-col md:flex-row gap-8 items-center">
                     <div 
-                      className="w-full md:w-1/2 bg-zinc-100 rounded-2xl border border-zinc-200 flex items-center justify-center relative overflow-hidden p-2 cursor-pointer hover:border-green-500 transition-colors group"
+                      className="group relative flex w-full cursor-pointer items-center justify-center overflow-hidden border border-slate-200 bg-slate-50 p-2 transition-colors hover:border-sky-500 md:w-1/2"
                       onClick={() => setSelectedGuideImage("/validation.png")}
                     >
-                      <img src="/validation.png" alt="Validation Example" className="w-full h-auto object-contain rounded-xl shadow-md group-hover:scale-[1.02] transition-transform duration-300" />
+                      <img src="/validation.png" alt="Validation Example" className="h-auto w-full object-contain transition-transform duration-300 group-hover:scale-[1.02]" />
                     </div>
                     
                     <div className="w-full md:w-1/2 space-y-3">
-                      <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-500/10 text-green-600 font-black text-xs mb-2 shadow-sm border border-green-500/20">3</div>
-                      <h4 className="text-2xl font-black italic text-zinc-900">{t('upload_verify') || 'Upload and Verify'}</h4>
-                      <div className="text-sm text-zinc-500 space-y-3 font-medium">
+                      <div className="mb-2 inline-flex h-8 w-8 items-center justify-center border border-sky-200 bg-sky-50 text-xs font-semibold text-sky-800">3</div>
+                      <h4 className="text-xl font-medium text-slate-800">{t('upload_verify') || 'Upload and Verify'}</h4>
+                      <div className="space-y-3 text-sm leading-6 text-slate-600">
                         <p>{t('upload_step1') || 'Navigate to the Bulk Upload page and drop your newly created `.zip` package.'}</p>
                         <ul className="list-disc pl-5 space-y-2">
                           <li>{t('upload_step2') || 'The system will extract and analyze your ZIP package locally.'}</li>
@@ -1461,7 +1345,7 @@ const ProductPage = () => {
                         <Link 
                           href="/admin/product/bulk-upload" 
                           onClick={() => setShowBulkGuideModal(false)}
-                          className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-zinc-900 text-white rounded-full font-bold uppercase tracking-widest text-[10px] hover:scale-105 transition-transform shadow-xl shadow-zinc-900/20"
+                          className="inline-flex items-center justify-center gap-2 border border-sky-700 bg-sky-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-sky-800"
                         >
                           <UploadCloud size={14} /> {t('go_to_bulk_upload') || 'Go to Bulk Upload'}</Link>
                       </div>
@@ -1472,7 +1356,7 @@ const ProductPage = () => {
                 <div className="mt-10 flex justify-end">
                   <button 
                     onClick={() => setShowBulkGuideModal(false)}
-                    className="px-8 py-3.5 bg-yellow-500 text-zinc-900 rounded-full font-black uppercase tracking-widest text-xs hover:brightness-110 shadow-lg shadow-yellow-500/20 transition-all flex items-center gap-2"
+                    className="inline-flex items-center gap-2 border border-slate-400 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-800"
                   >
                     {t('got_it') || 'Got it'}
                   </button>
@@ -1526,12 +1410,12 @@ const ProductPage = () => {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="w-full max-w-lg bg-white rounded-[32px] shadow-2xl overflow-hidden"
+              className="w-full max-w-lg overflow-hidden border border-slate-200 bg-white shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
               <div className="p-8">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                  <div className="flex h-11 w-11 items-center justify-center border border-sky-200 bg-sky-50 text-sky-700">
                     <HelpCircle size={24} />
                   </div>
                   <div>
@@ -1540,34 +1424,34 @@ const ProductPage = () => {
                   </div>
                 </div>
                 
-                <div className="bg-zinc-50 rounded-2xl p-6 border border-zinc-100">
+                <div className="border border-slate-200 bg-slate-50 p-5">
                   <div 
-                    className="mb-6 bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm flex items-center justify-center p-2 cursor-pointer hover:border-blue-500 transition-colors group"
+                    className="group mb-6 flex cursor-pointer items-center justify-center overflow-hidden border border-slate-200 bg-white p-2 shadow-sm transition-colors hover:border-sky-500"
                     onClick={() => setSelectedGuideImage("/quickaction.png")}
                   >
-                    <img src="/quickaction.png" alt="Quick Action Preview" className="w-full h-auto rounded-lg object-contain group-hover:scale-[1.02] transition-transform duration-300" />
+                    <img src="/quickaction.png" alt="Quick Action Preview" className="h-auto w-full object-contain transition-transform duration-300 group-hover:scale-[1.02]" />
                   </div>
                   <p className="text-sm text-zinc-600 leading-relaxed font-medium">
                     {t('quick_action_subtitle') || "You don't need to leave this page to make simple updates. To quickly edit an item:"}
                   </p>
                   <ul className="mt-4 space-y-3">
                     <li className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-[10px] font-black text-zinc-600">1</span>
+                      <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center border border-sky-200 bg-sky-50">
+                        <span className="text-[10px] font-semibold text-sky-800">1</span>
                       </div>
                       <span className="text-sm text-zinc-700 font-medium"><strong className="text-zinc-900">{t('double_click') || 'Double-click'}</strong>{t('directly_on_the') || 'directly on the'}<strong className="text-zinc-900">{t('stock_price_status') || 'Stock, Price, or Status'}</strong>{t('cells_in_inventory') || 'cells in the inventory table below.'}</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-[10px] font-black text-zinc-600">2</span>
+                      <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center border border-sky-200 bg-sky-50">
+                        <span className="text-[10px] font-semibold text-sky-800">2</span>
                       </div>
                       <span className="text-sm text-zinc-700 font-medium">{t('quick_action_step2') || 'Type your new value or select the new status from the dropdown.'}</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-[10px] font-black text-zinc-600">3</span>
+                      <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center border border-sky-200 bg-sky-50">
+                        <span className="text-[10px] font-semibold text-sky-800">3</span>
                       </div>
-                      <span className="text-sm text-zinc-700 font-medium">{t('hit') || 'Hit'} <strong className="text-zinc-900 bg-zinc-200 px-1.5 py-0.5 rounded text-xs">{t('enter') || 'Enter'}</strong> {t('or_click_green_save') || 'or click the green Save icon to instantly apply your changes!'}</span>
+                      <span className="text-sm font-medium text-slate-700">{t('hit') || 'Hit'} <strong className="border border-slate-300 bg-white px-1.5 py-0.5 text-xs text-slate-800">{t('enter') || 'Enter'}</strong> {t('or_click_green_save') || 'or click the blue Save button to apply your changes.'}</span>
                     </li>
                   </ul>
                 </div>
@@ -1575,7 +1459,7 @@ const ProductPage = () => {
                 <div className="mt-8 flex justify-end">
                   <button 
                     onClick={() => setShowQuickEditGuide(false)}
-                    className="px-8 py-3.5 bg-blue-500 text-white rounded-full font-black uppercase tracking-widest text-xs hover:brightness-110 shadow-lg shadow-blue-500/20 transition-all"
+                    className="border border-sky-700 bg-sky-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-sky-800"
                   >
                     {t('got_it_thanks') || 'Got it, Thanks!'}
                   </button>

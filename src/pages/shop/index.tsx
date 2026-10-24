@@ -25,9 +25,15 @@ export default function Shop() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [categories, setCategories]         = useState<any[]>([]);
   const [sortBy, setSortBy]                 = useState<string>('newest');
+  const [visibleProductCount, setVisibleProductCount] = useState(30);
+  const productsPerLoad = 30;
 
   // Read search query from URL (?q=)
   const searchQuery = (router.query.q as string) || '';
+
+  useEffect(() => {
+    setVisibleProductCount(productsPerLoad);
+  }, [activeCategory, searchQuery]);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftScroll, setShowLeftScroll] = useState(false);
@@ -66,7 +72,7 @@ export default function Shop() {
           (p.stock !== undefined && p.stock > 0)
         );
         setAllProducts(activeProducts);
-        setCategories(catData.filter((c: any) => c.status !== 'Hold'));
+        setCategories(catData.filter((c: any) => c.status !== 'Hold' && c.showInCategoryBar !== false));
       } catch (err) {
         console.error('Failed to fetch data:', err);
       } finally {
@@ -132,6 +138,8 @@ export default function Shop() {
 
     return list;
   }, [allProducts, activeCategory, searchQuery, sortBy]);
+
+  const visibleProducts = filteredProducts.slice(0, visibleProductCount);
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   const handleCategoryClick = (key: string) => {
@@ -369,7 +377,8 @@ export default function Shop() {
           <div className="flex flex-row items-center justify-between w-full gap-2 mb-6">
             <p className="text-[11px] sm:text-sm text-zinc-500 whitespace-nowrap">
               {t.shop.showing}&nbsp;
-              <span className="font-bold text-zinc-900">{filteredProducts.length}</span>&nbsp;
+              <span className="font-bold text-zinc-900">{visibleProducts.length}</span>
+              {visibleProducts.length < filteredProducts.length && <>&nbsp;of&nbsp;<span className="font-bold text-zinc-900">{filteredProducts.length}</span></>}&nbsp;
               <span className="hidden sm:inline">{t.shop.products}</span>
             </p>
             <div className="flex items-center shrink-0">
@@ -407,7 +416,7 @@ export default function Shop() {
           /* Flat grid */
           <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-5 lg:grid-cols-5 lg:gap-6">
             <AnimatePresence>
-              {filteredProducts.map((product, index) => {
+              {visibleProducts.map((product, index) => {
                 const catObj = categories.find(c => c.name === product.category);
                 return (
                 <motion.div
@@ -427,6 +436,25 @@ export default function Shop() {
                 );
               })}
             </AnimatePresence>
+          </div>
+        )}
+
+        {!isLoading && visibleProducts.length < filteredProducts.length && (
+          <div className="flex flex-col items-center pt-8 sm:pt-10">
+            <p className="mb-3 text-xs font-medium text-zinc-500">
+              {locale === 'zh'
+                ? `已显示 ${visibleProducts.length} / ${filteredProducts.length} 件商品`
+                : locale === 'ms'
+                  ? `Menunjukkan ${visibleProducts.length} daripada ${filteredProducts.length} produk`
+                  : `Showing ${visibleProducts.length} of ${filteredProducts.length} products`}
+            </p>
+            <button
+              type="button"
+              onClick={() => setVisibleProductCount((count) => Math.min(count + productsPerLoad, filteredProducts.length))}
+              className="rounded-full bg-zinc-900 px-8 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2"
+            >
+              {locale === 'zh' ? '查看更多' : locale === 'ms' ? 'Lihat Lagi' : 'View More'}
+            </button>
           </div>
         )}
       </div>

@@ -137,38 +137,39 @@ const AdminProductDetail = () => {
 
 
   return (
-    <AdminLayout title={getTranslatedText(product.name, product.nameZh, product.nameMs)}>
-      <div className="max-w-7xl mx-auto pb-20">
+    <AdminLayout title={getTranslatedText(product.name, product.nameZh, product.nameMs)} hideTitle>
+      <div className="w-full pb-8">
 
         {/* Top Bar: Back + Actions */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
-          <Link
-            href="/admin/product"
-            className="group flex items-center gap-3 text-zinc-500 hover: hover:text-zinc-800 transition-colors"
-          >
-            <div className="p-2.5 bg-zinc-500/10 rounded-xl group-hover:bg-zinc-500/20 transition-all">
-              <ChevronLeft size={18} />
+        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div className="flex flex-wrap items-baseline gap-x-2">
+              <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{getTranslatedText(product.name, product.nameZh, product.nameMs)}</h1>
+              <span className="text-xs font-normal text-slate-700">[ Item Details ]</span>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest">{t('back_to_inventory')}</span>
-          </Link>
+            <p className="mt-1 text-xs text-slate-600">Product Information /</p>
+          </div>
 
           <div className="flex flex-wrap gap-2">
+            <Link href="/admin/product" className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50">
+              <ChevronLeft size={16} /> {t('back_to_inventory')}
+            </Link>
             <Link
               href={`/shop/${product.id}`}
               target="_blank"
-              className="flex items-center gap-2 px-5 py-2.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-600  rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500/20 transition-all"
+              className="flex items-center gap-2 border border-slate-300 bg-white px-4 py-2.5 text-xs font-medium text-slate-700 transition-colors hover:border-sky-600 hover:bg-sky-50"
             >
               <ExternalLink size={14} /> {t('view_live_store')}
             </Link>
             <Link
               href={`/admin/product/edit/${product.id}`}
-              className="flex items-center gap-2 px-5 py-2.5 bg-zinc-500/10 border border-zinc-500/20 text-zinc-600  rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-500/20 transition-all"
+              className="flex items-center gap-2 border border-sky-700 bg-sky-700 px-4 py-2.5 text-xs font-medium text-white transition-colors hover:bg-sky-800"
             >
               <Edit size={14} /> {t('edit_product')}
             </Link>
             <button
               onClick={() => setShowDeleteModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-600  rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/20 transition-all"
+              className="flex items-center gap-2 border border-red-200 bg-white px-4 py-2.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-50"
             >
               <Trash2 size={14} /> {t('delete')}
             </button>
@@ -176,11 +177,11 @@ const AdminProductDetail = () => {
         </div>
 
         {/* Main: Image Left | Info Right */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 items-stretch">
+        <div className="mb-6 grid grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
 
           {/* LEFT — Image Gallery */}
           <div className="flex flex-col gap-4 h-full">
-            <div className="flex-1 min-h-0 rounded-[40px] overflow-hidden  bg-zinc-100 border  border-zinc-200 relative group shadow-2xl cursor-zoom-in" onClick={() => product.images?.[activeImageIdx] && setLightboxOpen(true)}>
+            <div className="relative min-h-[360px] flex-1 cursor-zoom-in overflow-hidden border border-slate-200 bg-slate-100 shadow-sm group" onClick={() => product.images?.[activeImageIdx] && setLightboxOpen(true)}>
               {product.images && product.images[activeImageIdx] ? (
                 <>
                   <img
@@ -207,8 +208,8 @@ const AdminProductDetail = () => {
                     onClick={() => setActiveImageIdx(i)}
                     className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all shrink-0 ${
                       activeImageIdx === i
-                        ? 'border-yellow-500 shadow-lg shadow-yellow-500/20 scale-105'
-                        : 'border-transparent opacity-40 hover:opacity-80'
+                        ? 'border-sky-700 shadow-sm'
+                        : 'border-slate-200 opacity-60 hover:opacity-100'
                     }`}
                   >
                     <img src={img} className="w-full h-full object-cover" />
@@ -222,36 +223,36 @@ const AdminProductDetail = () => {
           <div className="flex flex-col gap-5">
 
             {/* Identity Card */}
-            <div className=" bg-zinc-50 p-8 rounded-[32px] border  border-zinc-200 shadow-xl relative overflow-hidden">
+            <div className="relative overflow-hidden border border-slate-200 bg-white p-6 shadow-sm md:p-8">
               <div className="absolute -bottom-4 -right-4 opacity-[0.04]">
                 <Package size={140} className=" text-zinc-900" />
               </div>
               <div className="relative z-10">
                 <div className="flex flex-wrap items-center gap-4 mt-8">
-                  <div className="flex items-center gap-2 px-4 py-2.5 bg-yellow-500/10 text-yellow-600  rounded-2xl border border-yellow-500/20 shadow-sm">
-                    <Tag size={16} className="text-yellow-500" />
-                    <span className="font-semibold">{getTranslatedCategory(product.category)}</span>
+                  <div className="flex items-center gap-2 border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                    <Tag size={15} className="text-sky-700" />
+                    <span>{getTranslatedCategory(product.category)}</span>
                   </div>
                 </div>
-                <h1 className="text-4xl font-black italic uppercase tracking-tight  text-zinc-900 leading-tight mt-4">
+                <h2 className="mt-4 text-2xl font-semibold leading-tight tracking-tight text-slate-900">
                   {getTranslatedText(product.name, product.nameZh, product.nameMs)}
-                </h1>
-                <p className="text-zinc-500 font-medium text-lg mt-2 font-mono">#{product.code}</p>
+                </h2>
+                <p className="mt-2 font-mono text-sm text-slate-500">#{product.code}</p>
               </div>
             </div>
 
             {/* Stock & Visibility */}
             <div className="grid grid-cols-2 gap-4">
-              <div className=" bg-zinc-50 p-6 rounded-[24px] border  border-zinc-200">
+              <div className="border border-slate-200 bg-white p-5 shadow-sm">
                 <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
                   <Package size={11} className="text-blue-500" /> {t('stock_level')}
                 </p>
-                <p className="text-3xl font-black italic  text-zinc-900">
+                <p className="text-2xl font-semibold text-slate-900">
                   {product.stock}
                   <span className="text-xs not-italic font-bold text-zinc-500 uppercase ml-1.5">{t('units')}</span>
                 </p>
               </div>
-              <div className=" bg-zinc-50 p-6 rounded-[24px] border  border-zinc-200">
+              <div className="border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="flex items-center gap-3 mb-5">
                   <div className={`p-2 rounded-xl ${
                     product.status === 'Live' ? 'bg-emerald-500/10 text-emerald-500' :
@@ -275,14 +276,14 @@ const AdminProductDetail = () => {
             </div>
 
             {/* Pricing */}
-            <div className=" bg-zinc-50 p-8 rounded-[32px] border  border-zinc-200 shadow-xl">
+            <div className="border border-slate-200 bg-white p-6 shadow-sm md:p-8">
               <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-5 flex items-center gap-1.5">
-                <DollarSign size={11} className="text-yellow-500" /> {t('pricing_structure')}
+                <DollarSign size={14} className="text-sky-700" /> {t('pricing_structure')}
               </p>
               <div className="mb-5 pb-5 border-b  border-zinc-200 flex items-end justify-between">
                 <div>
                   <p className="text-[9px] text-zinc-400 font-black uppercase tracking-widest mb-1">{t('active_price')}</p>
-                  <h2 className="text-5xl font-black italic text-yellow-500 tracking-tighter">RM {activePrice.toFixed(2)}</h2>
+                  <h2 className="text-3xl font-semibold tracking-tight text-slate-900">RM {activePrice.toFixed(2)}</h2>
                 </div>
                 {hasPromotion && (
                   <div className="text-right">
@@ -305,7 +306,7 @@ const AdminProductDetail = () => {
                 {hasPromotion && (
                   <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
                     <span className="text-zinc-500">{t('promo_price')}</span>
-                    <span className="text-yellow-500">RM {product.promotion.toFixed(2)}</span>
+                    <span className="text-slate-900">RM {product.promotion.toFixed(2)}</span>
                   </div>
                 )}
               </div>
@@ -315,9 +316,9 @@ const AdminProductDetail = () => {
 
         {/* Bottom: Description + Video */}
         <div className="space-y-6">
-          <div className=" bg-zinc-50 p-10 rounded-[40px] border  border-zinc-200 shadow-xl">
+          <div className="border border-slate-200 bg-white p-6 shadow-sm md:p-8">
             <div className="flex items-center gap-3 mb-5">
-              <div className="p-2 bg-yellow-500/10 text-yellow-500 rounded-xl"><Info size={16} /></div>
+              <div className="border border-slate-200 bg-slate-50 p-2 text-sky-700"><Info size={16} /></div>
               <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('item_description')}</h4>
             </div>
             <p className=" text-zinc-600 font-medium leading-relaxed text-sm whitespace-pre-wrap">
@@ -330,8 +331,8 @@ const AdminProductDetail = () => {
           </div>
 
           {embedUrl && (
-            <div className=" bg-zinc-50 rounded-[40px] overflow-hidden border  border-zinc-200 shadow-xl">
-              <div className="px-10 py-6 border-b  border-zinc-200 flex items-center gap-3">
+            <div className="overflow-hidden border border-slate-200 bg-white shadow-sm">
+                <div className="flex items-center gap-3 border-b border-slate-200 px-6 py-4 md:px-8">
                 <div className="p-2 bg-red-500/10 text-red-500 rounded-xl"><VideoIcon size={16} /></div>
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('live_demonstration')}</h3>
               </div>

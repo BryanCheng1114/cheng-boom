@@ -32,9 +32,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (item.productId) {
           const product = await prisma.product.findUnique({
             where: { id: item.productId },
-            select: { nameZh: true, nameMs: true }
+            select: { code: true, nameZh: true, nameMs: true }
           });
           if (product) {
+            (item as any).code = product.code;
             (item as any).nameZh = product.nameZh;
             (item as any).nameMs = product.nameMs;
           }

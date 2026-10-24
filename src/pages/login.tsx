@@ -283,15 +283,24 @@ function AuthContent() {
         <title>{isRegistering ? `Sign Up - ${settings?.businessName || 'Cheng-BOOM'}` : `Sign In - ${settings?.businessName || 'Cheng-BOOM'}`}</title>
       </Head>
 
-      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#fffaf5] px-4 py-20 text-zinc-900">
-        <div className="pointer-events-none absolute -left-40 top-10 h-80 w-80 rounded-full bg-red-100/70 blur-3xl" />
-        <div className="pointer-events-none absolute -right-40 bottom-0 h-96 w-96 rounded-full bg-amber-100/70 blur-3xl" />
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-white px-6 py-20 text-zinc-900 sm:px-4 md:bg-[#fffaf5]">
+        <div className="pointer-events-none absolute -left-40 top-10 hidden h-80 w-80 rounded-full bg-red-100/70 blur-3xl md:block" />
+        <div className="pointer-events-none absolute -right-40 bottom-0 hidden h-96 w-96 rounded-full bg-amber-100/70 blur-3xl md:block" />
 
         {/* Absolute Back Button over everything (top left of viewport) */}
         <div className="absolute top-6 left-6 md:top-10 md:left-10 z-50">
+          <button
+            type="button"
+            aria-label={locale === 'zh' ? '返回' : locale === 'ms' ? 'Kembali' : 'Back'}
+            title={locale === 'zh' ? '返回' : locale === 'ms' ? 'Kembali' : 'Back'}
+            onClick={() => window.history.length > 1 ? router.back() : router.push('/')}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition-colors hover:bg-zinc-100 md:hidden"
+          >
+            <ArrowLeft size={18} />
+          </button>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-zinc-700 transition-colors hover:text-red-700"
+            className="hidden items-center gap-2 text-sm font-medium text-zinc-700 transition-colors hover:text-red-700 md:inline-flex"
           >
             <ArrowLeft size={16} />
             {t.login?.backToHome || 'Back to Home Page'}
@@ -302,7 +311,7 @@ function AuthContent() {
           <motion.div
             layout
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="flex min-h-[600px] w-full flex-col justify-center rounded-[2rem] border border-zinc-200/80 bg-white/95 px-6 py-8 shadow-[0_24px_80px_rgba(127,29,29,0.08)] backdrop-blur-sm sm:min-h-[640px] sm:px-10 sm:py-10"
+            className="flex min-h-0 w-full flex-col justify-center rounded-none border-0 bg-transparent px-0 py-8 shadow-none backdrop-blur-none sm:min-h-[640px] sm:rounded-[2rem] sm:border sm:border-zinc-200/80 sm:bg-white/95 sm:px-10 sm:py-10 sm:shadow-[0_24px_80px_rgba(127,29,29,0.08)] sm:backdrop-blur-sm"
           >
             <div className="mx-auto w-full max-w-[440px]">
               <AnimatePresence mode="wait">

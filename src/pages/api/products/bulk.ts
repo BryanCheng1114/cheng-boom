@@ -35,99 +35,117 @@ export default async function handler(req: any, res: NextApiResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  let files: any[] = [];
   try {
-    // Run multer to process all files and fields
     await runMiddleware(req, res, upload.any());
+    files = req.files as any[];
 
     const productsData = req.body.products;
-    if (!productsData) {
-      return res.status(400).json({ error: 'No product data provided.' });
-    }
+    if (!productsData) return res.status(400).json({ error: 'No product data provided.' });
 
     const products = JSON.parse(productsData);
-    const files = req.files as any[];
-
-    const errors: string[] = [];
-    let successCount = 0;
-    let failedCount = 0;
-
-    // Process each product sequentially to avoid db/cloudinary rate limits on huge uploads
-    for (const p of products) {
-      try {
-        const fileField = `image_${p.imageFilename}`;
-        const file = files.find(f => f.fieldname === fileField);
-        
-        let imageUrl = '';
-        if (file) {
-          // Upload to Cloudinary
-          const uploadResult = await cloudinary.uploader.upload(file.path, {
-            folder: 'cheng-boom/products',
-            transformation: [
-              { width: 1200, height: 1200, crop: 'limit' },
-              { quality: 'auto', fetch_format: 'auto' },
-            ],
-          });
-          imageUrl = uploadResult.secure_url;
-        } else {
-          errors.push(`Row ${p.rowNum} (${p.code}): Image file missing during upload.`);
-          failedCount++;
-          continue; // Skip product creation if image is absolutely required
-        }
-
-        // Clean code
-        const cleanCode = p.code.trim().replace(/[^a-zA-Z0-9-_]/g, '').toUpperCase();
-
-        // Check if product exists (Upsert logic: updating if exists based on Code, else create)
-        const existing = await prisma.product.findUnique({
-          where: { code: cleanCode }
-        });
-
-        if (existing) {
-          // If the admin uploaded a product with an existing code, you could either update it or error out.
-          // Let's create an error for duplicates for strictness, or update. Usually bulk upload updates.
-          // The instructions say "No duplicated products", but it's simpler to reject or update. Let's reject.
-          errors.push(`Row ${p.rowNum} (${p.code}): Product with this code already exists.`);
-          failedCount++;
-          continue;
-        }
-
-        // Insert to DB
-        await prisma.product.create({
-          data: {
-            code: cleanCode,
-            name: p.name.trim(),
-            nameZh: p.nameZh?.trim() || null,
-            nameMs: p.nameMs?.trim() || null,
-            description: p.description?.trim() || null,
-            descriptionZh: p.descriptionZh?.trim() || null,
-            videoUrl: p.videoUrl?.trim() || null,
-            category: p.category.trim(),
-            stock: Number(p.stock),
-            price: Number(p.price),
-            promotion: p.promotion ? Number(p.promotion) : null,
-            sellerPrice: p.sellerPrice ? Number(p.sellerPrice) : null,
-            itemsPerBox: p.itemsPerBox ? Number(p.itemsPerBox) : null,
-            boxPrice: p.boxPrice ? Number(p.boxPrice) : null,
-            boxSellerPrice: p.boxSellerPrice ? Number(p.boxSellerPrice) : null,
-            boxPromotion: p.boxPromotion ? Number(p.boxPromotion) : null,
-            bundleQuantity: p.bundleQuantity ? Number(p.bundleQuantity) : null,
-            bundlePrice: p.bundlePrice ? Number(p.bundlePrice) : null,
-            bundleSellerPrice: p.bundleSellerPrice ? Number(p.bundleSellerPrice) : null,
-            bundlePromotion: p.bundlePromotion ? Number(p.bundlePromotion) : null,
-            status: p.status === 'Hold' ? 'Hold' : 'Live',
-            images: [imageUrl],
-          }
-        });
-
-        successCount++;
-      } catch (err: any) {
-        console.error(`Error processing row ${p.rowNum}:`, err);
-        errors.push(`Row ${p.rowNum} (${p.code}): ${err.message || 'Database error'}`);
-        failedCount++;
-      }
+    if (!Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ success: 0, failed: 0, errors: ['The import file contains no product rows.'] });
     }
 
-    // Cleanup: delete local temp files
+    // Validate the complete batch before any product is saved.
+    const errors: string[] = [];
+    const normalizedCodes = products.map((p: any) => String(p.code || '').trim().replace(/[^a-zA-Z0-9-_]/g, '').toUpperCase());
+    const seenCodes = new Set<string>();
+    const categories = await prisma.category.findMany({ select: { name: true } });
+    const categoryNames = new Set(categories.map(category => category.name));
+    products.forEach((p: any, index: number) => {
+      const rowNum = p.rowNum || index + 2;
+      const code = normalizedCodes[index];
+      const label = `Row ${rowNum} (${p.code || 'no code'})`;
+      if (!p.name?.trim()) errors.push(`${label}: Product name is required.`);
+      if (!code) errors.push(`${label}: Product code is required.`);
+      else if (seenCodes.has(code)) errors.push(`${label}: Product code is duplicated within this file.`);
+      else seenCodes.add(code);
+      if (!p.category?.trim()) errors.push(`${label}: Category is required.`);
+      else if (!categoryNames.has(p.category.trim())) errors.push(`${label}: Category "${p.category}" does not exist.`);
+      if (!p.description?.trim()) errors.push(`${label}: English description is required.`);
+      if (p.stock === undefined || p.stock === null || p.stock === '' || !Number.isInteger(Number(p.stock)) || Number(p.stock) < 0) errors.push(`${label}: Stock must be a valid non-negative whole number.`);
+      if (p.price === undefined || p.price === null || p.price === '' || !Number.isFinite(Number(p.price)) || Number(p.price) < 0) errors.push(`${label}: Price must be a valid non-negative number.`);
+      for (const [field, value] of [['Items_Per_Box', p.itemsPerBox], ['Items_Bundle', p.bundleQuantity]] as const) {
+        if (value !== undefined && value !== null && value !== '' && (!Number.isInteger(Number(value)) || Number(value) < 0)) {
+          errors.push(`${label}: ${field} must be a valid non-negative whole number.`);
+        }
+      }
+      for (const [field, value] of [['Promotion_Price', p.promotion], ['Seller_Price', p.sellerPrice], ['Box_Price', p.boxPrice], ['Box_Seller_Price', p.boxSellerPrice], ['Box_Promotion_Price', p.boxPromotion], ['Bundle_Price', p.bundlePrice], ['Bundle_Seller_Price', p.bundleSellerPrice], ['Bundle_Promotion_Price', p.bundlePromotion]] as const) {
+        if (value !== undefined && value !== null && value !== '' && (!Number.isFinite(Number(value)) || Number(value) < 0)) {
+          errors.push(`${label}: ${field} must be a valid non-negative number.`);
+        }
+      }
+      if (!p.imageFilename || !files.some(f => f.fieldname === `image_${p.imageFilename}`)) errors.push(`${label}: Product image is missing from the ZIP package.`);
+      if (!['Live', 'Hold'].includes(p.status || 'Live')) errors.push(`${label}: Status must be Live or Hold.`);
+    });
+
+    const codesToCheck = normalizedCodes.filter(Boolean);
+    if (codesToCheck.length > 0) {
+      const existingProducts = await prisma.product.findMany({
+        where: { code: { in: codesToCheck } },
+        select: { code: true },
+      });
+      const existingCodes = new Set(existingProducts.map(product => product.code));
+      products.forEach((p: any, index: number) => {
+        if (existingCodes.has(normalizedCodes[index])) {
+          errors.push(`Row ${p.rowNum || index + 2} (${p.code}): Product code already exists.`);
+        }
+      });
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).json({ success: 0, failed: products.length, errors });
+    }
+
+    // Upload images first; do not start the database write if any upload fails.
+    const imageUrls: string[] = [];
+    for (const p of products) {
+      const imageFile = files.find(f => f.fieldname === `image_${p.imageFilename}`);
+      const uploadResult = await cloudinary.uploader.upload(imageFile.path, {
+        folder: 'cheng-boom/products',
+        transformation: [
+          { width: 1200, height: 1200, crop: 'limit' },
+          { quality: 'auto', fetch_format: 'auto' },
+        ],
+      });
+      imageUrls.push(uploadResult.secure_url);
+    }
+
+    const productWrites = products.map((p: any, index: number) => prisma.product.create({
+      data: {
+        code: normalizedCodes[index],
+        name: p.name.trim(),
+        nameZh: p.nameZh?.trim() || null,
+        nameMs: p.nameMs?.trim() || null,
+        description: p.description.trim(),
+        descriptionZh: p.descriptionZh?.trim() || null,
+        videoUrl: p.videoUrl?.trim() || null,
+        category: p.category.trim(),
+        stock: Number(p.stock),
+        price: Number(p.price),
+        promotion: p.promotion ? Number(p.promotion) : null,
+        sellerPrice: p.sellerPrice ? Number(p.sellerPrice) : null,
+        itemsPerBox: p.itemsPerBox ? Number(p.itemsPerBox) : null,
+        boxPrice: p.boxPrice ? Number(p.boxPrice) : null,
+        boxSellerPrice: p.boxSellerPrice ? Number(p.boxSellerPrice) : null,
+        boxPromotion: p.boxPromotion ? Number(p.boxPromotion) : null,
+        bundleQuantity: p.bundleQuantity ? Number(p.bundleQuantity) : null,
+        bundlePrice: p.bundlePrice ? Number(p.bundlePrice) : null,
+        bundleSellerPrice: p.bundleSellerPrice ? Number(p.bundleSellerPrice) : null,
+        bundlePromotion: p.bundlePromotion ? Number(p.bundlePromotion) : null,
+        status: p.status === 'Hold' ? 'Hold' : 'Live',
+        images: [imageUrls[index]],
+      },
+    }));
+
+    await prisma.$transaction(productWrites);
+    return res.status(200).json({ success: products.length, failed: 0, errors: [] });
+  } catch (error: any) {
+    console.error('Bulk upload error:', error);
+    return res.status(500).json({ error: error.message || 'Server error during bulk upload' });
+  } finally {
     for (const file of files) {
       try {
         fs.unlinkSync(file.path);
@@ -135,15 +153,5 @@ export default async function handler(req: any, res: NextApiResponse) {
         console.error('Failed to delete temp file:', err);
       }
     }
-
-    return res.status(200).json({
-      success: successCount,
-      failed: failedCount,
-      errors
-    });
-
-  } catch (error: any) {
-    console.error('Bulk upload error:', error);
-    return res.status(500).json({ error: error.message || 'Server error during bulk upload' });
   }
 }

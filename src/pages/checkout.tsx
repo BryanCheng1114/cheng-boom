@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { InlineCheckoutDetails } from '../components/checkout/InlineCheckoutDetails';
 import { OrderComplete } from '../components/checkout/OrderComplete';
+import type { OrderCompletionDetails } from '../components/checkout/OrderCompletionDetails';
 import { useTranslation } from '../hooks/useTranslation';
 
 export default function CheckoutPage() {
@@ -13,6 +14,8 @@ export default function CheckoutPage() {
   const [quantity, setQuantity] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [checkoutStep, setCheckoutStep] = useState<'checkout' | 'payment'>('checkout');
+  const [completionDetails, setCompletionDetails] = useState<OrderCompletionDetails | null>(null);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -91,8 +94,11 @@ export default function CheckoutPage() {
 
     const baseTotalPrice = activePrice * quantity;
     const computedTotalOriginalPrice = (strikeThroughPrice || activePrice) * quantity;
-    const computedTotalDiscount = baseTotalPrice * (computedDiscountPercent / 100);
-    const computedFinalTotalPrice = baseTotalPrice - computedTotalDiscount;
+    const itemPriceSavings = Math.max(0, (strikeThroughPrice || activePrice) - activePrice) * quantity;
+    const sellerPriceSavings = isSeller && strikeThroughPrice && product.sellerPrice === activePrice ? itemPriceSavings : 0;
+    const computedSellerTierDiscount = baseTotalPrice * (computedDiscountPercent / 100);
+    const computedTotalDiscount = itemPriceSavings + computedSellerTierDiscount;
+    const computedFinalTotalPrice = computedTotalOriginalPrice - computedTotalDiscount;
 
     let singleTranslatedName = (locale === 'zh' && product.nameZh) ? product.nameZh : (locale === 'ms' && product.nameMs) ? product.nameMs : null;
     singleTranslatedName = singleTranslatedName || (t.products as any)?.[product.id]?.name || product.name;
@@ -113,6 +119,8 @@ export default function CheckoutPage() {
       totalPrice: computedFinalTotalPrice,
       totalOriginalPrice: computedTotalOriginalPrice,
       totalDiscount: computedTotalDiscount,
+      productDiscount: itemPriceSavings - sellerPriceSavings,
+      sellerDiscount: sellerPriceSavings + computedSellerTierDiscount,
       discountPercent: computedDiscountPercent,
       sellerLevelName: computedSellerLevelName,
       isFreeShipping: computedIsFreeShipping
@@ -143,14 +151,24 @@ export default function CheckoutPage() {
 
       <main className="pt-6 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto min-h-[calc(100vh-80px)]">
         {isSuccess ? (
-          <OrderComplete />
+          <OrderComplete details={completionDetails} />
         ) : (
           <InlineCheckoutDetails
+            step={checkoutStep}
             cartItems={checkoutData.cartItems}
             cartTotals={checkoutData.cartTotals}
             clearCart={() => {}} // Not applicable for single buy
             onBack={() => router.back()}
-            onSuccess={() => {
+            onProceedPayment={() => {
+              setCheckoutStep('payment');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onBackToCheckout={() => {
+              setCheckoutStep('checkout');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onSuccess={(details) => {
+              setCompletionDetails(details);
               setIsSuccess(true);
             }}
             onStockError={(productName) => {

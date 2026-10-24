@@ -5,6 +5,7 @@ import { useBusiness } from '../context/BusinessContext';
 import { SharedCheckoutModal } from '../components/checkout/SharedCheckoutModal';
 import { InlineCheckoutDetails } from '../components/checkout/InlineCheckoutDetails';
 import { OrderComplete } from '../components/checkout/OrderComplete';
+import type { OrderCompletionDetails } from '../components/checkout/OrderCompletionDetails';
 import { Trash2, Plus, Minus, ChevronUp, ChevronDown, CheckSquare, Square, ArrowRight, MessageCircle, Shield, X, MapPin, CreditCard, User, Phone, Check, Zap, HelpCircle, Upload, ExternalLink, AlertTriangle, ShoppingCart, Receipt } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
@@ -27,7 +28,8 @@ export default function Cart() {
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
   const [itemToRemove, setItemToRemove] = useState<string | null>(null);
 
-  const [checkoutStep, setCheckoutStep] = useState<1 | 2 | 3>(1);
+  const [checkoutStep, setCheckoutStep] = useState<1 | 2 | 3 | 4>(1);
+  const [completionDetails, setCompletionDetails] = useState<OrderCompletionDetails | null>(null);
 
   const toggleItemSelection = (id: string) => {
     setSelectedItemIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
@@ -251,45 +253,25 @@ export default function Cart() {
             {locale === 'zh' ? '您的购物车' : locale === 'ms' ? 'Troli Beli-belah Anda' : 'Your Shopping Cart'}
           </h1>
           
-          <div className="relative flex items-start justify-between w-full max-w-[320px] sm:max-w-md mx-auto px-1 sm:px-4 z-10 mt-2 mb-8">
+          <div className="relative mx-auto mt-2 mb-8 flex w-full max-w-[420px] items-start justify-between px-1 sm:px-4 z-10">
             {/* Background Line */}
-            <div className="absolute left-[15%] right-[15%] top-[20px] sm:top-[24px] h-[2px] bg-zinc-200 -z-10 rounded-full"></div>
+            <div className="absolute left-[12%] right-[12%] top-[20px] sm:top-[24px] h-[2px] bg-zinc-200 -z-10"></div>
 
-            {/* Step 1 */}
-            <div className="flex flex-col items-center gap-2 z-10 w-20 sm:w-24">
-              <div className="flex items-center justify-center bg-white px-2 sm:px-4 transition-all duration-500">
-                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-[14px] flex items-center justify-center transition-all duration-500 ${checkoutStep >= 1 ? 'bg-orange-50 text-orange-500 shadow-sm' : 'bg-zinc-50 text-zinc-400'}`}>
-                  <Receipt size={20} strokeWidth={2.5} />
+            {[
+              { step: 1, label: locale === 'zh' ? '购物车' : locale === 'ms' ? 'Troli' : 'Cart', icon: Receipt },
+              { step: 2, label: locale === 'zh' ? '结账' : locale === 'ms' ? 'Butiran' : 'Checkout', icon: User },
+              { step: 3, label: locale === 'zh' ? '付款' : locale === 'ms' ? 'Bayaran' : 'Payment', icon: CreditCard },
+              { step: 4, label: locale === 'zh' ? '完成' : locale === 'ms' ? 'Selesai' : 'Done', icon: Check },
+            ].map(({ step, label, icon: StepIcon }) => (
+              <div key={step} className="z-10 flex w-20 flex-col items-center gap-2 sm:w-24">
+                <div className="flex items-center justify-center bg-white px-2 sm:px-4">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors duration-300 sm:h-12 sm:w-12 ${checkoutStep >= step ? 'border-yellow-500 bg-yellow-500 text-white' : 'border-zinc-200 bg-zinc-50 text-zinc-400'}`}>
+                    <StepIcon size={20} strokeWidth={2.5} />
+                  </div>
                 </div>
+                <span className={`whitespace-nowrap text-center text-[10px] font-medium transition-colors duration-300 sm:text-xs ${checkoutStep >= step ? 'text-zinc-900' : 'text-zinc-400'}`}>{label}</span>
               </div>
-              <span className={`text-[10px] sm:text-[12px] font-bold text-center whitespace-nowrap transition-colors duration-500 ${checkoutStep >= 1 ? 'text-zinc-900' : 'text-zinc-400'}`}>
-                {locale === 'zh' ? '购物车' : locale === 'ms' ? 'Troli' : 'Cart'}
-              </span>
-            </div>
-            
-            {/* Step 2 */}
-            <div className="flex flex-col items-center gap-2 z-10 w-20 sm:w-24">
-              <div className="flex items-center justify-center bg-white px-2 sm:px-4 transition-all duration-500">
-                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-[14px] flex items-center justify-center transition-all duration-500 ${checkoutStep >= 2 ? 'bg-orange-50 text-orange-500 shadow-sm' : 'bg-zinc-50 text-zinc-700'}`}>
-                  <CreditCard size={20} strokeWidth={2.5} />
-                </div>
-              </div>
-              <span className={`text-[10px] sm:text-[12px] font-bold text-center whitespace-nowrap transition-colors duration-500 ${checkoutStep >= 2 ? 'text-zinc-900' : 'text-zinc-400'}`}>
-                {locale === 'zh' ? '结账' : locale === 'ms' ? 'Bayar' : 'Checkout'}
-              </span>
-            </div>
-            
-            {/* Step 3 */}
-            <div className="flex flex-col items-center gap-2 z-10 w-20 sm:w-24">
-              <div className="flex items-center justify-center bg-white px-2 sm:px-4 transition-all duration-500">
-                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-[14px] flex items-center justify-center transition-all duration-500 ${checkoutStep >= 3 ? 'bg-orange-50 text-orange-500 shadow-sm' : 'bg-zinc-50 text-zinc-700'}`}>
-                  <Check size={20} strokeWidth={3} />
-                </div>
-              </div>
-              <span className={`text-[10px] sm:text-[12px] font-bold text-center whitespace-nowrap transition-colors duration-500 ${checkoutStep >= 3 ? 'text-zinc-900' : 'text-zinc-400'}`}>
-                {locale === 'zh' ? '完成' : locale === 'ms' ? 'Selesai' : 'Done'}
-              </span>
-            </div>
+            ))}
           </div>
         </div>
 
@@ -300,16 +282,17 @@ export default function Cart() {
           
 
 
-          {/* Bulk actions (Desktop Only) */}
+          {/* Bulk actions */}
           {items.length > 0 && (
-            <div className="hidden md:flex items-center justify-between bg-white border-double border-[4px] sm:border-[6px] border-zinc-200/60 rounded-[24px] sm:rounded-[40px] p-4 sm:px-6 shadow-sm mb-4">
+            <div className="flex items-center justify-between bg-white border-double border-[4px] sm:border-[6px] border-zinc-200/60 rounded-[24px] sm:rounded-[40px] p-3 sm:p-4 sm:px-6 shadow-sm mb-1">
               <div className="flex items-center gap-3">
                 <button 
                   onClick={toggleAllSelection}
-                  className="flex items-center gap-2 text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-none"
+                  aria-pressed={selectedItemIds.length === items.length && items.length > 0}
+                  className="flex items-center gap-2 text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-none min-h-11"
                 >
                   {selectedItemIds.length === items.length && items.length > 0 ? (
-                    <CheckSquare size={20} className="text-zinc-900" />
+                    <CheckSquare size={20} className="text-yellow-600" />
                   ) : (
                     <Square size={20} />
                   )}
@@ -324,7 +307,7 @@ export default function Cart() {
               <button 
                 onClick={() => selectedItemIds.length > 0 && setIsBulkDeleteModalOpen(true)}
                 disabled={selectedItemIds.length === 0}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed bg-red-50 text-red-500 hover:bg-red-100"
+                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed bg-yellow-50 text-yellow-700 hover:bg-yellow-100"
               >
                 <Trash2 size={16} />
                 {locale === 'zh' ? '删除' : locale === 'ms' ? 'Padam' : 'Delete Selected'}
@@ -342,13 +325,28 @@ export default function Cart() {
                 }`}
               >
                 {/* Item Checkbox */}
+                <div className="flex md:hidden justify-center shrink-0 mt-5">
+                  <button
+                    type="button"
+                    onClick={() => toggleItemSelection(item.cartItemId)}
+                    aria-label={`${selectedItemIds.includes(item.cartItemId) ? 'Deselect' : 'Select'} ${item.name}`}
+                    aria-pressed={selectedItemIds.includes(item.cartItemId)}
+                    className="w-11 h-11 -ml-2 flex items-center justify-center rounded-full text-zinc-400 hover:text-zinc-900 active:bg-zinc-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
+                  >
+                    {selectedItemIds.includes(item.cartItemId) ? (
+                      <CheckSquare size={22} className="text-yellow-600" />
+                    ) : (
+                      <Square size={22} />
+                    )}
+                  </button>
+                </div>
                 <div className="hidden md:flex justify-center shrink-0 mt-8 sm:mt-10">
                   <button 
                     onClick={() => toggleItemSelection(item.cartItemId)}
                     className="text-zinc-400 hover:text-zinc-900 transition-colors focus:outline-none"
                   >
                     {selectedItemIds.includes(item.cartItemId) ? (
-                      <CheckSquare size={20} className="text-zinc-900" />
+                      <CheckSquare size={20} className="text-yellow-600" />
                     ) : (
                       <Square size={20} />
                     )}
@@ -525,7 +523,7 @@ export default function Cart() {
               disabled={selectedItemIds.length === 0}
               className={`w-full py-3 rounded-full font-bold text-sm transition-all shadow-sm ${selectedItemIds.length > 0 ? 'bg-zinc-900 text-white hover:bg-zinc-800' : 'bg-zinc-100 text-zinc-400 cursor-not-allowed shadow-none'}`}
             >
-              {t.cart.checkout.confirmBtn || 'Check Out'}
+              {locale === 'en' ? 'Check Out' : t.cart.checkout.confirmBtn || 'Check Out'}
             </button>
             <Link 
               href="/shop" 
@@ -651,7 +649,7 @@ export default function Cart() {
                   disabled={selectedItemIds.length === 0}
                   className={`py-3 sm:py-4 px-8 sm:px-10 rounded-full font-black text-base sm:text-lg transition-all shadow-md flex items-center justify-center ${selectedItemIds.length > 0 ? 'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-lg hover:shadow-zinc-900/20' : 'bg-zinc-100 text-zinc-400 cursor-not-allowed shadow-none'}`}
                 >
-                  {t.cart.checkout.confirmBtn || 'Check Out'}
+                  {locale === 'en' ? 'Check Out' : t.cart.checkout.confirmBtn || 'Check Out'}
                 </button>
               </div>
 
@@ -663,21 +661,33 @@ export default function Cart() {
 
         {/* ── CHECKOUT STEP 2: INLINE CHECKOUT DETAILS ──────────── */}
 
-        {checkoutStep === 2 && (
+        {(checkoutStep === 2 || checkoutStep === 3) && (
           <InlineCheckoutDetails
+            step={checkoutStep === 2 ? 'checkout' : 'payment'}
             cartItems={selectedItems}
             cartTotals={{
               totalPrice: finalSelectedTotalPrice,
               totalOriginalPrice: selectedTotalOriginalPrice,
               totalDiscount: selectedTotalSaved,
+              productDiscount: selectedTotalPromoDiscount,
+              sellerDiscount: selectedTotalSellerItemDiscount + selectedTotalDiscount,
               discountPercent: discountPercent,
               sellerLevelName: sellerLevelName,
               isFreeShipping: isFreeShipping
             }}
-            clearCart={clearCart}
+            clearCart={() => selectedItems.forEach(item => removeItem(item.cartItemId))}
             onBack={() => setCheckoutStep(1)}
-            onSuccess={() => {
+            onProceedPayment={() => {
               setCheckoutStep(3);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onBackToCheckout={() => {
+              setCheckoutStep(2);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onSuccess={(details) => {
+              setCompletionDetails(details);
+              setCheckoutStep(4);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             onStockError={handleStockError}
@@ -686,8 +696,8 @@ export default function Cart() {
 
         {/* ── CHECKOUT STEP 3: ORDER COMPLETE ────────────────────── */}
 
-        {checkoutStep === 3 && (
-          <OrderComplete />
+        {checkoutStep === 4 && (
+          <OrderComplete details={completionDetails} />
         )}
 
       </div>

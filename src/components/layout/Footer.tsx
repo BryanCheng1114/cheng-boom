@@ -67,10 +67,10 @@ export function Footer() {
   return (
     <footer className="bg-zinc-50 text-zinc-500 mt-auto border-t border-zinc-200">
       {/* Main footer grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 md:py-16 md:pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 md:py-16 md:pb-16">
         
         {/* ===== MOBILE ACCORDION FOOTER ===== */}
-        <div className="md:hidden flex flex-col divide-y divide-zinc-200">
+        <div className="hidden">
           
           {/* Back to Top */}
           <div className="pb-4 pt-0 flex justify-center">
@@ -129,7 +129,7 @@ export function Footer() {
                   { id: '3', name: 'Fountain' },
                   { id: '4', name: 'Handheld' },
                   { id: '5', name: 'Skyline' },
-                ]).slice(0, 8).map((cat) => {
+                ]).map((cat) => {
                   const key = cat.key || cat.name.toLowerCase().replace(/\s+/g, '');
                   let label = cat.name;
                   if (locale === 'zh' && cat.nameZh) label = cat.nameZh;
@@ -284,7 +284,7 @@ export function Footer() {
                 { id: '3', name: 'Fountain' },
                 { id: '4', name: 'Handheld' },
                 { id: '5', name: 'Skyline' },
-              ]).slice(0, 8).map((cat) => {
+              ]).map((cat) => {
                 const key = cat.key || cat.name.toLowerCase().replace(/\s+/g, '');
                 
                 let label = cat.name;
@@ -400,22 +400,24 @@ export function Footer() {
       {/* ---- Bottom Bar ---- */}
       <div className="bg-zinc-50 border-t border-zinc-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="pt-4 pb-12 md:pt-6 md:pb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 md:border-t md:border-zinc-100">
-            <div className="flex flex-col gap-1.5">
-              <p className="text-zinc-800 font-medium text-sm">
-                {t.footer?.copyright ? `${t.footer.copyright} \u00A9 ${new Date().getFullYear()} ${businessName}. ${t.footer.allRightsReserved}` : `Copyright \u00A9 ${new Date().getFullYear()} ${businessName}. All Rights Reserved.`}
-              </p>
-              <p className="text-[11px] text-zinc-500">
-                {t.footer?.notice || 'Notice: There is no payment gateway available on this website. All transactions are handled separately.'}
-              </p>
+          <div className="pt-6 pb-6 md:pt-6 md:pb-6 flex flex-col sm:items-start md:flex-row md:items-center justify-between gap-4 md:gap-6 md:border-t md:border-zinc-100">
+            <div className="flex flex-col gap-3 md:contents">
+              <div className="flex flex-col gap-1.5">
+                <p className="text-zinc-800 font-medium text-sm">
+                  {t.footer?.copyright ? `${t.footer.copyright} \u00A9 ${new Date().getFullYear()} ${businessName}. ${t.footer.allRightsReserved}` : `Copyright \u00A9 ${new Date().getFullYear()} ${businessName}. All Rights Reserved.`}
+                </p>
+                <p className="text-[11px] text-zinc-500">
+                  {t.footer?.notice || 'Notice: There is no payment gateway available on this website. All transactions are handled separately.'}
+                </p>
+              </div>
+
+              <button
+                onClick={toggleLanguage}
+                className="flex items-center gap-2.5 text-zinc-800 hover:text-zinc-600 transition-colors group shrink-0"
+              >
+                <span className="text-sm font-bold">{locale === 'zh' ? 'EN / 中文' : 'EN / 中文'}</span>
+              </button>
             </div>
-            
-            <button 
-              onClick={toggleLanguage}
-              className="flex items-center gap-2.5 text-zinc-800 hover:text-zinc-600 transition-colors group shrink-0"
-            >
-              <span className="text-sm font-bold">{locale === 'zh' ? 'EN / 中文' : 'EN / 中文'}</span>
-            </button>
           </div>
         </div>
       </div>

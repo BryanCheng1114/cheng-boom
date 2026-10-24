@@ -2,14 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus,
+  Pencil,
   Search,
   Package,
-  Edit,
-  Image as ImageIcon,
   ChevronLeft,
   Layers,
-  TrendingUp,
   Grid3x3,
   AlertTriangle,
   Trash2,
@@ -79,7 +76,10 @@ const CategoryOverviewPage = () => {
           cat.nameZh?.toLowerCase().includes(q)
       );
     }
-    return result;
+    return [...result].sort((a, b) =>
+      Number(a.displayOrder ?? 0) - Number(b.displayOrder ?? 0) ||
+      String(a.name || '').localeCompare(String(b.name || ''))
+    );
   }, [categories, searchTerm, statusFilter]);
 
   const totalPages = Math.ceil(filteredAndSortedCategories.length / ITEMS_PER_PAGE);
@@ -109,22 +109,29 @@ const CategoryOverviewPage = () => {
     }
   };
 
-  const totalProducts = products.length;
   const liveProducts = products.filter((p) => p.status === 'Live').length;
 
-  const headerActions = (
-    <Link
-      href="/admin/category/new"
-      className="flex items-center gap-2 px-6 py-2.5 bg-yellow-500 rounded-full text-[14px] font-bold text-zinc-800 tracking-wide hover:brightness-110 shadow-lg shadow-yellow-500/20 transition-all"
-    >
-      <Plus size={16} strokeWidth={3} />
-      {t('add_new_category') || 'Add New Category'}
-    </Link>
-  );
-
   return (
-    <AdminLayout title={t('category_overview') || 'Category Overview'} headerActions={headerActions}>
-      <div className="space-y-8">
+    <AdminLayout title={t('category_overview') || 'Category Overview'} hideTitle>
+      <div className="space-y-5">
+        <header className="space-y-1">
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('category_overview') || 'Category Overview'}</h1>
+            <span className="text-xs font-normal text-slate-700">[ Access ]</span>
+          </div>
+          <p className="text-xs text-slate-600">Category Information /</p>
+        </header>
+
+        <div>
+          <Link
+            href="/admin/category/new"
+            className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"
+          >
+            <Pencil size={14} />
+            New Entry
+          </Link>
+        </div>
+
         {/* ── KPI Summary Cards ───────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           {[
@@ -132,48 +139,43 @@ const CategoryOverviewPage = () => {
               label: t('total_categories') || 'Total Categories',
               value: categories.length,
               sub: t('organized_folders') || 'Organized folders',
-              icon: <Layers size={18} strokeWidth={2.5} />,
-              color: 'bg-violet-500',
+              icon: <Layers size={18} strokeWidth={1.8} />,
             },
             {
               label: t('total_products') || 'Total Products',
               value: liveProducts,
               sub: t('across_all_categories') || 'Across all categories',
-              icon: <Grid3x3 size={18} strokeWidth={2.5} />,
-              color: 'bg-sky-500',
+              icon: <Grid3x3 size={18} strokeWidth={1.8} />,
             },
             {
               label: t('on_hold_category') || 'On-Hold Category',
               value: categories.filter(c => c.status === 'Hold').length,
               sub: t('hidden_from_frontend') || 'Hidden from frontend',
-              icon: <AlertTriangle size={18} strokeWidth={2.5} />,
-              color: 'bg-orange-500',
+              icon: <AlertTriangle size={18} strokeWidth={1.8} />,
             },
           ].map((stat) => (
             <div
               key={stat.label}
-              className="bg-white border border-zinc-100 rounded-3xl p-6 flex flex-col justify-between shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg transition-all"
+              className="bg-white border border-slate-200 p-5 min-h-[150px] flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${stat.color}`}>
-                    {stat.icon}
-                  </div>
-                  <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{stat.label}</span>
+                <div className="flex items-center gap-3 text-slate-500">
+                  {stat.icon}
+                  <span className="text-sm font-medium text-slate-700">{stat.label}</span>
                 </div>
               </div>
               <div className="flex items-end gap-3 mt-4">
-                <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">{stat.value}</h3>
-                <p className="text-[12px] font-medium text-zinc-500 pb-0.5">{stat.sub}</p>
+                <h3 className="text-2xl font-semibold text-slate-900 tracking-tight leading-none">{stat.value}</h3>
+                <p className="text-xs font-medium text-slate-500 pb-0.5">{stat.sub}</p>
               </div>
             </div>
           ))}
         </div>
 
         {/* ── Search + Grid ───────────────────────────────── */}
-        <div className="bg-white border border-zinc-100 rounded-[40px] shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden">
+        <div className="bg-white border border-slate-200 shadow-sm overflow-hidden">
           {/* Top Toolbar */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 pb-4 border-b border-zinc-100">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 pb-4 border-b border-slate-100">
             {/* Filter Pills */}
             <div className="flex flex-wrap items-center gap-2">
               {[
@@ -184,10 +186,10 @@ const CategoryOverviewPage = () => {
                 <button
                   key={filter.id}
                   onClick={() => { setStatusFilter(filter.id); setCurrentPage(1); }}
-                  className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all ${
+                  className={`px-4 py-2 text-[13px] font-medium transition-all ${
                     statusFilter === filter.id 
-                      ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' 
-                      : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700'
+                      ? 'bg-sky-700 text-white'
+                      : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-800'
                   }`}
                 >
                   {filter.label} <span className="opacity-70 font-medium ml-1">({filter.count})</span>
@@ -198,7 +200,7 @@ const CategoryOverviewPage = () => {
             {/* Right side: Search */}
             <div className="relative w-full sm:w-64 group">
               <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-blue-500 transition-colors"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-600 transition-colors"
                 size={15}
               />
               <input
@@ -206,68 +208,76 @@ const CategoryOverviewPage = () => {
                 placeholder={locale === 'zh' ? '搜索分类...' : locale === 'ms' ? 'Cari kategori...' : 'Search categories...'}
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-full outline-none focus:border-blue-500 focus:bg-white transition-all text-[13px] font-bold text-zinc-700"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 outline-none focus:border-sky-500 focus:bg-white transition-all text-[13px] font-medium text-slate-700"
               />
             </div>
           </div>
 
           {/* Table */}
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
+            <table className="w-full text-left border-collapse min-w-[900px]">
               <thead>
-                <tr className="border-b border-zinc-100 bg-zinc-100">
-                  <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('category_id') || 'Category ID'}</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('category_name') || 'Category Name'}</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">{t('total_items') || 'Total Items'}</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">{t('status') || 'Status'}</th>
+                <tr className="border-b border-slate-200 bg-slate-50">
+                  <th className="px-6 py-4 text-[11px] font-medium text-slate-500 uppercase tracking-wide">{t('category_id') || 'Category ID'}</th>
+                  <th className="px-6 py-4 text-[11px] font-medium text-slate-500 uppercase tracking-wide">{t('category_name') || 'Category Name'}</th>
+                  <th className="px-6 py-4 text-[11px] font-medium text-slate-500 uppercase tracking-wide text-center">{t('display_order') || 'Display Order'}</th>
+                  <th className="px-6 py-4 text-[11px] font-medium text-slate-500 uppercase tracking-wide text-center">{t('total_items') || 'Total Items'}</th>
+                  <th className="px-6 py-4 text-[11px] font-medium text-slate-500 uppercase tracking-wide text-center">{t('status') || 'Status'}</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-500/5">
+              <tbody className="divide-y divide-slate-200">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={5} className="p-20 text-center text-zinc-500 font-bold uppercase tracking-widest text-xs animate-pulse">Loading Categories...</td>
+                    <td colSpan={6} className="p-20 text-center text-slate-500 font-medium text-xs animate-pulse">Loading Categories...</td>
                   </tr>
                 ) : paginatedCategories.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-20 text-center text-zinc-500 font-bold uppercase tracking-widest text-xs">
+                    <td colSpan={6} className="p-20 text-center text-slate-500 font-medium text-xs">
                       {searchTerm ? 'No categories found' : 'No categories yet'}
                     </td>
                   </tr>
                 ) : (
-                  paginatedCategories.map((cat) => {
+                  paginatedCategories.map((cat, index) => {
                     const count = products.filter((p) => p.category === cat.name).length;
                     return (
                       <tr 
                         key={cat.id}
                         onClick={() => router.push(`/admin/category/edit/${cat.id}`)}
-                        className="group hover:bg-zinc-500/5 transition-colors cursor-pointer"
+                        className={`group transition-colors cursor-pointer hover:bg-sky-50 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}
                       >
                         <td className="px-4 py-5">
                           {cat.code && (
-                            <span className="text-[12px] font-bold text-zinc-500">#{cat.code}</span>
+                            <span className="text-xs font-medium text-slate-500">#{cat.code}</span>
                           )}
                         </td>
                         <td className="px-4 py-5">
                           <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-zinc-500/10 rounded-xl overflow-hidden flex items-center justify-center text-zinc-500 border border-white/5 shrink-0">
+                            <div className="w-10 h-10 bg-slate-100 overflow-hidden flex items-center justify-center text-slate-500 border border-slate-200 shrink-0">
                               {cat.image && cat.image !== '/example.png' ? (
                                 <img src={cat.image} className="w-full h-full object-cover" />
                               ) : (
                                 <Package size={20} />
                               )}
                             </div>
-                            <span className="font-bold text-sm text-zinc-900 group-hover:text-yellow-500 transition-colors line-clamp-1">
-                              {getLocalizedCategoryName(cat)}
-                            </span>
+                            <div className="min-w-0">
+                              <span className="block font-medium text-sm text-slate-800 group-hover:text-sky-700 transition-colors line-clamp-1">
+                                {getLocalizedCategoryName(cat)}
+                              </span>
+                            </div>
                           </div>
                         </td>
-                        <td className="px-4 py-5 text-center text-xs font-black text-zinc-400">
+                        <td className="px-4 py-5 text-center">
+                          <span className="inline-flex min-w-9 items-center justify-center bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                            {cat.displayOrder ?? 0}
+                          </span>
+                        </td>
+                        <td className="px-4 py-5 text-center text-xs font-medium text-slate-500">
                           {count}
                         </td>
                         <td className="px-4 py-5 text-center">
                           <div 
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-medium uppercase tracking-wide transition-all ${
                               cat.status === 'Live' ? 'bg-emerald-100 text-emerald-700' :
                               cat.status === 'Hold' ? 'bg-orange-100 text-orange-700' :
                               'bg-zinc-100 text-zinc-600'
@@ -288,7 +298,7 @@ const CategoryOverviewPage = () => {
                               setCategoryToDelete(cat);
                               setShowDeleteModal(true);
                             }}
-                            className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                             title="Delete Category"
                           >
                             <Trash2 size={16} />
@@ -305,14 +315,14 @@ const CategoryOverviewPage = () => {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-100 bg-zinc-50/50">
-              <p className="text-[12px] font-bold text-zinc-500">
+              <p className="text-xs font-medium text-slate-500">
                 Showing <span className="text-zinc-900">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="text-zinc-900">{Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedCategories.length)}</span> of <span className="text-zinc-900">{filteredAndSortedCategories.length}</span> categories
               </p>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="p-2 rounded-xl border border-zinc-200 text-zinc-500 hover:bg-white hover:text-zinc-900 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="p-2 border border-slate-200 text-slate-500 hover:bg-white hover:text-slate-900 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   <ChevronLeft size={16} />
                 </button>
@@ -321,10 +331,10 @@ const CategoryOverviewPage = () => {
                     <button
                       key={i}
                       onClick={() => setCurrentPage(i + 1)}
-                      className={`w-8 h-8 rounded-xl text-[12px] font-bold transition-all ${
+                      className={`w-8 h-8 text-xs font-medium transition-all ${
                         currentPage === i + 1 
-                          ? 'bg-yellow-500 text-zinc-900 shadow-sm' 
-                          : 'text-zinc-500 hover:bg-white hover:text-zinc-900 hover:shadow-sm border border-transparent hover:border-zinc-200'
+                          ? 'bg-sky-700 text-white shadow-sm'
+                          : 'text-slate-500 hover:bg-white hover:text-slate-900 hover:shadow-sm border border-transparent hover:border-slate-200'
                       }`}
                     >
                       {i + 1}
@@ -334,7 +344,7 @@ const CategoryOverviewPage = () => {
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="p-2 rounded-xl border border-zinc-200 text-zinc-500 hover:bg-white hover:text-zinc-900 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="p-2 border border-slate-200 text-slate-500 hover:bg-white hover:text-slate-900 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   <ChevronRight size={16} />
                 </button>

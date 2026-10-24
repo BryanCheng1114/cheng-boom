@@ -97,6 +97,7 @@ export default function Home() {
   const { t, locale } = useTranslation();
   const { settings } = useBusiness();
   const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
+  const [isMobileHero, setIsMobileHero] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const autoPlayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -104,12 +105,29 @@ export default function Home() {
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   useEffect(() => {
+    const mobileQuery = window.matchMedia('(max-width: 767px)');
+    const updateHeroSlides = () => {
+      setIsMobileHero(mobileQuery.matches);
+      setCurrentHeroSlide(mobileQuery.matches ? 1 : 0);
+    };
+    updateHeroSlides();
+    mobileQuery.addEventListener('change', updateHeroSlides);
+    return () => mobileQuery.removeEventListener('change', updateHeroSlides);
+  }, []);
+
+  const heroSlideIndexes = isMobileHero ? [1, 2, 3] : [0, 1, 2, 3];
+
+  useEffect(() => {
     if (!isAutoPlaying) return;
     const interval = setInterval(() => {
-      setCurrentHeroSlide(prev => (prev + 1) % 4);
+      setCurrentHeroSlide(prev => {
+        const visibleSlides = isMobileHero ? [1, 2, 3] : [0, 1, 2, 3];
+        const currentIndex = visibleSlides.indexOf(prev);
+        return visibleSlides[(currentIndex + 1) % visibleSlides.length];
+      });
     }, 5000); // 5 seconds
     return () => clearInterval(interval);
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, isMobileHero]);
 
   const handleManualNavigation = useCallback((action: () => void) => {
     action();
@@ -123,8 +141,14 @@ export default function Home() {
     }, 8000);
   }, []);
 
-  const nextHeroSlide = () => handleManualNavigation(() => setCurrentHeroSlide(prev => (prev + 1) % 4));
-  const prevHeroSlide = () => handleManualNavigation(() => setCurrentHeroSlide(prev => (prev - 1 + 4) % 4));
+  const nextHeroSlide = () => handleManualNavigation(() => setCurrentHeroSlide(prev => {
+    const currentIndex = heroSlideIndexes.indexOf(prev);
+    return heroSlideIndexes[(currentIndex + 1) % heroSlideIndexes.length];
+  }));
+  const prevHeroSlide = () => handleManualNavigation(() => setCurrentHeroSlide(prev => {
+    const currentIndex = heroSlideIndexes.indexOf(prev);
+    return heroSlideIndexes[(currentIndex - 1 + heroSlideIndexes.length) % heroSlideIndexes.length];
+  }));
   const jumpToSlide = (idx: number) => handleManualNavigation(() => setCurrentHeroSlide(idx));
 
   const minSwipeDistance = 50;
@@ -225,7 +249,7 @@ export default function Home() {
         {/* Slide 0: New Banner (Default First Page) */}
         <div
           className={cn(
-            "absolute inset-0 transition-opacity duration-700 bg-black flex items-center justify-center",
+            "absolute inset-0 hidden md:flex transition-opacity duration-700 bg-black items-center justify-center",
             currentHeroSlide === 0 ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
           )}
         >
@@ -323,7 +347,7 @@ export default function Home() {
 
         {/* Xiaomi-style Page Indicators */}
         <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2">
-          {[0, 1, 2, 3].map(idx => (
+          {heroSlideIndexes.map(idx => (
             <button
               key={idx}
               onClick={() => jumpToSlide(idx)}
@@ -481,11 +505,21 @@ export default function Home() {
                           </div>
                         </div>
                       )}
+                      <a
+                        href={googleMapsSearchUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-700 lg:hidden"
+                      >
+                        <Navigation size={17} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                        <span>{locale === 'zh' ? '在 Google Maps 开启导航' : locale === 'ms' ? 'Buka dalam Google Maps' : 'Open in Google Maps'}</span>
+                        <ExternalLink size={15} className="opacity-70 group-hover:opacity-100" />
+                      </a>
                     </div>
                   </div>
 
                   {/* Open in Google Maps Button */}
-                  <div className="mt-5 border-t border-zinc-200 pt-5">
+                  <div className="mt-5 hidden border-t border-zinc-200 pt-5 lg:block">
                     <a
                       href={googleMapsSearchUrl}
                       target="_blank"
@@ -524,7 +558,7 @@ export default function Home() {
                     href={googleMapsSearchUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="absolute top-4 right-4 z-20 inline-flex items-center gap-2 rounded-xl border border-zinc-200/90 bg-white/95 px-3.5 py-2 text-xs font-bold text-zinc-900 shadow-md backdrop-blur-sm transition-all hover:bg-zinc-900 hover:text-white hover:border-zinc-900"
+                    className="absolute top-4 right-4 z-20 hidden items-center gap-2 rounded-xl border border-zinc-200/90 bg-white/95 px-3.5 py-2 text-xs font-bold text-zinc-900 shadow-md backdrop-blur-sm transition-all hover:bg-zinc-900 hover:text-white hover:border-zinc-900 lg:inline-flex"
                     title={locale === 'zh' ? '在 Google Maps 查看大地图' : 'Open in Google Maps'}
                   >
                     <Navigation size={14} className="text-red-500" />

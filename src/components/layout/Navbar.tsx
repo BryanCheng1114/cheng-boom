@@ -22,6 +22,7 @@ type NavbarCategory = {
   key?: string;
   count?: number;
   image?: string | null;
+  showInAppBar?: boolean;
   // transparentImage?: string | null;
 };
 
@@ -196,7 +197,7 @@ export function Navbar() {
     fetch('/api/categories')
       .then(res => res.json())
       .then(data => {
-        if (data.length > 0) setCategories(data.filter((c: any) => c.status !== 'Hold'));
+        if (Array.isArray(data)) setCategories(data.filter((c: any) => c.status !== 'Hold' && c.showInAppBar !== false));
       })
       .catch(() => {});
   }, []);
@@ -292,17 +293,7 @@ export function Navbar() {
                 )}>
                   <div className="mx-auto w-full max-w-[1400px] overflow-x-auto scrollbar-hide px-4 py-6">
                     <div className="flex items-start justify-center gap-6 sm:gap-8 lg:gap-12 flex-nowrap min-w-max px-2">
-                      {(categories.length > 0 ? categories : [
-                        { id: '1', name: 'Soundcloud', image: '/example.png' },
-                        { id: '2', name: 'Fountain', image: '/example.png' },
-                        { id: '3', name: 'Handheld', image: '/example.png' },
-                        { id: '4', name: 'Spinning', image: '/example.png' },
-                        { id: '5', name: 'Pop Pop', image: '/example.png' },
-                        { id: '6', name: 'Dragon Pili', image: '/example.png' },
-                        { id: '7', name: 'Fireworks', image: '/example.png' },
-                        { id: '8', name: 'Firecrackers', image: '/example.png' },
-                        { id: '9', name: 'Skyline', image: '/example.png' },
-                      ]).map((category) => {
+                      {categories.map((category) => {
                         const key = category.code || category.key || category.name.toLowerCase().replace(/\s+/g, '');
                         
                         let label = category.name;
@@ -399,9 +390,12 @@ export function Navbar() {
               href="/cart"
               className={cn(
                 "relative flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full transition-all duration-300 group",
-                isTransparent ? "text-white/82 hover:bg-white/10 hover:text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                router.pathname === '/cart'
+                  ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-100 hover:text-yellow-800"
+                  : isTransparent ? "text-white/82 hover:bg-white/10 hover:text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
               )}
               aria-label="Cart"
+              aria-current={router.pathname === '/cart' ? 'page' : undefined}
             >
               <motion.div
                 animate={isWiggling ? {
@@ -462,7 +456,14 @@ export function Navbar() {
               {user ? (
                 <>
                   <button 
-                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                    onClick={() => {
+                      if (window.matchMedia('(max-width: 767px)').matches) {
+                        setIsProfileMenuOpen(false);
+                        router.push('/profile');
+                        return;
+                      }
+                      setIsProfileMenuOpen(!isProfileMenuOpen);
+                    }}
                     className={cn(
                       "relative flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full transition-all duration-300",
                       isTransparent ? "text-white/82 hover:bg-white/10 hover:text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900",

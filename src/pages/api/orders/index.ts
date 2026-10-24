@@ -7,6 +7,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { customerInfo, items, totalAmount, originalAmount, totalDiscount, sellerLevelName, discountPercent, isFreeShipping } = req.body;
       const { name, phone, email, address } = customerInfo;
+      const allowedPaymentMethods = ['Cash on Delivery', 'DuitNow & Bank Transfer'];
+      if (!allowedPaymentMethods.includes(customerInfo.paymentMethod)) {
+        return res.status(400).json({ error: 'Please select a supported payment method.' });
+      }
+      if (customerInfo.paymentMethod === 'DuitNow & Bank Transfer' && !customerInfo.paymentReceiptUrl) {
+        return res.status(400).json({ error: 'A payment receipt is required for DuitNow and bank transfer orders.' });
+      }
 
       // 1. Find or create the customer
       let customer;
@@ -21,7 +28,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                where: { id: customerId },
                data: {
                  phone: phone || customer.phone,
-                 address: address || customer.address
+                address: address || customer.address,
+                preferredPayment: customerInfo.paymentMethod,
+                orderMode: customerInfo.deliveryMode,
+                notes: customerInfo.notes || null
                }
              });
           }
@@ -34,12 +44,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             update: {
               name: name,
               address: address || undefined,
+              preferredPayment: customerInfo.paymentMethod,
+              orderMode: customerInfo.deliveryMode,
+              notes: customerInfo.notes || null,
             },
             create: {
               name: name,
               phone: phone,
               email: email || undefined,
               address: address || undefined,
+              preferredPayment: customerInfo.paymentMethod,
+              orderMode: customerInfo.deliveryMode,
+              notes: customerInfo.notes || null,
               role: customerInfo.role || 'Guest',
             },
           });
@@ -91,7 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             deliveryMode: customerInfo.deliveryMode,
             address: customerInfo.address,
             notes: customerInfo.notes,
-            paymentReceiptUrl: customerInfo.paymentReceiptUrl,
+            paymentReceiptUrl: customerInfo.paymentMethod === 'DuitNow & Bank Transfer' ? customerInfo.paymentReceiptUrl : null,
             items: {
               create: items.map((item: any) => ({
                 productId: item.productId || item.id,

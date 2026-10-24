@@ -19,6 +19,80 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const escapeEmailHtml = (value: unknown) => String(value ?? '')
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+export const sendCustomerAccountUpdateEmail = async (customer: { name?: string | null; email?: string | null }) => {
+  if (!customer.email) throw new Error('Customer email is not available.');
+  if (!process.env.SMTP_PASS) throw new Error('SMTP_PASS is not configured.');
+
+  let businessName = 'CHENG-BOOM';
+  let supportPhone = '';
+  try {
+    const settings = await prisma.businessSettings.findFirst();
+    if (settings?.businessName) businessName = settings.businessName;
+    if (settings?.whatsapp) supportPhone = settings.whatsapp;
+  } catch (error) {
+    console.error('Failed to fetch business settings for account update email:', error);
+  }
+
+  const safeBusinessName = escapeEmailHtml(businessName);
+  const safeCustomerName = escapeEmailHtml(customer.name || 'Customer');
+  const safeSupportPhone = escapeEmailHtml(supportPhone);
+  const safeSupportEmail = escapeEmailHtml(process.env.SMTP_USER || 'our support email');
+  const date = new Date().toLocaleDateString('en-MY', {
+    timeZone: 'Asia/Kuala_Lumpur',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const html = `
+    <div style="margin:0; padding:24px 12px; background:#f3f4f6; font-family:Arial,sans-serif; color:#27272a;">
+      <div style="max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #e4e4e7;">
+        <div style="padding:24px; background:#09090b; text-align:center;">
+          <h1 style="margin:0; color:#f59e0b; font-size:24px; font-weight:800; letter-spacing:1px;">${safeBusinessName}</h1>
+          <p style="margin:8px 0 0; color:#ffffff; font-size:11px; letter-spacing:2px;">ACCOUNT UPDATE</p>
+        </div>
+        <div style="padding:28px;">
+          <p style="margin:0 0 16px; font-size:16px; font-weight:700;">Dear ${safeCustomerName},</p>
+          <p style="margin:0 0 16px; color:#444; font-size:14px; line-height:1.7;">
+            This email is to let you know that your account type with ${safeBusinessName} has been changed from Seller to Member.
+          </p>
+          <div style="margin:20px 0; padding:16px; border-left:4px solid #f59e0b; background:#f4f4f5;">
+            <div style="margin-bottom:5px; color:#71717a; font-size:12px;">Your account type</div>
+            <div style="color:#18181b; font-size:16px; font-weight:700;">Member Account</div>
+          </div>
+          <p style="margin:0 0 16px; color:#444; font-size:14px; line-height:1.7;">
+            You can continue to sign in and use your account as a Member. Seller-only pricing and benefits will no longer apply to future orders. Your existing account details and order history remain available.
+          </p>
+          <p style="margin:0 0 20px; color:#444; font-size:14px; line-height:1.7;">
+            If you believe this change was made in error or have any questions, please contact us at <a href="mailto:${safeSupportEmail}" style="color:#2563eb;">${safeSupportEmail}</a>${safeSupportPhone ? ` or WhatsApp us at <strong>${safeSupportPhone}</strong>` : ''}.
+          </p>
+          <p style="margin:0; color:#444; font-size:14px; line-height:1.7;">Thank you,<br/><strong>${safeBusinessName} Team</strong></p>
+          <p style="margin:24px 0 0; padding-top:14px; border-top:1px solid #e4e4e7; color:#71717a; font-size:12px; line-height:1.6; text-align:center;">
+            Account update sent on ${date}. Please reply to this email if you need assistance.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER;
+  if (!fromAddress) throw new Error('SMTP sender address is not configured.');
+
+  await transporter.sendMail({
+    from: `"${businessName} System" <${fromAddress}>`,
+    to: customer.email,
+    subject: `Account type update - ${businessName}`,
+    html,
+  });
+};
+
 export const sendOrderReceiptEmail = async (
   order: any, 
   customerInfo: any, 

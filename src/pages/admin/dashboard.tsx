@@ -1,24 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
 import { 
   TrendingUp, 
-  Package, 
   ShoppingBag, 
-  Users, 
-  Clock, 
-  ArrowRight,
   Activity,
-  ArrowUpRight,
-  Sparkles,
   ChevronRight,
-  Calendar,
+  ChevronLeft,
+  ChevronDown,
+  CalendarDays,
   X,
   PackageOpen,
   AlertTriangle,
-  MoreHorizontal,
-  ArrowUp,
-  ArrowDown,
   CheckCircle2
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
@@ -31,6 +24,11 @@ const DashboardPage = () => {
   const { t, language: locale } = useLanguage();
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [todaysOrders, setTodaysOrders] = useState<any[]>([]);
+  const [allOrders, setAllOrders] = useState<any[]>([]);
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [systemOverviewOpen, setSystemOverviewOpen] = useState(true);
+  const [orderInformationOpen, setOrderInformationOpen] = useState(true);
+  const [recentTransactionsOpen, setRecentTransactionsOpen] = useState(true);
   const [lowStockItems, setLowStockItems] = useState<any[]>([]);
   const [soldOutItems, setSoldOutItems] = useState<any[]>([]);
   const [stats, setStats] = useState({
@@ -58,6 +56,7 @@ const DashboardPage = () => {
         const products = await prodRes.json();
         const orders = await orderRes.json();
         const customers = await custRes.json();
+        setAllOrders(Array.isArray(orders) ? orders : []);
 
         const revenue = orders.reduce((acc: number, o: any) => acc + (o.status === 'Completed' ? o.totalAmount : 0), 0);
         
@@ -69,7 +68,7 @@ const DashboardPage = () => {
           pendingOrders: orders.filter((o: any) => o.status === 'Pending').length,
           lowStockCount: products.filter((p: any) => p.stock > 0 && p.stock < 10).length,
           sellerCount: customers.filter((c: any) => c.role === 'Seller').length,
-          recentOrders: orders.slice(0, 6),
+          recentOrders: orders.slice(0, 10),
           orderStatuses: {
             pending: orders.filter((o: any) => o.status === 'Pending').length,
             processing: orders.filter((o: any) => o.status === 'Processing' || o.status === 'In Process').length,
@@ -106,257 +105,113 @@ const DashboardPage = () => {
     fetchDashboardData();
   }, []);
 
-  const kpis = [
-    { 
-      label: t('total_revenue') || 'Total Revenue', 
-      value: `RM ${stats.totalRevenue.toLocaleString()}`, 
-      sub: t('completed_sales') || 'Completed sales', 
-      icon: TrendingUp, 
-      solidBg: 'bg-[#4f46e5]', // Indigo
-      pillBg: 'bg-emerald-500/10', pillText: 'text-emerald-500', pillIcon: ArrowUp, pillValue: '12%',
-      href: '/admin/revenue' 
-    },
-    { 
-      label: t('live_inventory') || 'Live Inventory', 
-      value: stats.liveProducts, 
-      sub: t('active_products') || 'Active products', 
-      icon: Package, 
-      solidBg: 'bg-[#f59e0b]', // Orange
-      pillBg: 'bg-emerald-500/10', pillText: 'text-emerald-500', pillIcon: ArrowUp, pillValue: '5%',
-      href: '/admin/product' 
-    },
-    { 
-      label: t('total_orders') || 'Total Orders', 
-      value: stats.totalOrders, 
-      sub: t('all_transactions') || 'All transactions', 
-      icon: ShoppingBag, 
-      solidBg: 'bg-[#10b981]', // Green
-      pillBg: 'bg-emerald-500/10', pillText: 'text-emerald-500', pillIcon: ArrowUp, pillValue: '18%',
-      href: '/admin/orders' 
-    },
-    { 
-      label: t('registered_customers') || 'Registered Customers', 
-      value: stats.totalCustomers, 
-      sub: t('growth_members') || 'Growth members', 
-      icon: Users, 
-      solidBg: 'bg-[#ef4444]', // Red
-      pillBg: 'bg-red-500/10', pillText: 'text-red-500', pillIcon: ArrowDown, pillValue: '1.3%',
-      href: '/admin/customer' 
-    },
+  const dateKey = (date: Date) => `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+  const toInputDate = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  const selectedDayOrders = allOrders.filter((order) => {
+    const created = new Date(order.createdAt);
+    return !Number.isNaN(created.getTime()) && dateKey(created) === dateKey(selectedDate);
+  });
+  const activeDayOrders = selectedDayOrders.filter((order) => order.status !== 'Cancelled');
+  const daySales = activeDayOrders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
+  const isToday = dateKey(selectedDate) === dateKey(new Date());
+  const dateLabel = `${String(selectedDate.getDate()).padStart(2, '0')}/${String(selectedDate.getMonth() + 1).padStart(2, '0')}/${selectedDate.getFullYear()}`;
+  const statusData = [
+    { name: t('pending') || 'Pending', count: selectedDayOrders.filter((o) => o.status === 'Pending').length, fill: '#f59e0b' },
+    { name: t('in_process') || 'In Process', count: selectedDayOrders.filter((o) => ['Processing', 'In Process'].includes(o.status)).length, fill: '#3b82f6' },
+    { name: t('delivering') || 'Delivering', count: selectedDayOrders.filter((o) => ['Delivering', 'Shipped'].includes(o.status)).length, fill: '#8b5cf6' },
+    { name: t('completed') || 'Completed', count: selectedDayOrders.filter((o) => ['Completed', 'Delivered'].includes(o.status)).length, fill: '#10b981' },
+    { name: t('cancelled') || 'Cancelled', count: selectedDayOrders.filter((o) => o.status === 'Cancelled').length, fill: '#ef4444' },
   ];
+  const hourlySales = Array.from({ length: 12 }, (_, index) => ({ hour: `${String(index * 2).padStart(2, '0')}:00`, sales: 0 }));
+  activeDayOrders.forEach((order) => {
+    const hour = new Date(order.createdAt).getHours();
+    const bucket = Math.floor(hour / 2);
+    if (hourlySales[bucket]) hourlySales[bucket].sales += Number(order.totalAmount || 0);
+  });
+  const overviewCards = [
+    { label: 'Sales', value: `RM ${daySales.toFixed(2)}`, helper: 'Excluding cancelled orders', icon: TrendingUp, color: 'text-sky-600', bg: 'bg-sky-50' },
+    { label: 'Orders', value: selectedDayOrders.length, helper: 'Orders placed', icon: ShoppingBag, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    { label: 'In progress', value: selectedDayOrders.filter((o) => ['Pending', 'Processing', 'In Process', 'Delivering', 'Shipped'].includes(o.status)).length, helper: 'Need attention', icon: Activity, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Completed', value: statusData[3].count, helper: 'Successfully fulfilled', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  ];
+  const sectionHeader = (title: string, open: boolean, toggle: () => void, trailing?: React.ReactNode) => (
+    <div className="group flex items-stretch justify-between gap-3 border-b border-slate-200 bg-white text-slate-700">
+      <button type="button" onClick={toggle} className="flex min-h-12 flex-1 items-center gap-3 px-5 py-3 text-left text-sm font-semibold transition-colors hover:bg-sky-600 hover:text-white focus-visible:bg-sky-600 focus-visible:text-white focus-visible:outline-none">
+        <ChevronDown size={17} className={`shrink-0 transition-transform duration-150 group-hover:text-white ${open ? '' : '-rotate-90'}`} />
+        {title}
+      </button>
+      {trailing && <div className="flex items-center px-4 text-slate-600 [&_a]:text-slate-600 [&_a:hover]:text-sky-700">{trailing}</div>}
+    </div>
+  );
 
   return (
-    <AdminLayout title={t('system_overview')}>
-      <div className="space-y-10">
-        
-        {/* Top Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* KPI 2x2 Grid */}
-          <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {kpis.map((stat, i) => (
-              <motion.div 
-                key={stat.label} 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: i * 0.1 }} 
-                onClick={() => stat.href && router.push(stat.href)}
-                className="bg-white border border-zinc-100 rounded-3xl p-6 transition-all duration-300 group shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg cursor-pointer"
-              >
-                {/* Top Row: Icon + Label + More */}
-                <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white ${stat.solidBg}`}>
-                      <stat.icon size={20} strokeWidth={2.5} />
-                    </div>
-                    <span className="text-[15px] font-bold text-zinc-800 tracking-wide">{stat.label}</span>
-                  </div>
-                  <MoreHorizontal size={20} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
-                </div>
-
-                {/* Value & Subtext (Same Line) */}
-                <div className="flex items-end justify-between mt-4">
-                  <h3 className="text-3xl font-extrabold text-zinc-900 tracking-tight leading-none">
-                    {isLoading ? '---' : stat.value}
-                  </h3>
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold ${stat.pillBg} ${stat.pillText}`}>
-                      <stat.pillIcon size={10} strokeWidth={3} /> {stat.pillValue}
-                    </div>
-                    <p className="text-[12px] font-medium text-zinc-500">{stat.sub}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Donut Chart */}
-          <div 
-            onClick={() => router.push('/admin/orders')}
-            className="bg-white border border-zinc-100 rounded-3xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg cursor-pointer transition-all duration-300 group flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-[18px] font-bold text-zinc-800 tracking-wide">{t('order_information') || 'Order Information'}</h3>
-              <MoreHorizontal size={20} className="text-zinc-400 cursor-pointer hover:text-zinc-600 transition-colors" />
+    <AdminLayout title={t('system_overview')} hideTitle>
+      <div className="space-y-5 pb-6">
+        <div className="flex justify-center">
+          <div className="flex min-w-[250px] items-center justify-between border border-slate-200 bg-white px-2 py-2 shadow-sm">
+            <button aria-label="Previous day" onClick={() => setSelectedDate((current) => { const next = new Date(current); next.setDate(next.getDate() - 1); return next; })} className="flex h-9 w-9 items-center justify-center text-slate-500 transition-colors hover:bg-sky-50 hover:text-sky-700"><ChevronLeft size={19} /></button>
+            <div className="flex items-center gap-2.5 px-2">
+              <label className="relative flex h-8 w-8 cursor-pointer items-center justify-center text-sky-600 hover:bg-sky-50" aria-label="Choose date">
+                <CalendarDays size={17} />
+                <input
+                  type="date"
+                  aria-label="Choose dashboard date"
+                  value={toInputDate(selectedDate)}
+                  max={toInputDate(new Date())}
+                  onChange={(event) => {
+                    const [year, month, day] = event.target.value.split('-').map(Number);
+                    if (year && month && day) setSelectedDate(new Date(year, month - 1, day));
+                  }}
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                />
+              </label>
+              <div className="text-center"><p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{isToday ? 'Today' : 'Selected date'}</p><p className="text-sm font-semibold tabular-nums text-slate-800">{dateLabel}</p></div>
             </div>
+            <button aria-label="Next day" disabled={isToday} onClick={() => setSelectedDate((current) => { const next = new Date(current); next.setDate(next.getDate() + 1); return next; })} className="flex h-9 w-9 items-center justify-center text-slate-500 transition-colors hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-30"><ChevronRight size={19} /></button>
+          </div>
+        </div>
 
-            <div className="flex-1 relative flex items-center justify-center min-h-[160px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={
-                      [
-                        { name: t('pending') || 'Pending', value: stats.orderStatuses?.pending || 0, color: '#f59e0b' },
-                        { name: t('in_process') || 'In Process', value: stats.orderStatuses?.processing || 0, color: '#3b82f6' },
-                        { name: t('delivering') || 'Delivering', value: stats.orderStatuses?.delivering || 0, color: '#8b5cf6' },
-                        { name: t('completed') || 'Completed', value: stats.orderStatuses?.completed || 0, color: '#10b981' },
-                        { name: t('cancelled') || 'Cancelled', value: stats.orderStatuses?.cancelled || 0, color: '#ef4444' }
-                      ].filter(d => d.value > 0).length > 0 
-                      ? [
-                        { name: t('pending') || 'Pending', value: stats.orderStatuses?.pending || 0, color: '#f59e0b' },
-                        { name: t('in_process') || 'In Process', value: stats.orderStatuses?.processing || 0, color: '#3b82f6' },
-                        { name: t('delivering') || 'Delivering', value: stats.orderStatuses?.delivering || 0, color: '#8b5cf6' },
-                        { name: t('completed') || 'Completed', value: stats.orderStatuses?.completed || 0, color: '#10b981' },
-                        { name: t('cancelled') || 'Cancelled', value: stats.orderStatuses?.cancelled || 0, color: '#ef4444' }
-                      ].filter(d => d.value > 0)
-                      : [{ name: 'No Orders', value: 1, color: '#e4e4e7' }]
-                    }
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={75}
-                    outerRadius={95}
-                    cornerRadius={10}
-                    paddingAngle={3}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {
-                      (
-                        [
-                          { name: t('pending') || 'Pending', value: stats.orderStatuses?.pending || 0, color: '#f59e0b' },
-                          { name: t('in_process') || 'In Process', value: stats.orderStatuses?.processing || 0, color: '#3b82f6' },
-                          { name: t('delivering') || 'Delivering', value: stats.orderStatuses?.delivering || 0, color: '#8b5cf6' },
-                          { name: t('completed') || 'Completed', value: stats.orderStatuses?.completed || 0, color: '#10b981' },
-                          { name: t('cancelled') || 'Cancelled', value: stats.orderStatuses?.cancelled || 0, color: '#ef4444' }
-                        ].filter(d => d.value > 0).length > 0 
-                        ? [
-                          { name: t('pending') || 'Pending', value: stats.orderStatuses?.pending || 0, color: '#f59e0b' },
-                          { name: t('in_process') || 'In Process', value: stats.orderStatuses?.processing || 0, color: '#3b82f6' },
-                          { name: t('delivering') || 'Delivering', value: stats.orderStatuses?.delivering || 0, color: '#8b5cf6' },
-                          { name: t('completed') || 'Completed', value: stats.orderStatuses?.completed || 0, color: '#10b981' },
-                          { name: t('cancelled') || 'Cancelled', value: stats.orderStatuses?.cancelled || 0, color: '#ef4444' }
-                        ].filter(d => d.value > 0)
-                        : [{ name: 'No Orders', value: 1, color: '#e4e4e7' }]
-                      ).map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))
-                    }
-                  </Pie>
-                  <Tooltip 
-                    cursor={false}
-                    contentStyle={{ borderRadius: '12px', border: '1px solid #e4e4e7', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', padding: '8px 12px', backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
-                    itemStyle={{ color: '#27272a', fontWeight: 'bold', fontSize: '12px', padding: 0 }}
-                    labelStyle={{ display: 'none' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <h4 className="text-[28px] font-bold text-zinc-800 tracking-wide leading-none mb-1 mt-1">
-                  {stats.totalOrders.toLocaleString()}
-                </h4>
-                <p className="text-[10px] font-bold text-zinc-500 capitalize tracking-wide text-center mt-0.5" dangerouslySetInnerHTML={{ __html: t('total_orders_this_week') || 'Total Order<br/>On This Week' }} />
+        <section className="overflow-hidden border border-slate-200 bg-white shadow-sm">
+          {sectionHeader('System Overview', systemOverviewOpen, () => setSystemOverviewOpen((open) => !open))}
+          {systemOverviewOpen && <div className="grid grid-cols-1 gap-4 bg-slate-50/70 p-4 sm:grid-cols-2 xl:grid-cols-4">
+            {overviewCards.map((card) => <div key={card.label} className="flex min-h-[138px] flex-col justify-between border border-slate-100 bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-500">{card.label}</span><span className={`flex h-10 w-10 items-center justify-center ${card.bg} ${card.color}`}><card.icon size={19} /></span></div>
+              <div><p className="text-2xl font-bold tracking-tight text-slate-900">{isLoading ? '—' : card.value}</p><p className="mt-1 text-xs text-slate-500">{card.helper}</p></div>
+            </div>)}
+          </div>}
+        </section>
+
+        <section className="overflow-hidden border border-slate-200 bg-white shadow-sm">
+          {sectionHeader('Order Information', orderInformationOpen, () => setOrderInformationOpen((open) => !open), <Link href="/admin/orders" className="flex items-center gap-1 text-xs font-semibold text-sky-700 hover:text-sky-900">Manage orders <ChevronRight size={15} /></Link>)}
+          {orderInformationOpen && <div className="grid grid-cols-1 gap-4 bg-slate-50/70 p-4 xl:grid-cols-2">
+            <div className="border border-slate-100 bg-white p-4">
+              <div className="mb-3"><h3 className="text-sm font-semibold text-slate-800">Orders by status</h3><p className="text-xs text-slate-500">Daily workload overview</p></div>
+              <div className="h-[260px]">
+                <ResponsiveContainer width="100%" height="100%"><BarChart data={statusData} layout="vertical" margin={{ top: 4, right: 18, left: 8, bottom: 4 }}>
+                  <CartesianGrid stroke="#e8edf3" horizontal={false} /><XAxis type="number" allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} /><YAxis type="category" dataKey="name" width={92} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#475569' }} /><Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: 0, border: '1px solid #e2e8f0' }} /><Bar dataKey="count" name="Orders" radius={[0, 0, 0, 0]} barSize={22} fill="#38a8d5" />
+                </BarChart></ResponsiveContainer>
               </div>
             </div>
-
-            {/* Legends */}
-            <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2">
-              {[
-                { name: t('pending') || 'Pending', color: '#f59e0b' },
-                { name: t('in_process') || 'In Process', color: '#3b82f6' },
-                { name: t('delivering') || 'Delivering', color: '#8b5cf6' },
-                { name: t('completed') || 'Completed', color: '#10b981' },
-                { name: t('cancelled') || 'Cancelled', color: '#ef4444' }
-              ].map((item, index) => (
-                <div key={index} className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: item.color }} />
-                  <span className="text-[11px] font-bold text-zinc-800 tracking-wide capitalize">{item.name}</span>
-                </div>
-              ))}
+            <div className="border border-slate-100 bg-white p-4">
+              <div className="mb-3"><h3 className="text-sm font-semibold text-slate-800">Sales throughout the day</h3><p className="text-xs text-slate-500">Two-hour intervals · RM</p></div>
+              <div className="h-[260px]">
+                <ResponsiveContainer width="100%" height="100%"><BarChart data={hourlySales} margin={{ top: 8, right: 12, left: 2, bottom: 4 }}>
+                  <CartesianGrid stroke="#e8edf3" vertical={false} /><XAxis dataKey="hour" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} interval={1} /><YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} width={48} /><Tooltip formatter={(value: any) => [`RM ${Number(value).toFixed(2)}`, 'Sales']} contentStyle={{ borderRadius: 0, border: '1px solid #e2e8f0' }} /><Bar dataKey="sales" name="Sales" fill="#38a8d5" radius={[0, 0, 0, 0]} barSize={18} />
+                </BarChart></ResponsiveContainer>
+              </div>
             </div>
-          </div>
-        </div>
+          </div>}
+        </section>
 
-        {/* Recent Orders - Visual Feed */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between px-4">
-            <h3 className="text-[18px] font-bold text-zinc-800 tracking-wide flex items-center gap-2">
-              <Clock size={20} /> {t('recent_transactions') || 'Recent Transactions'}
-            </h3>
-            <Link href="/admin/orders" className="text-[14px] font-bold tracking-wide text-yellow-500 hover:gap-2 flex items-center gap-1 transition-all">
-              {t('view_more') || 'View More'} <ChevronRight size={16} />
-            </Link>
-          </div>
-          
-          <div className="bg-white  border border-zinc-200  rounded-[40px] overflow-hidden shadow-2xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-zinc-500/5 border-b border-zinc-500/10">
-                    <th className="px-5 py-4 text-[11px] font-bold text-zinc-800 uppercase tracking-wide">{locale === 'zh' ? '订单' : locale === 'ms' ? 'Pesanan' : 'Orders'}</th>
-                    <th className="px-5 py-4 text-[11px] font-bold text-zinc-800 uppercase tracking-wide">{locale === 'zh' ? '客户' : locale === 'ms' ? 'Pelanggan' : 'Customers'}</th>
-                    <th className="px-5 py-4 text-[11px] font-bold text-zinc-800 uppercase tracking-wide">{locale === 'zh' ? '总计' : locale === 'ms' ? 'Jumlah' : 'Total'}</th>
-                    <th className="px-5 py-4 text-[11px] font-bold text-zinc-800 uppercase tracking-wide">{locale === 'zh' ? '支付方式' : locale === 'ms' ? 'Kaedah Pembayaran' : 'Payment Method'}</th>
-                    <th className="px-5 py-4 text-[11px] font-bold text-zinc-800 uppercase tracking-wide">{locale === 'zh' ? '配送方式' : locale === 'ms' ? 'Mod Penghantaran' : 'Delivery Mode'}</th>
-                    <th className="px-5 py-4 text-[11px] font-bold text-zinc-800 uppercase tracking-wide">{locale === 'zh' ? '状态' : locale === 'ms' ? 'Status' : 'Status'}</th>
-                    <th className="px-5 py-4 text-[11px] font-bold text-zinc-800 uppercase tracking-wide">{locale === 'zh' ? '日期' : locale === 'ms' ? 'Tarikh' : 'Date'}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-500/5">
-                  {stats.recentOrders.length === 0 ? (
-                    <tr><td colSpan={7} className="p-10 text-center text-zinc-500 font-bold uppercase text-[10px]">{t('no_recent_orders_found')}</td></tr>
-                  ) : stats.recentOrders.map((order: any) => (
-                    <tr key={order.id} className="group hover:bg-zinc-500/5 transition-colors cursor-pointer" onClick={() => router.push(`/admin/orders/${order.id}`)}>
-                      <td className="px-5 py-3">
-                        <span className="text-xs font-black  text-zinc-900 font-mono">#{order.id.slice(-6).toUpperCase()}</span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className="text-xs font-bold  text-zinc-900">{order.customer?.name}</span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className="text-sm font-bold text-zinc-900">RM {order.totalAmount.toFixed(2)}</span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className="text-xs font-bold text-zinc-700 capitalize">
-                          {order.paymentMethod ? (t(order.paymentMethod.toLowerCase().replace(/ /g, '_')) || order.paymentMethod.replace(/_/g, ' ')) : '-'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className="text-xs font-bold text-zinc-700 capitalize">
-                          {order.deliveryMode ? (t(order.deliveryMode.toLowerCase().replace(/ /g, '_')) || order.deliveryMode.replace(/_/g, ' ')) : '-'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${
-                          order.status === 'Completed' ? 'bg-green-500/10 text-green-500' :
-                          order.status === 'Pending' ? 'bg-orange-500/10 text-orange-500 animate-pulse' :
-                          'bg-zinc-500/10 text-zinc-500'
-                        }`}>
-                          {t(order.status.toLowerCase().replace(/ /g, '_')) || order.status}
-                        </div>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className="text-xs font-medium text-zinc-500">
-                          {new Date(order.createdAt).toLocaleDateString(locale === 'ms' ? 'ms-MY' : locale === 'zh' ? 'zh-CN' : 'en-US', {
-                            year: 'numeric', month: 'short', day: 'numeric'
-                          })}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <section className="overflow-hidden border border-slate-200 bg-white shadow-sm">
+          {sectionHeader('Recent Transaction Details', recentTransactionsOpen, () => setRecentTransactionsOpen((open) => !open), <Link href="/admin/orders" className="flex items-center gap-1 text-xs font-semibold text-sky-700 hover:text-sky-900">View all <ChevronRight size={15} /></Link>)}
+          {recentTransactionsOpen && <div className="p-3 sm:p-4"><div className="overflow-x-auto border border-slate-200"><table className="w-full min-w-[850px] text-left text-sm">
+            <thead><tr className="border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500"><th className="px-4 py-3 font-semibold">Order No.</th><th className="px-4 py-3 font-semibold">Customer</th><th className="px-4 py-3 font-semibold">Total</th><th className="px-4 py-3 font-semibold">Payment</th><th className="px-4 py-3 font-semibold">Delivery</th><th className="px-4 py-3 font-semibold">Status</th><th className="px-4 py-3 font-semibold">Date</th></tr></thead>
+            <tbody className="divide-y divide-slate-100">{stats.recentOrders.length === 0 ? <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-500">No recent orders found.</td></tr> : stats.recentOrders.map((order: any, index: number) => <tr key={order.id} className={`cursor-pointer transition-colors hover:bg-sky-50/60 ${index % 2 ? 'bg-slate-50/50' : 'bg-white'}`} onClick={() => router.push(`/admin/orders/${order.id}`)}>
+              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs font-semibold text-sky-800">#{String(order.id).slice(-6).toUpperCase()}</td><td className="px-4 py-3 font-medium text-slate-800">{order.customer?.name || 'Guest'}</td><td className="whitespace-nowrap px-4 py-3 font-semibold text-slate-800">RM {Number(order.totalAmount || 0).toFixed(2)}</td><td className="px-4 py-3 text-slate-600">{order.paymentMethod ? (t(order.paymentMethod.toLowerCase().replace(/ /g, '_')) || order.paymentMethod.replace(/_/g, ' ')) : '—'}</td><td className="px-4 py-3 text-slate-600">{order.deliveryMode ? (t(order.deliveryMode.toLowerCase().replace(/ /g, '_')) || order.deliveryMode.replace(/_/g, ' ')) : '—'}</td><td className="px-4 py-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium ${order.status === 'Completed' ? 'bg-emerald-50 text-emerald-700' : order.status === 'Cancelled' ? 'bg-rose-50 text-rose-700' : order.status === 'Pending' ? 'bg-amber-50 text-amber-700' : 'bg-sky-50 text-sky-700'}`}>{t(order.status.toLowerCase().replace(/ /g, '_')) || order.status}</span></td><td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">{new Date(order.createdAt).toLocaleDateString(locale === 'ms' ? 'ms-MY' : locale === 'zh' ? 'zh-CN' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+            </tr>)}</tbody>
+          </table></div></div>}
+        </section>
       </div>
 
       {/* Admin Welcome Info Modal */}

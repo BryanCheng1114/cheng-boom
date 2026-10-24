@@ -5,11 +5,7 @@ import {
   BarChart3, 
   ShoppingBag, 
   Package, 
-  Clock, 
-  AlertCircle,
-  MoreHorizontal,
-  ArrowUp,
-  ArrowDown
+  AlertCircle
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { useLanguage } from '../../context/LanguageContext';
@@ -175,10 +171,10 @@ export default function RevenuePage() {
       const val = payload[0].value;
       const display = val >= 1000 ? (val / 1000).toFixed(1) + 'k' : `RM ${val.toFixed(2)}`;
       return (
-        <div className="bg-zinc-900 text-white px-4 py-2.5 rounded-2xl shadow-xl flex flex-col items-center gap-0.5" style={{ minWidth: '80px' }}>
-          <p className="text-[13px] font-extrabold tracking-wide">{display}</p>
-          <p className="text-[10px] text-zinc-400 font-semibold">{label}</p>
-          <div className="absolute -bottom-[6px] left-1/2 -translate-x-1/2 w-3 h-3 bg-zinc-900 rotate-45 rounded-sm"></div>
+        <div className="bg-slate-900 text-white px-4 py-2.5 shadow-xl flex flex-col items-center gap-0.5" style={{ minWidth: '80px' }}>
+          <p className="text-[13px] font-semibold tracking-wide">{display}</p>
+          <p className="text-[10px] text-zinc-400 font-medium">{label}</p>
+          <div className="absolute -bottom-[6px] left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900 rotate-45"></div>
         </div>
       );
     }
@@ -190,89 +186,72 @@ export default function RevenuePage() {
       label: t('total_sales') || 'Total Sales', 
       value: `RM ${metrics.totalRevenue.toLocaleString()}`, 
       sub: t('completed_sales') || 'Completed Sales', 
-      icon: TrendingUp, 
-      solidBg: 'bg-[#f59e0b]', // yellow/orange
-      pillBg: 'bg-emerald-500/10', pillText: 'text-emerald-500', pillIcon: ArrowUp, pillValue: '12%'
+      icon: TrendingUp
     },
     { 
       label: t('average_order_value') || 'Average Order Value', 
       value: `RM ${metrics.avgOrderValue.toFixed(2)}`, 
       sub: t('per_order') || 'Per Order', 
-      icon: BarChart3, 
-      solidBg: 'bg-[#3b82f6]', // blue
-      pillBg: 'bg-emerald-500/10', pillText: 'text-emerald-500', pillIcon: ArrowUp, pillValue: '5%'
+      icon: BarChart3
     },
     { 
       label: t('completed_sales') || 'Completed Sales', 
       value: metrics.totalOrders, 
       sub: t('all_transactions') || 'All Transactions', 
-      icon: ShoppingBag, 
-      solidBg: 'bg-[#10b981]', // green
-      pillBg: 'bg-emerald-500/10', pillText: 'text-emerald-500', pillIcon: ArrowUp, pillValue: '18%'
+      icon: ShoppingBag
     },
     { 
       label: t('units_sold') || 'Units Sold', 
       value: metrics.unitsSold, 
       sub: t('total_items') || 'Total Items', 
-      icon: Package, 
-      solidBg: 'bg-[#a855f7]', // purple
-      pillBg: 'bg-emerald-500/10', pillText: 'text-emerald-500', pillIcon: ArrowUp, pillValue: '8%'
+      icon: Package
     },
   ];
 
   return (
     <AdminLayout title={t('revenue') || 'Revenue'}>
-      <div className="space-y-10 pb-10">
+      <div className="space-y-5 pb-6">
         
         {/* KPI Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {statCards.map((stat, i) => (
             <motion.div 
               key={stat.label} 
               initial={{ opacity: 0, y: 20 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ delay: i * 0.1 }} 
-              className="bg-white border border-zinc-100 rounded-3xl p-8 min-h-[200px] flex flex-col justify-between transition-all duration-300 group shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg"
+              className="bg-white border border-slate-200 p-5 min-h-[168px] flex flex-col justify-between transition-shadow duration-200 shadow-sm hover:shadow-md"
             >
-              {/* Top Row: Icon + Label + More */}
+            {/* Metric label and monochrome icon */}
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">
-                  <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white ${stat.solidBg}`}>
-                    <stat.icon size={20} strokeWidth={2.5} />
-                  </div>
-                  <span className="text-[15px] font-bold text-zinc-800 tracking-wide">{stat.label}</span>
+                  <stat.icon size={18} strokeWidth={1.8} className="text-slate-500" />
+                  <span className="text-sm font-medium text-slate-700">{stat.label}</span>
                 </div>
-                <MoreHorizontal size={20} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
               </div>
 
               {/* Middle Row: Large Value */}
-              <h3 className="text-3xl font-extrabold text-zinc-900 mb-4 tracking-tight leading-none">
+              <h3 className="text-2xl font-semibold text-slate-900 mb-3 tracking-tight leading-none">
                 {isLoading ? '---' : stat.value}
               </h3>
 
-              {/* Bottom Row: Pill + Subtext */}
-              <div className="flex items-center gap-2">
-                <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold ${stat.pillBg} ${stat.pillText}`}>
-                  <stat.pillIcon size={10} strokeWidth={3} /> {stat.pillValue}
-                </div>
-                <p className="text-[12px] font-medium text-zinc-500">{stat.sub}</p>
-              </div>
+              <p className="text-xs font-medium text-slate-500">{stat.sub}</p>
             </motion.div>
           ))}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Chart */}
-          <div className="lg:col-span-2 bg-white border border-zinc-100 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden">
+          <div className="lg:col-span-2 bg-white border border-slate-200 shadow-sm overflow-hidden">
             {/* Card Header */}
-            <div className="px-8 pt-7 pb-5 border-b border-zinc-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="px-5 pt-5 pb-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h3 className="text-[18px] font-bold text-zinc-800 tracking-wide">
+                <h3 className="text-[18px] font-semibold text-slate-800 tracking-wide">
                   {t('daily_revenue') || 'Daily Revenue'}
                 </h3>
                 {!isLoading && (
                   <p className="text-[13px] text-zinc-500 font-medium mt-0.5">
-                    {t('total') || 'Total'}: <span className="font-bold text-zinc-700">RM {metrics.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    {t('total') || 'Total'}: <span className="font-medium text-slate-700">RM {metrics.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </p>
                 )}
               </div>
@@ -280,7 +259,7 @@ export default function RevenuePage() {
                 <select
                   value={selectedPeriod}
                   onChange={(e) => setSelectedPeriod(e.target.value)}
-                  className="appearance-none bg-zinc-50 border border-zinc-200 text-[13px] font-bold text-zinc-700 rounded-full pl-5 pr-10 py-2 outline-none hover:border-zinc-300 cursor-pointer transition-all"
+                  className="appearance-none bg-slate-50 border border-slate-200 text-[13px] font-medium text-slate-700 pl-4 pr-10 py-2 outline-none hover:border-sky-400 focus:border-sky-500 cursor-pointer transition-colors"
                 >
                   <option value="30days">{t('last_30_days') || 'Last 30 Days'}</option>
                   {availableMonths.map(m => (
@@ -298,21 +277,11 @@ export default function RevenuePage() {
               <div className="h-[320px] w-full">
                 {isLoading ? (
                   <div className="w-full h-full flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} margin={{ top: 20, right: 10, left: -10, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#6366f1" stopOpacity={1} />
-                          <stop offset="100%" stopColor="#a78bfa" stopOpacity={0.7} />
-                        </linearGradient>
-                        <linearGradient id="barGradientActive" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#4f46e5" stopOpacity={1} />
-                          <stop offset="100%" stopColor="#7c3aed" stopOpacity={1} />
-                        </linearGradient>
-                      </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f1f4" opacity={1} />
                       <XAxis 
                         dataKey="date" 
@@ -330,15 +299,15 @@ export default function RevenuePage() {
                         width={40}
                       />
                       <Tooltip
-                        cursor={{ fill: 'rgba(99,102,241,0.06)', radius: 8 }}
+                        cursor={{ fill: 'rgba(56,168,213,0.08)' }}
                         content={<CustomTooltip />}
                         position={{ y: 0 }}
                       />
                       <Bar 
                         dataKey="revenue" 
-                        fill="url(#barGradient)" 
-                        radius={[8, 8, 4, 4]}
-                        activeBar={{ fill: 'url(#barGradientActive)', stroke: 'none' }}
+                        fill="#38a8d5"
+                        radius={[0, 0, 0, 0]}
+                        activeBar={{ fill: '#1688b8', stroke: 'none' }}
                         maxBarSize={40}
                       />
                     </BarChart>
@@ -349,58 +318,46 @@ export default function RevenuePage() {
           </div>
 
           {/* Top Products */}
-          <div className="bg-white border border-zinc-100 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
+          <div className="bg-white border border-slate-200 shadow-sm overflow-hidden flex flex-col">
             {/* Header */}
-            <div className="px-8 pt-7 pb-5 border-b border-zinc-100">
-              <h3 className="text-[18px] font-bold text-zinc-800 tracking-wide">{t('top_selling_products') || 'Top Selling Products'}</h3>
+            <div className="px-5 pt-5 pb-4 border-b border-slate-100">
+              <h3 className="text-[18px] font-semibold text-slate-800 tracking-wide">{t('top_selling_products') || 'Top Selling Products'}</h3>
               <p className="text-[13px] text-zinc-500 font-medium mt-0.5">{t('by_revenue_this_period') || 'By revenue this period'}</p>
             </div>
 
             <div className="flex-1 flex flex-col px-8 py-6 gap-5">
               {isLoading ? (
                 <div className="flex-1 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
                 </div>
               ) : topProducts.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50 py-10">
                   <AlertCircle size={40} className="text-zinc-300 mb-4" />
-                  <p className="text-sm font-bold text-zinc-400">{t('no_data') || 'No data available'}</p>
+                  <p className="text-sm font-medium text-zinc-400">{t('no_data') || 'No data available'}</p>
                 </div>
               ) : (() => {
                 const maxRev = Math.max(...topProducts.map((p: any) => p.rev));
-                const medals = ['🥇', '🥈', '🥉'];
-                const barColors = [
-                  'bg-gradient-to-r from-indigo-500 to-violet-500',
-                  'bg-gradient-to-r from-sky-400 to-blue-500',
-                  'bg-gradient-to-r from-emerald-400 to-teal-500',
-                  'bg-gradient-to-r from-amber-400 to-orange-400',
-                  'bg-gradient-to-r from-rose-400 to-pink-500',
-                ];
                 return topProducts.map((product: any, index: number) => (
                   <div key={index} className="group">
                     {/* Row top: rank + name + revenue */}
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2.5">
-                        <span className="text-[18px] leading-none">
-                          {index < 3 ? medals[index] : (
-                            <span className="inline-flex w-6 h-6 rounded-full bg-zinc-100 text-zinc-500 text-[11px] font-black items-center justify-center">
-                              {index + 1}
-                            </span>
-                          )}
+                        <span className="inline-flex w-6 h-6 items-center justify-center border border-slate-200 text-[11px] font-medium text-slate-500">
+                          {index + 1}
                         </span>
                         <div>
-                          <p className="text-[13px] font-bold text-zinc-800 line-clamp-1 group-hover:text-indigo-600 transition-colors">
+                          <p className="text-[13px] font-medium text-slate-800 line-clamp-1 group-hover:text-sky-700 transition-colors">
                             {locale === 'zh' ? (product.nameZh || product.name) : locale === 'ms' ? (product.nameMs || product.name) : product.name}
                           </p>
                           <p className="text-[11px] text-zinc-400 font-medium">{product.qty} {t('units_sold_count') || 'units sold'}</p>
                         </div>
                       </div>
-                      <span className="text-[13px] font-extrabold text-zinc-900 tabular-nums">RM {product.rev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className="text-[13px] font-semibold text-slate-900 tabular-nums">RM {product.rev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                     {/* Progress bar */}
-                    <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-slate-100 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-700 ${barColors[index % barColors.length]}`}
+                        className="h-full bg-sky-500 transition-all duration-700"
                         style={{ width: `${Math.max(4, (product.rev / maxRev) * 100)}%` }}
                       />
                     </div>

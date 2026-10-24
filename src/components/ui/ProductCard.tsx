@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useCart } from '../cart/CartProvider';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, ShoppingCart } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useFlyToCart } from './FlyToCartProvider';
 import { useBusiness } from '../../context/BusinessContext';
@@ -40,7 +40,6 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
 
   const cardT = {
     new: { en: 'New', zh: '新品', ms: 'Baru' },
-    add: { en: 'Add', zh: '添加', ms: 'Tambah' },
   };
   const ct = (key: keyof typeof cardT) => cardT[key][locale as 'en'|'zh'|'ms'] || cardT[key].en;
 
@@ -196,18 +195,19 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
             type="button"
             onClick={handleAdd}
             disabled={isOutOfStock}
-            className="inline-flex h-7 shrink-0 items-center justify-center rounded-lg bg-amber-400 px-3 text-[11px] font-bold text-zinc-900 shadow-sm transition-all hover:bg-amber-300 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:h-8 sm:px-3.5 sm:text-xs"
-            aria-label={`${ct('add')} ${translatedName} to cart`}
+            className="inline-flex h-8 min-w-14 shrink-0 items-center justify-center rounded-full bg-amber-400 px-4 text-zinc-900 shadow-sm transition-all hover:bg-amber-300 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:min-w-16"
+            aria-label={`${locale === 'zh' ? '添加' : locale === 'ms' ? 'Tambah' : 'Add'} ${translatedName} to cart`}
+            title={locale === 'zh' ? '加入购物车' : locale === 'ms' ? 'Tambah ke troli' : 'Add to cart'}
           >
-            {ct('add')}
+            <ShoppingCart size={16} strokeWidth={2.2} className="sm:h-[17px] sm:w-[17px]" />
           </button>
         ) : (
-          <div className="flex h-8 shrink-0 items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 p-0.5 sm:h-9 sm:gap-1.5 sm:p-1" aria-label={`${quantity} in cart`}>
+          <div className="flex h-9 shrink-0 items-center gap-1 rounded-full border border-amber-200 bg-amber-50 p-1 sm:h-10 sm:gap-1.5" aria-label={`${quantity} in cart`}>
             <button
               type="button"
               onClick={handleMinus}
               aria-label={`Remove one ${translatedName}`}
-              className="flex h-6 w-6 items-center justify-center rounded-md text-zinc-700 transition-colors hover:bg-amber-200 active:scale-90 sm:h-7 sm:w-7"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-zinc-700 transition-colors hover:bg-amber-200 active:scale-90 sm:h-8 sm:w-8"
             >
               <Minus size={13} strokeWidth={2.5} />
             </button>
@@ -217,7 +217,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
               onClick={handleAdd}
               disabled={quantity >= stock}
               aria-label={`Add one ${translatedName}`}
-              className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-400 text-zinc-900 transition-colors hover:bg-amber-300 active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7"
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 text-zinc-900 transition-colors hover:bg-amber-300 active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 sm:h-8 sm:w-8"
             >
               <Plus size={13} strokeWidth={2.5} />
             </button>

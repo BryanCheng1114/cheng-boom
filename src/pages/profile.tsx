@@ -49,8 +49,6 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useBusiness } from '../context/BusinessContext';
 
 import { jsPDF } from 'jspdf';
-import { toPng } from 'html-to-image';
-import { ReceiptTemplate } from '../components/profile/ReceiptTemplate';
 
 export default function ProfilePage() {
  const router = useRouter();
@@ -69,34 +67,76 @@ export default function ProfilePage() {
  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
  
  const ITEMS_PER_PAGE = 8;
- const receiptRef = React.useRef<HTMLDivElement>(null);
  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
  const handleDownloadReceipt = async () => {
- if (!receiptRef.current || !selectedOrder) return;
+ if (!selectedOrder || selectedOrder.status === 'Cancelled') return;
  setIsGeneratingPdf(true);
  try {
- const element = receiptRef.current;
- const dataUrl = await toPng(element, {
- cacheBust: true,
- backgroundColor: '#ffffff',
- pixelRatio: 2,
- fontEmbedCSS: '',
- width: element.scrollWidth,
- height: element.scrollHeight
- });
- 
- const aspect = element.scrollHeight / element.scrollWidth;
- 
- const pdfWidth = 210;
- const pdfHeight = pdfWidth * aspect;
- const pdf = new jsPDF({
- orientation: 'portrait',
- unit: 'mm',
- format: [pdfWidth, pdfHeight]
- });
- pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
- pdf.save(`Receipt_${selectedOrder.id}.pdf`);
+ const { default: autoTable } = await import('jspdf-autotable');
+ const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+ const pageWidth = pdf.internal.pageSize.getWidth();
+ const left = 10;
+ const right = pageWidth - 10;
+ const businessName = settings?.businessName || 'CHENG-BOOM';
+ const createdAt = new Date(selectedOrder.createdAt);
+ const date = createdAt.toLocaleDateString('en-MY', { year: 'numeric', month: '2-digit', day: '2-digit' });
+ const compactDate = `${String(createdAt.getFullYear()).slice(-2)}${String(createdAt.getMonth() + 1).padStart(2, '0')}${String(createdAt.getDate()).padStart(2, '0')}`;
+ const orderNumber = `CB-${compactDate}-${String(selectedOrder.id).slice(-6).toUpperCase()}`;
+ const time = createdAt.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', hour12: true });
+ const address = /self|collect/i.test(`${selectedOrder.deliveryMode || ''} ${selectedOrder.address || ''} ${selectedOrder.customer?.address || ''}`)
+ ? 'Self Collect' : (selectedOrder.address || selectedOrder.customer?.address || '');
+
+ let watermarkData: string | null = null;
+ let watermarkWidth = 0;
+ let watermarkHeight = 0;
+ if (settings?.logoUrl) {
+  try {
+   const response = await fetch(settings.logoUrl);
+   if (response.ok) {
+    const bitmap = await createImageBitmap(await response.blob());
+    const colorCanvas = document.createElement('canvas'); colorCanvas.width = bitmap.width; colorCanvas.height = bitmap.height;
+    colorCanvas.getContext('2d')?.drawImage(bitmap, 0, 0);
+    const headerScale = Math.min(24 / bitmap.width, 16 / bitmap.height);
+    pdf.addImage(colorCanvas.toDataURL('image/png'), 'PNG', (pageWidth - bitmap.width * headerScale) / 2, 4 + (16 - bitmap.height * headerScale) / 2, bitmap.width * headerScale, bitmap.height * headerScale);
+    const watermarkCanvas = document.createElement('canvas'); watermarkCanvas.width = bitmap.width; watermarkCanvas.height = bitmap.height;
+    const context = watermarkCanvas.getContext('2d');
+    if (context) { context.filter = 'grayscale(100%)'; context.drawImage(bitmap, 0, 0); }
+    watermarkData = watermarkCanvas.toDataURL('image/png');
+    const watermarkScale = Math.min(70 / bitmap.width, 70 / bitmap.height);
+    watermarkWidth = bitmap.width * watermarkScale;
+    watermarkHeight = bitmap.height * watermarkScale;
+    bitmap.close();
+   }
+  } catch (error) { console.warn('Business logo could not be added to the receipt:', error); }
+ }
+ pdf.setFont('helvetica', 'bold'); pdf.setFontSize(15); pdf.text(String(businessName).toUpperCase(), pageWidth / 2, 32, { align: 'center' });
+ pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9);
+ let headerY = 38;
+ const businessAddress = settings?.address?.trim() || '';
+ if (businessAddress) { const lines = pdf.splitTextToSize(businessAddress, right - left); pdf.text(lines, pageWidth / 2, headerY, { align: 'center' }); headerY += lines.length * 4; }
+ const contact = [settings?.phone?.trim() ? `Tel: ${settings.phone.trim()}` : '', settings?.email?.trim() ? `Email: ${settings.email.trim()}` : ''].filter(Boolean).join('   ');
+ if (contact) { pdf.text(contact, pageWidth / 2, headerY, { align: 'center' }); headerY += 5; }
+ pdf.setDrawColor(130); const dividerY = headerY + 1; pdf.line(left, dividerY, right, dividerY);
+ pdf.setFont('helvetica', 'bold'); pdf.setFontSize(14); const titleY = dividerY + 8; pdf.text('Sales Order', pageWidth / 2, titleY, { align: 'center' });
+ pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9);
+ const detailsTop = titleY + 8; const gap = 6; const colWidth = (right - left - gap * 2) / 3;
+ const middleX = left + colWidth + gap; const rightX = middleX + colWidth + gap;
+ const billLines = pdf.splitTextToSize(`Bill to:\n${address}`, colWidth);
+ const shipLines = pdf.splitTextToSize(`Ship to:\n${address}`, colWidth);
+ const buyerLines = pdf.splitTextToSize(`Order No: ${orderNumber}\nDate: ${date}\nTime: ${time}\nBuyer: ${selectedOrder.customer?.name || user?.name || ''}\nPhone: ${selectedOrder.customer?.phone || user?.phone || ''}\nStatus: ${selectedOrder.status || 'Pending'}`, colWidth);
+ pdf.text(billLines, left, detailsTop); pdf.text(shipLines, middleX, detailsTop); pdf.text(buyerLines, rightX, detailsTop);
+ const tableTop = detailsTop + Math.max(billLines.length, shipLines.length, buyerLines.length) * 4 + 7;
+ const rows = (selectedOrder.items || []).map((item: any, index: number) => [String(index + 1), item.code || '-', item.name || '-', String(item.quantity || 0), item.variant === 'Box' || item.variant === 'Bundle' ? item.variant : 'Single', (Number(item.price) || 0).toFixed(2), '', ((Number(item.price) || 0) * (Number(item.quantity) || 0)).toFixed(2)]);
+ autoTable(pdf, { startY: tableTop, head: [['No.', 'Item Code', 'Item Name', 'QTY', 'UOM', 'Price (RM)', 'Disc (Promo)', 'Amount (RM)']], body: rows, theme: 'plain', margin: { left, right: 10, bottom: 42 }, styles: { font: 'helvetica', fontSize: 8, cellPadding: 2.2, textColor: 25, overflow: 'linebreak' }, headStyles: { fontStyle: 'bold', fillColor: [255,255,255], textColor: 20, lineWidth: { bottom: 0.3 }, lineColor: [100,100,100] }, columnStyles: { 0: { cellWidth: 12, minCellWidth: 12 }, 1: { cellWidth: 25 }, 2: { cellWidth: 'auto' }, 3: { cellWidth: 12, halign: 'right' }, 4: { cellWidth: 14 }, 5: { cellWidth: 18, halign: 'right' }, 6: { cellWidth: 20, halign: 'right' }, 7: { cellWidth: 21, halign: 'right' } } });
+ const finalY = (pdf as any).lastAutoTable?.finalY || tableTop; const pageHeight = pdf.internal.pageSize.getHeight(); let totalsY = finalY + 10;
+ if (totalsY > pageHeight - 42) { pdf.addPage(); totalsY = 20; }
+ const subtotal = rows.reduce((sum: number, row: any[]) => sum + Number(row[7] || 0), 0);
+ pdf.setDrawColor(130); pdf.line(left, totalsY - 4, right, totalsY - 4); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(10); pdf.text(`Subtotal (RM):  ${subtotal.toFixed(2)}`, right, totalsY + 2, { align: 'right' });
+ pdf.setFont('helvetica', 'bold'); pdf.text(`Grand Total (RM):  ${Number(selectedOrder.totalAmount || 0).toFixed(2)}`, right, totalsY + 12, { align: 'right' });
+ pdf.setFont('helvetica', 'normal'); pdf.text('Signature: ______________________________', left, pageHeight - 21);
+ const pageCount = pdf.getNumberOfPages(); for (let page = 1; page <= pageCount; page++) { pdf.setPage(page); if (watermarkData) { const pageHeight = pdf.internal.pageSize.getHeight(); pdf.setGState(pdf.GState({ opacity: 0.08 })); pdf.addImage(watermarkData, 'PNG', (pageWidth - watermarkWidth) / 2, (pageHeight - watermarkHeight) / 2, watermarkWidth, watermarkHeight); pdf.setGState(pdf.GState({ opacity: 1 })); } pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8); pdf.text(`Page ${page}:${pageCount}`, pageWidth / 2, pdf.internal.pageSize.getHeight() - 8, { align: 'center' }); }
+ pdf.save(`Receipt_${orderNumber}.pdf`);
  } catch (err) {
  console.error('Failed to generate PDF:', err);
  alert('Failed to generate PDF receipt. Please try again.');
@@ -1686,13 +1726,13 @@ export default function ProfilePage() {
  <AnimatePresence>
  {selectedOrder && (
  <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-6 lg:p-8">
- <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedOrder(null)} className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
+ <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedOrder(null)} className="absolute inset-0 bg-zinc-700/45 backdrop-blur-sm" />
  
  <motion.div 
  initial={{ opacity: 0, scale: 0.95, y: 20 }} 
  animate={{ opacity: 1, scale: 1, y: 0 }} 
  exit={{ opacity: 0, scale: 0.95, y: 20 }} 
- className="relative w-full h-full md:h-auto max-w-5xl bg-zinc-50 md:bg-zinc-50 rounded-none md:rounded-[48px] shadow-2xl overflow-y-auto md:overflow-hidden border-0 md:border border-zinc-200 flex flex-col md:flex-row max-h-none md:max-h-[90vh] lg:max-h-[85vh]"
+ className="relative w-full h-full md:h-auto max-w-6xl bg-zinc-50 rounded-none md:rounded-[32px] shadow-2xl overflow-y-auto md:overflow-hidden border-0 md:border border-white/20 flex flex-col md:flex-row max-h-none md:max-h-[90vh] lg:max-h-[88vh]"
  >
  {/* Mobile Header */}
  <div className="md:hidden sticky top-0 z-50 flex items-center px-4 py-4 bg-white border-b border-zinc-100 shadow-sm">
@@ -1708,20 +1748,23 @@ export default function ProfilePage() {
  </button>
 
  {/* Left Side: Order Info */}
- <div className="w-full md:w-1/2 lg:w-[55%] shrink-0 md:shrink bg-zinc-50 md:bg-zinc-100/50 p-4 sm:p-6 md:p-10 lg:p-12 flex flex-col border-b-0 md:border-b-0 md:border-r border-zinc-200 md:overflow-y-auto md:custom-scrollbar relative md:min-h-0">
+ <div className="w-full md:w-[52%] shrink-0 md:shrink bg-gradient-to-b from-orange-50/70 via-zinc-50 to-zinc-50 p-4 sm:p-6 md:p-8 lg:p-10 flex flex-col md:border-r border-zinc-200 md:overflow-y-auto md:custom-scrollbar relative md:min-h-0">
  
  {/* Order ID & Tag (Card on Mobile) */}
- <div className="bg-white md:bg-transparent rounded-3xl md:rounded-none p-5 md:p-0 mb-4 md:mb-8 w-full min-w-0 shrink-0 shadow-[0_2px_12px_rgba(0,0,0,0.03)] md:shadow-none border border-zinc-100 md:border-none">
+ <div className="bg-white rounded-3xl p-5 sm:p-6 mb-4 md:mb-6 w-full min-w-0 shrink-0 shadow-sm border border-zinc-200/80">
  <div className="space-y-2 mb-8 mt-0 w-full min-w-0">
- <p className="text-xs font-black text-zinc-500 uppercase tracking-widest">{t.profilePage?.orderId || 'Order ID'}</p>
+ <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.18em]">{t.profilePage?.orderId || 'Order Number'}</p>
  <div className="flex items-center gap-3 w-full min-w-0">
- <h2 className="text-lg sm:text-2xl font-black text-zinc-900 tracking-tight truncate flex-1" title={selectedOrder.id.toUpperCase()}>#{selectedOrder.id.toUpperCase()}</h2>
+ <h2 className="text-xl sm:text-2xl font-black text-zinc-900 tracking-tight truncate flex-1" title={selectedOrder.id.toUpperCase()}>#{(() => { const d = new Date(selectedOrder.createdAt); return `CB-${String(d.getFullYear()).slice(-2)}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${String(selectedOrder.id).slice(-6).toUpperCase()}`; })()}</h2>
  <button 
  onClick={() => {
- navigator.clipboard.writeText(selectedOrder.id.toUpperCase());
- alert('Order ID copied!');
+ const d = new Date(selectedOrder.createdAt);
+ const orderNumber = `CB-${String(d.getFullYear()).slice(-2)}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${String(selectedOrder.id).slice(-6).toUpperCase()}`;
+ navigator.clipboard.writeText(orderNumber);
+ alert('Order number copied!');
  }} 
- className="text-zinc-400 hover:text-zinc-900 transition-colors shrink-0 mt-1 bg-zinc-50 md:bg-transparent p-2 rounded-lg md:p-0"
+ aria-label="Copy order number"
+ className="text-zinc-500 hover:text-zinc-900 transition-colors shrink-0 bg-zinc-100 hover:bg-zinc-200 p-2.5 rounded-xl"
  >
  <Copy size={16} />
  </button>
@@ -1729,7 +1772,7 @@ export default function ProfilePage() {
  </div>
 
  {/* Progress Tracker */}
- <div className="w-full relative">
+ <div className="w-full relative rounded-2xl bg-zinc-50 border border-zinc-100 px-3 py-5">
  {(() => {
  const stages = [
  { key: 'Pending', icon: <Clock size={14} /> },
@@ -1805,8 +1848,8 @@ export default function ProfilePage() {
  </div>
 
  {/* Order Info List */}
- <div className="bg-white md:bg-transparent rounded-3xl md:rounded-none p-5 md:p-0 space-y-6 md:mt-8 md:pt-8 md:border-t border-zinc-200 text-left shrink-0 shadow-[0_2px_12px_rgba(0,0,0,0.03)] md:shadow-none border border-zinc-100 md:border-none">
- <div className="flex justify-between items-center">
+ <div className="bg-white rounded-3xl p-5 sm:p-6 space-y-0 text-left shrink-0 shadow-sm border border-zinc-200/80">
+ <div className="flex justify-between items-center gap-4 py-3 border-b border-zinc-100">
  <div className="flex items-center gap-3 text-zinc-500 ">
  <Calendar size={16} />
  <span className="text-xs font-bold">{t.profilePage?.placedOn || 'Order Placed'}</span>
@@ -1816,7 +1859,7 @@ export default function ProfilePage() {
  </span>
  </div>
 
- <div className="flex justify-between items-center">
+ <div className="flex justify-between items-center gap-4 py-3 border-b border-zinc-100">
  <div className="flex items-center gap-3 text-zinc-500 ">
  <CreditCard size={16} />
  <span className="text-xs font-bold">{t.profilePage?.payment || 'Payment Method'}</span>
@@ -1824,7 +1867,7 @@ export default function ProfilePage() {
  <span className="text-sm font-black text-zinc-900 ">{translatePayment(selectedOrder.paymentMethod)}</span>
  </div>
 
- <div className="flex justify-between items-center">
+ <div className="flex justify-between items-center gap-4 py-3 border-b border-zinc-100">
  <div className="flex items-center gap-3 text-zinc-500 ">
  <MapPin size={16} />
  <span className="text-xs font-bold">{t.profilePage?.fulfillment || 'Fulfillment Method'}</span>
@@ -1832,49 +1875,52 @@ export default function ProfilePage() {
  <span className="text-sm font-black text-zinc-900 ">{translateOrderMode(selectedOrder.deliveryMode)}</span>
  </div>
 
- <div className="flex justify-between items-center">
+ <div className="flex justify-between items-center gap-4 py-3">
  <div className="flex items-center gap-3 text-zinc-500 ">
  <Info size={16} />
  <span className="text-xs font-bold">{t.profilePage?.orderStatus || 'Order Status'}</span>
  </div>
- <span className="text-sm font-black text-orange-500">
+ <span className={`text-xs font-black px-3 py-1.5 rounded-full ${selectedOrder.status === 'Completed' ? 'text-green-700 bg-green-50' : selectedOrder.status === 'Cancelled' ? 'text-red-700 bg-red-50' : 'text-orange-700 bg-orange-50'}`}>
  {statusTranslations[selectedOrder.status as string]?.[locale as string] || selectedOrder.status}
  </span>
  </div>
 
- <div className="hidden md:block pt-6 border-t border-zinc-200 mt-6">
+ <div className="hidden md:block pt-5 mt-3">
  <button 
  onClick={handleDownloadReceipt}
- disabled={isGeneratingPdf}
- className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-zinc-50 border border-zinc-200 text-black font-bold rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+ disabled={isGeneratingPdf || selectedOrder.status === 'Cancelled'}
+ className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-zinc-900 hover:bg-zinc-800 text-white font-black rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-zinc-900/10"
  >
  {isGeneratingPdf ? <Loader2 className="animate-spin" size={18} /> : <Receipt size={18} />}
  {isGeneratingPdf ? (t.profilePage?.generatingPdf || 'Generating PDF...') : (t.profilePage?.downloadReceipt || 'Download Receipt')}
  </button>
+ {selectedOrder.status === 'Cancelled' && <p className="text-center text-xs text-zinc-500 mt-3">Receipts are unavailable for cancelled orders.</p>}
  </div>
  </div>
 
  </div>
 
  {/* Right Side: Order Items */}
- <div className="w-full md:w-1/2 lg:w-[45%] shrink-0 md:shrink bg-zinc-50 md:bg-white px-4 pb-4 sm:px-6 sm:pb-6 md:p-6 sm:md:p-10 lg:p-12 flex flex-col md:min-h-0 relative">
+ <div className="w-full md:w-[48%] shrink-0 md:shrink bg-white px-4 py-5 sm:px-6 sm:py-6 md:p-8 lg:p-10 flex flex-col md:min-h-0 relative">
  
  {/* Card 3: Order Items */}
- <div className="bg-white md:bg-transparent rounded-3xl md:rounded-none p-5 md:p-0 mb-4 md:mb-0 flex flex-col shrink-0 md:flex-1 md:min-h-0 shadow-[0_2px_12px_rgba(0,0,0,0.03)] md:shadow-none border border-zinc-100 md:border-none">
- <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest mb-6 md:mb-8 shrink-0">
+ <div className="bg-white rounded-3xl p-5 sm:p-6 mb-4 flex flex-col shrink-0 md:flex-1 md:min-h-0 border border-zinc-200/80 shadow-sm">
+ <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest mb-4 shrink-0 flex items-center justify-between">
  {t.profilePage?.orderItems || 'Order Items'}
+ <span className="normal-case tracking-normal text-[11px] font-bold text-zinc-500 bg-zinc-100 px-2.5 py-1 rounded-full">{selectedOrder.items?.length || 0} items</span>
  </h3>
 
  {/* Items List */}
  <div className="space-y-0 shrink-0 md:flex-1 md:overflow-y-auto md:custom-scrollbar pr-0 md:pr-2 md:min-h-0">
  {selectedOrder.items?.map((item: any, idx: number) => (
- <div key={idx} className="flex items-center justify-between py-5 border-b border-zinc-100 last:border-0">
- <div className="flex-1 min-w-0 pr-6">
- <p className="text-sm font-bold text-zinc-900 line-clamp-2 leading-relaxed">{locale === 'zh' && item.nameZh ? item.nameZh : item.name}</p>
+ <div key={idx} className="flex items-center gap-3 py-4 border-b border-zinc-100 last:border-0">
+ {item.image ? <img src={item.image} alt="" className="w-12 h-12 rounded-xl object-cover bg-zinc-100 shrink-0" /> : <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0"><Package size={18} /></div>}
+ <div className="flex-1 min-w-0">
+ <p className="text-sm font-bold text-zinc-900 line-clamp-2 leading-snug">{locale === 'zh' && item.nameZh ? item.nameZh : item.name}</p>
+ <p className="text-xs text-zinc-500 mt-1">RM {item.price.toFixed(2)} <span className="text-zinc-300">×</span> {item.quantity}</p>
  </div>
  <div className="text-right shrink-0">
- <p className="text-base font-black text-zinc-900 ">RM {item.price.toFixed(2)}</p>
- <p className="text-xs font-medium text-zinc-500 mt-1.5">Qty: {item.quantity}</p>
+ <p className="text-sm font-black text-zinc-900">RM {(item.price * item.quantity).toFixed(2)}</p>
  </div>
  </div>
  ))}
@@ -1882,7 +1928,7 @@ export default function ProfilePage() {
  </div>
 
  {/* Card 4: Billing Summary */}
- <div className="bg-white md:bg-transparent rounded-3xl md:rounded-none p-5 md:p-0 mt-0 md:mt-8 md:pt-8 md:border-t border-zinc-200 space-y-3 shrink-0 shadow-[0_2px_12px_rgba(0,0,0,0.03)] md:shadow-none border border-zinc-100 md:border-none">
+ <div className="bg-zinc-50 rounded-3xl p-5 sm:p-6 mt-0 space-y-3 shrink-0 border border-zinc-200/80">
  <div className="flex justify-between items-center">
  <span className="text-sm font-bold text-zinc-500">{t.profilePage?.subtotalLabel || 'Subtotal'}</span>
  <span className="text-sm font-bold text-zinc-900 ">RM {
@@ -1920,15 +1966,16 @@ export default function ProfilePage() {
  </div>
 
  {/* Mobile Download Receipt Button */}
- <div className="md:hidden mt-8 mb-8 shrink-0">
+ <div className="md:hidden sticky bottom-0 -mx-4 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] mt-2 shrink-0 bg-white/95 backdrop-blur border-t border-zinc-200">
  <button 
  onClick={handleDownloadReceipt}
- disabled={isGeneratingPdf}
- className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-white hover:bg-zinc-50 border border-zinc-200 text-black font-black rounded-full shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+ disabled={isGeneratingPdf || selectedOrder.status === 'Cancelled'}
+ className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-zinc-900 hover:bg-zinc-800 text-white font-black rounded-2xl shadow-lg shadow-zinc-900/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
  >
  {isGeneratingPdf ? <Loader2 className="animate-spin" size={18} /> : <Receipt size={18} />}
  {isGeneratingPdf ? (t.profilePage?.generatingPdf || 'Generating PDF...') : (t.profilePage?.downloadReceipt || 'Download Receipt')}
  </button>
+ {selectedOrder.status === 'Cancelled' && <p className="text-center text-xs text-zinc-500 mt-3">Receipts are unavailable for cancelled orders.</p>}
  </div>
 
  </div>
@@ -1989,17 +2036,6 @@ export default function ProfilePage() {
  )}
  </AnimatePresence>
 
- {/* Hidden Receipt Template for PDF Generation */}
- {selectedOrder && (
- <div style={{ position: 'absolute', top: '-10000px', left: '-10000px', zIndex: -100 }}>
- <ReceiptTemplate 
- ref={receiptRef} 
- order={selectedOrder} 
- businessSettings={settings} 
- user={user} 
- />
- </div>
- )}
  {/* Success/Error Notification Modal */}
  <AnimatePresence>
  {(success || error) && (

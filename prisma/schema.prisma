@@ -54,6 +54,8 @@ model Category {
   description      String?  @db.Text
   displayOrder     Int?     @default(0)
   image            String?  // Image for homepage display
+  showInCategoryBar Boolean  @default(true)
+  showInAppBar      Boolean  @default(true)
   status           String   @default("Live") // "Live" or "Hold"
   createdAt        DateTime @default(now())
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { 
+import {
   Search,
   ArrowUpDown,
   ChevronLeft,
@@ -31,7 +31,7 @@ const OrdersPage = () => {
   const { t } = useLanguage();
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Management States
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -75,11 +75,11 @@ const OrdersPage = () => {
       const customerName = o.customer?.name || '';
       const orderId = o.id || '';
       const phone = o.customer?.phone || '';
-      const matchesSearch = customerName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      const matchesSearch = customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             phone.includes(searchTerm);
       const matchesStatus = statusFilter === 'All' || o.status === statusFilter;
-      
+
       let matchesMonth = true;
       if (monthFilter && o.createdAt) {
         const orderMonth = new Date(o.createdAt).toISOString().slice(0, 7);
@@ -135,35 +135,35 @@ const OrdersPage = () => {
   // KPI Statistics Calculation
   const kpiStats = useMemo(() => {
     const now = new Date();
-    
+
     // Today boundaries
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const startOfYesterday = startOfToday - 86400000;
-    
+
     // Month boundaries
     const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
-    
+
     const stats = {
       thisMonthOrders: 0,
       lastMonthOrders: 0,
-      
+
       completedThisMonth: 0,
       completedLastMonth: 0,
       completedTotal: 0,
-      
+
       inProcessThisMonth: 0,
       inProcessLastMonth: 0,
       inProcessTotal: 0,
-      
+
       pendingThisMonth: 0,
       pendingLastMonth: 0,
       pendingTotal: 0,
-      
+
       cancelledThisMonth: 0,
       cancelledLastMonth: 0,
       cancelledTotal: 0,
-      
+
       deliveringThisMonth: 0,
       deliveringLastMonth: 0,
       deliveringTotal: 0,
@@ -172,13 +172,13 @@ const OrdersPage = () => {
     orders.forEach(o => {
       if (!o.createdAt) return;
       const time = new Date(o.createdAt).getTime();
-      
+
       // Total orders tracking
       const isThisMonthLocal = time >= startOfThisMonth;
       const isLastMonthLocal = time >= startOfLastMonth && time < startOfThisMonth;
       if (isThisMonthLocal) stats.thisMonthOrders++;
       if (isLastMonthLocal) stats.lastMonthOrders++;
-      
+
       // This Month vs Last Month
       const isThisMonth = time >= startOfThisMonth;
       const isLastMonth = time >= startOfLastMonth && time < startOfThisMonth;
@@ -303,15 +303,22 @@ const OrdersPage = () => {
   }, [orders, t]);
 
   return (
-    <AdminLayout title={t('orders') || 'Orders'}>
-      <div className="space-y-8">
-        
+    <AdminLayout title={t('orders') || 'Orders'} hideTitle>
+      <div className="space-y-6">
+        <header className="space-y-1">
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('orders') || 'Orders'}</h1>
+            <span className="text-xs font-normal text-slate-700">[ Access ]</span>
+          </div>
+          <p className="text-xs text-slate-600">Order Management /</p>
+        </header>
+
         {/* Top Section: KPI & Charts */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Left: KPI Grid (2 columns, 3 rows) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {kpiStats.map((stat) => (
-              <div 
+              <div
                 key={stat.id}
                 onClick={() => {
                   setStatusFilter(stat.filterValue);
@@ -324,31 +331,31 @@ const OrdersPage = () => {
                   }
                   document.getElementById('orders-table-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }}
-                className="bg-white border border-zinc-100 rounded-3xl p-6 flex items-center justify-between transition-all duration-300 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg cursor-pointer hover:scale-[1.02] active:scale-[0.99]"
-                style={{ borderColor: (statusFilter === stat.filterValue && (stat.filterToday ? todayFilter : !todayFilter || stat.filterValue !== 'All')) ? stat.color + '60' : '' }}
+                className="flex cursor-pointer items-center justify-between border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+                style={{ borderColor: statusFilter === stat.filterValue && (stat.filterToday ? todayFilter : !todayFilter || stat.filterValue !== 'All') ? '#0284c7' : undefined }}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center text-white shrink-0" style={{ backgroundColor: stat.color }}>
-                    <stat.icon size={20} strokeWidth={2.5} />
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center text-slate-500">
+                    <stat.icon size={19} strokeWidth={2} />
                   </div>
                   <div>
-                    <h3 className="text-[14px] font-bold text-zinc-500 tracking-wide leading-tight">{stat.label}</h3>
+                    <h3 className="text-sm font-medium leading-tight text-slate-700">{stat.label}</h3>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col items-end gap-1.5">
-                  <h4 className="text-3xl font-extrabold text-zinc-900 leading-none">
+                  <h4 className="text-2xl font-semibold leading-none tracking-tight text-slate-900">
                     {stat.value}
                   </h4>
-                  {/* Pill Gain Indicator */}
-                  <div 
+                  {/* Gain Indicator without frame */}
+                  <div
                     className={cn(
-                      "flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold",
-                      stat.gain >= 0 ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
+                      "flex items-center gap-0.5 text-xs font-semibold",
+                      stat.gain >= 0 ? "text-emerald-600" : "text-rose-600"
                     )}
                     title="Compared to last month"
                   >
-                    {stat.gain >= 0 ? <ArrowUp size={10} strokeWidth={3} /> : <ArrowDown size={10} strokeWidth={3} />}
+                    {stat.gain >= 0 ? <ArrowUp size={11} strokeWidth={2.5} /> : <ArrowDown size={11} strokeWidth={2.5} />}
                     {Math.abs(stat.gain)}%
                   </div>
                 </div>
@@ -357,11 +364,11 @@ const OrdersPage = () => {
           </div>
 
           {/* Right: Payment Methods Chart - Enhanced */}
-          <div className="bg-white border border-zinc-100 rounded-3xl overflow-hidden flex flex-col shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-lg transition-all duration-300">
+          <div className="flex flex-col overflow-hidden border border-slate-200 bg-white shadow-sm">
             {/* Header */}
             <div className="px-6 pt-6 pb-2">
-              <h3 className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('payment_methods') || 'Payment Methods'}</h3>
-              <p className="text-[12px] font-medium text-zinc-500 mt-0.5">{t('payment_methods_desc') || 'Breakdown of all order payment types'}</p>
+              <h3 className="text-sm font-semibold text-slate-800">{t('payment_methods') || 'Payment Methods'}</h3>
+              <p className="mt-0.5 text-xs text-slate-500">{t('payment_methods_desc') || 'Breakdown of all order payment types'}</p>
             </div>
 
             {/* Body */}
@@ -399,7 +406,7 @@ const OrdersPage = () => {
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip 
+                        <Tooltip
                           contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', fontWeight: 'bold', fontSize: '12px' }}
                           itemStyle={{ fontWeight: 'bold', color: '#18181b' }}
                         />
@@ -429,15 +436,15 @@ const OrdersPage = () => {
                       </div>
                       <div className="flex items-end justify-between">
                         <span className="text-[20px] font-extrabold text-zinc-900 leading-none">{entry.value.toLocaleString()}</span>
-                        <span 
+                        <span
                           className="text-[11px] font-extrabold px-1.5 py-0.5 rounded-md leading-none mb-0.5"
                           style={{ backgroundColor: entry.color + '33', color: entry.color === '#c7d2fe' ? '#4338ca' : entry.color }}
                         >{entry.percent}%</span>
                       </div>
                       {/* Progress bar */}
                       <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full rounded-full transition-all duration-700" 
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
                           style={{ width: `${Math.min(entry.percent, 100)}%`, backgroundColor: entry.color }}
                         ></div>
                       </div>
@@ -450,15 +457,16 @@ const OrdersPage = () => {
         </div>
 
         {/* Unified Table Section */}
-        <div id="orders-table-section" className="mt-8">
-          <div className="flex items-center gap-2 px-2 mb-6 relative">
-            <h3 className="text-xl font-bold text-zinc-800 tracking-wide">{t('orders') || 'Orders List'}</h3>
+        <div id="orders-table-section" className="mt-6 scroll-mt-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-slate-800">{t('orders') || 'Orders List'}</h2>
+            <span className="text-xs text-slate-500">{filteredOrders.length} records</span>
           </div>
-          
-          <div className="bg-white border border-zinc-100 rounded-[40px] shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
-            
+
+          <div className="flex flex-col overflow-hidden border border-slate-200 bg-white shadow-sm">
+
             {/* Top Toolbar */}
-            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between p-6 pb-4 border-b border-zinc-100">
+            <div className="flex flex-col gap-4 border-b border-slate-200 p-4 lg:flex-row lg:items-center lg:justify-between md:p-5">
               {/* Filter Pills */}
               <div className="flex flex-wrap items-center gap-2">
                 {[
@@ -472,10 +480,10 @@ const OrdersPage = () => {
                   <button
                     key={filter.id}
                     onClick={() => { setStatusFilter(filter.id); setCurrentPage(1); }}
-                    className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all ${
-                      statusFilter === filter.id 
-                        ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' 
-                        : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700'
+                    className={`border px-3 py-2 text-xs font-medium transition-colors ${
+                      statusFilter === filter.id
+                        ? 'border-sky-700 bg-sky-700 text-white'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-sky-600 hover:bg-sky-50 hover:text-sky-800'
                     }`}
                   >
                     {filter.label} <span className="opacity-70 font-medium ml-1">({filter.count})</span>
@@ -486,13 +494,13 @@ const OrdersPage = () => {
               {/* Right side: Search & Date Filter */}
               <div className="flex flex-1 lg:flex-none items-center gap-3 w-full lg:w-auto">
                 <div className="relative flex-1 lg:w-64 group">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-blue-500 transition-colors" size={16} />
-                  <input 
-                    type="text" 
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-sky-700" size={16} />
+                  <input
+                    type="text"
                     placeholder={t('search_orders_placeholder') || 'Search Order ID, Name, Phone...'}
                     value={searchTerm}
                     onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                    className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-full outline-none focus:border-blue-500 focus:bg-white transition-all text-[13px] font-bold text-zinc-700"
+                    className="w-full border border-slate-300 bg-slate-50 py-2.5 pl-9 pr-4 text-sm text-slate-800 outline-none transition-colors focus:border-sky-600 focus:bg-white focus:ring-1 focus:ring-sky-600"
                   />
                 </div>
 
@@ -500,10 +508,10 @@ const OrdersPage = () => {
                   <button
                     onClick={() => setShowCalendar(!showCalendar)}
                     className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center transition-colors shrink-0",
+                      "flex h-10 w-10 shrink-0 items-center justify-center border transition-colors",
                       monthFilter || showCalendar
-                        ? "bg-blue-500 text-white shadow-md shadow-blue-500/20" 
-                        : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"
+                        ? "border-sky-700 bg-sky-700 text-white"
+                        : "border-slate-300 bg-white text-slate-600 hover:border-sky-600 hover:bg-sky-50"
                     )}
                     title="Filter by Month"
                   >
@@ -519,7 +527,7 @@ const OrdersPage = () => {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 8, scale: 0.95 }}
                           transition={{ duration: 0.15 }}
-                          className="absolute right-0 top-full mt-2 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-20 p-4 w-[280px]"
+                          className="absolute right-0 top-full z-20 mt-2 w-[280px] border border-slate-200 bg-white p-4 shadow-xl"
                         >
                           <div className="flex items-center justify-between mb-4">
                             <h4 className="text-sm font-bold text-zinc-800">{t('filter_by_month') || 'Filter by Month'}</h4>
@@ -527,24 +535,24 @@ const OrdersPage = () => {
                               <X size={16} />
                             </button>
                           </div>
-                          
-                          <input 
+
+                          <input
                             type="month"
                             value={monthFilter}
                             onChange={(e) => { setMonthFilter(e.target.value); setCurrentPage(1); }}
-                            className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-[13px] font-bold text-zinc-700 cursor-pointer"
+                            className="w-full border border-slate-300 bg-slate-50 px-3 py-3 text-sm text-slate-800 outline-none transition-colors focus:border-sky-600 focus:bg-white focus:ring-1 focus:ring-sky-600"
                           />
 
                           <div className="mt-4 flex gap-2">
-                            <button 
+                            <button
                               onClick={() => { setMonthFilter(''); setCurrentPage(1); setShowCalendar(false); }}
-                              className="flex-1 py-2 bg-zinc-100 text-zinc-600 rounded-xl text-xs font-bold hover:bg-zinc-200 transition-colors"
+                              className="flex-1 border border-slate-300 bg-white py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"
                             >
                               {t('clear') || 'Clear'}
                             </button>
-                            <button 
+                            <button
                               onClick={() => setShowCalendar(false)}
-                              className="flex-1 py-2 bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 hover:brightness-110 transition-all"
+                              className="flex-1 bg-sky-700 py-2 text-xs font-medium text-white transition-colors hover:bg-sky-800"
                             >
                               {t('apply') || 'Apply'}
                             </button>
@@ -561,28 +569,28 @@ const OrdersPage = () => {
             <div className="overflow-x-auto min-h-[500px]">
               <table className="w-full text-left border-collapse min-w-[1000px]">
                 <thead>
-                  <tr className="border-b border-zinc-100 bg-zinc-50/50">
-                    <th onClick={() => handleSort('id')} className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider cursor-pointer hover:text-blue-500 transition-colors whitespace-nowrap group/header">
+                  <tr className="border-b border-slate-200 bg-slate-100">
+                    <th onClick={() => handleSort('id')} className="cursor-pointer whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700 transition-colors hover:text-sky-700 group/header">
                       <div className="flex items-center gap-2">{t('order_id') || 'Order ID'} <SortIndicator column="id" /></div>
                     </th>
-                    <th className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider whitespace-nowrap">{t('customer_name') || 'Customer Name'}</th>
-                    <th className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider whitespace-nowrap">{t('phone_number') || 'Phone Number'}</th>
-                    <th className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider whitespace-nowrap">{t('items') || 'Items'}</th>
-                    <th onClick={() => handleSort('totalAmount')} className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider cursor-pointer hover:text-blue-500 transition-colors whitespace-nowrap group/header">
+                    <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700">{t('customer_name') || 'Customer Name'}</th>
+                    <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700">{t('phone_number') || 'Phone Number'}</th>
+                    <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700">{t('items') || 'Items'}</th>
+                    <th onClick={() => handleSort('totalAmount')} className="cursor-pointer whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700 transition-colors hover:text-sky-700 group/header">
                       <div className="flex items-center gap-2">{t('total_amount') || 'Total Amount'} <SortIndicator column="totalAmount" /></div>
                     </th>
-                    <th onClick={() => handleSort('status')} className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider cursor-pointer hover:text-blue-500 transition-colors whitespace-nowrap group/header">
+                    <th onClick={() => handleSort('status')} className="cursor-pointer whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700 transition-colors hover:text-sky-700 group/header">
                       <div className="flex items-center gap-2">{t('status') || 'Status'} <SortIndicator column="status" /></div>
                     </th>
-                    <th onClick={() => handleSort('createdAt')} className="p-4 px-6 text-[11px] font-black text-zinc-400 uppercase tracking-wider cursor-pointer hover:text-blue-500 transition-colors whitespace-nowrap group/header">
+                    <th onClick={() => handleSort('createdAt')} className="cursor-pointer whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700 transition-colors hover:text-sky-700 group/header">
                       <div className="flex items-center gap-2">{t('date') || 'Date'} <SortIndicator column="createdAt" /></div>
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-50">
+                <tbody className="divide-y divide-slate-200">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={6} className="p-20 text-center">
+                      <td colSpan={7} className="p-20 text-center">
                         <div className="flex flex-col items-center justify-center gap-3">
                           <div className="w-8 h-8 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
                           <p className="text-sm font-bold text-zinc-400">{t('loading_orders') || 'Loading Orders...'}</p>
@@ -591,7 +599,7 @@ const OrdersPage = () => {
                     </tr>
                   ) : paginatedOrders.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-20 text-center">
+                      <td colSpan={7} className="p-20 text-center">
                         <div className="flex flex-col items-center justify-center gap-3">
                           <Package size={32} className="text-zinc-300" />
                           <p className="text-sm font-bold text-zinc-400">{t('no_order_records') || 'No order records found.'}</p>
@@ -599,42 +607,42 @@ const OrdersPage = () => {
                       </td>
                     </tr>
                   ) : paginatedOrders.map((order) => (
-                    <tr 
-                      key={order.id} 
+                    <tr
+                      key={order.id}
                       onClick={() => router.push(`/admin/orders/${order.id}`)}
-                      className="group hover:bg-blue-50/50 transition-colors cursor-pointer"
+                      className="group cursor-pointer odd:bg-white even:bg-slate-50 transition-colors hover:bg-sky-50"
                     >
-                      <td className="p-4 px-6">
-                        <span className="text-[14px] font-bold text-zinc-800 font-mono">#{order.id?.slice(-8).toUpperCase()}</span>
+                      <td className="px-5 py-3.5">
+                        <span className="font-mono text-sm font-medium text-slate-800">#{order.id?.slice(-8).toUpperCase()}</span>
                       </td>
-                      <td className="p-4 px-6">
-                        <span className="text-[13px] font-bold text-zinc-800">{order.customer?.name || '-'}</span>
+                      <td className="px-5 py-3.5">
+                        <span className="text-sm font-medium text-slate-800">{order.customer?.name || '-'}</span>
                       </td>
-                      <td className="p-4 px-6">
-                        <span className="text-[13px] font-medium text-zinc-600">{order.customer?.phone || '-'}</span>
+                      <td className="px-5 py-3.5">
+                        <span className="text-sm text-slate-600">{order.customer?.phone || '-'}</span>
                       </td>
-                      <td className="p-4 px-6">
-                        <span className="text-[13px] font-bold text-zinc-800">
+                      <td className="px-5 py-3.5">
+                        <span className="text-sm text-slate-700">
                           {order.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0} {t('items') || 'items'}
                         </span>
                       </td>
-                      <td className="p-4 px-6">
-                        <span className="text-[15px] font-black text-black">RM {order.totalAmount?.toFixed(2)}</span>
+                      <td className="px-5 py-3.5">
+                        <span className="text-sm font-medium text-slate-900">RM {order.totalAmount?.toFixed(2)}</span>
                       </td>
                       <td className="p-4 px-6">
                         <div className={cn(
-                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all",
-                          order.status === 'Completed' ? "bg-emerald-100 text-emerald-700" :
-                          order.status === 'Pending' ? "bg-orange-100 text-orange-700 animate-pulse" :
-                          order.status === 'In Process' ? "bg-amber-100 text-amber-700" :
-                          order.status === 'Delivering' ? "bg-blue-100 text-blue-700" :
-                          order.status === 'Cancelled' ? "bg-red-100 text-red-700" :
-                          "bg-zinc-100 text-zinc-700"
+                          "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+                          order.status === 'Completed' ? "border-emerald-200 bg-emerald-50 text-emerald-700" :
+                          order.status === 'Pending' ? "border-slate-300 bg-slate-50 text-slate-700" :
+                          order.status === 'In Process' ? "border-amber-200 bg-amber-50 text-amber-700" :
+                          order.status === 'Delivering' ? "border-blue-200 bg-blue-50 text-blue-700" :
+                          order.status === 'Cancelled' ? "border-red-200 bg-red-50 text-red-700" :
+                          "border-slate-200 bg-slate-50 text-slate-700"
                         )}>
-                          {order.status === 'Completed' ? <CheckCircle2 size={12} /> : 
-                           order.status === 'Pending' ? <Clock size={12} /> : 
+                          {order.status === 'Completed' ? <CheckCircle2 size={12} /> :
+                           order.status === 'Pending' ? <Clock size={12} /> :
                            order.status === 'In Process' ? <Activity size={12} /> :
-                           order.status === 'Delivering' ? <Truck size={12} /> : 
+                           order.status === 'Delivering' ? <Truck size={12} /> :
                            order.status === 'Cancelled' ? <AlertCircle size={12} /> : <Activity size={12} />}
                           {order.status === 'Completed' ? (t('completed_filter') || 'Completed') :
                            order.status === 'Pending' ? (t('pending_filter') || 'Pending') :
@@ -643,12 +651,12 @@ const OrdersPage = () => {
                            order.status === 'Cancelled' ? (t('cancelled_filter') || 'Cancelled') : order.status}
                         </div>
                       </td>
-                      <td className="p-4 px-6">
+                      <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
-                          <span className="text-[13px] font-bold text-zinc-700">
+                          <span className="text-sm text-slate-700">
                             {new Date(order.createdAt).toLocaleDateString()}
                           </span>
-                          <span className="text-[11px] text-zinc-400 font-medium">
+                          <span className="text-xs text-slate-500">
                             {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
@@ -660,24 +668,24 @@ const OrdersPage = () => {
             </div>
 
             {/* Table Footer - Pagination */}
-            <div className="p-4 px-6 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-50/50">
-              <p className="text-[12px] font-semibold text-zinc-500">
-                Showing <span className="text-zinc-900 font-bold">{paginatedOrders.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> to <span className="text-zinc-900 font-bold">{Math.min(currentPage * itemsPerPage, filteredOrders.length)}</span> of <span className="text-zinc-900 font-bold">{filteredOrders.length}</span> records
+            <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:flex-row">
+              <p className="text-xs text-slate-600">
+                Showing <span className="font-medium text-slate-900">{paginatedOrders.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> to <span className="font-medium text-slate-900">{Math.min(currentPage * itemsPerPage, filteredOrders.length)}</span> of <span className="font-medium text-slate-900">{filteredOrders.length}</span> records
               </p>
-              
+
               <div className="flex items-center gap-1.5">
-                <button 
+                <button
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(1)}
-                  className="p-2 rounded-xl bg-white border border-zinc-200 text-zinc-500 hover:text-blue-500 hover:border-blue-200 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-all shadow-sm"
+                  className="border border-slate-300 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:text-sky-700 disabled:opacity-40"
                   title="First Page"
                 >
                   <ChevronsLeft size={16} />
                 </button>
-                <button 
+                <button
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  className="p-2 rounded-xl bg-white border border-zinc-200 text-zinc-500 hover:text-blue-500 hover:border-blue-200 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-all shadow-sm"
+                  className="border border-slate-300 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:text-sky-700 disabled:opacity-40"
                   title="Previous Page"
                 >
                   <ChevronLeft size={16} />
@@ -686,25 +694,25 @@ const OrdersPage = () => {
                 <div className="flex gap-1 px-2">
                   {[...Array(totalPages)].map((_, i) => {
                     if (
-                      i + 1 === 1 || 
-                      i + 1 === totalPages || 
+                      i + 1 === 1 ||
+                      i + 1 === totalPages ||
                       (i + 1 >= currentPage - 1 && i + 1 <= currentPage + 1)
                     ) {
                       return (
                         <button
                           key={i + 1}
                           onClick={() => setCurrentPage(i + 1)}
-                          className={`w-8 h-8 rounded-xl text-[12px] font-bold transition-all shadow-sm ${
-                            currentPage === i + 1 
-                              ? 'bg-blue-500 text-white border-blue-500 shadow-blue-500/20' 
-                              : 'bg-white text-zinc-600 border border-zinc-200 hover:border-blue-300 hover:text-blue-600'
+                          className={`h-8 w-8 border text-xs font-medium transition-colors ${
+                            currentPage === i + 1
+                              ? 'border-sky-700 bg-sky-700 text-white'
+                              : 'border-slate-300 bg-white text-slate-700 hover:border-sky-600 hover:text-sky-700'
                           }`}
                         >
                           {i + 1}
                         </button>
                       );
                     } else if (
-                      (i + 1 === currentPage - 2) || 
+                      (i + 1 === currentPage - 2) ||
                       (i + 1 === currentPage + 2)
                     ) {
                       return <span key={i} className="text-zinc-400 px-1 flex items-center">...</span>;
@@ -713,18 +721,18 @@ const OrdersPage = () => {
                   })}
                 </div>
 
-                <button 
+                <button
                   disabled={currentPage === totalPages || totalPages === 0}
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  className="p-2 rounded-xl bg-white border border-zinc-200 text-zinc-500 hover:text-blue-500 hover:border-blue-200 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-all shadow-sm"
+                  className="border border-slate-300 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:text-sky-700 disabled:opacity-40"
                   title="Next Page"
                 >
                   <ChevronRight size={16} />
                 </button>
-                <button 
+                <button
                   disabled={currentPage === totalPages || totalPages === 0}
                   onClick={() => setCurrentPage(totalPages)}
-                  className="p-2 rounded-xl bg-white border border-zinc-200 text-zinc-500 hover:text-blue-500 hover:border-blue-200 disabled:opacity-40 disabled:hover:border-zinc-200 disabled:hover:text-zinc-500 transition-all shadow-sm"
+                  className="border border-slate-300 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:text-sky-700 disabled:opacity-40"
                   title="Last Page"
                 >
                   <ChevronsRight size={16} />

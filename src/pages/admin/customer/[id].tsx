@@ -16,11 +16,12 @@ import {
   Edit2,
   Wallet,
   Box,
-  Eye,
   ChevronDown,
   ChevronUp,
   MoreHorizontal,
-  Package
+  Package,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { useLanguage } from '../../../context/LanguageContext';
@@ -35,7 +36,9 @@ const CustomerDetailsPage = () => {
   const [customer, setCustomer] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
-  const [isPromoting, setIsPromoting] = useState(false);
+  const [isChangingRole, setIsChangingRole] = useState(false);
+  const [isRetryingRoleEmail, setIsRetryingRoleEmail] = useState(false);
+  const [roleChangeNotice, setRoleChangeNotice] = useState<{ type: 'success' | 'warning'; message: string } | null>(null);
   
   // Table pagination & filtering
   const [currentPage, setCurrentPage] = useState(1);
@@ -62,29 +65,60 @@ const CustomerDetailsPage = () => {
     fetchCustomer();
   }, [id]);
 
-  const handlePromoteToSeller = () => {
+  const handleRoleChange = () => {
     setIsPromoteModalOpen(true);
   };
 
-  const executePromote = async () => {
-    setIsPromoting(true);
+  const executeRoleChange = async () => {
+    const nextRole = customer.role === 'Seller' ? 'Member' : 'Seller';
+    setIsChangingRole(true);
     try {
       const res = await fetch(`/api/customers/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: 'Seller' }),
+        body: JSON.stringify({ role: nextRole }),
       });
+      const updatedCustomer = await res.json();
       if (res.ok) {
-        setCustomer({ ...customer, role: 'Seller' });
+        setCustomer({ ...customer, ...updatedCustomer });
         setIsPromoteModalOpen(false);
+        if (nextRole === 'Member') {
+          setRoleChangeNotice(updatedCustomer.roleEmailSent
+            ? { type: 'success', message: `Account changed to Member. An update email was sent to ${customer.email}.` }
+            : { type: 'warning', message: 'Account changed to Member, but the update email could not be sent.' });
+        } else {
+          setRoleChangeNotice({ type: 'success', message: 'Customer account promoted to Seller.' });
+        }
       } else {
-        alert('Failed to promote customer.');
+        alert(updatedCustomer.error || 'Failed to update customer account.');
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to promote customer.');
+      alert('Failed to update customer account.');
     } finally {
-      setIsPromoting(false);
+      setIsChangingRole(false);
+    }
+  };
+
+  const retryRoleUpdateEmail = async () => {
+    setIsRetryingRoleEmail(true);
+    try {
+      const res = await fetch(`/api/customers/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: 'Member', sendRoleEmail: true }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Unable to send the account update email.');
+      setCustomer({ ...customer, ...result });
+      setRoleChangeNotice(result.roleEmailSent
+        ? { type: 'success', message: `Account update email sent to ${customer.email}.` }
+        : { type: 'warning', message: 'The account update email could not be sent. Check the customer email and mail settings.' });
+    } catch (error) {
+      console.error(error);
+      setRoleChangeNotice({ type: 'warning', message: 'The account update email could not be sent. Check the customer email and mail settings.' });
+    } finally {
+      setIsRetryingRoleEmail(false);
     }
   };
 
@@ -156,8 +190,8 @@ const CustomerDetailsPage = () => {
     return (
       <AdminLayout title="Customer Details">
         <div className="flex flex-col items-center justify-center h-[60vh]">
-          <div className="w-12 h-12 border-4 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin mb-4" />
-          <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">{t('retrieving_profile') || 'Retrieving Profile...'}</p>
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-sky-100 border-t-sky-700" />
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">{t('retrieving_profile') || 'Retrieving Profile...'}</p>
         </div>
       </AdminLayout>
     );
@@ -170,7 +204,7 @@ const CustomerDetailsPage = () => {
           <h2 className="text-2xl font-bold text-zinc-500">{t('customer_not_found') || 'Customer Not Found'}</h2>
           <button 
             onClick={() => router.push(backUrl)}
-            className="mt-6 text-yellow-500 font-bold flex items-center gap-2 mx-auto hover:gap-3 transition-all"
+            className="mx-auto mt-6 flex items-center gap-2 font-medium text-sky-800 transition-all hover:gap-3"
           >
             <ChevronLeft size={20} /> {backTitle}
           </button>
@@ -217,49 +251,79 @@ const CustomerDetailsPage = () => {
 
   return (
     <AdminLayout title="Customer Details" hideTitle={true}>
-      <div className="w-full space-y-6">
+      <div className="w-full space-y-5 text-slate-700">
         
-        {/* Header Title Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <button onClick={() => router.push(backUrl)} className="p-1 text-zinc-400 hover:text-zinc-600 transition-colors mr-1" title={backTitle}>
-               <ChevronLeft size={24} />
-            </button>
-            <h1 className="text-2xl font-bold text-zinc-900">{customer.name}</h1>
-            <span className="px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-bold border border-green-100">
-              {t('active_customer')}
-            </span>
+        {/* Customer page title and actions */}
+        <header className="space-y-1 border-b border-slate-200 pb-5">
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{customer.name}</h1>
+            <span className="text-xs font-normal text-slate-700">[ Access ]</span>
           </div>
-          <div className="flex items-center gap-3">
-            {customer.role !== 'Seller' && (
-              <button 
-                onClick={handlePromoteToSeller}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-yellow-500 text-white font-bold text-sm hover:bg-yellow-600 transition-colors shadow-sm"
+          <p className="text-xs text-slate-600">Customer Information /</p>
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
+            <button onClick={() => router.push(backUrl)} className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50" title={backTitle}>
+               <ChevronLeft size={15} /> {backTitle}
+            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              {customer.role === 'Seller' ? (
+                <button
+                  onClick={handleRoleChange}
+                  className="inline-flex items-center gap-2 border border-slate-400 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:border-sky-700 hover:bg-sky-50 hover:text-sky-800"
+                >
+                  <User size={16} /> Return to Member
+                </button>
+              ) : (
+                <button
+                  onClick={handleRoleChange}
+                  className="inline-flex items-center gap-2 border border-sky-800 bg-sky-800 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-sky-900"
+                >
+                  <Shield size={16} /> {t('promote_to_seller') || 'Promote to Seller'}
+                </button>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {roleChangeNotice && (
+          <div
+            role="status"
+            className={`flex flex-wrap items-center gap-3 border px-4 py-3 text-sm ${roleChangeNotice.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}
+          >
+            {roleChangeNotice.type === 'success' ? <CheckCircle2 size={17} className="shrink-0" /> : <AlertCircle size={17} className="shrink-0" />}
+            <span className="min-w-0 flex-1">{roleChangeNotice.message}</span>
+            {roleChangeNotice.type === 'warning' && customer.role === 'Member' && customer.email && (
+              <button
+                onClick={retryRoleUpdateEmail}
+                disabled={isRetryingRoleEmail}
+                className="inline-flex items-center gap-2 border border-rose-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-800 transition-colors hover:bg-rose-100 disabled:opacity-60"
               >
-                <Shield size={16} />
-                {t('promote_to_seller')}
+                {isRetryingRoleEmail ? <span className="h-3 w-3 animate-spin border-2 border-rose-800/30 border-t-rose-800" /> : <Mail size={14} />}
+                {isRetryingRoleEmail ? 'Sending…' : 'Retry email'}
               </button>
             )}
+            <button onClick={() => setRoleChangeNotice(null)} className="text-current opacity-70 hover:opacity-100" aria-label="Dismiss notification">
+              <X size={16} />
+            </button>
           </div>
-        </div>
+        )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-[480px_1fr] gap-6">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
           
           {/* ---- Left Sidebar: Profile Info ---- */}
           <div className="space-y-6">
             
             {/* Profile Card */}
-            <div className="bg-white rounded-3xl border border-zinc-100 p-6 shadow-sm flex flex-col">
+            <div className="flex flex-col border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center text-orange-400 font-black italic text-2xl border-2 border-orange-100 shrink-0">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center border border-sky-200 bg-sky-50 text-2xl font-semibold text-sky-800">
                   {customer.name.charAt(0).toLowerCase()}
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-zinc-900 mb-0.5 leading-tight">{customer.name}</h2>
-                  <div className="flex items-center gap-1.5 text-xs text-zinc-500 font-semibold mb-2">
-                    ID: {customer.id} <Copy size={12} className="cursor-pointer hover:text-zinc-800" onClick={() => copyToClipboard(customer.id)} />
+                  <h2 className="text-lg font-semibold text-slate-900 mb-0.5 leading-tight">{customer.name}</h2>
+                  <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                    ID: {customer.id} <Copy size={12} className="cursor-pointer hover:text-sky-800" onClick={() => copyToClipboard(customer.id)} />
                   </div>
-                  <div className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest bg-yellow-100 text-yellow-600">
+                  <div className="inline-flex items-center border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-sky-800">
                     {translateRole(customer.role)}
                   </div>
                 </div>
@@ -267,18 +331,18 @@ const CustomerDetailsPage = () => {
 
               {/* Contact Information */}
               <div className="mb-6">
-                <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-3">{t('contact_information')}</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">{t('contact_information')}</h4>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between group">
                     <div className="flex items-center gap-3 text-sm">
-                      <Phone size={16} className="text-zinc-400" />
+                      <Phone size={16} className="text-sky-700" />
                       <div>
-                        <div className="text-xs text-zinc-500 font-semibold mb-0.5">{t('phone')}</div>
-                        <div className="font-semibold text-zinc-900">{customer.phone || '-'}</div>
+                        <div className="text-xs font-medium text-slate-500 mb-0.5">{t('phone')}</div>
+                        <div className="font-medium text-slate-900">{customer.phone || '-'}</div>
                       </div>
                     </div>
                     {customer.phone && (
-                      <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-400 cursor-pointer hover:text-green-500 hover:bg-green-50 transition-colors" onClick={() => window.open(`https://wa.me/${customer.phone.replace(/[^0-9]/g, '')}`, '_blank')}>
+                      <div className="flex h-8 w-8 cursor-pointer items-center justify-center border border-slate-200 bg-white text-slate-500 transition-colors hover:border-sky-300 hover:bg-sky-50 hover:text-sky-800" onClick={() => window.open(`https://wa.me/${customer.phone.replace(/[^0-9]/g, '')}`, '_blank')}>
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-circle"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"></path></svg>
                       </div>
                     )}
@@ -286,14 +350,14 @@ const CustomerDetailsPage = () => {
 
                   <div className="flex items-center justify-between group">
                     <div className="flex items-center gap-3 text-sm">
-                      <Mail size={16} className="text-zinc-400" />
+                      <Mail size={16} className="text-sky-700" />
                       <div>
-                        <div className="text-xs text-zinc-500 font-semibold mb-0.5">{t('email')}</div>
-                        <div className="font-semibold text-zinc-900 break-all">{customer.email || '-'}</div>
+                        <div className="text-xs font-medium text-slate-500 mb-0.5">{t('email')}</div>
+                        <div className="break-all font-medium text-slate-900">{customer.email || '-'}</div>
                       </div>
                     </div>
                     {customer.email && (
-                      <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-400 cursor-pointer hover:text-blue-500 hover:bg-blue-50 transition-colors" onClick={() => window.open(`mailto:${customer.email}`)}>
+                      <div className="flex h-8 w-8 cursor-pointer items-center justify-center border border-slate-200 bg-white text-slate-500 transition-colors hover:border-sky-300 hover:bg-sky-50 hover:text-sky-800" onClick={() => window.open(`mailto:${customer.email}`)}>
                         <Mail size={16} />
                       </div>
                     )}
@@ -302,8 +366,8 @@ const CustomerDetailsPage = () => {
               </div>
 
               {/* Personal & Account Details */}
-              <div className="mb-6 pt-6 border-t border-zinc-100">
-                <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-4">{t('personal_account_details')}</h4>
+              <div className="mb-6 border-t border-slate-200 pt-6">
+                <h4 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-500">{t('personal_account_details')}</h4>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-3 text-zinc-500 font-semibold">
@@ -343,18 +407,18 @@ const CustomerDetailsPage = () => {
               </div>
 
               {/* Address */}
-              <div className="mb-6 pt-6 border-t border-zinc-100">
-                <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-3">{t('address')}</h4>
+              <div className="mb-6 border-t border-slate-200 pt-6">
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">{t('address')}</h4>
                 <div className="flex items-start justify-between group">
                   <div className="flex items-start gap-3 text-sm">
-                    <MapPin size={16} className="text-zinc-400 mt-0.5" />
+                    <MapPin size={16} className="mt-0.5 text-sky-700" />
                     <div>
                       <div className="text-xs text-zinc-500 font-semibold mb-1">{t('address')}</div>
                       <div className="font-semibold text-zinc-900 leading-relaxed text-[13px]">{customer.address || '-'}</div>
                     </div>
                   </div>
                   {customer.address && (
-                    <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-400 cursor-pointer hover:text-zinc-700 hover:bg-zinc-100 transition-colors" onClick={() => copyToClipboard(customer.address)}>
+                    <div className="flex h-8 w-8 cursor-pointer items-center justify-center border border-slate-200 bg-white text-slate-500 transition-colors hover:border-sky-300 hover:bg-sky-50 hover:text-sky-800" onClick={() => copyToClipboard(customer.address)}>
                       <Copy size={14} />
                     </div>
                   )}
@@ -362,8 +426,8 @@ const CustomerDetailsPage = () => {
               </div>
 
               {/* Delivery Details */}
-              <div className="mb-6 pt-6 border-t border-zinc-100">
-                <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-3">{t('delivery_details')}</h4>
+              <div className="mb-6 border-t border-slate-200 pt-6">
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">{t('delivery_details')}</h4>
                 <div className="flex items-start justify-between group">
                   <div className="flex items-start gap-3 text-sm">
                     <Box size={16} className="text-zinc-400 mt-0.5" />
@@ -376,8 +440,8 @@ const CustomerDetailsPage = () => {
               </div>
 
               {/* Notes */}
-              <div className="pt-6 border-t border-zinc-100">
-                <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-wider mb-3">{t('notes')}</h4>
+              <div className="border-t border-slate-200 pt-6">
+                <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">{t('notes')}</h4>
                 <div className="flex items-start justify-between group">
                   <div className="flex items-start gap-3 text-sm">
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-text text-zinc-400 mt-0.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" x2="8" y1="13" y2="13"></line><line x1="16" x2="8" y1="17" y2="17"></line><line x1="10" x2="8" y1="9" y2="9"></line></svg>
@@ -395,44 +459,44 @@ const CustomerDetailsPage = () => {
           <div className="space-y-6">
             
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-3xl border border-zinc-100 p-5 shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 rounded-[14px] bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
-                  <Box size={20} strokeWidth={2.5} />
+            <div className="grid grid-cols-2 divide-x divide-y divide-slate-200 border border-slate-200 bg-white shadow-sm xl:grid-cols-4 xl:divide-y-0">
+              <div className="flex min-w-0 items-center gap-3 p-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-sky-100 bg-sky-50 text-sky-800">
+                  <Box size={17} strokeWidth={1.9} />
                 </div>
-                <div>
-                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">{t('total_orders_label')}</div>
-                  <div className="text-lg font-bold text-zinc-900">{totalOrders}</div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-3xl border border-zinc-100 p-5 shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 rounded-[14px] bg-green-50 text-green-500 flex items-center justify-center shrink-0">
-                  <Wallet size={20} strokeWidth={2.5} />
-                </div>
-                <div>
-                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">{t('total_spent_label')}</div>
-                  <div className="text-lg font-bold text-zinc-900">RM {totalSpent.toFixed(2)}</div>
+                <div className="min-w-0">
+                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">{t('total_orders_label')}</div>
+                  <div className="text-lg font-semibold text-slate-900">{totalOrders}</div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-3xl border border-zinc-100 p-5 shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 rounded-[14px] bg-purple-50 text-purple-500 flex items-center justify-center shrink-0">
-                  <Package size={20} strokeWidth={2.5} />
+              <div className="flex min-w-0 items-center gap-3 p-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-sky-100 bg-sky-50 text-sky-800">
+                  <Wallet size={17} strokeWidth={1.9} />
                 </div>
-                <div>
-                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">{t('avg_order_value')}</div>
-                  <div className="text-lg font-bold text-zinc-900">RM {averageOrderValue.toFixed(2)}</div>
+                <div className="min-w-0">
+                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">{t('total_spent_label')}</div>
+                  <div className="text-lg font-semibold text-slate-900">RM {totalSpent.toFixed(2)}</div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-3xl border border-zinc-100 p-5 shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 rounded-[14px] bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
-                  <Calendar size={20} strokeWidth={2.5} />
+              <div className="flex min-w-0 items-center gap-3 p-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-sky-100 bg-sky-50 text-sky-800">
+                  <Package size={17} strokeWidth={1.9} />
                 </div>
-                <div>
-                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">{t('last_order')}</div>
-                  <div className="text-sm font-bold text-zinc-900">
+                <div className="min-w-0">
+                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">{t('avg_order_value')}</div>
+                  <div className="text-lg font-semibold text-slate-900">RM {averageOrderValue.toFixed(2)}</div>
+                </div>
+              </div>
+
+              <div className="flex min-w-0 items-center gap-3 p-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-sky-100 bg-sky-50 text-sky-800">
+                  <Calendar size={17} strokeWidth={1.9} />
+                </div>
+                <div className="min-w-0">
+                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">{t('last_order')}</div>
+                  <div className="text-sm font-semibold text-slate-900">
                     {lastOrderDate ? formatDate(lastOrderDate.toISOString(), { month: 'short', day: 'numeric', year: 'numeric' }) : '-'}
                   </div>
                 </div>
@@ -440,26 +504,26 @@ const CustomerDetailsPage = () => {
             </div>
 
             {/* Order History Table Section */}
-            <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm overflow-hidden flex flex-col">
+            <div className="flex flex-col overflow-hidden border border-slate-200 bg-white shadow-sm">
               
               {/* Table Header area */}
-              <div className="p-6 border-b border-zinc-100 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+              <div className="flex flex-col justify-between gap-4 border-b border-slate-200 p-5 xl:flex-row xl:items-center">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-                  <h3 className="text-[15px] font-black italic uppercase tracking-wider text-zinc-900">{t('order_history_label')}</h3>
+                  <h3 className="text-base font-semibold tracking-tight text-slate-800">{t('order_history_label')}</h3>
                   
                   <div className="flex flex-wrap items-center gap-2">
                     {['All Status', 'Pending', 'Processing', 'Completed', 'Cancelled'].map((status) => (
                       <button
                         key={status}
                         onClick={() => setStatusFilter(status)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                        className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-medium transition-colors ${
                           statusFilter === status
-                            ? 'bg-zinc-900 text-white shadow-sm'
-                            : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
+                            ? 'border-sky-800 bg-sky-800 text-white'
+                            : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                         }`}
                       >
                         {status === 'All Status' ? t('all_filter') : translateStatus(status)}
-                        <span className={`px-1.5 py-0.5 rounded-md text-[10px] leading-none flex items-center justify-center ${statusFilter === status ? 'bg-white/20 text-white' : 'bg-zinc-200 text-zinc-500'}`}>
+                        <span className={`flex items-center justify-center border px-1.5 py-0.5 text-[10px] leading-none ${statusFilter === status ? 'border-white/20 bg-white/15 text-white' : 'border-slate-200 bg-slate-100 text-slate-600'}`}>
                           {orderCounts[status as keyof typeof orderCounts]}
                         </span>
                       </button>
@@ -471,10 +535,10 @@ const CustomerDetailsPage = () => {
                   <button
                     onClick={() => setShowCalendar(!showCalendar)}
                     className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center transition-colors shrink-0",
+                      "flex h-10 w-10 shrink-0 items-center justify-center border transition-colors",
                       monthFilter || showCalendar
-                        ? "bg-zinc-900 text-white shadow-md shadow-zinc-900/20" 
-                        : "bg-zinc-50 text-zinc-500 hover:bg-zinc-100"
+                        ? "border-sky-800 bg-sky-800 text-white"
+                        : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
                     )}
                     title="Filter by Month"
                   >
@@ -490,11 +554,11 @@ const CustomerDetailsPage = () => {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 8, scale: 0.95 }}
                           transition={{ duration: 0.15 }}
-                          className="absolute right-0 top-full mt-2 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-20 p-4 w-[280px]"
+                          className="absolute right-0 top-full z-20 mt-2 w-[280px] border border-slate-200 bg-white p-4 shadow-xl"
                         >
                           <div className="flex items-center justify-between mb-4">
-                            <h4 className="text-sm font-bold text-zinc-800">{t('filter_by_month')}</h4>
-                            <button onClick={() => setShowCalendar(false)} className="text-zinc-400 hover:text-zinc-600">
+                            <h4 className="text-sm font-semibold text-slate-800">{t('filter_by_month')}</h4>
+                            <button onClick={() => setShowCalendar(false)} className="text-slate-400 hover:text-slate-700">
                               <X size={16} />
                             </button>
                           </div>
@@ -503,19 +567,19 @@ const CustomerDetailsPage = () => {
                             type="month"
                             value={monthFilter}
                             onChange={(e) => { setMonthFilter(e.target.value); setCurrentPage(1); }}
-                            className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-[13px] font-bold text-zinc-700 cursor-pointer"
+                            className="w-full border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-sky-700 focus:ring-1 focus:ring-sky-700 cursor-pointer"
                           />
 
                           <div className="mt-4 flex gap-2">
                             <button 
                               onClick={() => { setMonthFilter(''); setCurrentPage(1); setShowCalendar(false); }}
-                              className="flex-1 py-2 bg-zinc-100 text-zinc-600 rounded-xl text-xs font-bold hover:bg-zinc-200 transition-colors"
+                              className="flex-1 border border-slate-300 bg-white py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
                             >
                               {t('clear')}
                             </button>
                             <button 
                               onClick={() => setShowCalendar(false)}
-                              className="flex-1 py-2 bg-zinc-900 text-white rounded-xl text-xs font-bold shadow-md shadow-zinc-900/20 hover:brightness-110 transition-all"
+                              className="flex-1 border border-sky-800 bg-sky-800 py-2 text-xs font-medium text-white hover:bg-sky-900 transition-colors"
                             >
                               {t('apply')}
                             </button>
@@ -531,14 +595,15 @@ const CustomerDetailsPage = () => {
               <div className="w-full overflow-x-auto">
                 <table className="w-full text-left min-w-[700px]">
                   <thead>
-                    <tr className="border-b border-zinc-100 bg-zinc-50/50">
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('order_id')}</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('item_count')}</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('date')}</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('order_mode')}</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('status')}</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">{t('total')}</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap text-right">{t('actions')}</th>
+                    <tr className="border-b border-slate-300 bg-slate-100">
+                      <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700">No.</th>
+                      <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700">{t('order_id')}</th>
+                      <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700">{t('item_count')}</th>
+                      <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700">{t('date')}</th>
+                      <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700">{t('order_mode')}</th>
+                      <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700">{t('status')}</th>
+                      <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700">{t('total')}</th>
+                      <th className="whitespace-nowrap px-5 py-3 text-right text-xs font-semibold text-slate-700">{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -546,11 +611,12 @@ const CustomerDetailsPage = () => {
                       currentOrders.map((order: any, idx: number) => (
                         <tr 
                           key={order.id} 
-                          className="border-b border-zinc-50 hover:bg-zinc-50/80 transition-colors group cursor-pointer"
+                          className="group cursor-pointer border-b border-slate-300 odd:bg-white even:bg-slate-50 transition-colors hover:bg-sky-50"
                           onClick={() => router.push(`/admin/orders/${order.id}?viewOnly=true&customerId=${customer.id}`)}
                         >
+                          <td className="px-5 py-4 text-sm text-slate-500">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                           <td className="px-6 py-4">
-                            <div className="font-bold text-zinc-900 text-sm">{order.id}</div>
+                            <div className="font-mono text-sm font-medium text-slate-900" title={order.id}>{`…${String(order.id).slice(-8).toUpperCase()}`}</div>
                           </td>
                           <td className="px-6 py-4 text-sm font-semibold text-zinc-700">
                             {order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''}
@@ -565,10 +631,9 @@ const CustomerDetailsPage = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest ${
-                              order.status === 'Completed' ? 'bg-green-100 text-green-600' : 
-                              order.status === 'Pending' ? 'bg-orange-100 text-orange-600' : 
-                              order.status === 'Cancelled' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'
+                            <span className={`text-sm font-medium ${
+                              order.status === 'Completed' ? 'text-emerald-700' :
+                              order.status === 'Cancelled' ? 'text-slate-500' : 'text-sky-800'
                             }`}>
                               {translateStatus(order.status)}
                             </span>
@@ -577,18 +642,15 @@ const CustomerDetailsPage = () => {
                             <div className="text-sm font-bold text-zinc-900">RM {order.totalAmount.toFixed(2)}</div>
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <div className="w-8 h-8 rounded-full bg-white border border-zinc-200 flex items-center justify-center text-zinc-400 hover:text-zinc-700 hover:bg-zinc-50 transition-colors shadow-sm">
-                                <Eye size={14} />
-                              </div>
-                              <ArrowRight size={16} className="text-zinc-300 group-hover:text-zinc-600 transition-colors ml-1" />
+                            <div className="flex items-center justify-end">
+                              <ArrowRight size={18} className="text-slate-400 transition-colors group-hover:text-sky-800" />
                             </div>
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={6} className="px-6 py-12 text-center text-zinc-500 text-sm font-medium">
+                        <td colSpan={8} className="px-6 py-12 text-center text-slate-500 text-sm font-medium">
                           {t('no_orders_yet') || 'No orders found.'}
                         </td>
                       </tr>
@@ -599,7 +661,7 @@ const CustomerDetailsPage = () => {
 
               {/* Pagination footer */}
               {totalPages > 1 && (
-                <div className="p-4 border-t border-zinc-100 flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 text-sm">
                   <div className="text-zinc-500 font-medium">
                   {t('showing')} {(currentPage - 1) * itemsPerPage + 1} {t('to')} {Math.min(currentPage * itemsPerPage, filteredOrders.length)} {t('of')} {filteredOrders.length} {t('records')}
                   </div>
@@ -607,7 +669,7 @@ const CustomerDetailsPage = () => {
                     <button 
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="w-8 h-8 rounded-lg border border-zinc-200 flex items-center justify-center text-zinc-500 hover:bg-zinc-50 disabled:opacity-50 transition-colors"
+                      className="flex h-8 w-8 items-center justify-center border border-slate-300 text-slate-600 hover:border-sky-700 hover:text-sky-800 disabled:opacity-50 transition-colors"
                     >
                       <ChevronLeft size={16} />
                     </button>
@@ -615,7 +677,7 @@ const CustomerDetailsPage = () => {
                       <button 
                         key={i}
                         onClick={() => setCurrentPage(i + 1)}
-                        className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${currentPage === i + 1 ? 'bg-yellow-50 text-yellow-600 border border-yellow-200' : 'text-zinc-600 hover:bg-zinc-50'}`}
+                        className={`flex h-8 w-8 items-center justify-center border text-xs font-medium transition-colors ${currentPage === i + 1 ? 'border-sky-800 bg-sky-800 text-white' : 'border-slate-300 text-slate-600 hover:border-sky-700 hover:text-sky-800'}`}
                       >
                         {i + 1}
                       </button>
@@ -623,7 +685,7 @@ const CustomerDetailsPage = () => {
                     <button 
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      className="w-8 h-8 rounded-lg border border-zinc-200 flex items-center justify-center text-zinc-500 hover:bg-zinc-50 disabled:opacity-50 transition-colors"
+                      className="flex h-8 w-8 items-center justify-center border border-slate-300 text-slate-600 hover:border-sky-700 hover:text-sky-800 disabled:opacity-50 transition-colors"
                     >
                       <ArrowRight size={16} />
                     </button>
@@ -636,50 +698,59 @@ const CustomerDetailsPage = () => {
         </div>
       </div>
 
-      {/* ---- Promote to Seller Modal ---- */}
+      {/* ---- Customer role change confirmation ---- */}
       <AnimatePresence>
         {isPromoteModalOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white border border-zinc-200 rounded-2xl w-full max-w-sm shadow-xl overflow-hidden relative"
+              className="relative w-full max-w-sm overflow-hidden border border-slate-200 bg-white shadow-xl"
             >
               <div className="p-6">
-                <h3 className="text-lg font-bold text-zinc-900 mb-2">
-                  {t('confirmation_dialog') || 'Confirmation'}
+                <h3 className="mb-2 text-lg font-semibold text-slate-900">
+                  {customer.role === 'Seller' ? 'Return to Member Account?' : (t('confirmation_dialog') || 'Confirmation')}
                 </h3>
                 
-                <p className="text-sm text-zinc-500 mb-6 leading-relaxed">
-                  {t('promote_confirm_1') || 'Are you sure you want to promote '}<span className="font-semibold text-zinc-900">{customer.name}</span>{t('promote_confirm_2') || ' to a Seller?'}
+                <p className="mb-6 text-sm leading-relaxed text-slate-600">
+                  {customer.role === 'Seller' ? (
+                    <>
+                      Change <span className="font-semibold text-slate-900">{customer.name}</span> from Seller to Member? Seller pricing and benefits will no longer apply.
+                      {customer.email
+                        ? <> An account update email will be sent to <span className="font-semibold text-slate-900">{customer.email}</span>.</>
+                        : ' There is no email address on file, so no notification can be sent.'}
+                    </>
+                  ) : (
+                    <>{t('promote_confirm_1') || 'Are you sure you want to promote '}<span className="font-semibold text-slate-900">{customer.name}</span>{t('promote_confirm_2') || ' to a Seller?'}</>
+                  )}
                 </p>
                 
                 <div className="flex items-center justify-end gap-3 w-full">
                   <button
                     onClick={() => setIsPromoteModalOpen(false)}
-                    disabled={isPromoting}
-                    className="px-4 py-2 rounded-lg font-semibold text-sm bg-zinc-100 text-zinc-600 hover:bg-zinc-200 transition-colors disabled:opacity-50"
+                    disabled={isChangingRole}
+                    className="border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
                   >
                     {t('cancel') || 'Cancel'}
                   </button>
                   <button
-                    onClick={executePromote}
-                    disabled={isPromoting}
-                    className="px-4 py-2 rounded-lg font-semibold text-sm bg-yellow-500 text-zinc-900 hover:brightness-110 transition-all flex items-center gap-2 disabled:opacity-50"
+                    onClick={executeRoleChange}
+                    disabled={isChangingRole}
+                    className="inline-flex items-center gap-2 border border-sky-800 bg-sky-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-900 disabled:opacity-50"
                   >
-                    {isPromoting ? (
+                    {isChangingRole ? (
                       <>
-                        <div className="w-3.5 h-3.5 border-2 border-zinc-900/20 border-t-zinc-900 rounded-full animate-spin" />
+                        <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                         {t('processing_dot') || 'Processing...'}
                       </>
                     ) : (
-                      t('confirm') || 'Confirm'
+                      customer.role === 'Seller' ? 'Return to Member' : (t('confirm') || 'Confirm')
                     )}
                   </button>
                 </div>

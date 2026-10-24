@@ -116,8 +116,8 @@ const CustomerPage = () => {
   };
 
   const SortIndicator = ({ column }: { column: string }) => {
-    if (sortConfig.key !== column) return <ArrowUpDown size={12} className="text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />;
-    return sortConfig.direction === 'asc' ? <ChevronRight size={12} className="rotate-[-90deg] text-yellow-500" /> : <ChevronRight size={12} className="rotate-[90deg] text-yellow-500" />;
+    if (sortConfig.key !== column) return <ArrowUpDown size={12} className="text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />;
+    return sortConfig.direction === 'asc' ? <ChevronRight size={12} className="rotate-[-90deg] text-sky-700" /> : <ChevronRight size={12} className="rotate-[90deg] text-sky-700" />;
   };
 
   // KPI Calculations
@@ -127,112 +127,119 @@ const CustomerPage = () => {
   const totalCount = customers.length;
 
   return (
-    <AdminLayout title={t('customers')}>
-      <div className="space-y-6">
+    <AdminLayout title={t('customers')} hideTitle>
+      <div className="space-y-5 text-slate-700">
+        <header className="space-y-1">
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('customers')}</h1>
+            <span className="text-xs font-normal text-slate-700">[ Access ]</span>
+          </div>
+          <p className="text-xs text-slate-600">Customer Information /</p>
+        </header>
         
-        {/* KPI Grid (Matching Product Page Style) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Customer summary */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <div 
             onClick={() => { setRoleFilter('All'); setCurrentPage(1); }}
-            className={`bg-white border ${roleFilter === 'All' ? 'border-blue-500/50 shadow-md' : 'border-zinc-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)]'} rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 group hover:shadow-lg cursor-pointer hover:border-blue-500/30`}
+            className={`bg-white border ${roleFilter === 'All' ? 'border-sky-700 shadow-sm' : 'border-slate-200'} p-5 flex min-h-[142px] flex-col justify-between transition-all duration-200 group hover:shadow-sm cursor-pointer hover:border-sky-500`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-blue-500">
-                  <Users size={18} strokeWidth={2.5} />
+                <div className="flex h-10 w-10 items-center justify-center border border-sky-100 bg-sky-50 text-sky-800">
+                  <Users size={18} strokeWidth={1.9} />
                 </div>
-                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('total_customers')}</span>
+                <span className="text-sm font-medium tracking-wide text-slate-700">{t('total_customers')}</span>
               </div>
-              <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+              <MoreVertical size={18} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
             </div>
             <div className="flex items-end gap-3 mt-4">
-              <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
+              <h3 className="text-2xl font-semibold text-slate-900 tracking-tight leading-none">
                 {totalCount}
               </h3>
-              <p className="text-[12px] font-medium text-emerald-500 pb-0.5 flex items-center gap-1">
-                +12% <span className="text-zinc-500">{t('this_month_label')}</span>
+              <p className="text-xs font-medium text-slate-500 pb-0.5 flex items-center gap-1">
+                +12% <span>{t('this_month_label')}</span>
               </p>
             </div>
           </div>
 
           <div 
             onClick={() => { setRoleFilter('Seller'); setCurrentPage(1); }}
-            className={`bg-white border ${roleFilter === 'Seller' ? 'border-[#8b5cf6]/50 shadow-md' : 'border-zinc-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)]'} rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 group hover:shadow-lg cursor-pointer hover:border-[#8b5cf6]/30`}
+            className={`bg-white border ${roleFilter === 'Seller' ? 'border-sky-700 shadow-sm' : 'border-slate-200'} p-5 flex min-h-[142px] flex-col justify-between transition-all duration-200 group hover:shadow-sm cursor-pointer hover:border-sky-500`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-[#8b5cf6]">
-                  <Shield size={18} strokeWidth={2.5} />
+                <div className="flex h-10 w-10 items-center justify-center border border-sky-100 bg-sky-50 text-sky-800">
+                  <Shield size={18} strokeWidth={1.9} />
                 </div>
-                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('seller_account')}</span>
+                <span className="text-sm font-medium tracking-wide text-slate-700">{t('seller_account')}</span>
               </div>
-              <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+              <MoreVertical size={18} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
             </div>
             <div className="flex items-end gap-3 mt-4">
-              <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
+              <h3 className="text-2xl font-semibold text-slate-900 tracking-tight leading-none">
                 {sellerCount}
               </h3>
-              <p className="text-[12px] font-medium text-emerald-500 pb-0.5 flex items-center gap-1">
-                +3 <span className="text-zinc-500">{t('new_label')}</span>
+              <p className="text-xs font-medium text-slate-500 pb-0.5 flex items-center gap-1">
+                +3 <span>{t('new_label')}</span>
               </p>
             </div>
           </div>
 
           <div 
             onClick={() => { setRoleFilter('Member'); setCurrentPage(1); }}
-            className={`bg-white border ${roleFilter === 'Member' ? 'border-[#10b981]/50 shadow-md' : 'border-zinc-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)]'} rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 group hover:shadow-lg cursor-pointer hover:border-[#10b981]/30`}
+            className={`bg-white border ${roleFilter === 'Member' ? 'border-sky-700 shadow-sm' : 'border-slate-200'} p-5 flex min-h-[142px] flex-col justify-between transition-all duration-200 group hover:shadow-sm cursor-pointer hover:border-sky-500`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-[#10b981]">
-                  <UserCheck size={18} strokeWidth={2.5} />
+                <div className="flex h-10 w-10 items-center justify-center border border-sky-100 bg-sky-50 text-sky-800">
+                  <UserCheck size={18} strokeWidth={1.9} />
                 </div>
-                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('members_account')}</span>
+                <span className="text-sm font-medium tracking-wide text-slate-700">{t('members_account')}</span>
               </div>
-              <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+              <MoreVertical size={18} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
             </div>
             <div className="flex items-end gap-3 mt-4">
-              <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
+              <h3 className="text-2xl font-semibold text-slate-900 tracking-tight leading-none">
                 {memberCount}
               </h3>
-              <p className="text-[12px] font-medium text-emerald-500 pb-0.5 flex items-center gap-1">
-                +8% <span className="text-zinc-500">{t('this_month_label')}</span>
+              <p className="text-xs font-medium text-slate-500 pb-0.5 flex items-center gap-1">
+                +8% <span>{t('this_month_label')}</span>
               </p>
             </div>
           </div>
 
           <div 
             onClick={() => { setRoleFilter('Guest'); setCurrentPage(1); }}
-            className={`bg-white border ${roleFilter === 'Guest' ? 'border-zinc-400 shadow-md' : 'border-zinc-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)]'} rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 group hover:shadow-lg cursor-pointer hover:border-zinc-400`}
+            className={`bg-white border ${roleFilter === 'Guest' ? 'border-sky-700 shadow-sm' : 'border-slate-200'} p-5 flex min-h-[142px] flex-col justify-between transition-all duration-200 group hover:shadow-sm cursor-pointer hover:border-sky-500`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-600 bg-zinc-200">
-                  <Users size={18} strokeWidth={2.5} />
+                <div className="flex h-10 w-10 items-center justify-center border border-slate-200 bg-slate-100 text-slate-600">
+                  <Users size={18} strokeWidth={1.9} />
                 </div>
-                <span className="text-[14px] font-bold text-zinc-800 tracking-wide">{t('guests_account')}</span>
+                <span className="text-sm font-medium tracking-wide text-slate-700">{t('guests_account')}</span>
               </div>
-              <MoreVertical size={18} className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+              <MoreVertical size={18} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
             </div>
             <div className="flex items-end gap-3 mt-4">
-              <h3 className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
+              <h3 className="text-2xl font-semibold text-slate-900 tracking-tight leading-none">
                 {guestCount}
               </h3>
-              <p className="text-[12px] font-medium text-emerald-500 pb-0.5 flex items-center gap-1">
-                +24 <span className="text-zinc-500">{t('active_label')}</span>
+              <p className="text-xs font-medium text-slate-500 pb-0.5 flex items-center gap-1">
+                +24 <span>{t('active_label')}</span>
               </p>
             </div>
           </div>
         </div>
 
         {/* Unified Table Section */}
-        <div className="mt-8">
-          <h3 className="text-xl font-bold text-zinc-800 tracking-wide px-2 mb-6">{t('customer_list')}</h3>
+        <div className="mt-2">
+          <h3 className="mb-3 text-base font-semibold tracking-tight text-slate-800">{t('customer_list')}</h3>
           
-          <div className="bg-white border border-zinc-100 rounded-[40px] shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
+          <div className="flex flex-col overflow-hidden border border-slate-200 bg-white shadow-sm">
             
             {/* Top Toolbar */}
-            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between p-6 pb-4 border-b border-zinc-100">
+            <div className="flex flex-col items-start justify-between gap-4 border-b border-slate-200 p-5 pb-4 lg:flex-row lg:items-center">
               {/* Filter Pills */}
               <div className="flex flex-wrap items-center gap-2">
                 {[
@@ -244,10 +251,10 @@ const CustomerPage = () => {
                   <button
                     key={filter.id}
                     onClick={() => { setRoleFilter(filter.id); setCurrentPage(1); }}
-                    className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all ${
-                      roleFilter === filter.id 
-                        ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' 
-                        : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700'
+                    className={`border px-3 py-2 text-xs font-medium transition-colors ${
+                      roleFilter === filter.id
+                        ? 'border-sky-800 bg-sky-800 text-white'
+                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800'
                     }`}
                   >
                     {filter.label} <span className="opacity-70 font-medium ml-1">({filter.count})</span>
@@ -256,22 +263,23 @@ const CustomerPage = () => {
               </div>
 
               {/* Right side: Search & Date Filter */}
-              <div className="flex flex-1 lg:flex-none items-center gap-3 w-full lg:w-auto">
-                <div className="relative flex-1 lg:w-64">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
+              <div className="flex w-full flex-1 items-center gap-3 lg:w-auto lg:flex-none">
+                <div className="relative min-w-0 flex-1 lg:w-64 lg:flex-none">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                   <input
                     type="text"
                   placeholder={t('search_customer_placeholder')}
                     value={searchTerm}
                     onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                    className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-full text-sm font-medium outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-zinc-400"
+                    className="w-full border border-slate-300 bg-white py-2.5 pl-9 pr-9 text-sm text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-sky-700 focus:ring-1 focus:ring-sky-700"
                   />
                   {searchTerm && (
                     <button
                       onClick={() => { setSearchTerm(''); setCurrentPage(1); }}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                      aria-label="Clear search"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
                     >
-                      <MoreVertical size={14} className="rotate-45" />
+                      <X size={14} />
                     </button>
                   )}
                 </div>
@@ -280,10 +288,10 @@ const CustomerPage = () => {
                   <button
                     onClick={() => setShowCalendar(!showCalendar)}
                     className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center transition-colors shrink-0",
+                      "flex h-10 w-10 shrink-0 items-center justify-center border transition-colors",
                       monthFilter || showCalendar
-                        ? "bg-blue-500 text-white shadow-md shadow-blue-500/20" 
-                        : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"
+                        ? "border-sky-800 bg-sky-800 text-white"
+                        : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
                     )}
                     title="Filter by Month"
                   >
@@ -299,11 +307,11 @@ const CustomerPage = () => {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 8, scale: 0.95 }}
                           transition={{ duration: 0.15 }}
-                          className="absolute right-0 top-full mt-2 bg-white border border-zinc-200 rounded-2xl shadow-2xl z-20 p-4 w-[280px]"
+                          className="absolute right-0 top-full z-20 mt-2 w-[280px] border border-slate-200 bg-white p-4 shadow-xl"
                         >
                           <div className="flex items-center justify-between mb-4">
-                            <h4 className="text-sm font-bold text-zinc-800">{t('filter_by_join_month')}</h4>
-                            <button onClick={() => setShowCalendar(false)} className="text-zinc-400 hover:text-zinc-600">
+                            <h4 className="text-sm font-semibold text-slate-800">{t('filter_by_join_month')}</h4>
+                            <button onClick={() => setShowCalendar(false)} className="text-slate-400 hover:text-slate-700">
                               <X size={16} />
                             </button>
                           </div>
@@ -312,19 +320,19 @@ const CustomerPage = () => {
                             type="month"
                             value={monthFilter}
                             onChange={(e) => { setMonthFilter(e.target.value); setCurrentPage(1); }}
-                            className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-[13px] font-bold text-zinc-700 cursor-pointer"
+                            className="w-full border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-sky-700 focus:ring-1 focus:ring-sky-700 cursor-pointer"
                           />
 
                           <div className="mt-4 flex gap-2">
                             <button 
                               onClick={() => { setMonthFilter(''); setCurrentPage(1); setShowCalendar(false); }}
-                              className="flex-1 py-2 bg-zinc-100 text-zinc-600 rounded-xl text-xs font-bold hover:bg-zinc-200 transition-colors"
+                              className="flex-1 border border-slate-300 bg-white py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
                             >
                               {t('clear')}
                             </button>
                             <button 
                               onClick={() => setShowCalendar(false)}
-                              className="flex-1 py-2 bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 hover:brightness-110 transition-all"
+                              className="flex-1 border border-sky-800 bg-sky-800 py-2 text-xs font-medium text-white hover:bg-sky-900 transition-colors"
                             >
                               {t('apply')}
                             </button>
@@ -341,55 +349,55 @@ const CustomerPage = () => {
             <div className="overflow-x-auto min-h-[400px]">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-zinc-50/50">
+                  <tr className="border-b border-slate-200 bg-slate-100">
                     <th 
                       onClick={() => handleSort('id')}
-                      className="py-4 px-6 text-[12px] font-bold text-zinc-500 cursor-pointer group hover:bg-zinc-100/50 transition-colors"
+                      className="cursor-pointer px-5 py-3 text-xs font-semibold text-slate-700 group hover:bg-slate-200 transition-colors"
                     >
                       <div className="flex items-center gap-1.5">{t('id_label')} <SortIndicator column="id" /></div>
                     </th>
                     <th 
                       onClick={() => handleSort('name')}
-                      className="py-4 px-6 text-[12px] font-bold text-zinc-500 cursor-pointer group hover:bg-zinc-100/50 transition-colors"
+                      className="cursor-pointer px-5 py-3 text-xs font-semibold text-slate-700 group hover:bg-slate-200 transition-colors"
                     >
                       <div className="flex items-center gap-1.5">{t('customer_name')} <SortIndicator column="name" /></div>
                     </th>
                     <th 
                       onClick={() => handleSort('email')}
-                      className="py-4 px-6 text-[12px] font-bold text-zinc-500 cursor-pointer group hover:bg-zinc-100/50 transition-colors"
+                      className="cursor-pointer px-5 py-3 text-xs font-semibold text-slate-700 group hover:bg-slate-200 transition-colors"
                     >
                       <div className="flex items-center gap-1.5">{t('email_address_label')} <SortIndicator column="email" /></div>
                     </th>
                     <th 
                       onClick={() => handleSort('phone')}
-                      className="py-4 px-6 text-[12px] font-bold text-zinc-500 cursor-pointer group hover:bg-zinc-100/50 transition-colors"
+                      className="cursor-pointer px-5 py-3 text-xs font-semibold text-slate-700 group hover:bg-slate-200 transition-colors"
                     >
                       <div className="flex items-center gap-1.5">{t('phone_number')} <SortIndicator column="phone" /></div>
                     </th>
                     <th 
                       onClick={() => handleSort('role')}
-                      className="py-4 px-6 text-[12px] font-bold text-zinc-500 cursor-pointer group hover:bg-zinc-100/50 transition-colors"
+                      className="cursor-pointer px-5 py-3 text-xs font-semibold text-slate-700 group hover:bg-slate-200 transition-colors"
                     >
                       <div className="flex items-center gap-1.5">{t('role')} <SortIndicator column="role" /></div>
                     </th>
                     <th 
                       onClick={() => handleSort('totalSpent')}
-                      className="py-4 px-6 text-[12px] font-bold text-zinc-500 cursor-pointer group hover:bg-zinc-100/50 transition-colors"
+                      className="cursor-pointer px-5 py-3 text-xs font-semibold text-slate-700 group hover:bg-slate-200 transition-colors"
                     >
                       <div className="flex items-center gap-1.5">{t('total_spent')} <SortIndicator column="totalSpent" /></div>
                     </th>
                     <th 
                       onClick={() => handleSort('createdAt')}
-                      className="py-4 px-6 text-[12px] font-bold text-zinc-500 cursor-pointer group hover:bg-zinc-100/50 transition-colors"
+                      className="cursor-pointer px-5 py-3 text-xs font-semibold text-slate-700 group hover:bg-slate-200 transition-colors"
                     >
                       <div className="flex items-center gap-1.5">{t('join_date')} <SortIndicator column="createdAt" /></div>
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-slate-200">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={6} className="py-20 text-center">
+                      <td colSpan={7} className="py-20 text-center">
                         <div className="flex flex-col items-center gap-3">
                           <div className="w-6 h-6 border-2 border-zinc-200 border-t-blue-500 rounded-full animate-spin"></div>
                           <p className="text-sm font-medium text-zinc-500">{t('loading_customers')}</p>
@@ -398,7 +406,7 @@ const CustomerPage = () => {
                     </tr>
                   ) : paginatedCustomers.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-20 text-center">
+                      <td colSpan={7} className="py-20 text-center">
                         <p className="text-sm font-medium text-zinc-500">{t('no_customers_found')}</p>
                       </td>
                     </tr>
@@ -407,15 +415,15 @@ const CustomerPage = () => {
                       <tr 
                         key={c.id}
                         onClick={() => router.push(`/admin/customer/${c.id}`)}
-                        className="group hover:bg-zinc-50 transition-colors cursor-pointer"
+                        className="group cursor-pointer transition-colors odd:bg-white even:bg-slate-50 hover:bg-sky-50"
                       >
                         <td className="py-4 px-6">
-                          <span className="text-[12px] font-mono font-medium text-zinc-500 bg-zinc-100 px-2 py-1 rounded-md">
+                          <span className="border border-slate-200 bg-slate-100 px-2 py-1 font-mono text-xs font-medium text-slate-700">
                             #{c.id.substring(c.id.length - 6).toUpperCase()}
                           </span>
                         </td>
                         <td className="py-4 px-6">
-                          <span className="text-[14px] font-bold text-zinc-800">{c.name || 'Guest'}</span>
+                          <span className="text-sm font-semibold text-slate-900">{c.name || 'Guest'}</span>
                         </td>
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-2">
@@ -431,11 +439,11 @@ const CustomerPage = () => {
                         </td>
                         <td className="py-4 px-6">
                           <div className={cn(
-                            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all",
-                            c.role === 'Seller' ? "bg-purple-100 text-purple-700" :
-                            c.role === 'Member' ? "bg-emerald-100 text-emerald-700" :
-                            c.role === 'Guest' ? "bg-slate-100 text-slate-600" :
-                            "bg-zinc-100 text-zinc-600"
+                            "inline-flex items-center gap-1.5 border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                            c.role === 'Seller' ? "border-sky-200 bg-sky-50 text-sky-800" :
+                            c.role === 'Member' ? "border-blue-200 bg-blue-50 text-blue-800" :
+                            c.role === 'Guest' ? "border-slate-200 bg-slate-100 text-slate-700" :
+                            "border-slate-200 bg-slate-100 text-slate-700"
                           )}>
                             {c.role === 'Seller' ? <Shield size={12} strokeWidth={2.5} /> :
                              c.role === 'Member' ? <UserCheck size={12} strokeWidth={2.5} /> :
@@ -473,7 +481,7 @@ const CustomerPage = () => {
             </div>
 
             {/* Pagination Controls */}
-            <div className="p-6 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-50/50">
+            <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:flex-row">
               <p className="text-[13px] font-medium text-zinc-500">
                 {t('showing')} <span className="font-bold text-zinc-800">{sortedCustomers.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> {t('to')} <span className="font-bold text-zinc-800">{Math.min(currentPage * itemsPerPage, sortedCustomers.length)}</span> {t('of')} <span className="font-bold text-zinc-800">{sortedCustomers.length}</span> {t('records')}
               </p>
@@ -482,7 +490,7 @@ const CustomerPage = () => {
                 <button 
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(1)}
-                  className="p-2 rounded-lg text-zinc-400 hover:text-zinc-800 hover:bg-white border border-transparent hover:border-zinc-200 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:border-transparent transition-all shadow-sm disabled:shadow-none"
+                  className="border border-slate-300 bg-white p-2 text-slate-500 transition-colors hover:border-sky-700 hover:text-sky-800 disabled:opacity-40"
                   title="First Page"
                 >
                   <ChevronsLeft size={16} strokeWidth={2.5} />
@@ -490,7 +498,7 @@ const CustomerPage = () => {
                 <button 
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  className="p-2 rounded-lg text-zinc-400 hover:text-zinc-800 hover:bg-white border border-transparent hover:border-zinc-200 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:border-transparent transition-all shadow-sm disabled:shadow-none"
+                  className="border border-slate-300 bg-white p-2 text-slate-500 transition-colors hover:border-sky-700 hover:text-sky-800 disabled:opacity-40"
                   title="Previous Page"
                 >
                   <ChevronLeft size={16} strokeWidth={2.5} />
@@ -513,10 +521,10 @@ const CustomerPage = () => {
                       <button
                         key={i + 1}
                         onClick={() => setCurrentPage(i + 1)}
-                        className={`min-w-[32px] h-8 rounded-lg text-[13px] font-bold transition-all flex items-center justify-center ${
-                          currentPage === i + 1 
-                            ? 'bg-zinc-800 text-white shadow-md' 
-                            : 'text-zinc-500 hover:bg-white hover:text-zinc-800 border border-transparent hover:border-zinc-200 hover:shadow-sm'
+                        className={`flex h-8 min-w-[32px] items-center justify-center border px-2 text-xs font-medium transition-colors ${
+                          currentPage === i + 1
+                            ? 'border-sky-800 bg-sky-800 text-white'
+                            : 'border-slate-300 bg-white text-slate-600 hover:border-sky-700 hover:text-sky-800'
                         }`}
                       >
                         {i + 1}
@@ -528,7 +536,7 @@ const CustomerPage = () => {
                 <button 
                   disabled={currentPage === totalPages || totalPages === 0}
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  className="p-2 rounded-lg text-zinc-400 hover:text-zinc-800 hover:bg-white border border-transparent hover:border-zinc-200 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:border-transparent transition-all shadow-sm disabled:shadow-none"
+                  className="border border-slate-300 bg-white p-2 text-slate-500 transition-colors hover:border-sky-700 hover:text-sky-800 disabled:opacity-40"
                   title="Next Page"
                 >
                   <ChevronRight size={16} strokeWidth={2.5} />
@@ -536,7 +544,7 @@ const CustomerPage = () => {
                 <button 
                   disabled={currentPage === totalPages || totalPages === 0}
                   onClick={() => setCurrentPage(totalPages)}
-                  className="p-2 rounded-lg text-zinc-400 hover:text-zinc-800 hover:bg-white border border-transparent hover:border-zinc-200 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:border-transparent transition-all shadow-sm disabled:shadow-none"
+                  className="border border-slate-300 bg-white p-2 text-slate-500 transition-colors hover:border-sky-700 hover:text-sky-800 disabled:opacity-40"
                   title="Last Page"
                 >
                   <ChevronsRight size={16} strokeWidth={2.5} />

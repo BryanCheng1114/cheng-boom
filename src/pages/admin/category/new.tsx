@@ -1,9 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/router';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Image as ImageIcon, Package, Info, X, Upload, Trash2, CheckCircle, AlertTriangle } from 'lucide-react';
-import AdminLayout from '../../../components/admin/AdminLayout';
 import Link from 'next/link';
+import { Image as ImageIcon, Upload, AlertTriangle, Plus, Save, ArrowLeft } from 'lucide-react';
+import AdminLayout from '../../../components/admin/AdminLayout';
 import { useLanguage } from '../../../context/LanguageContext';
 
 const UploadCategoryPage = () => {
@@ -12,10 +11,10 @@ const UploadCategoryPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   
-  const [preview, setPreview] = useState('');
   const [uploadedImage, setUploadedImage] = useState('');
+  const [selectedImageName, setSelectedImageName] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -24,25 +23,35 @@ const UploadCategoryPage = () => {
     nameMs: '',
     description: '',
     displayOrder: 0,
-    status: 'Live',
+    showInCategoryBar: null as boolean | null,
+    showInAppBar: null as boolean | null,
+    status: '',
   });
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    const file = files[0];
+    const allowedFile = /\.(png|jpe?g)$/i.test(file.name);
+    if (!allowedFile) {
+      setErrorMsg('Please select a PNG or JPG image.');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setErrorMsg('The image must be 10MB or smaller.');
+      e.target.value = '';
+      return;
+    }
+
     setIsLoading(true);
     setErrorMsg('');
+    setUploadedImage('');
+    setSelectedImageName('');
 
     const data = new FormData();
-    data.append('files', files[0]);
-
-    // Local Preview
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) setPreview(event.target.result as string);
-    };
-    reader.readAsDataURL(files[0]);
+    data.append('files', file);
 
     try {
       const res = await fetch('/api/admin/upload', {
@@ -52,22 +61,17 @@ const UploadCategoryPage = () => {
       const result = await res.json();
       if (result.urls && result.urls.length > 0) {
         setUploadedImage(result.urls[0]);
-        setPreview(result.urls[0]);
+        setSelectedImageName(file.name);
       } else {
         throw new Error(result.error || 'Upload failed');
       }
     } catch (err: any) {
       console.error(err);
       setErrorMsg('Failed to upload banner image. Please try again.');
-      setPreview('');
+      setSelectedImageName('');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const removeImage = () => {
-    setPreview('');
-    setUploadedImage('');
   };
 
   const handleAutoGenerateCode = async () => {
@@ -124,6 +128,14 @@ const UploadCategoryPage = () => {
       setErrorMsg('Category Code is required.');
       return;
     }
+    if (!formData.status) {
+      setErrorMsg('Please select whether this category is on hold.');
+      return;
+    }
+    if (formData.showInCategoryBar === null || formData.showInAppBar === null) {
+      setErrorMsg('Please select the visibility for both category locations.');
+      return;
+    }
 
     setIsLoading(true);
     setErrorMsg('');
@@ -140,7 +152,7 @@ const UploadCategoryPage = () => {
 
       const result = await response.json();
       if (response.ok) {
-        setSuccess(true);
+        setShowContinuePrompt(true);
       } else {
         setErrorMsg(result.error || 'Failed to create category.');
       }
@@ -153,58 +165,34 @@ const UploadCategoryPage = () => {
   };
 
   return (
-    <AdminLayout title={t('upload_new_category')}>
-      <div className="w-full pb-24 relative">
-
-        {/* Top Info Box */}
-        <div className="bg-white p-5 rounded-[20px] border border-zinc-200 shadow-sm mb-6 flex items-center gap-5">
-          <div className="w-12 h-12 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center shrink-0">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-          </div>
-          <div>
-            <h1 className="text-3xl font-black text-zinc-900 tracking-tight">{t('create_new_category') || 'Create New Category'}</h1>
-            <p className="text-zinc-500 font-medium mt-2">{t('create_category_desc') || 'Add a new product category to organize your inventory and help customers find products easily.'}</p>
-          </div>
-        </div>
-
-        {success ? (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white p-12 rounded-[32px] border border-zinc-200/80 shadow-sm text-center space-y-6 max-w-2xl mx-auto mt-12"
-          >
-            <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-[24px] flex items-center justify-center mx-auto border border-green-500/20">
-              <CheckCircle size={40} />
-            </div>
-            <div className="space-y-2">
-              <h4 className="text-2xl font-bold tracking-tight text-zinc-900">Category Created!</h4>
-              <p className="text-zinc-500 text-sm max-w-md mx-auto">
-                {formData.name} has been created successfully.
-              </p>
-            </div>
-            <button
-              onClick={() => router.push('/admin/category')}             
-              className="px-10 py-4 bg-orange-500 text-white font-bold text-sm rounded-2xl hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20"
-            >
-              Done & Return
-            </button>
-          </motion.div>
-        ) : (
+    <AdminLayout title={t('upload_new_category')} hideTitle>
+      <div className="w-full pb-8 relative">
           <form onSubmit={handleSubmit} className="space-y-6 relative">
+            <header className="space-y-1">
+              <div className="flex flex-wrap items-baseline gap-x-2">
+                <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('upload_new_category') || 'Upload New Category'}</h1>
+                <span className="text-xs font-normal text-slate-700">[ New Entry Screen ]</span>
+              </div>
+              <p className="text-xs text-slate-600">Category Information /</p>
+            </header>
+            <Link href="/admin/category" className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50">
+              <ArrowLeft size={17} />
+              Back to Category Screen
+            </Link>
             {errorMsg && (
-              <div className="flex items-center gap-3 p-5 bg-red-50 text-red-500 text-sm font-semibold rounded-2xl border border-red-100">
+              <div className="flex items-center gap-3 p-4 bg-red-50 text-red-700 text-sm font-medium border border-red-200">
                 <AlertTriangle size={18} className="shrink-0" />
                 {errorMsg}
               </div>
             )}
 
-            <div className="flex flex-col lg:flex-row gap-6">
+            <div className="grid grid-cols-1 gap-6 items-start">
               {/* Left Column */}
-              <div className="flex-1 space-y-6">
+              <div className="min-w-0 space-y-6">
                 {/* Basic Details */}
-                <div className="bg-white p-6 md:p-8 rounded-[20px] border border-zinc-200 shadow-sm">
-                  <h2 className="text-lg font-black text-zinc-900">{t('category_info') || 'Category Information'}</h2>
-                  <div className="space-y-6">
+                <div className="bg-white p-6 md:p-8 border border-slate-200 shadow-sm">
+                  <h2 className="border-b border-slate-200 pb-4 text-lg font-semibold text-slate-800">{t('category_info') || 'Category Information'}</h2>
+                  <div className="mt-6 space-y-6">
                     {/* Row 1 */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
@@ -218,9 +206,9 @@ const UploadCategoryPage = () => {
                             value={formData.name}
                             onChange={handleChange}
                             placeholder={locale === 'zh' ? '例如：外套' : locale === 'ms' ? 'cth. Jaket' : 'e.g. Track Jacket'}
-                            className="w-full pl-4 pr-12 py-3 rounded-xl border border-zinc-200 outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white"
+                            className="w-full pl-4 pr-12 py-3 border border-slate-300 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 transition-colors text-sm text-slate-800 bg-white"
                           />
-                          <div className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-indigo-50 text-indigo-500 rounded-md flex items-center justify-center text-xs font-bold">
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-medium">
                             A
                           </div>
                         </div>
@@ -237,12 +225,12 @@ const UploadCategoryPage = () => {
                             value={formData.code}
                             onChange={handleChange}
                             placeholder="e.g. FW00001"
-                            className="flex-1 pl-4 pr-24 py-3 rounded-xl border border-zinc-200 outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white"
+                            className="flex-1 pl-4 pr-24 py-3 border border-slate-300 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 transition-colors text-sm text-slate-800 bg-white"
                           />
                           <button
                             type="button"
                             onClick={handleAutoGenerateCode}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-orange-500 font-bold text-[12px] hover:bg-orange-50 rounded-md transition-all"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-sky-700 font-medium text-xs hover:bg-sky-50 transition-colors"
                           >
                             {t('auto_gen') || 'Auto-Gen'}
                           </button>
@@ -251,172 +239,92 @@ const UploadCategoryPage = () => {
                       </div>
                     </div>
 
-                    {/* Row 2 */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-[13px] font-semibold text-zinc-800">{t('chinese_translation_optional') || 'Chinese Translation (optional)'}</label>
-                        <div className="relative">
-                          <input 
-                            type="text" 
-                            name="nameZh"
-                            disabled={isLoading}
-                            value={formData.nameZh}
-                            onChange={handleChange}
-                            placeholder={locale === 'ms' ? 'cth. Bunga Api' : 'e.g. 高空烟花'}
-                            className="w-full pl-4 pr-12 py-3 rounded-xl border border-zinc-200 outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white"
-                          />
-                          <div className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-zinc-100 text-zinc-500 rounded-md flex items-center justify-center">
-                            <span className="text-[10px] font-bold">文A</span>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                      <div className="space-y-5">
+                        <div className="space-y-2">
+                          <label className="text-[13px] font-medium text-slate-700">{t('chinese_translation_optional') || 'Chinese Translation (optional)'}</label>
+                          <div className="relative">
+                            <input type="text" name="nameZh" disabled={isLoading} value={formData.nameZh} onChange={handleChange} placeholder={locale === 'ms' ? 'cth. Bunga Api' : 'e.g. 高空烟花'} className="w-full border border-slate-300 bg-white px-4 py-3 pr-12 text-sm text-slate-800 outline-none transition-colors focus:border-sky-600 focus:ring-1 focus:ring-sky-600" />
+                            <div className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center bg-slate-100 text-slate-500"><span className="text-[10px] font-medium">文A</span></div>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[13px] font-medium text-slate-700">{locale === 'zh' ? '显示顺序（可选）' : locale === 'ms' ? 'Susunan Paparan (pilihan)' : 'Display Position (optional)'}</label>
+                          <input type="number" name="displayOrder" min={0} step={1} disabled={isLoading} value={formData.displayOrder} onChange={handleChange} placeholder="0" className="w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" />
+                          <p className="text-[11px] text-slate-500">{locale === 'zh' ? '请输入 0 或更大的整数。数字越小越靠前；相同数字按名称排序。' : locale === 'ms' ? 'Masukkan nombor bulat 0 atau lebih. Nombor lebih kecil dipaparkan dahulu; nombor sama disusun mengikut nama.' : 'Use a whole number (0 or higher). Lower numbers appear first; ties are sorted by name.'}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-5">
+                        <div className="space-y-2">
+                          <label htmlFor="category-status" className="block text-[13px] font-medium text-slate-700">Category Status <span className="text-rose-500">*</span></label>
+                          <select id="category-status" value={formData.status} required disabled={isLoading} onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))} className="w-full border border-slate-300 bg-white px-3 py-3 text-sm text-slate-700 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600">
+                            <option value="">Please select</option><option value="Live">Live</option><option value="Hold">On hold</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[13px] font-medium text-slate-700">{t('category_desc_optional') || 'Category Description (optional)'}</label>
+                          <div className="relative">
+                            <textarea name="description" disabled={isLoading} value={formData.description} onChange={handleChange} maxLength={200} placeholder={locale === 'zh' ? '输入关于此分类的简短描述...' : locale === 'ms' ? 'Masukkan penerangan ringkas...' : 'Enter a short description about this category...'} className="min-h-[130px] w-full resize-none border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition-colors focus:border-sky-600 focus:ring-1 focus:ring-sky-600" />
+                            <div className="absolute bottom-3 right-3 text-[11px] font-medium text-slate-400">{formData.description?.length || 0} / 200</div>
                           </div>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                </div>
 
+                <section className="overflow-hidden border border-slate-200 bg-white shadow-sm">
+                  <h2 className="border-b border-slate-200 px-6 py-4 text-lg font-semibold text-slate-800 md:px-8">{locale === 'zh' ? '分类显示位置' : locale === 'ms' ? 'Lokasi Paparan Kategori' : 'Category Visibility'}</h2>
+                  <div className="grid grid-cols-1 gap-8 p-6 md:grid-cols-2 md:p-8">
+                    <div className="space-y-5">
                       <div className="space-y-2">
-                        <label className="text-[13px] font-semibold text-zinc-800">{t('display_order_optional') || 'Display Order (optional)'}</label>
-                        <input 
-                          type="number" 
-                          name="displayOrder"
-                          disabled={isLoading}
-                          value={formData.displayOrder}
-                          onChange={handleChange}
-                          placeholder="0"
-                          className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white"
-                        />
-                        <p className="text-[11px] text-zinc-400">{t('lower_numbers_first') || 'Lower numbers appear first'}</p>
+                        <label htmlFor="shop-visibility" className="block text-sm font-medium text-slate-700">{locale === 'zh' ? '显示在商店分类标签' : locale === 'ms' ? 'Tunjukkan dalam tab kategori kedai' : 'Show in shop category tabs'} <span className="text-rose-500">*</span></label>
+                        <select id="shop-visibility" value={formData.showInCategoryBar === null ? '' : formData.showInCategoryBar ? 'Yes' : 'No'} required disabled={isLoading} onChange={(e) => setFormData((prev) => ({ ...prev, showInCategoryBar: e.target.value === '' ? null : e.target.value === 'Yes' }))} className="w-full border border-slate-300 bg-white px-3 py-3 text-sm text-slate-700 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600">
+                          <option value="">Please select</option><option value="Yes">Yes</option><option value="No">No</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="top-navigation-visibility" className="block text-sm font-medium text-slate-700">{locale === 'zh' ? '显示在顶部导航栏' : locale === 'ms' ? 'Tunjukkan dalam bar navigasi atas' : 'Show in top navigation'} <span className="text-rose-500">*</span></label>
+                        <select id="top-navigation-visibility" value={formData.showInAppBar === null ? '' : formData.showInAppBar ? 'Yes' : 'No'} required disabled={isLoading} onChange={(e) => setFormData((prev) => ({ ...prev, showInAppBar: e.target.value === '' ? null : e.target.value === 'Yes' }))} className="w-full border border-slate-300 bg-white px-3 py-3 text-sm text-slate-700 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600">
+                          <option value="">Please select</option><option value="Yes">Yes</option><option value="No">No</option>
+                        </select>
                       </div>
                     </div>
-
-                    {/* Row 3 */}
-                    <div className="space-y-2">
-                      <label className="text-[13px] font-semibold text-zinc-800">{t('category_desc_optional') || 'Category Description (optional)'}</label>
-                      <div className="relative">
-                        <textarea
-                          name="description"
-                          disabled={isLoading}
-                          value={formData.description}
-                          onChange={handleChange}
-                          maxLength={200}
-                          placeholder={locale === 'zh' ? '输入关于此分类的简短描述...' : locale === 'ms' ? 'Masukkan penerangan ringkas...' : 'Enter a short description about this category...'}
-                          className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none focus:border-zinc-400 transition-all text-[14px] text-zinc-900 bg-white min-h-[130px] resize-none"
-                        />
-                        <div className="absolute bottom-3 right-3 text-[11px] font-medium text-zinc-400">
-                          {formData.description?.length || 0} / 200
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Status Setting */}
-                <div className="bg-white p-6 md:p-8 rounded-[20px] border border-zinc-200 shadow-sm">
-                  <div className="flex items-center gap-5">
-                    <div className="w-12 h-12 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center shrink-0">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[14px] font-bold text-zinc-900">{t('on_hold_category') || 'On-Hold Category'}</p>
-                      <p className="text-[12px] font-medium text-zinc-500 mt-0.5">{t('hide_category_desc') || 'Hide this category and all its products from the frontend.'}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, status: prev.status === 'Hold' ? 'Live' : 'Hold' }))}
-                      className={`relative w-[48px] h-7 rounded-full transition-colors shrink-0 ${formData.status === 'Hold' ? 'bg-orange-500' : 'bg-zinc-200'}`}
-                    >
-                      <div className={`absolute top-[2px] w-[24px] h-[24px] rounded-full bg-white shadow-sm transition-all ${formData.status === 'Hold' ? 'left-[22px]' : 'left-[2px]'}`} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column */}
-              <div className="w-full lg:w-[400px] xl:w-[450px] shrink-0 space-y-6">
-                {/* Visual Assets */}
-                <div className="bg-white p-6 md:p-8 rounded-[20px] border border-zinc-200 shadow-sm flex flex-col h-full">
-                  <div className="mb-6">
-                    <h3 className="text-[16px] font-bold text-zinc-900">{t('category_photo') || 'Category Photo'}</h3>
-                    <p className="text-[13px] text-zinc-500 mt-1">{t('category_photo_desc') || 'Upload a photo that represents this category'}</p>
-                  </div>
-                  
-                  <div className="relative h-[180px] border border-dashed rounded-[20px] flex flex-col items-center justify-center gap-4 bg-zinc-50/50 border-zinc-300 overflow-hidden shrink-0">
-                    <div 
-                      className="w-full h-full flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-zinc-50 transition-all group"
-                      onClick={() => !isLoading && fileInputRef.current?.click()}
-                    >
-                      <div className="text-zinc-400 group-hover:text-zinc-600 transition-colors">
-                        <Upload size={28} strokeWidth={1.5} />
-                      </div>
-                      <div className="text-center px-6">
-                        <p className="font-bold text-zinc-900 mt-4 text-[13px]">{t('drag_drop_image') || 'Drag & drop your image here'}</p>
-                        <p className="text-zinc-500 font-medium text-[12px]">{t('or_click_browse') || 'or click to browse'}</p>
-                        <p className="text-zinc-400 font-medium text-[10px] mt-1">{t('image_restrictions') || 'PNG, JPG, JPEG up to 10MB'}</p>
-                      </div>
-                    </div>
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      ref={fileInputRef}
-                      onChange={handleFileSelect}
-                      className="hidden" 
-                    />
-                  </div>
-
-                  <div className="mt-8 flex-1 flex flex-col">
-                    <h4 className="text-[14px] font-bold text-zinc-900 mb-3">{t('image_preview') || 'Image Preview'}</h4>
-                    <div className="flex-1 bg-zinc-50 rounded-[16px] flex items-center justify-center min-h-[140px] border border-zinc-100 mb-6 relative overflow-hidden">
-                      {preview ? (
-                        <>
-                          <img src={preview} className="absolute inset-0 w-full h-full object-contain p-2" />
-                          <div className="absolute inset-0 bg-white/60 opacity-0 hover:opacity-100 flex flex-col items-center justify-center gap-4 transition-all backdrop-blur-sm">
-                            <button 
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                !isLoading && fileInputRef.current?.click();
-                              }}
-                              className="w-12 h-12 bg-white text-zinc-900 rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-all border border-zinc-100"
-                              title="Re-upload Image"
-                            >
-                              <Upload size={18} />
+                    <div>
+                      {formData.showInAppBar === true && (
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-slate-700">{t('category_photo') || 'Category Photo'}</label>
+                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
+                            <div className="flex min-h-11 items-center gap-2 border border-slate-300 bg-white px-3 text-sm text-slate-600">
+                              <ImageIcon size={16} className="shrink-0 text-slate-400" />
+                              <span className="truncate">{selectedImageName || 'Please select a single file (PNG or JPG, limit 10MB)'}</span>
+                            </div>
+                            <button type="button" onClick={() => !isLoading && fileInputRef.current?.click()} disabled={isLoading} className="inline-flex min-h-11 items-center justify-center gap-2 border border-sky-700 bg-sky-700 px-5 text-sm font-medium text-white transition-colors hover:bg-sky-800 disabled:opacity-50">
+                              <Upload size={16} /> Browse
                             </button>
+                            <input type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
                           </div>
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-center gap-2 text-zinc-300">
-                          <ImageIcon size={36} strokeWidth={1.5} />
-                          <span className="text-[12px] font-semibold text-zinc-400 max-w-[120px] leading-tight">{t('image_preview_desc') || 'Image preview will appear here'}</span>
                         </div>
                       )}
                     </div>
-
-                    <div className="bg-orange-50 rounded-[16px] p-5 border border-orange-100">
-                      <div className="flex items-center gap-2 text-orange-600 mb-2">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1.45.62 2.84 1.5 3.5.76.76 1.23 1.52 1.41 2.5"></path></svg>
-                        <span className="text-[13px] font-bold">{t('tips') || 'Tips'}</span>
-                      </div>
-                      <p className="text-[12px] text-orange-700/80 leading-relaxed font-medium">
-                        {t('clear_image_tip') || 'Use a clear image that best represents the category.'}
-                      </p>
-                    </div>
                   </div>
-                </div>
-              </div>
+                </section>
+            </div>
             </div>
 
-            {/* Bottom Actions Row */}
-            <div className="fixed bottom-0 left-0 right-0 md:left-64 z-30 bg-white/80 backdrop-blur-md border-t border-zinc-200 p-4">
-              <div className="w-full flex items-center justify-end gap-4 px-6">
+            <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">
                 <button 
                   type="button" 
                   onClick={() => router.push('/admin/category')}
                   disabled={isLoading}
-                  className="px-8 py-3 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-bold text-[13px] hover:bg-zinc-50 transition-all disabled:opacity-50"
+                  className="px-4 sm:px-6 py-3 bg-white border border-slate-300 text-slate-700 font-medium text-sm hover:bg-slate-50 hover:border-slate-400 transition-colors disabled:opacity-50"
                 >
                   {t('cancel') || 'Cancel'}
                 </button>
                 <button 
                   type="submit" 
                   disabled={isLoading || !formData.name.trim() || !formData.code.trim()}
-                  className="px-8 py-3 bg-orange-500 text-white rounded-xl font-bold text-[13px] hover:bg-orange-600 transition-all shadow-md shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="justify-center px-4 sm:px-7 py-3 bg-sky-700 text-white font-medium text-sm hover:bg-sky-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -425,14 +333,25 @@ const UploadCategoryPage = () => {
                     </>
                   ) : (
                     <>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                      {t('save_category') || 'Save Category'}
+                      <Save size={16} />
+                      Data Entry Confirm
                     </>
                   )}
                 </button>
-              </div>
             </div>
           </form>
+        {showContinuePrompt && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/40 p-4">
+            <div role="dialog" aria-modal="true" aria-labelledby="continue-category-title" className="w-full max-w-md border border-slate-200 bg-white p-6 shadow-xl">
+              <div className="mb-4 flex h-10 w-10 items-center justify-center bg-emerald-50 text-emerald-700"><Save size={19} /></div>
+              <h2 id="continue-category-title" className="text-lg font-semibold text-slate-800">Category saved successfully</h2>
+              <p className="mt-2 text-sm text-slate-600">Do you want to continue adding a new category?</p>
+              <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <button type="button" onClick={() => router.push('/admin/category')} className="border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">No, return to categories</button>
+                <button type="button" onClick={() => { setFormData({ name: '', code: '', nameZh: '', nameMs: '', description: '', displayOrder: 0, showInCategoryBar: null, showInAppBar: null, status: '' }); setSelectedImageName(''); setUploadedImage(''); if (fileInputRef.current) fileInputRef.current.value = ''; setErrorMsg(''); setShowContinuePrompt(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="inline-flex items-center justify-center gap-2 border border-sky-700 bg-sky-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-sky-800"><Plus size={16} /> Yes, add another</button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </AdminLayout>

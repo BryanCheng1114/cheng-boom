@@ -356,7 +356,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
         <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : ''} />
         <meta property="og:type" content="product" />
       </Head>
-      <div className="min-h-screen bg-white pt-6">
+      <div className="min-h-screen bg-white pt-0 md:pt-6">
         
         {/* Top Header: Breadcrumb & Share */}
         <div className="w-full hidden lg:block">
@@ -390,7 +390,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
                   </div>
       </div>
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <div className="w-full max-w-7xl mx-auto px-4 pt-0 pb-8 sm:px-6 lg:px-8 md:py-12">
         <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12 items-start">
           
           {/* LEFT: Image Section */}
@@ -707,29 +707,6 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                   </div>
                 </div>
 
-                {/* Mobile Share Function */}
-                <div className="flex flex-col lg:hidden mt-2">
-                  <div className="w-full h-px bg-zinc-200 mb-4" />
-                  <div className="flex items-center justify-between px-1">
-                    <span className="text-sm font-bold text-zinc-400">{locale === 'zh' ? '分享此产品' : locale === 'ms' ? 'Kongsi produk ini' : 'Share this product'}</span>
-                    <div className="flex items-center gap-3">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); handleWhatsAppShare(); }}
-                        className="w-10 h-10 rounded-full overflow-hidden hover:scale-110 transition-transform flex items-center justify-center drop-shadow-sm bg-white border border-zinc-700/50"
-                        title="Share to WhatsApp"
-                      >
-                        <img src="/whatsapp-call-icon-psd-editable_314999-3666.avif" alt="WhatsApp" className="w-full h-full object-cover scale-[1.15]" />
-                      </button>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}
-                        className="w-10 h-10 rounded-full bg-zinc-100 border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200 transition-colors flex items-center justify-center"
-                        title="Copy Link"
-                      >
-                        {isCopied ? <Check size={16} className="text-green-500" /> : <LinkIcon size={16} />}
-                      </button>
-                    </div>
-                  </div>
-                </div>
               </div>
 
             </div>

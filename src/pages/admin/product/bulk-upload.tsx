@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Package, Upload, AlertTriangle, CheckCircle, FileArchive, X, Download } from 'lucide-react';
+import { ArrowLeft, FolderOpen, Upload, AlertTriangle, CheckCircle, X } from 'lucide-react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import Link from 'next/link';
 
@@ -47,7 +47,7 @@ export default function BulkUploadPage() {
         'Code*', 'Name_EN*', 'Name_ZH', 'Category*', 'Description_EN*', 'Description_ZH',
         'Video_URL', 'Stock*', 'Price*', 'Promotion_Price', 'Seller_Price',
         'Items_Per_Box', 'Box_Price', 'Box_Seller_Price', 'Box_Promotion_Price',
-        'Bundle_Quantity', 'Bundle_Price', 'Bundle_Seller_Price', 'Bundle_Promotion_Price',
+        'Items_Bundle', 'Bundle_Price', 'Bundle_Seller_Price', 'Bundle_Promotion_Price',
         'Status', 'Image_Filename*'
       ];
 
@@ -224,7 +224,7 @@ export default function BulkUploadPage() {
           boxPrice: getValue('Box_Price') ? Number(getValue('Box_Price')) : null,
           boxSellerPrice: getValue('Box_Seller_Price') ? Number(getValue('Box_Seller_Price')) : null,
           boxPromotion: getValue('Box_Promotion_Price') ? Number(getValue('Box_Promotion_Price')) : null,
-          bundleQuantity: getValue('Bundle_Quantity') ? Number(getValue('Bundle_Quantity')) : null,
+          bundleQuantity: getValue('Items_Bundle') ? Number(getValue('Items_Bundle')) : (getValue('Bundle_Quantity') ? Number(getValue('Bundle_Quantity')) : null),
           bundlePrice: getValue('Bundle_Price') ? Number(getValue('Bundle_Price')) : null,
           bundleSellerPrice: getValue('Bundle_Seller_Price') ? Number(getValue('Bundle_Seller_Price')) : null,
           bundlePromotion: getValue('Bundle_Promotion_Price') ? Number(getValue('Bundle_Promotion_Price')) : null,
@@ -252,11 +252,7 @@ export default function BulkUploadPage() {
   };
 
   const handleConfirmImport = async () => {
-    if (validationErrors.length > 0) {
-      if (!confirm('There are validation errors. Products with errors may fail to import. Do you want to proceed?')) {
-        return;
-      }
-    }
+    if (validationErrors.length > 0) return;
     
     setIsConfirmed(true);
     setIsLoading(true);
@@ -267,19 +263,19 @@ export default function BulkUploadPage() {
       // Create FormData to send all data at once
       const formData = new FormData();
       
-      // Only import products that have an image and required fields
-      const validProducts = previewProducts.filter(p => 
-        p.name && p.code && p.category && p.hasImage
+      // Bulk imports are all-or-nothing: never omit invalid rows from the submitted file.
+      const allRowsValid = previewProducts.every(p =>
+        p.name && p.code && p.category && p.description && p.stock !== undefined && p.price !== undefined && p.hasImage
       );
-      
-      if (validProducts.length === 0) {
-        throw new Error('No valid products to import.');
+
+      if (previewProducts.length === 0 || !allRowsValid) {
+        throw new Error('Every row must be valid before the file can be imported.');
       }
       
-      formData.append('products', JSON.stringify(validProducts));
+      formData.append('products', JSON.stringify(previewProducts));
       
       // Append required images
-      validProducts.forEach(p => {
+      previewProducts.forEach(p => {
         if (previewImages[p.imageFilename]) {
           formData.append(`image_${p.imageFilename}`, previewImages[p.imageFilename].file, p.imageFilename);
         }
@@ -300,155 +296,189 @@ export default function BulkUploadPage() {
       if (response.ok) {
         setImportResult(result);
       } else {
-        throw new Error(result.error || 'Failed to import products.');
+        setImportResult({
+          success: 0,
+          failed: previewProducts.length,
+          errors: Array.isArray(result.errors) && result.errors.length > 0
+            ? result.errors
+            : [result.error || 'The entire file was rejected. No products were imported.'],
+        });
       }
       
     } catch (err: any) {
       console.error(err);
-      setErrorMsg(err.message || 'Network error occurred during import.');
+      setImportResult({
+        success: 0,
+        failed: previewProducts.length,
+        errors: [err.message || 'Network error occurred during import.'],
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
+  const hasImportFailures = Boolean(importResult && (importResult.failed > 0 || importResult.errors.length > 0));
+  const importFullyFailed = Boolean(importResult && importResult.success === 0 && hasImportFailures);
+
   return (
-    <AdminLayout title="Bulk Upload" hideTitle={true}>
-      <div className="w-full space-y-8">
-        
-        {/* Header */}
-        <div className="flex items-center gap-6 mb-8 pt-2 pl-4">
-          <Link href="/admin/product" className="text-zinc-400 hover:text-zinc-600 transition-colors">
-            <ChevronLeft size={20} />
-          </Link>
-          <h1 className="text-[28px] font-black italic uppercase tracking-tight text-zinc-900">{t('bulk_upload') || 'Bulk Upload'}</h1>
-        </div>
+    <AdminLayout title="Bulk Upload" hideTitle>
+      <div className="w-full space-y-6 pb-8">
+        <header className="space-y-1">
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('bulk_upload') || 'Bulk Upload'}</h1>
+            <span className="text-xs font-normal text-slate-700">[ Import Screen ]</span>
+          </div>
+          <p className="text-xs text-slate-600">Inventory Information /</p>
+        </header>
+        <Link href="/admin/product" className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50">
+          <ArrowLeft size={16} />Back to Inventory
+        </Link>
 
         {importResult ? (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white p-12 rounded-[48px] border border-zinc-100 shadow-xl text-center space-y-8"
+            className="border border-slate-200 bg-white p-6 shadow-sm md:p-10"
           >
-            <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-[28px] flex items-center justify-center mx-auto border border-green-500/20">
-              <CheckCircle size={40} />
-            </div>
-            <div>
-              <h2 className="text-2xl font-black italic uppercase tracking-tight text-zinc-900 mb-2">{t('import_completed') || 'Import Completed'}</h2>
-              <p className="text-zinc-500 font-medium">{t('bulk_upload_processed') || 'Your bulk upload has been processed.'}</p>
+            <div className="flex flex-col gap-3 border-b border-slate-200 pb-6 sm:flex-row sm:items-center">
+              <div className={`shrink-0 ${hasImportFailures ? 'text-rose-700' : 'text-sky-700'}`}>
+                {hasImportFailures ? <AlertTriangle size={23} /> : <CheckCircle size={23} />}
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">
+                  {importFullyFailed ? 'Import Failed' : hasImportFailures ? 'Import Completed with Issues' : (t('import_completed') || 'Import Completed')}
+                </h2>
+                <p className="mt-1 text-sm text-slate-600">
+                  {importFullyFailed
+                    ? 'No products were imported. Review the problem details below, correct the file, and try again.'
+                    : hasImportFailures
+                      ? `${importResult.success} product${importResult.success === 1 ? '' : 's'} imported successfully; ${importResult.failed} failed. Review the details below.`
+                      : (t('bulk_upload_processed') || 'Your bulk upload has been processed successfully.')}
+                </p>
+              </div>
             </div>
             
-            <div className="flex justify-center gap-8 py-8 border-y border-zinc-100 max-w-lg mx-auto">
-              <div className="text-center">
-                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">{t('success_label') || 'Success'}</p>
-                <p className="text-4xl font-black text-green-500">{importResult.success}</p>
+            <div className="my-6 flex flex-wrap gap-x-12 gap-y-4">
+              <div>
+                <p className="text-sm font-medium text-slate-600">{t('success_label') || 'Imported successfully'}</p>
+                <p className="mt-1 text-2xl font-semibold text-emerald-700">{importResult.success}</p>
               </div>
-              <div className="w-px bg-zinc-100" />
-              <div className="text-center">
-                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">{t('failed_label') || 'Failed'}</p>
-                <p className="text-4xl font-black text-red-500">{importResult.failed}</p>
+              <div>
+                <p className="text-sm font-medium text-slate-600">{t('failed_label') || 'Failed'}</p>
+                <p className={`mt-1 text-2xl font-semibold ${importResult.failed > 0 ? 'text-rose-700' : 'text-slate-700'}`}>{importResult.failed}</p>
               </div>
             </div>
 
             {importResult && importResult.errors && importResult.errors.length > 0 && (
-              <div className="text-left bg-red-50/50 rounded-3xl p-6 max-w-lg mx-auto border border-red-500/10">
-                <p className="text-xs font-bold text-red-500 mb-3 uppercase tracking-wider">{t('error_details') || 'Error Details'}</p>
-                <ul className="text-sm text-red-600/80 space-y-2 max-h-40 overflow-y-auto">
+              <div className="border-t border-slate-200 py-5 text-left">
+                <p className="mb-3 text-sm font-semibold text-slate-800">{t('error_details') || 'Problems to fix'}</p>
+                <ul className="max-h-56 space-y-2 overflow-y-auto text-sm text-slate-700">
                   {importResult.errors.map((err, i) => (
-                    <li key={i} className="flex gap-2"><AlertTriangle size={14} className="shrink-0 mt-0.5" /> {err}</li>
+                    <li key={i} className="flex items-start gap-2"><span className="mt-0.5 text-rose-600">•</span><span>{err}</span></li>
                   ))}
                 </ul>
               </div>
             )}
             
-            <button
-              onClick={() => router.push('/admin/product')}
-              className="px-10 py-4 bg-yellow-500 text-zinc-950 font-black text-[11px] uppercase tracking-widest rounded-2xl hover:brightness-110 transition-all shadow-xl shadow-yellow-500/10"
-            >{t('return_to_inventory') || 'Return to Inventory'}</button>
+            <div className="mt-6 flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
+              {hasImportFailures && (
+                <button type="button" onClick={() => { setImportResult(null); setIsConfirmed(false); setPreviewProducts([]); setValidationErrors([]); }} className="border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
+                  {t('reupload') || 'Review another file'}
+                </button>
+              )}
+              <button
+                onClick={() => router.push('/admin/product')}
+                className="bg-sky-700 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-sky-800"
+              >{t('return_to_inventory') || 'Return to Inventory'}</button>
+            </div>
           </motion.div>
         ) : isConfirmed && isLoading ? (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white p-12 rounded-[48px] border border-zinc-100 shadow-xl text-center space-y-8 flex flex-col items-center justify-center py-24"
+            role="status"
+            aria-live="polite"
+            className="flex min-h-[420px] flex-col items-center justify-center border border-slate-200 bg-white px-6 py-16 text-center shadow-sm md:px-12"
           >
-            <div className="w-24 h-24 border-4 border-zinc-100 border-t-yellow-500 rounded-full animate-spin mb-4" />
-            <div>
-              <h2 className="text-2xl font-black italic uppercase tracking-tight text-zinc-900 mb-3">{t('importing_products') || 'Importing Products'}</h2>
-              <p className="text-zinc-500 font-medium max-w-sm mx-auto">{t('importing_products_desc') || 'Please wait while we upload your images and save the product data to the database. This may take a few moments.'}</p>
+            <div className="mb-6 flex h-14 w-14 items-center justify-center border border-sky-200 bg-sky-50 text-sky-700">
+              <Upload size={24} />
             </div>
-            
-            <div className="w-full max-w-md mx-auto bg-zinc-100 rounded-full h-3 overflow-hidden">
+            <div className="mb-8 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-sky-700" />
+            <div className="mb-8 max-w-lg">
+              <h2 className="mb-2 text-xl font-semibold text-slate-900">{t('importing_products') || 'Importing Products'}</h2>
+              <p className="text-sm leading-6 text-slate-600">{t('importing_products_desc') || 'Please wait while we upload your images and save the product data to the database. This may take a few moments.'}</p>
+            </div>
+
+            <div
+              className="mb-3 h-2.5 w-full max-w-lg overflow-hidden bg-slate-100"
+              role="progressbar"
+              aria-label={t('importing_products') || 'Importing Products'}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={progress}
+            >
               <div 
-                className="h-full bg-yellow-500 transition-all duration-300"
+                className="h-full bg-sky-700 transition-all duration-300"
                 style={{ width: `${Math.max(5, progress)}%` }}
               />
             </div>
-            <p className="text-xs font-black uppercase tracking-widest text-zinc-400">Processing... {progress}%</p>
+            <p className="text-xs font-medium text-slate-500">Processing… {progress}%</p>
           </motion.div>
         ) : (
           <>
             {/* Upload Zone */}
             {!previewProducts.length && (
-              <div className="bg-white p-6 rounded-md border border-zinc-200 shadow-sm w-full">
-                <div className="mb-6">
-                  <label className="block text-[13px] font-medium text-zinc-700 mb-1">
-                    {t('source_file') || 'Source File'} <span className="text-red-500">*</span>
+              <section className="flex min-h-[360px] flex-col border border-slate-200 bg-white px-5 py-5 shadow-sm md:px-8">
+                <div className="flex items-center gap-4 border-b border-slate-200 pb-4 text-xs text-slate-500">
+                  <span><span className="text-rose-500">*</span> Represented as a mandatory field</span>
+                  <span className="text-slate-300">|</span>
+                  <span>Upload a ZIP package with the Excel sheet and product images</span>
+                </div>
+
+                <div className="mt-5 max-w-3xl">
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                    File Source <span className="text-rose-500">*</span>
                   </label>
-                  
-                  <div className="flex">
-                    <div className="flex-1 border border-zinc-300 border-r-0 rounded-l-md px-3 py-2 bg-white text-sm text-zinc-500 overflow-hidden text-ellipsis whitespace-nowrap">
-                      {file ? file.name : (t('please_select_file') || 'Please select a single file...')}
+                  <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto]">
+                    <div className="flex min-h-10 min-w-0 items-center border border-slate-300 bg-white px-3 text-sm text-slate-600">
+                      <span className="truncate">{file ? file.name : 'Select file...'}</span>
                     </div>
-                    <button 
+                    <button
+                      type="button"
                       onClick={() => !isLoading && fileInputRef.current?.click()}
                       disabled={isLoading}
-                      className="px-4 py-2 bg-[#12B981] hover:bg-[#10a774] text-white rounded-r-md font-medium text-sm transition-colors flex items-center gap-2 disabled:opacity-50 border border-[#12B981]"
+                      className="inline-flex min-h-10 items-center justify-center gap-2 border border-emerald-600 bg-emerald-600 px-4 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
                     >
-                      <span className="text-lg">📁</span> {t('browse') || 'Browse...'}
+                      <FolderOpen size={16} />Browse...
                     </button>
-                    <input 
-                      type="file" 
-                      accept=".zip"
-                      ref={fileInputRef}
-                      onChange={handleFilePick}
-                      className="hidden" 
-                    />
+                    <input type="file" accept=".zip" ref={fileInputRef} onChange={handleFilePick} className="hidden" />
                   </div>
                 </div>
 
-                <div className="mb-16">
-                  <button 
-                    onClick={downloadBulkTemplate}
-                    disabled={isLoading}
-                    className="text-[#3B82F6] hover:underline text-[13px]"
-                  >
-                    {t('download_quick_import_template') || 'Download quick import file'}
+                <div className="mt-20">
+                  <button type="button" onClick={downloadBulkTemplate} disabled={isLoading} className="text-sm font-medium text-sky-700 hover:text-sky-900 hover:underline disabled:opacity-50">
+                    {t('download_quick_import_template') || 'Download product import template'}
                   </button>
                 </div>
-                
+
                 {errorMsg && (
-                  <div className="mb-4 p-3 bg-red-50 text-red-600 rounded flex items-start gap-2 text-sm border border-red-100">
-                    <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                  <div className="mt-5 flex items-start gap-2 border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+                    <AlertTriangle size={16} className="mt-0.5 shrink-0" />
                     <p>{errorMsg}</p>
                   </div>
                 )}
-                
                 {isLoading && (
-                  <div className="mb-4 h-1 w-full bg-zinc-100 rounded overflow-hidden">
-                     <div className="h-full bg-[#12B981] transition-all duration-300" style={{ width: `${progress}%` }} />
+                  <div className="mt-4 h-1 w-full overflow-hidden bg-slate-100">
+                    <div className="h-full bg-emerald-600 transition-all duration-300" style={{ width: `${progress}%` }} />
                   </div>
                 )}
 
-                <div className="flex justify-end pt-4 border-t border-zinc-100">
-                  <button 
-                    onClick={handleProcessFile}
-                    disabled={isLoading || !file}
-                    className="px-6 py-2 bg-[#4B5563] hover:bg-[#374151] text-white rounded text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
-                  >
-                    <span className="text-lg">💾</span> {t('upload_btn') || 'Upload'}
+                <div className="mt-auto flex justify-end border-t border-slate-200 pt-4">
+                  <button type="button" onClick={handleProcessFile} disabled={isLoading || !file} className="inline-flex items-center gap-2 bg-slate-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50">
+                    <Upload size={15} />{t('upload_btn') || 'Upload'}
                   </button>
                 </div>
-              </div>
+              </section>
             )}
 
             {/* Preview Zone */}
@@ -459,27 +489,45 @@ export default function BulkUploadPage() {
                 className="space-y-6"
               >
                 {/* Validation Summary */}
-                <div className="bg-white p-8 rounded-[48px] border border-zinc-100 shadow-xl">
-                  <div className="flex items-center justify-between mb-6">
+                <div className="border border-slate-200 bg-white p-5 shadow-sm md:p-8">
+                  <div className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-yellow-500/10 text-yellow-500 rounded-lg"><CheckCircle size={18} /></div>
-                      <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{t('preview_validation_title') || 'Preview & Validation'}</h2>
+                      <div className="border border-sky-200 bg-sky-50 p-2 text-sky-700"><CheckCircle size={18} /></div>
+                      <div>
+                        <h2 className="text-lg font-semibold text-slate-800">{t('preview_validation_title') || 'Preview & Validation'}</h2>
+                        <p className="mt-1 text-xs text-slate-500">Review the imported products and resolve any issues before confirming.</p>
+                      </div>
                     </div>
                     <button 
                       onClick={() => setPreviewProducts([])}
-                      className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:bg-zinc-100 rounded-full transition-colors"
+                      className="border border-slate-300 bg-white px-4 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"
                     >
-                      {t('cancel') || 'Cancel'}
+                      {t('reupload') || 'Choose another file'}
                     </button>
                   </div>
 
+                  <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div className="border border-slate-200 bg-slate-50 px-4 py-3">
+                      <p className="text-xs text-slate-500">Rows found</p>
+                      <p className="mt-1 text-xl font-semibold text-slate-900">{previewProducts.length}</p>
+                    </div>
+                    <div className="border border-slate-200 bg-slate-50 px-4 py-3">
+                      <p className="text-xs text-slate-500">Rows passing checks</p>
+                      <p className="mt-1 text-xl font-semibold text-sky-800">{previewProducts.filter(p => p.hasImage && p.name && p.code && p.category && p.description && p.stock !== undefined && p.price !== undefined).length}</p>
+                    </div>
+                    <div className={`border px-4 py-3 ${validationErrors.length ? 'border-rose-200 bg-rose-50' : 'border-emerald-200 bg-emerald-50'}`}>
+                      <p className={`text-xs ${validationErrors.length ? 'text-rose-700' : 'text-emerald-700'}`}>Validation issues</p>
+                      <p className={`mt-1 text-xl font-semibold ${validationErrors.length ? 'text-rose-800' : 'text-emerald-800'}`}>{validationErrors.length}</p>
+                    </div>
+                  </div>
+
                   {validationErrors.length > 0 && (
-                    <div className="mb-8 p-6 bg-red-50/50 rounded-3xl border border-red-500/20">
-                      <h3 className="text-sm font-bold text-red-600 mb-3 flex items-center gap-2">
+                    <div className="mb-6 border border-rose-200 bg-rose-50 p-4">
+                      <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-rose-800">
                         <AlertTriangle size={16} /> 
-                        {t('found') || 'Found'} {validationErrors.length} {t('issues') || `Issue${validationErrors.length > 1 ? 's' : ''}`}
+                        {t('found') || 'Found'} {validationErrors.length} {t('issues') || `Issue${validationErrors.length > 1 ? 's' : ''}`} — the entire file must pass validation before import.
                       </h3>
-                      <ul className="text-xs text-red-500/80 space-y-1.5 max-h-32 overflow-y-auto pr-4">
+                      <ul className="max-h-36 space-y-1.5 overflow-y-auto pr-4 text-xs text-rose-700">
                         {validationErrors.map((err, i) => (
                           <li key={i}>• {err}</li>
                         ))}
@@ -488,40 +536,40 @@ export default function BulkUploadPage() {
                   )}
 
                   {/* Preview Table */}
-                  <div className="overflow-x-auto rounded-2xl border border-zinc-100">
+                  <div className="overflow-x-auto border border-slate-200">
                     <table className="w-full text-left whitespace-nowrap">
                       <thead>
-                        <tr className="bg-zinc-50/80">
-                          <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-100">{t('row') || 'Row'}</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-100">{t('image') || 'Image'}</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-100">{t('product_code_label') || 'Code'}</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-100">{t('product_name_en') || 'Name (EN)'}</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-100">{t('category') || 'Category'}</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-100">{t('stock') || 'Stock'}</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-100">{t('price') || 'Price'}</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-100">{t('status') || 'Status'}</th>
+                        <tr className="bg-slate-100">
+                          <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">{t('row') || 'Row'}</th>
+                          <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">{t('image') || 'Image'}</th>
+                          <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">{t('product_code_label') || 'Code'}</th>
+                          <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">{t('product_name_en') || 'Name (EN)'}</th>
+                          <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">{t('category') || 'Category'}</th>
+                          <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">{t('stock') || 'Stock'}</th>
+                          <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">{t('price') || 'Price'}</th>
+                          <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">{t('status') || 'Status'}</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-50">
+                      <tbody className="divide-y divide-slate-200">
                         {previewProducts.map((p, i) => (
-                          <tr key={i} className={`hover:bg-zinc-50/50 transition-colors ${!p.hasImage || !p.name || !p.code ? 'bg-red-50/30' : ''}`}>
-                            <td className="px-6 py-4 text-xs font-bold text-zinc-400">{p.rowNum}</td>
-                            <td className="px-6 py-4">
+                          <tr key={i} className={`transition-colors odd:bg-white even:bg-slate-50 hover:bg-sky-50 ${!p.hasImage || !p.name || !p.code || !p.category || !p.description || p.stock === undefined || p.price === undefined ? '!bg-rose-50' : ''}`}>
+                            <td className="px-4 py-3 text-xs text-slate-500">{p.rowNum}</td>
+                            <td className="px-4 py-3">
                               {p.hasImage && previewImages[p.imageFilename] ? (
-                                <img src={previewImages[p.imageFilename].url} className="w-10 h-10 rounded-lg object-cover border border-zinc-200" />
+                                <img src={previewImages[p.imageFilename].url} alt={p.name} className="h-10 w-10 border border-slate-200 object-cover" />
                               ) : (
-                                <div className="w-10 h-10 rounded-lg bg-red-100 text-red-500 flex items-center justify-center border border-red-200" title="Image missing">
+                                <div className="flex h-10 w-10 items-center justify-center border border-rose-200 bg-rose-50 text-rose-600" title="Image missing">
                                   <X size={14} />
                                 </div>
                               )}
                             </td>
-                            <td className="px-6 py-4 text-sm font-bold text-zinc-800">{p.code || <span className="text-red-400">{t('missing') || 'Missing'}</span>}</td>
-                            <td className="px-6 py-4 text-sm font-medium text-zinc-600">{p.name || <span className="text-red-400">{t('missing') || 'Missing'}</span>}</td>
-                            <td className="px-6 py-4 text-sm text-zinc-500">{p.category || '-'}</td>
-                            <td className="px-6 py-4 text-sm font-bold text-zinc-700">{p.stock}</td>
-                            <td className="px-6 py-4 text-sm font-bold text-zinc-700">RM {p.price.toFixed(2)}</td>
-                            <td className="px-6 py-4">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${p.status === 'Hold' ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>
+                            <td className="px-4 py-3 text-sm font-medium text-slate-800">{p.code || <span className="text-rose-600">{t('missing') || 'Missing'}</span>}</td>
+                            <td className="max-w-xs truncate px-4 py-3 text-sm text-slate-700">{p.name || <span className="text-rose-600">{t('missing') || 'Missing'}</span>}</td>
+                            <td className="px-4 py-3 text-sm text-slate-600">{p.category || '-'}</td>
+                            <td className="px-4 py-3 text-sm text-slate-700">{p.stock}</td>
+                            <td className="px-4 py-3 text-sm text-slate-900">RM {p.price.toFixed(2)}</td>
+                            <td className="px-4 py-3">
+                              <span className={`inline-flex border px-2 py-1 text-xs font-medium ${p.status === 'Hold' ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800'}`}>
                                 {p.status}
                               </span>
                             </td>
@@ -532,24 +580,24 @@ export default function BulkUploadPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-4 mt-8 pt-8 border-t border-zinc-100">
+                  <div className="mt-6 flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
                     <button 
                       onClick={() => setPreviewProducts([])}
                       disabled={isLoading}
-                      className="w-1/3 py-5 bg-zinc-100 text-zinc-600 rounded-[24px] font-bold text-sm hover:bg-zinc-200 transition-all disabled:opacity-50"
+                      className="border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
                     >{t('reupload') || 'Re-upload'}</button>
                     <button 
                       onClick={handleConfirmImport}
-                      disabled={isLoading || previewProducts.filter(p => p.hasImage && p.name && p.code).length === 0}
-                      className="w-2/3 py-5 bg-yellow-500 text-zinc-950 rounded-[24px] font-bold text-sm hover:brightness-110 transition-all shadow-2xl shadow-yellow-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      disabled={isLoading || validationErrors.length > 0 || previewProducts.length === 0 || previewProducts.some(p => !p.hasImage || !p.name || !p.code || !p.category || !p.description || p.stock === undefined || p.price === undefined)}
+                      className="inline-flex items-center justify-center gap-2 bg-sky-700 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {isLoading ? (
                         <>
-                          <div className="w-5 h-5 border-2 border-zinc-950/20 border-t-zinc-950 rounded-full animate-spin" />
+                          <div className="h-5 w-5 animate-spin border-2 border-white/30 border-t-white" />
                           <span className="opacity-80">{t('importing') || 'Importing'} ({progress}%)...</span>
                         </>
                       ) : (
-                        `${t('confirm_import') || 'Confirm Import'} (${previewProducts.filter(p => p.hasImage && p.name && p.code).length} ${t('products_text') || 'Products'})`
+                        `${t('confirm_import') || 'Import Entire File'} (${previewProducts.length} ${t('products_text') || 'Products'})`
                       )}
                     </button>
                   </div>

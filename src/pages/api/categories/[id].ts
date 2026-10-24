@@ -10,9 +10,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'PUT') {
     try {
-      const { name, code, nameZh, nameMs, image, description, displayOrder, status } = req.body;
+      const { name, code, nameZh, nameMs, image, description, displayOrder, status, showInCategoryBar, showInAppBar } = req.body;
       if (!name || !name.trim()) return res.status(400).json({ error: 'Category Name is required' });
       if (!code || !code.trim()) return res.status(400).json({ error: 'Category Code is required' });
+      const parsedDisplayOrder = Number(displayOrder ?? 0);
+      if (!Number.isInteger(parsedDisplayOrder) || parsedDisplayOrder < 0) {
+        return res.status(400).json({ error: 'Display order must be a whole number 0 or higher' });
+      }
 
       const cleanCode = code.trim().replace(/[^a-zA-Z0-9-_]/g, '');
       if (!cleanCode) return res.status(400).json({ error: 'Category Code must contain alphanumeric characters' });
@@ -44,7 +48,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           nameMs: nameMs?.trim() || null,
           image: image?.trim() || null,
           description: description?.trim() || null,
-          displayOrder: displayOrder !== undefined ? Number(displayOrder) : 0,
+          displayOrder: parsedDisplayOrder,
+          showInCategoryBar: showInCategoryBar !== false,
+          showInAppBar: showInAppBar !== false,
           status: status === 'Hold' ? 'Hold' : 'Live',
         },
       });

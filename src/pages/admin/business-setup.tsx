@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { 
-  Save, Upload, Image as ImageIcon, Building, Phone, Mail, MapPin, 
-  Loader2, CheckCircle2, X, HelpCircle, Share2, Globe, Smartphone, Camera, 
-  Undo2, Copy, Download, ExternalLink, QrCode, RefreshCw, Send, CreditCard,
-  Store, Tag, Check, Trash2, LayoutList, Medal
+import {
+  Save, Upload, Image as ImageIcon, Building, Phone, Mail, MapPin,
+  Loader2, CheckCircle2, X, Share2, Globe, Smartphone, Camera,
+  Undo2, Copy, Download, ExternalLink, QrCode, RefreshCw, CreditCard,
+  Check, Trash2, Eye
 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useBusiness } from '../../context/BusinessContext';
@@ -21,8 +21,8 @@ const BusinessSetupPage = () => {
   const [isUploading, setIsUploading] = useState<Record<string, boolean>>({});
   const [copySuccess, setCopySuccess] = useState(false);
   const [isRefreshingQR, setIsRefreshingQR] = useState(false);
-  const [activeTab, setActiveTab] = useState('branding');
   const [websiteUrl, setWebsiteUrl] = useState('http://localhost:3000');
+  const [imagePreview, setImagePreview] = useState<{ url: string; title: string } | null>(null);
 
   useEffect(() => {
     if (settings) {
@@ -96,6 +96,7 @@ const BusinessSetupPage = () => {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = '';
 
     setIsUploading(prev => ({ ...prev, [fieldName]: true }));
     try {
@@ -131,7 +132,7 @@ const BusinessSetupPage = () => {
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = t('invalid_email');
     if (formData.phone && !/^\+?\d{8,15}$/.test(formData.phone.replace(/\s+/g, ''))) newErrors.phone = t('invalid_phone');
     if (formData.whatsapp && !/^\+?\d{8,15}$/.test(formData.whatsapp.replace(/\s+/g, ''))) newErrors.whatsapp = t('invalid_whatsapp');
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -164,290 +165,203 @@ const BusinessSetupPage = () => {
     setErrors({});
   };
 
-  const isSectionComplete = (section: string) => {
-    switch (section) {
-      case 'branding':
-        return !!formData.businessName;
-      case 'businessInfo':
-        return !!formData.phone || !!formData.email || !!formData.whatsapp || !!formData.address;
-      case 'paymentSettings':
-        return !!formData.bankTransferImage;
-      case 'promoteBusiness':
-        return true; // Always available since it relies on system URL
-      case 'socialMedia':
-        return !!formData.facebook || !!formData.instagram || !!formData.tiktok;
-      default:
-        return false;
-    }
-  };
+  const renderImageField = (fieldName: string, label: string, altText: string, emptyLabel = 'No image selected') => {
+    const imageUrl = formData[fieldName];
 
-  const completionStatus = [
-    { id: 'branding', label: t('branding'), icon: <Tag size={14}/> },
-    { id: 'businessInfo', label: t('business_info'), icon: <Building size={14}/> },
-    { id: 'paymentSettings', label: t('payment_settings'), icon: <CreditCard size={14}/> },
-    { id: 'promoteBusiness', label: t('promote_business'), icon: <Send size={14}/> },
-    { id: 'socialMedia', label: t('social_media'), icon: <Share2 size={14}/> },
-  ];
-
-  const FONTS = [
-    { name: 'Impact',           label: 'Bold Impact',       style: "Impact, 'Arial Black', sans-serif" },
-    { name: 'Playfair Display', label: 'Elegant Serif',     style: "Georgia, 'Times New Roman', serif" },
-    { name: 'Bebas Neue',       label: 'Modern Strong',     style: "'Arial Black', 'Arial Bold', sans-serif" },
-    { name: 'Pacifico',         label: 'Friendly Script',   style: "'Comic Sans MS', 'Bradley Hand', cursive" },
-    { name: 'Montserrat',       label: 'Clean Geometric',   style: "'Trebuchet MS', 'Lucida Grande', sans-serif" },
-    { name: 'Poppins',          label: 'Poppins SemiBold',  style: "'Poppins', sans-serif" },
-  ];
-
-  const selectedFont = FONTS.find(f => f.name === (formData.businessFont || 'Poppins')) || FONTS[5];
-
-  return (
-    <AdminLayout title={t('business_setup') || 'Business Setup'} hideTitle={true}>
-      <div className="w-full space-y-6 pb-32 min-h-screen">
-        
-        {/* Header Description & Actions */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">{t('business_setup')}</h1>
-            <p className="text-zinc-500 text-sm mt-0.5">{t('business_setup_desc')}</p>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-zinc-200">
-              {isDirty ? (
-                <>
-                  <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
-                  <span className="text-zinc-700 font-medium text-xs">{t('unsaved_changes')}</span>
-                </>
+    return (
+      <div className="space-y-2">
+        <label className="block text-[13px] font-semibold text-slate-800">{label}</label>
+        <div className="grid grid-cols-1 gap-4 border border-slate-200 bg-slate-50/50 p-4 md:grid-cols-[minmax(0,260px)_1fr] md:items-center">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => imageUrl && setImagePreview({ url: imageUrl, title: label })}
+              disabled={!imageUrl}
+              aria-label={imageUrl ? `Preview ${label}` : `${label} preview unavailable`}
+              className="flex aspect-[16/10] w-full items-center justify-center overflow-hidden border border-slate-300 bg-white p-3 transition-colors hover:border-sky-600 disabled:cursor-default disabled:hover:border-slate-300"
+            >
+              {imageUrl ? (
+                <img src={imageUrl} alt={altText} className="h-full w-full object-contain" />
               ) : (
+                <span className="flex flex-col items-center gap-2 text-xs font-medium text-slate-400">
+                  <ImageIcon size={24} />
+                  {emptyLabel}
+                </span>
+              )}
+            </button>
+            {imageUrl && (
+              <button
+                type="button"
+                onClick={() => handleRemoveImage(fieldName)}
+                aria-label={`Remove ${label}`}
+                title={`Remove ${label}`}
+                className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center text-slate-500 transition-colors hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
+              >
+                <Trash2 size={17} />
+              </button>
+            )}
+          </div>
+
+          <div className="min-w-0 space-y-3">
+            <div className="flex items-center gap-2 text-sm text-slate-700">
+              <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${imageUrl ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+              <span className="font-medium">{imageUrl ? 'Image uploaded' : 'No image uploaded'}</span>
+            </div>
+            <p className="text-xs leading-5 text-slate-500">{imageUrl ? 'Preview the current image or choose a replacement.' : 'Choose a PNG or JPG image to upload.'}</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="relative inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 border border-sky-700 bg-sky-700 px-4 text-xs font-medium text-white transition-colors hover:bg-sky-800">
+                {isUploading[fieldName] ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                {isUploading[fieldName] ? 'Uploading…' : imageUrl ? 'Replace image' : 'Upload image'}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,.png,.jpg,.jpeg"
+                  onChange={(e) => handleFileUpload(e, fieldName)}
+                  disabled={isUploading[fieldName]}
+                  className="sr-only"
+                />
+              </label>
+              {imageUrl && (
                 <>
-                  <div className="w-4 h-4 rounded-full bg-green-50 flex items-center justify-center"><Check size={10} className="text-green-600"/></div>
-                  <span className="text-zinc-700 font-medium text-xs">{t('all_changes_saved')}</span>
+                  <button
+                    type="button"
+                    onClick={() => setImagePreview({ url: imageUrl, title: label })}
+                    className="inline-flex min-h-10 items-center gap-2 border border-slate-300 bg-white px-4 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100"
+                  >
+                    <Eye size={14} /> Preview
+                  </button>
                 </>
               )}
             </div>
-            <button
-              onClick={handleCancel}
-              disabled={isSaving || !isDirty}
-              className="px-5 py-2.5 bg-white border border-zinc-200 text-zinc-600 rounded-xl font-medium text-sm hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <Undo2 size={16} />
-              {t('discard_changes')}
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={isSaving || !isDirty}
-              className="px-6 py-2.5 bg-[#FF6B00] text-white rounded-xl font-medium text-sm hover:bg-[#e66000] transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm"
-            >
-              {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-              {t('save_changes')}
-            </button>
           </div>
         </div>
+      </div>
+    );
+  };
 
-        {/* Navigation Tabs */}
-        <div className="bg-white rounded-[16px] border border-zinc-200 p-1 flex flex-wrap gap-1 shadow-sm">
-          {[
-            { id: 'branding', label: t('branding'), icon: <Tag size={16}/> },
-            { id: 'businessInfo', label: t('business_info'), icon: <LayoutList size={16}/> },
-            { id: 'paymentSettings', label: t('payment_settings'), icon: <CreditCard size={16}/> },
-            { id: 'promoteBusiness', label: t('promote_business'), icon: <Send size={16}/> },
-            { id: 'socialMedia', label: t('social_media'), icon: <Share2 size={16}/> },
-          ].map((tab) => (
-            <button 
-              key={tab.id}
-              onClick={() => {
-                setActiveTab(tab.id);
-                document.getElementById(tab.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-              className={`px-4 py-2.5 rounded-[12px] flex items-center gap-2 text-sm font-medium transition-colors ${tab.id === activeTab ? 'text-[#FF6B00] bg-orange-50/50' : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900'}`}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-        </div>
+  return (
+    <AdminLayout title={t('business_setup') || 'Business Setup'} hideTitle={true}>
+      <div className="w-full space-y-6 pb-10 min-h-screen">
+
+        <header className="space-y-1">
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('business_setup') || 'Business Setup'}</h1>
+            <span className="text-xs font-normal text-slate-700">[ Access ]</span>
+          </div>
+          <p className="text-xs text-slate-600">Business Setup /</p>
+        </header>
 
         {/* Proportional Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          
+        <div className="grid grid-cols-1 gap-6">
+
           {/* COLUMN 1 */}
-          <div className="space-y-6 flex flex-col min-w-0 lg:col-span-5">
+          <div className="contents">
             {/* Branding Card */}
-            <div id="branding" className="bg-white border border-zinc-200 rounded-[20px] p-6 shadow-sm scroll-mt-6">
-              <div className="flex items-start gap-3 mb-6">
-                <div className="w-6 h-6 rounded-md bg-orange-100 flex items-center justify-center text-orange-500 shrink-0 mt-0.5">
+            <div id="branding" className="order-1 bg-white border border-slate-200 rounded-none p-6 shadow-sm scroll-mt-6">
+              <div className="flex items-start gap-3 mb-5 pb-4 border-b border-slate-200">
+                <div className="w-9 h-9 bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-700 shrink-0">
                   <ImageIcon size={14} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">{t('branding')}</h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">{t('branding_desc')}</p>
+                  <h2 className="text-base font-semibold text-slate-900">{t('branding')}</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">{t('branding_desc')}</p>
                 </div>
               </div>
 
-              <div className="space-y-5">
+              <div className="mt-6 space-y-6">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-2">{t('business_name')}</label>
-                  <input 
-                    type="text" 
+                  <label className="mb-2 block text-[13px] font-semibold text-slate-800">{t('business_name')}</label>
+                  <input
+                    type="text"
                     name="businessName"
                     value={formData.businessName || ''}
                     onChange={handleChange}
-                    className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-orange-500 transition-colors"
+                    className="w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition-colors focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
                     placeholder={t('business_name_placeholder')}
                   />
                   {errors.businessName && <p className="text-red-500 text-xs mt-1">{errors.businessName}</p>}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div>
-                    <label className="text-xs font-semibold text-zinc-700 block mb-2">{t('main_logo')}</label>
-                    <div className="flex flex-col gap-3">
-                      <div className="w-full aspect-square bg-zinc-50/50 border border-zinc-200 rounded-2xl flex items-center justify-center p-2 overflow-hidden">
-                        {formData.logoUrl ? (
-                          <img src={formData.logoUrl} alt={t('main_logo')} className="h-full w-full object-contain" />
-                        ) : (
-                          <span className="text-xs text-zinc-400 font-medium">{t('no_logo')}</span>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <div className="relative flex-1">
-                          <button className="w-full h-[42px] px-4 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2">
-                            {isUploading['logoUrl'] ? <Loader2 size={14} className="animate-spin"/> : <Upload size={14} />}
-                            {t('change_logo')}
-                          </button>
-                          <input 
-                            type="file" 
-                            accept="image/*"
-                            onChange={(e) => handleFileUpload(e, 'logoUrl')}
-                            disabled={isUploading['logoUrl']}
-                            className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                          />
-                        </div>
-                        {formData.logoUrl && (
-                          <button 
-                            onClick={() => handleRemoveImage('logoUrl')}
-                            className="w-[42px] h-[42px] flex items-center justify-center bg-white border border-zinc-200 text-zinc-500 hover:text-red-500 rounded-xl transition-colors shrink-0"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-semibold text-zinc-700 block mb-2">{t('transparent_logo')}</label>
-                    <div className="flex flex-col gap-3">
-                      <div className="w-full aspect-square bg-zinc-50/50 border border-zinc-200 rounded-2xl flex items-center justify-center p-2 overflow-hidden">
-                        {formData.watermarkUrl ? (
-                          <img src={formData.watermarkUrl} alt={t('transparent_logo')} className="h-full w-full object-contain" />
-                        ) : (
-                          <span className="text-xs text-zinc-400 font-medium">{t('no_logo')}</span>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <div className="relative flex-1">
-                          <button className="w-full h-[42px] px-4 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2">
-                            {isUploading['watermarkUrl'] ? <Loader2 size={14} className="animate-spin"/> : <Upload size={14} />}
-                            {t('change_logo')}
-                          </button>
-                          <input 
-                            type="file" 
-                            accept="image/*"
-                            onChange={(e) => handleFileUpload(e, 'watermarkUrl')}
-                            disabled={isUploading['watermarkUrl']}
-                            className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                          />
-                        </div>
-                        {formData.watermarkUrl && (
-                          <button 
-                            onClick={() => handleRemoveImage('watermarkUrl')}
-                            className="w-[42px] h-[42px] flex items-center justify-center bg-white border border-zinc-200 text-zinc-500 hover:text-red-500 rounded-xl transition-colors shrink-0"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                  {renderImageField('logoUrl', t('main_logo'), t('main_logo'))}
+                  {renderImageField('watermarkUrl', t('transparent_logo'), t('transparent_logo'))}
                 </div>
               </div>
             </div>
 
             {/* Social Media Links Card */}
-            <div id="socialMedia" className="bg-white border border-zinc-200 rounded-[20px] p-6 shadow-sm flex-1 flex flex-col scroll-mt-6">
-              <div className="flex items-start gap-3 mb-6">
-                <div className="w-6 h-6 rounded-md bg-pink-100 flex items-center justify-center text-pink-500 shrink-0 mt-0.5">
+            <div id="socialMedia" className="order-5 bg-white border border-slate-200 rounded-none p-6 shadow-sm scroll-mt-6">
+              <div className="flex items-start gap-3 mb-5 pb-4 border-b border-slate-200">
+                <div className="w-9 h-9 bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-700 shrink-0">
                   <Share2 size={14} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">{t('social_media')}</h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">{t('social_media_desc')}</p>
+                  <h2 className="text-base font-semibold text-slate-900">{t('social_media')}</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">{t('social_media_desc')}</p>
                 </div>
               </div>
 
-              <div className="space-y-4 flex flex-col flex-1">
+              <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-zinc-700">
-                    <Globe size={14} className="text-blue-600"/> Facebook
+                  <div className="flex items-center gap-2 text-[13px] font-semibold text-slate-800">
+                    <Globe size={14} className="text-sky-600"/> Facebook
                   </div>
-                  <div className="flex items-center bg-white border border-zinc-200 rounded-xl overflow-hidden focus-within:border-blue-500 transition-colors">
-                    <span className="bg-zinc-50 border-r border-zinc-200 px-3 py-2.5 text-xs text-zinc-500 font-medium whitespace-nowrap select-none">
+                  <div className="flex items-center border border-slate-300 bg-white transition-colors focus-within:border-sky-600 focus-within:ring-1 focus-within:ring-sky-600">
+                    <span className="border-r border-slate-200 bg-slate-50 px-3 py-3 text-sm font-medium text-slate-500 whitespace-nowrap select-none">
                       facebook.com/
                     </span>
-                    <input 
-                      type="text" 
-                      name="facebook" 
-                      value={formData.facebook || ''} 
-                      onChange={handleChange} 
+                    <input
+                      type="text"
+                      name="facebook"
+                      value={formData.facebook || ''}
+                      onChange={handleChange}
                       placeholder={t('username_placeholder')}
-                      className="flex-1 px-3 py-2.5 text-xs font-medium text-zinc-900 focus:outline-none placeholder:text-zinc-400" 
+                      className="min-w-0 flex-1 px-3 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
                     />
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-zinc-700">
-                    <Camera size={14} className="text-pink-600"/> Instagram
+          <div className="flex items-center gap-2 text-[13px] font-semibold text-slate-800">
+                    <Camera size={14} className="text-sky-600"/> Instagram
                   </div>
-                  <div className="flex items-center bg-white border border-zinc-200 rounded-xl overflow-hidden focus-within:border-pink-500 transition-colors">
-                    <span className="bg-zinc-50 border-r border-zinc-200 px-3 py-2.5 text-xs text-zinc-500 font-medium whitespace-nowrap select-none">
+                  <div className="flex items-center border border-slate-300 bg-white transition-colors focus-within:border-sky-600 focus-within:ring-1 focus-within:ring-sky-600">
+                    <span className="border-r border-slate-200 bg-slate-50 px-3 py-3 text-sm font-medium text-slate-500 whitespace-nowrap select-none">
                       instagram.com/
                     </span>
-                    <input 
-                      type="text" 
-                      name="instagram" 
-                      value={formData.instagram || ''} 
-                      onChange={handleChange} 
+                    <input
+                      type="text"
+                      name="instagram"
+                      value={formData.instagram || ''}
+                      onChange={handleChange}
                       placeholder={t('username_placeholder')}
-                      className="flex-1 px-3 py-2.5 text-xs font-medium text-zinc-900 focus:outline-none placeholder:text-zinc-400" 
+                      className="min-w-0 flex-1 px-3 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
                     />
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-zinc-700">
-                    <Smartphone size={14} className="text-zinc-800"/> TikTok
+          <div className="flex items-center gap-2 text-[13px] font-semibold text-slate-800">
+                    <Smartphone size={14} className="text-slate-800"/> TikTok
                   </div>
-                  <div className="flex items-center bg-white border border-zinc-200 rounded-xl overflow-hidden focus-within:border-zinc-800 transition-colors">
-                    <span className="bg-zinc-50 border-r border-zinc-200 px-3 py-2.5 text-xs text-zinc-500 font-medium whitespace-nowrap select-none">
+                  <div className="flex items-center border border-slate-300 bg-white transition-colors focus-within:border-sky-600 focus-within:ring-1 focus-within:ring-sky-600">
+                    <span className="border-r border-slate-200 bg-slate-50 px-3 py-3 text-sm font-medium text-slate-500 whitespace-nowrap select-none">
                       tiktok.com/@
                     </span>
-                    <input 
-                      type="text" 
-                      name="tiktok" 
-                      value={formData.tiktok || ''} 
-                      onChange={handleChange} 
+                    <input
+                      type="text"
+                      name="tiktok"
+                      value={formData.tiktok || ''}
+                      onChange={handleChange}
                       placeholder={t('username_placeholder')}
-                      className="flex-1 px-3 py-2.5 text-xs font-medium text-zinc-900 focus:outline-none placeholder:text-zinc-400" 
+                      className="min-w-0 flex-1 px-3 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
                     />
                   </div>
                 </div>
 
-                <div className="mt-auto pt-4">
-                  <div className="bg-pink-50/50 rounded-xl p-3 flex items-start gap-2 border border-pink-100">
-                    <Share2 size={14} className="text-pink-500 mt-0.5 shrink-0" />
-                    <p className="text-[10px] font-medium text-pink-700 leading-relaxed">
+                <div className="md:col-span-2">
+                  <div className="bg-sky-50/50 p-4 flex items-start gap-3 border border-sky-100">
+                    <Share2 size={14} className="text-sky-500 mt-0.5 shrink-0" />
+                    <p className="text-[10px] font-medium text-sky-700 leading-relaxed">
                       {t('social_media_tip')}
                     </p>
                   </div>
@@ -457,106 +371,106 @@ const BusinessSetupPage = () => {
           </div>
 
           {/* COLUMN 2 */}
-          <div className="space-y-6 flex flex-col min-w-0 lg:col-span-4">
+          <div className="contents">
             {/* Business Information Card */}
-            <div id="businessInfo" className="bg-white border border-zinc-200 rounded-[20px] p-6 shadow-sm scroll-mt-6">
-              <div className="flex items-start gap-3 mb-6">
-                <div className="w-6 h-6 rounded-md bg-blue-100 flex items-center justify-center text-blue-500 shrink-0 mt-0.5">
+            <div id="businessInfo" className="order-2 bg-white border border-slate-200 rounded-none p-6 shadow-sm scroll-mt-6">
+              <div className="flex items-start gap-3 mb-5 pb-4 border-b border-slate-200">
+                <div className="w-9 h-9 bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-700 shrink-0">
                   <Building size={14} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">{t('business_info')}</h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">{t('business_info_desc')}</p>
+                  <h2 className="text-base font-semibold text-slate-900">{t('business_info')}</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">{t('business_info_desc')}</p>
                 </div>
               </div>
 
-              <div className="space-y-5">
+              <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 flex items-center gap-2 mb-2">
-                    <Phone size={14} className="text-zinc-400"/> {t('phone_number')}
+                    <label className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-slate-800">
+                    <Phone size={14} className="text-slate-400"/> {t('phone_number')}
                   </label>
                   <div className="flex gap-2">
-                    <select 
+                    <select
                       value={formData.phone?.startsWith('+65') ? '+65' : '+60'}
                       onChange={(e) => {
                         setFormData({...formData, phone: e.target.value + (formData.phone?.replace(/^\+6[05]/, '') || '')});
                         setIsDirty(true);
                       }}
-                      className="w-[100px] bg-white border border-zinc-200 rounded-xl px-3 py-2.5 text-xs font-medium focus:outline-none focus:border-orange-500"
+                      className="w-[100px] border border-slate-300 bg-white px-3 py-3 text-sm text-slate-800 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
                     >
                       <option value="+60">MY +60</option>
                       <option value="+65">SG +65</option>
                     </select>
-                    <input 
-                      type="text" 
-                      value={formData.phone?.replace(/^\+6[05]/, '') || ''} 
+                    <input
+                      type="text"
+                      value={formData.phone?.replace(/^\+6[05]/, '') || ''}
                       onChange={(e) => {
                         setFormData({...formData, phone: (formData.phone?.startsWith('+65') ? '+65' : '+60') + e.target.value});
                         setIsDirty(true);
-                      }} 
-                      className="flex-1 bg-white border border-zinc-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-orange-500" 
+                      }}
+                      className="flex-1 border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
                     />
                   </div>
                   {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 flex items-center gap-2 mb-2">
-                    <Mail size={14} className="text-zinc-400"/> {t('email_address')}
+                    <label className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-slate-800">
+                    <Mail size={14} className="text-slate-400"/> {t('email_address')}
                   </label>
-                  <input 
-                    type="email" 
-                    name="email" 
-                    value={formData.email || ''} 
-                    onChange={handleChange} 
-                    className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-orange-500" 
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email || ''}
+                    onChange={handleChange}
+                    className="w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
                   />
                   {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 flex items-center gap-2 mb-2">
-                    <Smartphone size={14} className="text-zinc-400"/> {t('whatsapp_number')}
+                    <label className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-slate-800">
+                    <Smartphone size={14} className="text-slate-400"/> {t('whatsapp_number')}
                   </label>
                   <div className="flex gap-2">
-                    <select 
+                    <select
                       value={formData.whatsapp?.startsWith('+65') ? '+65' : '+60'}
                       onChange={(e) => {
                         setFormData({...formData, whatsapp: e.target.value + (formData.whatsapp?.replace(/^\+6[05]/, '') || '')});
                         setIsDirty(true);
                       }}
-                      className="w-[100px] bg-white border border-zinc-200 rounded-xl px-3 py-2.5 text-xs font-medium focus:outline-none focus:border-orange-500"
+                      className="w-[100px] border border-slate-300 bg-white px-3 py-3 text-sm text-slate-800 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
                     >
                       <option value="+60">MY +60</option>
                       <option value="+65">SG +65</option>
                     </select>
-                    <input 
-                      type="text" 
-                      value={formData.whatsapp?.replace(/^\+6[05]/, '') || ''} 
+                    <input
+                      type="text"
+                      value={formData.whatsapp?.replace(/^\+6[05]/, '') || ''}
                       onChange={(e) => {
                         setFormData({...formData, whatsapp: (formData.whatsapp?.startsWith('+65') ? '+65' : '+60') + e.target.value});
                         setIsDirty(true);
-                      }} 
-                      className="flex-1 bg-white border border-zinc-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-orange-500" 
+                      }}
+                      className="flex-1 border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
                     />
                   </div>
                   {errors.whatsapp && <p className="text-red-500 text-xs mt-1">{errors.whatsapp}</p>}
                 </div>
 
-                <div>
-                  <label className="text-xs font-semibold text-zinc-700 flex items-center gap-2 mb-2">
-                    <MapPin size={14} className="text-zinc-400"/> {t('business_address')}
+                <div className="md:col-span-2">
+                  <label className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-slate-800">
+                    <MapPin size={14} className="text-slate-400"/> {t('business_address')}
                   </label>
-                  <textarea 
-                    name="address" 
-                    value={formData.address || ''} 
-                    onChange={handleChange} 
-                    rows={4} 
+                  <textarea
+                    name="address"
+                    value={formData.address || ''}
+                    onChange={handleChange}
+                    rows={4}
                     placeholder="e.g. Lot 1234, Parkcity Commerce Square, 97000 Bintulu, Sarawak"
-                    className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-orange-500 resize-none placeholder:text-zinc-400" 
+                    className="w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition-colors focus:border-sky-600 focus:ring-1 focus:ring-sky-600 resize-none placeholder:text-slate-400"
                   />
-                  <p className="text-[11px] text-zinc-500 mt-1.5 flex items-start gap-1.5 leading-relaxed">
-                    <span className="text-orange-500 mt-0.5">📍</span>
+                  <p className="text-[11px] text-slate-500 mt-1.5 flex items-start gap-1.5 leading-relaxed">
+                    <span className="text-sky-500 mt-0.5">📍</span>
                     <span>This location is automatically displayed on the homepage interactive map. Customers can click to navigate directly via Google Maps.</span>
                   </p>
                 </div>
@@ -564,94 +478,94 @@ const BusinessSetupPage = () => {
             </div>
 
             {/* Promote Business Card */}
-            <div id="promoteBusiness" className="bg-white border border-zinc-200 rounded-[20px] p-6 shadow-sm flex-1 flex flex-col scroll-mt-6">
-              <div className="flex items-start gap-3 mb-6">
-                <div className="w-6 h-6 rounded-md bg-purple-100 flex items-center justify-center text-purple-600 shrink-0 mt-0.5">
+            <div id="promoteBusiness" className="order-4 bg-white border border-slate-200 rounded-none p-6 shadow-sm scroll-mt-6">
+              <div className="flex items-start gap-3 mb-5 pb-4 border-b border-slate-200">
+                <div className="w-9 h-9 bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-700 shrink-0">
                   <QrCode size={14} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">{t('promote_business')}</h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">{t('promote_business_desc')}</p>
+                  <h2 className="text-base font-semibold text-slate-900">{t('promote_business')}</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">{t('promote_business_desc')}</p>
                 </div>
               </div>
 
-              <div className="space-y-5">
+              <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-700 block mb-2">{t('website_link')}</label>
+                  <label className="mb-2 block text-[13px] font-semibold text-slate-800">{t('website_link')}</label>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-zinc-700 truncate">
+                    <div className="flex min-h-12 flex-1 items-center border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 truncate">
                       {websiteUrl}
                     </div>
-                    <button 
+                    <button
                       onClick={() => window.open(websiteUrl, '_blank')}
-                      className="w-10 h-10 shrink-0 bg-white border border-zinc-200 rounded-xl flex items-center justify-center text-zinc-600 hover:bg-zinc-50 transition-colors"
+                      className="inline-flex min-h-12 w-12 shrink-0 items-center justify-center border border-slate-300 bg-white text-slate-600 transition-colors hover:bg-slate-50"
                     >
                       <ExternalLink size={16} />
                     </button>
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <button 
+                <div className="flex flex-wrap items-end gap-2 lg:pt-7">
+                  <button
                     onClick={handleCopyLink}
-                    className="flex-[2] py-2.5 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2"
+                    className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
                   >
                     {copySuccess ? <CheckCircle2 size={14} className="text-green-500" /> : <Copy size={14} />}
                     {copySuccess ? t('copied') : t('copy_link')}
                   </button>
-                  <button 
+                  <button
                     onClick={handleShare}
-                    className="flex-[3] py-2.5 bg-[#8b5cf6] text-white rounded-xl font-medium text-xs hover:bg-[#7c3aed] transition-colors flex items-center justify-center gap-2"
+                    className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 border border-sky-700 bg-sky-700 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-sky-800"
                   >
                     <Share2 size={14} />
                     {t('share_forward')}
                   </button>
                 </div>
-                <div className="flex flex-col sm:flex-row items-start gap-6 mt-auto pt-5">
-                  <div className="shrink-0 flex flex-col">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">{t('store_qr_code')}</span>
-                    <div className="bg-white p-3 rounded-2xl shadow-sm border border-zinc-200 shrink-0">
+                <div className="lg:col-span-2 grid grid-cols-1 items-start gap-6 border-t border-slate-200 pt-6 md:grid-cols-[auto_1fr]">
+                  <div className="flex flex-col">
+                    <span className="mb-2 text-[13px] font-semibold text-slate-800">{t('store_qr_code')}</span>
+                    <div className="border border-slate-300 bg-white p-3">
                       {isRefreshingQR ? (
-                        <div className="w-[160px] h-[160px] flex items-center justify-center bg-zinc-50 rounded-xl">
-                          <Loader2 className="animate-spin text-purple-500" size={24} />
+                        <div className="flex h-[180px] w-[180px] items-center justify-center bg-slate-50">
+                          <Loader2 className="animate-spin text-sky-500" size={24} />
                         </div>
                       ) : (
-                        <QRCodeCanvas 
+                        <QRCodeCanvas
                           id="business-qr-code"
                           value={websiteUrl}
-                          size={160}
+                          size={180}
                           level="H"
                           includeMargin={false}
                           imageSettings={formData.logoUrl ? {
                             src: formData.logoUrl,
                             x: undefined, y: undefined, height: 36, width: 36, excavate: true, crossOrigin: "anonymous",
                           } : undefined}
-                          className="rounded-xl"
+                          className="rounded-none"
                         />
                       )}
                     </div>
                   </div>
-                  
-                  <div className="flex flex-col flex-1 h-full">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2 hidden sm:block opacity-0">Actions</span>
-                    <div className="flex flex-col gap-3">
-                      <button 
+
+                  <div className="flex h-full flex-col justify-center gap-3">
+                    <p className="text-sm font-medium text-slate-700">Share your store</p>
+                    <div className="flex flex-wrap gap-3">
+                      <button
                         onClick={handleDownloadQR}
-                        className="w-full py-2.5 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2"
+                        className="inline-flex min-h-11 items-center justify-center gap-2 border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
                       >
                         <Download size={14} /> {t('download_qr')}
                       </button>
-                      <button 
+                      <button
                         onClick={handleRefreshQR}
-                        className="w-full py-2.5 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2"
+                        className="inline-flex min-h-11 items-center justify-center gap-2 border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
                       >
                         <RefreshCw size={14} className={isRefreshingQR ? "animate-spin" : ""} /> {t('refresh')}
                       </button>
                     </div>
-                    <div className="mt-auto pt-4">
-                      <div className="bg-zinc-50 rounded-xl p-3 border border-zinc-100 flex items-start gap-2">
-                        <QrCode size={14} className="text-zinc-400 mt-0.5 shrink-0" />
-                        <p className="text-[10px] text-zinc-500 leading-relaxed font-medium">
+                    <div>
+                      <div className="flex items-start gap-3 border border-slate-200 bg-slate-50 p-4">
+                        <QrCode size={16} className="mt-0.5 shrink-0 text-slate-500" />
+                        <p className="text-xs font-medium leading-relaxed text-slate-600">
                           {t('qr_code_tip')}
                         </p>
                       </div>
@@ -663,146 +577,114 @@ const BusinessSetupPage = () => {
           </div>
 
           {/* COLUMN 3 */}
-          <div className="space-y-6 flex flex-col min-w-0 lg:col-span-3">
+          <div className="contents">
             {/* Payment Settings Card */}
-            <div id="paymentSettings" className="bg-white border border-zinc-200 rounded-[20px] p-6 shadow-sm flex-1 flex flex-col scroll-mt-6">
-              <div className="flex items-start gap-3 mb-6">
-                <div className="w-6 h-6 rounded-md bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 mt-0.5">
+            <div id="paymentSettings" className="order-3 bg-white border border-slate-200 rounded-none p-6 shadow-sm scroll-mt-6">
+              <div className="flex items-start gap-3 mb-5 pb-4 border-b border-slate-200">
+                <div className="w-9 h-9 bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-700 shrink-0">
                   <CreditCard size={14} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">{t('payment_settings')}</h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">{t('payment_settings_desc')}</p>
+                  <h2 className="text-base font-semibold text-slate-900">{t('payment_settings')}</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">{t('payment_settings_desc')}</p>
                 </div>
               </div>
 
-              <div className="space-y-4 flex flex-col flex-1">
-                <label className="text-xs font-semibold text-zinc-700 flex items-center gap-2">
-                  {t('bank_transfer_qr')}
-                  <div className="group relative flex items-center">
-                    <HelpCircle size={14} className="text-zinc-400 cursor-help" />
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-zinc-800 text-white text-[10px] font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-center">
-                      {t('bank_transfer_tip')}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-zinc-800"></div>
-                    </div>
-                  </div>
-                </label>
-                
-                <div className="relative aspect-[4/3] bg-zinc-50/50 border border-zinc-200 rounded-xl flex flex-col items-center justify-center overflow-hidden">
-                  {formData.bankTransferImage ? (
-                    <img src={formData.bankTransferImage} alt="Bank Transfer Details" className="h-full w-full object-contain p-4" />
-                  ) : (
-                    <>
-                      {isUploading['bankTransferImage'] ? <Loader2 className="animate-spin text-zinc-400 mb-2" size={24} /> : <Upload className="text-zinc-300 mb-2" size={24} />}
-                      <span className="text-xs font-medium text-zinc-500">{t('upload_image')}</span>
-                    </>
-                  )}
-                </div>
-
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <button className="w-full py-2.5 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium text-xs hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2">
-                      {isUploading['bankTransferImage'] ? <Loader2 size={14} className="animate-spin"/> : <Upload size={14} />}
-                      {t('change_image')}
-                    </button>
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={(e) => handleFileUpload(e, 'bankTransferImage')}
-                      disabled={isUploading['bankTransferImage']}
-                      className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                    />
-                  </div>
-                  {formData.bankTransferImage && (
-                    <button 
-                      onClick={() => handleRemoveImage('bankTransferImage')}
-                      className="w-[42px] h-[42px] shrink-0 flex items-center justify-center bg-white border border-zinc-200 text-zinc-400 hover:text-red-500 rounded-xl transition-colors"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </div>
-
-                <div className="mt-auto pt-4">
-                  <div className="bg-emerald-50/50 rounded-xl p-3 flex items-start gap-2 border border-emerald-100">
-                    <CreditCard size={14} className="text-emerald-500 mt-0.5 shrink-0" />
-                    <p className="text-[10px] font-medium text-emerald-700 leading-relaxed">
-                      {t('payment_qr_tip')}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Summary Card */}
-            <div className="bg-white border border-zinc-200 rounded-[20px] p-6 shadow-sm">
-              <div className="flex items-start gap-3 mb-6">
-                <div className="w-6 h-6 rounded-md bg-orange-100 flex items-center justify-center text-[#FF6B00] shrink-0 mt-0.5">
-                  <Store size={14} />
-                </div>
-                <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">{t('quick_summary')}</h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">{t('quick_summary_desc')}</p>
-                </div>
-              </div>
-
-              <div className="space-y-4 mb-6">
-                {completionStatus.map(item => {
-                  const complete = isSectionComplete(item.id);
-                  return (
-                    <div key={item.id} className="flex items-center justify-between pb-3 border-b border-zinc-100 last:border-0 last:pb-0">
-                      <div className="flex items-center gap-3 text-xs font-semibold text-zinc-700">
-                        <div className="text-zinc-400">{item.icon}</div>
-                        {item.label}
-                      </div>
-                      <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${complete ? 'text-green-500' : 'text-zinc-400'}`}>
-                        {complete ? t('completed') : t('pending')}
-                        <CheckCircle2 size={14} className={complete ? 'text-green-500' : 'text-zinc-300'} />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              <div className="bg-orange-50/50 rounded-xl p-4 flex items-start gap-3 border border-orange-100/50">
-                <Medal size={20} className="text-[#FF6B00] shrink-0" />
-                <div>
-                  <p className="text-xs font-bold text-zinc-900 mb-0.5">{t('profile_complete_title')}</p>
-                  <p className="text-[10px] text-zinc-500 leading-relaxed font-medium">
-                    {t('profile_complete_desc')}
-                  </p>
-                </div>
+              <div className="mt-6">
+                {renderImageField('bankTransferImage', t('bank_transfer_qr'), 'Bank transfer QR code', t('upload_image'))}
               </div>
             </div>
           </div>
-          
+
+        </div>
+        <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-600" aria-live="polite">
+            {isDirty ? (
+              <>
+                <span className="h-2 w-2 rounded-full bg-sky-600" />
+                {t('unsaved_changes')}
+              </>
+            ) : (
+              <>
+                <Check size={15} className="text-emerald-600" />
+                {t('all_changes_saved')}
+              </>
+            )}
+          </div>
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={isSaving || !isDirty}
+              className="inline-flex min-h-11 items-center justify-center gap-2 border border-slate-300 bg-white px-5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Undo2 size={16} />
+              {t('discard_changes')}
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSaving || !isDirty}
+              className="inline-flex min-h-11 items-center justify-center gap-2 border border-sky-700 bg-sky-700 px-6 text-sm font-medium text-white transition-colors hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+              {t('save_changes')}
+            </button>
+          </div>
         </div>
       </div>
+
+      {imagePreview && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/45 p-4 backdrop-blur-sm" onClick={() => setImagePreview(null)}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${imagePreview.title} preview`}
+            className="relative flex max-h-[92vh] w-full max-w-5xl flex-col border border-slate-300 bg-white p-4 shadow-2xl md:p-6"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-3">
+              <h2 className="text-base font-semibold text-slate-800">{imagePreview.title} Preview</h2>
+              <button
+                type="button"
+                onClick={() => setImagePreview(null)}
+                aria-label="Close image preview"
+                className="inline-flex h-9 w-9 items-center justify-center border border-slate-300 text-slate-600 transition-colors hover:bg-slate-100"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto bg-slate-50 p-3">
+              <img src={imagePreview.url} alt={imagePreview.title} className="max-h-[78vh] max-w-full object-contain" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
+          <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => setShowSuccessModal(false)}
           />
-          <div className="relative w-full max-w-sm bg-white border border-zinc-200 rounded-3xl shadow-xl p-8 text-center animate-in zoom-in-95 duration-200">
-            <button 
+          <div className="relative w-full max-w-sm bg-white border border-slate-200 rounded-none shadow-xl p-8 text-center animate-in zoom-in-95 duration-200">
+            <button
               onClick={() => setShowSuccessModal(false)}
-              className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 transition-colors rounded-full hover:bg-zinc-100"
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 transition-colors rounded-full hover:bg-slate-100"
             >
               <X size={20} />
             </button>
             <div className="mx-auto w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-6">
               <CheckCircle2 size={32} />
             </div>
-            <h3 className="text-xl font-bold text-zinc-900 mb-2">{t('saved_successfully')}</h3>
-            <p className="text-sm text-zinc-500 mb-8 font-medium">
+            <h3 className="text-xl font-bold text-slate-900 mb-2">{t('saved_successfully')}</h3>
+            <p className="text-sm text-slate-500 mb-8 font-medium">
               {t('saved_successfully_desc')}
             </p>
             <button
               onClick={() => setShowSuccessModal(false)}
-              className="w-full py-3 bg-[#FF6B00] text-white rounded-xl font-medium text-sm hover:bg-[#e66000] transition-colors shadow-sm"
+              className="w-full py-3 bg-[#2563EB] text-white rounded-none font-medium text-sm hover:bg-[#1D4ED8] transition-colors shadow-sm"
             >
               {t('close')}
             </button>
