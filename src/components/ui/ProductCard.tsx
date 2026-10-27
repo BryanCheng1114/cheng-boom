@@ -178,7 +178,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
           </div>
           <div className="mt-auto flex items-end justify-between gap-1.5 pt-2">
             <div className="min-w-0">
-              {hasActiveDiscount ? (
+              {hasActiveDiscount && strikeThroughPrice !== undefined ? (
                 <>
                   <p className="text-[10px] font-extrabold uppercase tracking-wide text-rose-600">{locale === 'zh' ? '折扣价' : locale === 'ms' ? 'Diskaun' : 'Discount'}</p>
                   <p className="text-[11px] font-medium leading-tight text-zinc-400 line-through decoration-zinc-400">RM {strikeThroughPrice.toFixed(2)}</p>
@@ -239,7 +239,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
       <div className="mt-auto flex items-center justify-between gap-1.5 bg-white px-3 pb-3 pt-1 sm:px-3.5 sm:pb-3.5">
         <div className="min-w-0">
           <div className="min-w-0">
-            {hasActiveDiscount ? (
+            {hasActiveDiscount && strikeThroughPrice !== undefined ? (
               <>
                 <p className="text-[10px] font-extrabold uppercase tracking-wide text-rose-600">{isSeller && sellerPrice !== null && sellerPrice !== undefined && sellerPrice > 0 && sellerPrice < price ? (locale === 'zh' ? '卖家价' : locale === 'ms' ? 'Harga Penjual' : 'Seller Price') : (locale === 'zh' ? '折扣价' : locale === 'ms' ? 'Diskaun' : 'Discount')}</p>
                 <p className="truncate text-[10px] font-medium leading-tight text-zinc-400 line-through">RM {strikeThroughPrice.toFixed(2)}</p>
