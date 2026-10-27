@@ -1,10 +1,11 @@
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useCart } from '../cart/CartProvider';
 import { Plus, Minus, ShoppingCart, Flame } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useFlyToCart } from './FlyToCartProvider';
 import { useBusiness } from '../../context/BusinessContext';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export interface ProductCardProps {
   id: string;
@@ -20,25 +21,44 @@ export interface ProductCardProps {
   stock?: number;
   promotion?: number | null;
   sellerPrice?: number | null;
+  sellerBPrice?: number | null;
   boxPrice?: number | null;
   itemsPerBox?: number | null;
   boxSellerPrice?: number | null;
+  sellerBBoxPrice?: number | null;
   boxPromotion?: number | null;
   bundleQuantity?: number | null;
   bundlePrice?: number | null;
   bundleSellerPrice?: number | null;
+  sellerBBundlePrice?: number | null;
   bundlePromotion?: number | null;
   createdAt?: string | Date;
   mobileView?: 'list' | 'grid';
 }
 
-export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, sellerPrice, boxPrice, itemsPerBox, boxSellerPrice, boxPromotion, bundleQuantity, bundlePrice, bundleSellerPrice, bundlePromotion, images = [], stock = 0, createdAt, mobileView = 'grid' }: ProductCardProps) {
+export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, sellerPrice, sellerBPrice, boxPrice, itemsPerBox, boxSellerPrice, sellerBBoxPrice, boxPromotion, bundleQuantity, bundlePrice, bundleSellerPrice, sellerBBundlePrice, bundlePromotion, images = [], stock = 0, createdAt, mobileView = 'grid' }: ProductCardProps) {
+  const router = useRouter();
   const { items, addItem, updateQuantity } = useCart();
   const { flyToCart } = useFlyToCart();
   const { t, locale } = useTranslation();
   const { settings } = useBusiness();
   const imageRef = useRef<HTMLDivElement>(null);
   const listImageRef = useRef<HTMLDivElement>(null);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const syncUser = () => {
+      try { setUser(JSON.parse(localStorage.getItem('user') || 'null')); }
+      catch { setUser(null); }
+    };
+    syncUser();
+    window.addEventListener('storage', syncUser);
+    window.addEventListener('user-updated', syncUser);
+    return () => {
+      window.removeEventListener('storage', syncUser);
+      window.removeEventListener('user-updated', syncUser);
+    };
+  }, []);
 
   const cardT = {
     new: { en: 'New', zh: '新品', ms: 'Baru' },
@@ -58,18 +78,19 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   const isOutOfStock = stock <= 0;
   
   // Seller Logic
-  const isSeller = typeof window !== 'undefined' && (
-    localStorage.getItem('user_role') === 'Seller' || 
-    JSON.parse(localStorage.getItem('user') || '{}').role === 'Seller'
-  );
+  const isSeller = user?.role === 'Seller';
+  const pricingGroup = isSeller && user?.sellerPricing === 'B' ? 'B' : 'A';
+  const groupPrice = pricingGroup === 'B' ? sellerBPrice : sellerPrice;
+  const groupBoxPrice = pricingGroup === 'B' ? sellerBBoxPrice : boxSellerPrice;
+  const groupBundlePrice = pricingGroup === 'B' ? sellerBBundlePrice : bundleSellerPrice;
   
-  let activePrice = price;
+  let activePrice = groupPrice ?? price;
   let strikeThroughPrice: number | undefined = undefined;
 
   if (isSeller) {
-    if (sellerPrice !== null && sellerPrice !== undefined && sellerPrice > 0) {
-      activePrice = sellerPrice;
-      if (sellerPrice < price) {
+    if (groupPrice !== null && groupPrice !== undefined && groupPrice > 0) {
+      activePrice = groupPrice;
+      if (groupPrice < price) {
         strikeThroughPrice = price;
       }
     } else {
@@ -94,8 +115,8 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
 
   if (activeBoxPrice) {
     if (isSeller) {
-      if (boxSellerPrice !== null && boxSellerPrice !== undefined && boxSellerPrice > 0) {
-        activeBoxPrice = boxSellerPrice;
+      if (groupBoxPrice !== null && groupBoxPrice !== undefined && groupBoxPrice > 0) {
+        activeBoxPrice = groupBoxPrice;
       } else {
         const hasPromo = boxPromotion !== null && boxPromotion !== undefined && boxPromotion < boxPrice!;
         if (hasPromo) {
@@ -114,8 +135,8 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
 
   if (activeBundlePrice) {
     if (isSeller) {
-      if (bundleSellerPrice !== null && bundleSellerPrice !== undefined && bundleSellerPrice > 0) {
-        activeBundlePrice = bundleSellerPrice;
+      if (groupBundlePrice !== null && groupBundlePrice !== undefined && groupBundlePrice > 0) {
+        activeBundlePrice = groupBundlePrice;
       } else {
         const hasPromo = bundlePromotion !== null && bundlePromotion !== undefined && bundlePromotion < bundlePrice!;
         if (hasPromo) {
@@ -137,6 +158,11 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   const minPrice = Math.min(activePrice, hasBoxPricing ? activeBoxPrice! : activePrice, hasBundlePricing ? activeBundlePrice! : activePrice);
   
   const displayImage = images[0] || '';
+
+  const openDetailsFromCard = (event: React.MouseEvent<HTMLElement>) => {
+    if ((event.target as HTMLElement).closest('a, button')) return;
+    void router.push(`/shop/${encodeURIComponent(id)}`);
+  };
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -161,7 +187,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   return (
     <>
     {mobileView === 'list' && (
-      <article className={`group flex min-h-[142px] overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm md:hidden ${isOutOfStock ? 'opacity-75' : ''}`}>
+      <article onClick={openDetailsFromCard} className={`group flex min-h-[142px] cursor-pointer overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm md:hidden ${isOutOfStock ? 'opacity-75' : ''}`}>
         <Link href={`/shop/${id}`} className="relative block w-[38%] min-w-[112px] max-w-[150px] shrink-0 overflow-hidden bg-zinc-50">
           <div className="relative h-full min-h-[142px] w-full overflow-hidden">
             <div ref={listImageRef} className="absolute inset-0 bg-contain bg-center bg-no-repeat" style={{ backgroundImage: displayImage ? `url(${displayImage})` : undefined }} />
@@ -208,7 +234,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
         </div>
       </article>
     )}
-    <article className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-100/90 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-1 hover:border-zinc-200 hover:shadow-[0_14px_32px_rgba(0,0,0,0.08)] ${mobileView === 'list' ? 'hidden md:flex' : ''} ${isOutOfStock ? 'opacity-75' : ''}`}>
+    <article onClick={openDetailsFromCard} className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-zinc-100/90 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-1 hover:border-zinc-200 hover:shadow-[0_14px_32px_rgba(0,0,0,0.08)] ${mobileView === 'list' ? 'hidden md:flex' : ''} ${isOutOfStock ? 'opacity-75' : ''}`}>
       <Link href={`/shop/${id}`} className="block min-w-0">
         <div ref={imageRef} className="group/img relative aspect-[1.28/1] w-full overflow-hidden bg-[#fafafc]">
           <div

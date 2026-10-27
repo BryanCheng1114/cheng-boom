@@ -122,8 +122,6 @@ const AdminProductDetail = () => {
 
   if (!product) return null;
 
-  const hasPromotion = product.promotion !== null && product.promotion !== undefined && product.promotion < product.price;
-  const activePrice = hasPromotion ? product.promotion : product.price;
   const videoId = product.videoUrl?.split('v=')[1]?.split('&')[0] || product.videoUrl?.split('youtu.be/')[1];
   const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : null;
 
@@ -280,35 +278,11 @@ const AdminProductDetail = () => {
               <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-5 flex items-center gap-1.5">
                 <DollarSign size={14} className="text-sky-700" /> {t('pricing_structure')}
               </p>
-              <div className="mb-5 pb-5 border-b  border-zinc-200 flex items-end justify-between">
-                <div>
-                  <p className="text-[9px] text-zinc-400 font-black uppercase tracking-widest mb-1">{t('active_price')}</p>
-                  <h2 className="text-3xl font-semibold tracking-tight text-slate-900">RM {activePrice.toFixed(2)}</h2>
-                </div>
-                {hasPromotion && (
-                  <div className="text-right">
-                    <p className="text-[9px] font-black text-green-500 uppercase tracking-widest mb-1">{t('you_save')}</p>
-                    <span className="text-xl font-black text-green-500">- RM {(product.price - product.promotion).toFixed(2)}</span>
-                  </div>
-                )}
-              </div>
               <div className="space-y-3">
-                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                  <span className="text-zinc-500">{t('original_price').replace(' (RM)', '')}</span>
-                  <span className={hasPromotion ? 'line-through text-zinc-400 ' : ' text-zinc-700'}>RM {product.price.toFixed(2)}</span>
-                </div>
-                {product.sellerPrice !== null && product.sellerPrice !== undefined && (
-                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                    <span className="text-zinc-500">{t('seller_price').replace(' (RM)', '')}</span>
-                    <span className="text-blue-500">RM {product.sellerPrice.toFixed(2)}</span>
-                  </div>
-                )}
-                {hasPromotion && (
-                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                    <span className="text-zinc-500">{t('promo_price')}</span>
-                    <span className="text-slate-900">RM {product.promotion.toFixed(2)}</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3"><span className="text-xs font-semibold text-slate-600">Seller A · Single item</span><span className="text-lg font-bold text-slate-900">RM {Number(product.sellerAPrice).toFixed(2)}</span></div>
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3"><span className="text-xs font-semibold text-slate-600">Seller B · Single item</span><span className="text-lg font-bold text-sky-700">RM {Number(product.sellerBPrice).toFixed(2)}</span></div>
+                {product.itemsPerBox && <div className="flex items-center justify-between text-xs"><span className="text-slate-600">Per box ({product.itemsPerBox} items)</span><span className="font-semibold text-slate-800">A: {product.sellerABoxPrice != null ? `RM ${Number(product.sellerABoxPrice).toFixed(2)}` : '—'} · B: {product.sellerBBoxPrice != null ? `RM ${Number(product.sellerBBoxPrice).toFixed(2)}` : '—'}</span></div>}
+                {product.bundleQuantity && <div className="flex items-center justify-between text-xs"><span className="text-slate-600">Bundle ({product.bundleQuantity} items)</span><span className="font-semibold text-slate-800">A: {product.sellerABundlePrice != null ? `RM ${Number(product.sellerABundlePrice).toFixed(2)}` : '—'} · B: {product.sellerBBundlePrice != null ? `RM ${Number(product.sellerBBundlePrice).toFixed(2)}` : '—'}</span></div>}
               </div>
             </div>
           </div>

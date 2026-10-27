@@ -148,26 +148,12 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
   let computedFinalTotalPrice = 0;
 
   if (mode === 'single' && product) {
-    const isSeller = typeof window !== 'undefined' && (
-      localStorage.getItem('user_role') === 'Seller' || 
-      JSON.parse(localStorage.getItem('user') || '{}').role === 'Seller'
-    );
-
-    activePrice = product.price;
-    if (isSeller) {
-      if (product.sellerPrice && product.sellerPrice > 0) {
-        activePrice = product.sellerPrice;
-        if (product.sellerPrice < product.price) strikeThroughPrice = product.price;
-      } else if (product.promotion !== null && product.promotion !== undefined && product.promotion < product.price) {
-        activePrice = product.promotion as number;
-        strikeThroughPrice = product.price;
-      }
-    } else {
-      if (product.promotion !== null && product.promotion !== undefined && product.promotion < product.price) {
-        activePrice = product.promotion as number;
-        strikeThroughPrice = product.price;
-      }
-    }
+    let user: any = null;
+    try { user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null; } catch { user = null; }
+    const isSellerB = user?.role === 'Seller' && user?.sellerPricing === 'B';
+    activePrice = isSellerB ? (product.sellerBPrice ?? product.sellerAPrice ?? product.price) : (product.sellerAPrice ?? product.price);
+    const sellerAPrice = product.sellerAPrice ?? product.price;
+    if (isSellerB && activePrice < sellerAPrice) strikeThroughPrice = sellerAPrice;
 
     if (typeof window !== 'undefined') {
       const userObj = JSON.parse(localStorage.getItem('user') || '{}');

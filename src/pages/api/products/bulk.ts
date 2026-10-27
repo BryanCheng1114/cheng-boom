@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
+import { validateProductPricing } from '../../../utils/validateProductPricing';
 import cloudinary from '../../../lib/cloudinary';
 import multer from 'multer';
 import fs from 'fs';
@@ -66,15 +67,11 @@ export default async function handler(req: any, res: NextApiResponse) {
       else if (!categoryNames.has(p.category.trim())) errors.push(`${label}: Category "${p.category}" does not exist.`);
       if (!p.description?.trim()) errors.push(`${label}: English description is required.`);
       if (p.stock === undefined || p.stock === null || p.stock === '' || !Number.isInteger(Number(p.stock)) || Number(p.stock) < 0) errors.push(`${label}: Stock must be a valid non-negative whole number.`);
-      if (p.price === undefined || p.price === null || p.price === '' || !Number.isFinite(Number(p.price)) || Number(p.price) < 0) errors.push(`${label}: Price must be a valid non-negative number.`);
+      const pricingError = validateProductPricing(p);
+      if (pricingError) errors.push(`${label}: ${pricingError}`);
       for (const [field, value] of [['Items_Per_Box', p.itemsPerBox], ['Items_Bundle', p.bundleQuantity]] as const) {
         if (value !== undefined && value !== null && value !== '' && (!Number.isInteger(Number(value)) || Number(value) < 0)) {
           errors.push(`${label}: ${field} must be a valid non-negative whole number.`);
-        }
-      }
-      for (const [field, value] of [['Promotion_Price', p.promotion], ['Seller_Price', p.sellerPrice], ['Box_Price', p.boxPrice], ['Box_Seller_Price', p.boxSellerPrice], ['Box_Promotion_Price', p.boxPromotion], ['Bundle_Price', p.bundlePrice], ['Bundle_Seller_Price', p.bundleSellerPrice], ['Bundle_Promotion_Price', p.bundlePromotion]] as const) {
-        if (value !== undefined && value !== null && value !== '' && (!Number.isFinite(Number(value)) || Number(value) < 0)) {
-          errors.push(`${label}: ${field} must be a valid non-negative number.`);
         }
       }
       if (!p.imageFilename || !files.some(f => f.fieldname === `image_${p.imageFilename}`)) errors.push(`${label}: Product image is missing from the ZIP package.`);
@@ -124,17 +121,14 @@ export default async function handler(req: any, res: NextApiResponse) {
         videoUrl: p.videoUrl?.trim() || null,
         category: p.category.trim(),
         stock: Number(p.stock),
-        price: Number(p.price),
-        promotion: p.promotion ? Number(p.promotion) : null,
-        sellerPrice: p.sellerPrice ? Number(p.sellerPrice) : null,
+        sellerAPrice: Number(p.sellerAPrice),
+        sellerBPrice: Number(p.sellerBPrice),
         itemsPerBox: p.itemsPerBox ? Number(p.itemsPerBox) : null,
-        boxPrice: p.boxPrice ? Number(p.boxPrice) : null,
-        boxSellerPrice: p.boxSellerPrice ? Number(p.boxSellerPrice) : null,
-        boxPromotion: p.boxPromotion ? Number(p.boxPromotion) : null,
+        sellerABoxPrice: p.sellerABoxPrice != null ? Number(p.sellerABoxPrice) : null,
+        sellerBBoxPrice: p.sellerBBoxPrice != null ? Number(p.sellerBBoxPrice) : null,
         bundleQuantity: p.bundleQuantity ? Number(p.bundleQuantity) : null,
-        bundlePrice: p.bundlePrice ? Number(p.bundlePrice) : null,
-        bundleSellerPrice: p.bundleSellerPrice ? Number(p.bundleSellerPrice) : null,
-        bundlePromotion: p.bundlePromotion ? Number(p.bundlePromotion) : null,
+        sellerABundlePrice: p.sellerABundlePrice != null ? Number(p.sellerABundlePrice) : null,
+        sellerBBundlePrice: p.sellerBBundlePrice != null ? Number(p.sellerBBundlePrice) : null,
         status: p.status === 'Hold' ? 'Hold' : 'Live',
         images: [imageUrls[index]],
       },

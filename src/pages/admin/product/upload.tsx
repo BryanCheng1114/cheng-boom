@@ -35,17 +35,14 @@ const UploadProductPage = () => {
     category: '',
     videoUrl: '',
     stock: '',
-    price: '',
-    sellerPrice: '',
-    promotion: '',
-    boxPrice: '',
+    sellerAPrice: '',
+    sellerBPrice: '',
     itemsPerBox: '',
-    boxSellerPrice: '',
-    boxPromotion: '',
     bundleQuantity: '',
-    bundlePrice: '',
-    bundleSellerPrice: '',
-    bundlePromotion: '',
+    sellerABoxPrice: '',
+    sellerBBoxPrice: '',
+    sellerABundlePrice: '',
+    sellerBBundlePrice: '',
     status: 'Live',
   });
 
@@ -141,7 +138,8 @@ const UploadProductPage = () => {
     if (!formData.code.trim()) errors.code = t('err_code_required') || 'Code required';
     if (!formData.description.trim()) errors.description = t('err_description_required') || 'Description is required';
     if (!formData.stock) errors.stock = t('err_stock_required') || 'Stock required';
-    if (!formData.price) errors.price = t('err_price_required') || 'Price required';
+    if (!formData.sellerAPrice) errors.sellerAPrice = 'Seller A single-item price is required';
+    if (!formData.sellerBPrice) errors.sellerBPrice = 'Seller B single-item price is required';
 
     setFieldErrors(errors);
 
@@ -155,7 +153,8 @@ const UploadProductPage = () => {
         code: codeRef,
         description: nameRef, // Scroll to nameRef for description
         stock: stockRef,
-        price: priceRef,
+        sellerAPrice: priceRef,
+        sellerBPrice: priceRef,
       };
       refMap[firstKey]?.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
@@ -397,119 +396,30 @@ const UploadProductPage = () => {
               {/* Pricing */}
               <div className="border border-slate-200 bg-white p-6 shadow-sm md:p-8">
                 <h3 className="mb-2 border-b border-slate-200 pb-4 text-lg font-semibold text-slate-800">Pricing</h3>
-                <div className="divide-y divide-slate-200">
-                <details open className="group py-4">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-800 marker:hidden">
-                    <span>{t('single_item_pricing_stock') || 'Single Item Pricing & Stock'} <span className="ml-2 text-xs font-normal text-red-600">Required</span></span>
-                    <ChevronDown size={17} className="shrink-0 text-slate-500 transition-transform group-open:rotate-180" />
-                  </summary>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div ref={stockRef} className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">{t('total_stock') || 'Total Stock'}<span className="text-red-500">*</span></label>
-                    <input
-                      type="number" min="0" name="stock" value={formData.stock} onChange={handleChange}
-                      className={`w-full border bg-white px-4 py-3 text-[14px] outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${fieldErrors.stock ? 'border-red-500' : 'border-slate-300'}`} placeholder="0"
-                    />
-                  </div>
-                  <div ref={priceRef} className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">{t('normal_price') || 'Normal Price ($)'}<span className="text-red-500">*</span></label>
-                    <input
-                      type="number" min="0" step="0.01" name="price" value={formData.price} onChange={handleChange}
-                      className={`w-full border bg-white px-4 py-3 text-[14px] outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${fieldErrors.price ? 'border-red-500' : 'border-slate-300'}`} placeholder="0.00"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">{t('agent_price') || 'Agent Price ($)'}</label>
-                    <input
-                      type="number" min="0" step="0.01" name="sellerPrice" value={formData.sellerPrice} onChange={handleChange}
-                      className="w-full border border-slate-300 bg-white px-4 py-3 text-[14px] outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0.00"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">{t('promo_price') || 'Promo Price ($)'}</label>
-                    <input
-                      type="number" min="0" step="0.01" name="promotion" value={formData.promotion} onChange={handleChange}
-                      className="w-full border border-slate-300 bg-white px-4 py-3 text-[14px] outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0.00"
-                    />
-                  </div>
+                <div ref={stockRef} className="mb-5 max-w-sm space-y-2">
+                  <label className="text-[12px] font-semibold text-zinc-800">{t('total_stock') || 'Total Stock'}<span className="text-red-500">*</span></label>
+                  <input type="number" min="0" name="stock" value={formData.stock} onChange={handleChange} className={`w-full border bg-white px-4 py-3 text-[14px] outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${fieldErrors.stock ? 'border-red-500' : 'border-slate-300'}`} placeholder="0" />
                 </div>
-                </details>
-
-                <details className="group py-4">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-800 marker:hidden">
-                    <span>{t('per_box_pricing_optional') || 'Per Box Pricing'} <span className="ml-2 text-xs font-normal text-slate-500">Optional</span></span>
-                    <ChevronDown size={17} className="shrink-0 text-slate-500 transition-transform group-open:rotate-180" />
-                  </summary>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">{t('items_per_box') || 'Items Per Box'}</label>
-                    <input
-                      type="number" min="0" name="itemsPerBox" value={formData.itemsPerBox} onChange={handleChange}
-                      className="w-full border border-slate-300 bg-white px-4 py-3 text-[14px] outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">{t('box_price') || 'Box Price ($)'}</label>
-                    <input
-                      type="number" min="0" step="0.01" name="boxPrice" value={formData.boxPrice} onChange={handleChange}
-                      className="w-full border border-slate-300 bg-white px-4 py-3 text-[14px] outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0.00"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">{t('box_agent_price') || 'Box Agent Price ($)'}</label>
-                    <input
-                      type="number" min="0" step="0.01" name="boxSellerPrice" value={formData.boxSellerPrice} onChange={handleChange}
-                      className="w-full border border-slate-300 bg-white px-4 py-3 text-[14px] outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0.00"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">{t('box_promo_price') || 'Box Promo Price ($)'}</label>
-                    <input
-                      type="number" min="0" step="0.01" name="boxPromotion" value={formData.boxPromotion} onChange={handleChange}
-                      className="w-full border border-slate-300 bg-white px-4 py-3 text-[14px] outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0.00"
-                    />
-                  </div>
+                <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2"><label className="text-[12px] font-semibold text-zinc-800">{t('items_per_box') || 'Items Per Box'} <span className="font-normal text-slate-500">(optional, shared)</span></label><input type="number" min="1" name="itemsPerBox" value={formData.itemsPerBox} onChange={handleChange} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="e.g. 12" /></div>
+                  <div className="space-y-2"><label className="text-[12px] font-semibold text-zinc-800">{t('items_per_bundle') || 'Items Per Bundle'} <span className="font-normal text-slate-500">(optional, shared)</span></label><input type="number" min="2" name="bundleQuantity" value={formData.bundleQuantity} onChange={handleChange} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="e.g. 4" /></div>
                 </div>
-                </details>
-
-                <details className="group py-4">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-800 marker:hidden">
-                    <span>{t('bundle_set_pricing_optional') || 'Bundle Set Pricing'} <span className="ml-2 text-xs font-normal text-slate-500">Optional</span></span>
-                    <ChevronDown size={17} className="shrink-0 text-slate-500 transition-transform group-open:rotate-180" />
-                  </summary>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">{t('items_per_bundle') || 'Items Per Bundle'}</label>
-                    <input
-                      type="number" min="0" name="bundleQuantity" value={formData.bundleQuantity} onChange={handleChange}
-                      className="w-full border border-slate-300 bg-white px-4 py-3 text-[14px] outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="e.g. 4"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">{t('bundle_price') || 'Bundle Price ($)'}</label>
-                    <input
-                      type="number" min="0" step="0.01" name="bundlePrice" value={formData.bundlePrice} onChange={handleChange}
-                      className="w-full border border-slate-300 bg-white px-4 py-3 text-[14px] outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="100.00"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">{t('bundle_agent_price') || 'Bundle Agent Price ($)'}</label>
-                    <input
-                      type="number" min="0" step="0.01" name="bundleSellerPrice" value={formData.bundleSellerPrice} onChange={handleChange}
-                      className="w-full border border-slate-300 bg-white px-4 py-3 text-[14px] outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="90.00"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[12px] font-semibold text-zinc-800">{t('bundle_promo_price') || 'Bundle Promo Price ($)'}</label>
-                    <input
-                      type="number" min="0" step="0.01" name="bundlePromotion" value={formData.bundlePromotion} onChange={handleChange}
-                      className="w-full border border-slate-300 bg-white px-4 py-3 text-[14px] outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0.00"
-                    />
-                  </div>
+                <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+                  {(['A', 'B'] as const).map((group) => {
+                    const singleField = group === 'A' ? 'sellerAPrice' : 'sellerBPrice';
+                    const boxField = group === 'A' ? 'sellerABoxPrice' : 'sellerBBoxPrice';
+                    const bundleField = group === 'A' ? 'sellerABundlePrice' : 'sellerBBundlePrice';
+                    return <section key={group} className="space-y-4 border border-slate-200 bg-slate-50/60 p-5">
+                      <div className="border-b border-slate-200 pb-3"><h4 className="text-base font-semibold text-slate-900">Seller {group} Pricing</h4><p className="mt-1 text-xs text-slate-500">Single item is required. Box and bundle prices are optional.</p></div>
+                      <div ref={group === 'A' ? priceRef : undefined} className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-800">Single Item Price <span className="text-red-500">*</span></label>
+                        <input type="number" min="0" step="0.01" name={singleField} value={formData[singleField]} onChange={handleChange} className={`w-full border bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${fieldErrors[singleField] ? 'border-red-500' : 'border-slate-300'}`} placeholder="0.00" />
+                      </div>
+                      <details className="group border-t border-slate-200 pt-3"><summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium text-slate-700"><span>Per Box Price <span className="ml-1 text-xs font-normal text-slate-500">Optional</span></span><ChevronDown size={16} className="text-slate-500 transition-transform group-open:rotate-180" /></summary><div className="pt-3"><input aria-label={`Seller ${group} per box price`} type="number" min="0" step="0.01" name={boxField} value={formData[boxField]} onChange={handleChange} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0.00" /></div></details>
+                      <details className="group border-t border-slate-200 pt-3"><summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium text-slate-700"><span>Bundle Price <span className="ml-1 text-xs font-normal text-slate-500">Optional</span></span><ChevronDown size={16} className="text-slate-500 transition-transform group-open:rotate-180" /></summary><div className="pt-3"><input aria-label={`Seller ${group} bundle price`} type="number" min="0" step="0.01" name={bundleField} value={formData[bundleField]} onChange={handleChange} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0.00" /></div></details>
+                    </section>;
+                  })}
                 </div>
-                </details>
-                </div>
-
               </div>
             </div>
           </div>

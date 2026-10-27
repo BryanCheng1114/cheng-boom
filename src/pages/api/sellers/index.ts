@@ -1,15 +1,26 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
+import { getAdminFromRequest } from '../../../utils/adminAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'GET') {
+      if (!(await getAdminFromRequest(req))) {
+        return res.status(401).json({ message: 'Admin sign-in is required to view seller accounts.' });
+      }
+
       const sellers = await prisma.customer.findMany({
         where: {
           role: 'Seller'
         },
-        include: {
-          sellerLevel: true,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          sellerPricing: true,
+          isActive: true,
+          createdAt: true,
           orders: {
             select: {
               totalAmount: true

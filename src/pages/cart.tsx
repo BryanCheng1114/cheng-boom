@@ -57,6 +57,8 @@ export default function Cart() {
     localStorage.getItem('user_role') === 'Seller' || 
     JSON.parse(localStorage.getItem('user') || '{}').role === 'Seller'
   );
+  const cartUser = typeof window !== 'undefined' ? (() => { try { return JSON.parse(localStorage.getItem('user') || 'null'); } catch { return null; } })() : null;
+  const pricingGroup = cartUser?.role === 'Seller' && cartUser?.sellerPricing === 'B' ? 'B' : 'A';
   
   const sellerLevelName = typeof window !== 'undefined' ? 
     JSON.parse(localStorage.getItem('user') || '{}').sellerLevel?.name : '';
@@ -398,13 +400,13 @@ export default function Cart() {
                                 let newOrigPrice = item.originalPrice;
                                 if (pDetails) {
                                   if (newVariant === 'Box') {
-                                    newPrice = pDetails.boxPromotion || (isSeller ? pDetails.boxSellerPrice : null) || pDetails.boxPrice || item.price;
+                                    newPrice = (pricingGroup === 'B' ? pDetails.sellerBBoxPrice : pDetails.sellerABoxPrice) ?? pDetails.boxPrice ?? item.price;
                                     newOrigPrice = pDetails.boxPrice || item.originalPrice;
                                   } else if (newVariant === 'Bundle') {
-                                    newPrice = pDetails.bundlePromotion || (isSeller ? pDetails.bundleSellerPrice : null) || pDetails.bundlePrice || item.price;
+                                    newPrice = (pricingGroup === 'B' ? pDetails.sellerBBundlePrice : pDetails.sellerABundlePrice) ?? pDetails.bundlePrice ?? item.price;
                                     newOrigPrice = pDetails.bundlePrice || item.originalPrice;
                                   } else {
-                                    newPrice = pDetails.promotion || (isSeller ? pDetails.sellerPrice : null) || pDetails.price || item.price;
+                                    newPrice = (pricingGroup === 'B' ? pDetails.sellerBPrice : pDetails.sellerAPrice) ?? pDetails.price ?? item.price;
                                     newOrigPrice = pDetails.price || item.originalPrice;
                                   }
                                 }

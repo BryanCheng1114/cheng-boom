@@ -41,6 +41,25 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   const [showVariantError, setShowVariantError] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'description' | 'video'>('description');
+  const [pricingGroup, setPricingGroup] = useState<'A' | 'B'>('A');
+
+  useEffect(() => {
+    const syncPricingGroup = () => {
+      try {
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        setPricingGroup(user?.role === 'Seller' && user?.sellerPricing === 'B' ? 'B' : 'A');
+      } catch {
+        setPricingGroup('A');
+      }
+    };
+    syncPricingGroup();
+    window.addEventListener('storage', syncPricingGroup);
+    window.addEventListener('user-updated', syncPricingGroup);
+    return () => {
+      window.removeEventListener('storage', syncPricingGroup);
+      window.removeEventListener('user-updated', syncPricingGroup);
+    };
+  }, []);
 
 
   const cartItemIdSingle = `${product?.id}-Single`;
@@ -74,12 +93,13 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
   // Auto-select Single if no Box pricing is available
   useEffect(() => {
-    const hasBoxPricing = !!(product?.boxPrice && product?.itemsPerBox && product?.itemsPerBox > 1);
+    const availableBoxPrice = pricingGroup === 'B' ? (product?.sellerBBoxPrice ?? product?.sellerABoxPrice) : product?.sellerABoxPrice;
+    const hasBoxPricing = !!(availableBoxPrice && product?.itemsPerBox && product?.itemsPerBox > 1);
     if (!hasBoxPricing && maxAvailableSingle > 0) {
       if (!selectedVariant) setSelectedVariant('Single');
       if (localQty === 0) setLocalQty(1);
     }
-  }, [product, maxAvailableSingle, selectedVariant, localQty]);
+  }, [product, maxAvailableSingle, selectedVariant, localQty, pricingGroup]);
 
   // Auto-open checkout if navigated with ?buy=true
   useEffect(() => {
@@ -115,91 +135,24 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
   const stock = product.stock || 0;
 
-  // Seller Logic
-  const isSeller = typeof window !== 'undefined' && (
-    localStorage.getItem('user_role') === 'Seller' || 
-    JSON.parse(localStorage.getItem('user') || '{}').role === 'Seller'
-  );
+  const isSeller = typeof window !== 'undefined' && (() => {
+    try { return JSON.parse(localStorage.getItem('user') || 'null')?.role === 'Seller'; }
+    catch { return false; }
+  })();
+  const activePrice = pricingGroup === 'B' ? (product.sellerBPrice ?? product.sellerAPrice ?? product.price) : (product.sellerAPrice ?? product.price);
+  const strikeThroughPrice = pricingGroup === 'B' && activePrice < (product.sellerAPrice ?? product.price) ? (product.sellerAPrice ?? product.price) : undefined;
+  const hasDiscount = strikeThroughPrice !== undefined;
+  const savings = hasDiscount ? strikeThroughPrice! - activePrice : 0;
 
-  let activePrice = product.price;
-  let hasDiscount = false;
-  let strikeThroughPrice: number | undefined = undefined;
-
-  if (isSeller) {
-    if (product.sellerPrice && product.sellerPrice > 0) {
-      activePrice = product.sellerPrice;
-      if (product.sellerPrice < product.price) {
-        hasDiscount = true;
-        strikeThroughPrice = product.price;
-      }
-    } else if (product.promotion !== null && product.promotion !== undefined && product.promotion < product.price) {
-      activePrice = product.promotion as number;
-      hasDiscount = true;
-      strikeThroughPrice = product.price;
-    }
-  } else {
-    if (product.promotion !== null && product.promotion !== undefined && product.promotion < product.price) {
-      activePrice = product.promotion as number;
-      hasDiscount = true;
-      strikeThroughPrice = product.price;
-    }
-  }
-
-  const savings = hasDiscount ? (product.price - activePrice) : 0;
-
-  let activeBoxPrice = product.boxPrice;
-  let hasBoxDiscount = false;
-  let strikeThroughBoxPrice: number | undefined = undefined;
-
-  if (activeBoxPrice && product.itemsPerBox && product.itemsPerBox > 1) {
-    if (isSeller) {
-      if (product.boxSellerPrice && product.boxSellerPrice > 0) {
-        activeBoxPrice = product.boxSellerPrice;
-        if (product.boxSellerPrice < product.boxPrice!) {
-          hasBoxDiscount = true;
-          strikeThroughBoxPrice = product.boxPrice!;
-        }
-      } else if (product.boxPromotion !== null && product.boxPromotion !== undefined && product.boxPromotion < product.boxPrice!) {
-        activeBoxPrice = product.boxPromotion as number;
-        hasBoxDiscount = true;
-        strikeThroughBoxPrice = product.boxPrice!;
-      }
-    } else {
-      if (product.boxPromotion !== null && product.boxPromotion !== undefined && product.boxPromotion < product.boxPrice!) {
-        activeBoxPrice = product.boxPromotion as number;
-        hasBoxDiscount = true;
-        strikeThroughBoxPrice = product.boxPrice!;
-      }
-    }
-  }
+  const activeBoxPrice = pricingGroup === 'B' ? (product.sellerBBoxPrice ?? product.sellerABoxPrice ?? product.boxPrice) : (product.sellerABoxPrice ?? product.boxPrice);
+  const strikeThroughBoxPrice = pricingGroup === 'B' && activeBoxPrice != null && product.sellerABoxPrice != null && activeBoxPrice < product.sellerABoxPrice ? product.sellerABoxPrice : undefined;
+  const hasBoxDiscount = strikeThroughBoxPrice !== undefined;
 
   const boxSavings = hasBoxDiscount && strikeThroughBoxPrice && activeBoxPrice ? (strikeThroughBoxPrice - activeBoxPrice) : 0;
 
-  let activeBundlePrice = product.bundlePrice;
-  let hasBundleDiscount = false;
-  let strikeThroughBundlePrice: number | undefined = undefined;
-
-  if (activeBundlePrice && product.bundleQuantity && product.bundleQuantity > 1) {
-    if (isSeller) {
-      if (product.bundleSellerPrice && product.bundleSellerPrice > 0) {
-        activeBundlePrice = product.bundleSellerPrice;
-        if (product.bundleSellerPrice < product.bundlePrice!) {
-          hasBundleDiscount = true;
-          strikeThroughBundlePrice = product.bundlePrice!;
-        }
-      } else if (product.bundlePromotion !== null && product.bundlePromotion !== undefined && product.bundlePromotion < product.bundlePrice!) {
-        activeBundlePrice = product.bundlePromotion as number;
-        hasBundleDiscount = true;
-        strikeThroughBundlePrice = product.bundlePrice!;
-      }
-    } else {
-      if (product.bundlePromotion !== null && product.bundlePromotion !== undefined && product.bundlePromotion < product.bundlePrice!) {
-        activeBundlePrice = product.bundlePromotion as number;
-        hasBundleDiscount = true;
-        strikeThroughBundlePrice = product.bundlePrice!;
-      }
-    }
-  }
+  const activeBundlePrice = pricingGroup === 'B' ? (product.sellerBBundlePrice ?? product.sellerABundlePrice ?? product.bundlePrice) : (product.sellerABundlePrice ?? product.bundlePrice);
+  const strikeThroughBundlePrice = pricingGroup === 'B' && activeBundlePrice != null && product.sellerABundlePrice != null && activeBundlePrice < product.sellerABundlePrice ? product.sellerABundlePrice : undefined;
+  const hasBundleDiscount = strikeThroughBundlePrice !== undefined;
 
   const bundleSavings = hasBundleDiscount && strikeThroughBundlePrice && activeBundlePrice ? (strikeThroughBundlePrice - activeBundlePrice) : 0;
 
@@ -323,8 +276,8 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   const images = product.images || [];
 
   // Dynamic Pricing Calculations for Shopee Style
-  const hasBoxPricing = !!(product.boxPrice && product.itemsPerBox && product.itemsPerBox > 1);
-  const hasBundlePricing = !!(product.bundlePrice && product.bundleQuantity && product.bundleQuantity > 1);
+  const hasBoxPricing = !!(activeBoxPrice && product.itemsPerBox && product.itemsPerBox > 1);
+  const hasBundlePricing = !!(activeBundlePrice && product.bundleQuantity && product.bundleQuantity > 1);
   
   const minPrice = Math.min(activePrice, hasBoxPricing ? activeBoxPrice! : activePrice, hasBundlePricing ? activeBundlePrice! : activePrice);
   const maxPrice = Math.max(activePrice, hasBoxPricing ? activeBoxPrice! : activePrice, hasBundlePricing ? activeBundlePrice! : activePrice);
@@ -485,55 +438,17 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
             <div className="mb-4 space-y-4">
               
               {/* Dynamic Price Header */}
-              {isSeller ? (() => {
-                const labelsMap = {
-                  en: { original: 'Original Price', promo: 'Promotion', seller: 'Seller Price', discount: 'Discount', title: 'Seller Pricing Analysis' },
-                  zh: { original: '原价', promo: '促销价', seller: '卖家价', discount: '折扣', title: '卖家价格对比分析' },
-                  ms: { original: 'Harga Asal', promo: 'Promosi', seller: 'Harga Penjual', discount: 'Diskaun', title: 'Analisis Harga Penjual' }
-                };
-                const currentLabels = labelsMap[locale as 'en' | 'zh' | 'ms'] || labelsMap.en;
-
-                return (
-                  <div className="relative flex flex-col justify-center">
-                    <p className="text-xs font-black text-primary tracking-widest mb-2 px-1">
-                      {currentLabels.title}
-                    </p>
-                    <div className="overflow-hidden rounded-lg border border-zinc-200  bg-white  shadow-sm">
-                      <div className="overflow-x-auto scrollbar-hide">
-                        <table className="w-full text-left text-[10px] sm:text-[11px] border-collapse min-w-[280px]">
-                          <thead>
-                            <tr className="bg-zinc-50  text-zinc-500  font-extrabold border-b border-zinc-200 ">
-                              <th className="px-2 sm:px-4 py-2.5">{locale === 'zh' ? '选项' : locale === 'ms' ? 'Varian' : 'Variant'}</th>
-                              <th className="px-2 sm:px-4 py-2.5">{currentLabels.original}</th>
-                              <th className="px-2 sm:px-4 py-2.5">{currentLabels.promo}</th>
-                              <th className="px-2 sm:px-4 py-2.5">{currentLabels.seller}</th>
-                              <th className="px-2 sm:px-4 py-2.5 text-right">{currentLabels.discount}</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr className={`font-bold text-zinc-800 border-b border-zinc-100  ${selectedVariant === 'Single' ? 'bg-orange-100' : ''}`}>
-                              <td className="px-2 sm:px-4 py-3">{locale === 'zh' ? '单品' : locale === 'ms' ? 'Satu' : 'Single'}</td>
-                              <td className="px-2 sm:px-4 py-3 text-zinc-400  line-through">RM {product.price.toFixed(2)}</td>
-                              <td className="px-2 sm:px-4 py-3 text-zinc-500 ">{product.promotion !== null && product.promotion !== undefined && product.promotion < product.price ? `RM ${product.promotion.toFixed(2)}` : '-'}</td>
-                              <td className="px-2 sm:px-4 py-3 text-primary font-extrabold">{product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0 ? `RM ${product.sellerPrice.toFixed(2)}` : '-'}</td>
-                              <td className="px-2 sm:px-4 py-3 text-green-500 font-extrabold text-right">{product.sellerPrice !== null && product.sellerPrice !== undefined && product.sellerPrice > 0 && product.sellerPrice < product.price ? `RM ${(product.price - product.sellerPrice).toFixed(2)}` : '-'}</td>
-                            </tr>
-                            {hasBoxPricing && (
-                              <tr className={`font-bold text-zinc-800 ${selectedVariant === 'Box' ? 'bg-orange-100' : ''}`}>
-                                <td className="px-2 sm:px-4 py-3">{locale === 'zh' ? '整箱' : locale === 'ms' ? 'Kotak' : 'Box'}</td>
-                                <td className="px-2 sm:px-4 py-3 text-zinc-400  line-through">RM {product.boxPrice!.toFixed(2)}</td>
-                                <td className="px-2 sm:px-4 py-3 text-zinc-500 ">{product.boxPromotion !== null && product.boxPromotion !== undefined && product.boxPromotion < product.boxPrice! ? `RM ${product.boxPromotion.toFixed(2)}` : '-'}</td>
-                                <td className="px-2 sm:px-4 py-3 text-primary font-extrabold">{product.boxSellerPrice !== null && product.boxSellerPrice !== undefined && product.boxSellerPrice > 0 ? `RM ${product.boxSellerPrice.toFixed(2)}` : '-'}</td>
-                                <td className="px-2 sm:px-4 py-3 text-green-500 font-extrabold text-right">{product.boxSellerPrice !== null && product.boxSellerPrice !== undefined && product.boxSellerPrice > 0 && product.boxSellerPrice < product.boxPrice! ? `RM ${(product.boxPrice! - product.boxSellerPrice).toFixed(2)}` : '-'}</td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })() : (
+              {isSeller ? (
+              <div className="relative flex flex-col justify-center rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3">
+                <p className="mb-1 text-xs font-bold uppercase tracking-wide text-amber-800">
+                  {locale === 'zh' ? '价格' : locale === 'ms' ? 'Harga' : 'Price'}
+                </p>
+                <div className="flex flex-wrap items-baseline gap-2">
+                  {currentStrikePrice != null && <span className="text-sm text-zinc-400 line-through">RM {currentStrikePrice.toFixed(2)}</span>}
+                  <span className="text-2xl font-black tracking-tight text-zinc-900">{currentDisplayPrice != null ? `RM ${currentDisplayPrice.toFixed(2)}` : '—'}</span>
+                </div>
+              </div>
+              ) : (
               <div className="relative flex flex-col justify-center py-2">
                 <div className="flex flex-wrap items-end gap-3">
                   {/* Strike Through Range or Specific */}
@@ -863,21 +778,11 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   );
 }
 
-export async function getStaticPaths() {
-  const products = await prisma.product.findMany({
-    select: { id: true }
-  });
-  
-  const paths = products.map((p) => ({
-    params: { id: p.id },
-  }));
-
-  return { paths, fallback: true };
-}
-
-export async function getStaticProps({ params }: { params: { id: string } }) {
+export async function getServerSideProps({ params }: { params?: { id?: string } }) {
+  const id = params?.id;
+  if (!id) return { notFound: true };
   const product = await prisma.product.findUnique({
-    where: { id: params.id },
+    where: { id },
   });
   
   if (!product) {
@@ -897,6 +802,5 @@ export async function getStaticProps({ params }: { params: { id: string } }) {
       categoryZh: categoryObj?.nameZh || null,
       categoryMs: categoryObj?.nameMs || null
     },
-    revalidate: 10, // revalidate every 10 seconds for real-time feel
   };
 }

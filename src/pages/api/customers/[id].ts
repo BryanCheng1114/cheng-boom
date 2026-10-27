@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
-import { sendCustomerAccountUpdateEmail } from '../../../lib/email';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -24,7 +23,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).json({ error: 'Customer not found' });
       }
 
-      return res.status(200).json(customer);
+      const { password: _password, ...customerWithoutPassword } = customer;
+      return res.status(200).json(customerWithoutPassword);
     } catch (error) {
       console.error('Error fetching customer details:', error);
       return res.status(500).json({ error: 'Failed to fetch customer details' });
@@ -33,29 +33,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'PATCH') {
     try {
-      const { name, phone, address, role, preferredPayment, orderMode, deliveryDetails, notes, password, sendRoleEmail } = req.body;
-
-      if (role && !['Guest', 'Member', 'Seller'].includes(role)) {
-        return res.status(400).json({ error: 'Invalid customer role.' });
+      if (req.body.role !== undefined || req.body.sendRoleEmail !== undefined) {
+        return res.status(400).json({ error: 'Customer account roles can no longer be changed from this page.' });
       }
 
-      const previousCustomer = role === 'Member'
-        ? await prisma.customer.findUnique({
-            where: { id: String(id) },
-            select: { id: true, name: true, email: true, role: true },
-          })
-        : null;
-
-      if (role === 'Member' && !previousCustomer) {
-        return res.status(404).json({ error: 'Customer not found' });
-      }
+      const { name, phone, address, preferredPayment, orderMode, deliveryDetails, notes, password } = req.body;
       
       const updateData: any = {};
       if (name) updateData.name = name;
       if (phone) updateData.phone = phone;
       if (address) updateData.address = address;
-      if (role) updateData.role = role;
-      if (role === 'Member' && previousCustomer?.role === 'Seller') updateData.sellerLevelId = null;
       if (preferredPayment) updateData.preferredPayment = preferredPayment;
       if (orderMode) updateData.orderMode = orderMode;
       if (deliveryDetails) updateData.deliveryDetails = deliveryDetails;
@@ -71,19 +58,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data: updateData,
       });
 
-      let roleEmailSent: boolean | undefined;
-      if (role === 'Member' && (previousCustomer?.role === 'Seller' || sendRoleEmail === true)) {
-        try {
-          await sendCustomerAccountUpdateEmail(updatedCustomer);
-          roleEmailSent = true;
-        } catch (emailError) {
-          console.error('Failed to send customer account update email:', emailError);
-          roleEmailSent = false;
-        }
-      }
-
       const { password: _, ...customerWithoutPassword } = updatedCustomer;
-      return res.status(200).json({ ...customerWithoutPassword, ...(roleEmailSent === undefined ? {} : { roleEmailSent }) });
+      return res.status(200).json(customerWithoutPassword);
     } catch (error: any) {
       console.error('Error updating customer:', error);
       if (error.code === 'P2002' && error.meta?.target?.includes('phone')) {

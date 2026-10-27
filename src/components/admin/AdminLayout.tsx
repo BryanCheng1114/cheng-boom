@@ -79,8 +79,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, headerAction
     { name: t('category') || 'Category', key: 'category', path: '/admin/category', icon: '🏷️' },
     { name: t('inventory') || 'Inventory', path: '/admin/product', icon: '📦' },
     { name: t('orders') || 'Orders', path: '/admin/orders', icon: '🛍️' },
-    { name: t('customers') || 'Customers', path: '/admin/customer', icon: '👥' },
-    { name: t('seller_setup') || 'Seller Setup', key: 'seller-setup', path: '/admin/seller-setup', icon: '🏆' },
+    { name: t('seller_setup') || 'Seller Accounts', key: 'seller-setup', path: '/admin/seller-setup', icon: '🛡️' },
     { name: t('business_setup') || 'Business Setup', key: 'business-setup', path: '/admin/business-setup', icon: '🏢' },
   ];
 

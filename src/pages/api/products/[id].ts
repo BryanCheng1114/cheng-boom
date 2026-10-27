@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
+import { serializeProduct } from '../../../utils/serializeProduct';
+import { validateProductPricing } from '../../../utils/validateProductPricing';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -12,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!product) {
         return res.status(404).json({ error: 'Product not found' });
       }
-      return res.status(200).json(product);
+      return res.status(200).json(serializeProduct(product));
     } catch (error) {
       console.error('Error fetching product:', error);
       return res.status(500).json({ error: 'Failed to fetch product' });
@@ -21,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'PUT') {
     try {
-      const { name, code, nameZh, nameMs, description, descriptionZh, descriptionMs, images, videoUrl, stock, price, sellerPrice, promotion, boxPrice, itemsPerBox, boxSellerPrice, boxPromotion, bundleQuantity, bundlePrice, bundleSellerPrice, bundlePromotion, category, status } = req.body;
+      const { name, code, nameZh, nameMs, description, descriptionZh, descriptionMs, images, videoUrl, stock, sellerAPrice, sellerBPrice, sellerABoxPrice, sellerBBoxPrice, itemsPerBox, bundleQuantity, sellerABundlePrice, sellerBBundlePrice, category, status } = req.body;
       
       const trimmedCode = code?.trim();
       if (trimmedCode) {
@@ -40,6 +42,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(400).json({ error: `Product code '${trimmedCode}' already exists.` });
         }
       }
+
+      const pricingError = validateProductPricing(req.body);
+      if (pricingError) return res.status(400).json({ error: pricingError });
 
       if (category) {
         await prisma.category.upsert({
@@ -62,23 +67,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           images: Array.isArray(images) ? images : [],
           videoUrl,
           stock: parseInt(stock as any),
-          price: parseFloat(price as any),
-          sellerPrice: sellerPrice ? parseFloat(sellerPrice as any) : null,
-          promotion: promotion ? parseFloat(promotion as any) : null,
-          boxPrice: boxPrice ? parseFloat(boxPrice as any) : null,
+          sellerAPrice: Number(sellerAPrice),
+          sellerBPrice: Number(sellerBPrice),
+          sellerABoxPrice: sellerABoxPrice !== '' && sellerABoxPrice != null ? Number(sellerABoxPrice) : null,
+          sellerBBoxPrice: sellerBBoxPrice !== '' && sellerBBoxPrice != null ? Number(sellerBBoxPrice) : null,
           itemsPerBox: itemsPerBox ? parseInt(itemsPerBox as any) : null,
-          boxSellerPrice: boxSellerPrice ? parseFloat(boxSellerPrice as any) : null,
-          boxPromotion: boxPromotion ? parseFloat(boxPromotion as any) : null,
           bundleQuantity: bundleQuantity ? parseInt(bundleQuantity as any) : null,
-          bundlePrice: bundlePrice ? parseFloat(bundlePrice as any) : null,
-          bundleSellerPrice: bundleSellerPrice ? parseFloat(bundleSellerPrice as any) : null,
-          bundlePromotion: bundlePromotion ? parseFloat(bundlePromotion as any) : null,
+          sellerABundlePrice: sellerABundlePrice !== '' && sellerABundlePrice != null ? Number(sellerABundlePrice) : null,
+          sellerBBundlePrice: sellerBBundlePrice !== '' && sellerBBundlePrice != null ? Number(sellerBBundlePrice) : null,
           category,
           status,
         },
       });
       
-      return res.status(200).json(product);
+      return res.status(200).json(serializeProduct(product));
     } catch (error) {
       console.error('Error updating product:', error);
       return res.status(500).json({ error: 'Failed to update product' });

@@ -39,12 +39,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const checkUser = () => {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
-      } else {
-        setUser(null);
-      }
+      try { setUser(JSON.parse(localStorage.getItem('user') || 'null')); }
+      catch { setUser(null); }
     };
     checkUser();
     window.addEventListener('storage', checkUser);
@@ -54,6 +50,46 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('user-updated', checkUser);
     };
   }, []);
+
+  const pricingGroup = user?.role === 'Seller' && user?.sellerPricing === 'B' ? 'B' : 'A';
+  const cartProductIds = [...new Set(items.map((item) => item.id))].sort().join('|');
+
+  useEffect(() => {
+    if (!isMounted || !cartProductIds) return;
+    let cancelled = false;
+    const refreshCartPrices = async () => {
+      try {
+        const response = await fetch('/api/products');
+        if (!response.ok) return;
+        const products = await response.json();
+        if (cancelled) return;
+        const byId = new Map(products.map((product: any) => [product.id, product]));
+        setItems((current) => current.map((item) => {
+          const product: any = byId.get(item.id);
+          if (!product) return item;
+          const group = pricingGroup;
+          const price = item.variant === 'Box'
+            ? (group === 'B' ? product.sellerBBoxPrice : product.sellerABoxPrice) ?? product.boxPrice
+            : item.variant === 'Bundle'
+              ? (group === 'B' ? product.sellerBBundlePrice : product.sellerABundlePrice) ?? product.bundlePrice
+              : (group === 'B' ? product.sellerBPrice : product.sellerAPrice) ?? product.price;
+          if (price == null) return item;
+          const basePrice = item.variant === 'Box'
+            ? product.sellerABoxPrice ?? product.boxPrice
+            : item.variant === 'Bundle'
+              ? product.sellerABundlePrice ?? product.bundlePrice
+              : product.sellerAPrice ?? product.price;
+          const originalPrice = group === 'B' && basePrice > price ? basePrice : undefined;
+          if (item.price === price && item.originalPrice === originalPrice) return item;
+          return { ...item, price, originalPrice };
+        }));
+      } catch (error) {
+        console.error('Failed to refresh cart pricing:', error);
+      }
+    };
+    void refreshCartPrices();
+    return () => { cancelled = true; };
+  }, [cartProductIds, isMounted, pricingGroup]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -132,15 +168,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const totalOriginalPrice = items.reduce((sum, item) => sum + (item.originalPrice || item.price) * item.quantity, 0);
   const baseTotalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  let discountPercent = 0;
-  let isFreeShipping = false;
-  if (user?.role === 'Seller' && user?.sellerLevel) {
-    discountPercent = user.sellerLevel.discountPercent || 0;
-    isFreeShipping = user.sellerLevel.freeShipping || false;
-  }
-
-  const totalDiscount = baseTotalPrice * (discountPercent / 100);
-  const totalPrice = baseTotalPrice - totalDiscount;
+  // Seller A/B prices are the final unit prices. Do not apply legacy tier
+  // discounts again on top of the assigned seller price.
+  const discountPercent = 0;
+  const isFreeShipping = false;
+  const totalDiscount = 0;
+  const totalPrice = baseTotalPrice;
 
   return (
     <CartContext.Provider

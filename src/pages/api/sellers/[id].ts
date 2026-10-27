@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
+import { getAdminFromRequest } from '../../../utils/adminAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -10,14 +11,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === 'PATCH' || req.method === 'PUT') {
-      const { sellerLevelId, isActive, role } = req.body;
+      if (!(await getAdminFromRequest(req))) {
+        return res.status(401).json({ message: 'Admin sign-in is required.' });
+      }
+
+      if (req.body.role !== undefined || req.body.sellerLevelId !== undefined) {
+        return res.status(400).json({ message: 'Seller role and tier assignments are no longer managed here.' });
+      }
+
+      const { isActive } = req.body;
       
       const updated = await prisma.customer.update({
         where: { id },
         data: {
-          ...(sellerLevelId !== undefined && { sellerLevelId }),
           ...(isActive !== undefined && { isActive: Boolean(isActive) }),
-          ...(role !== undefined && { role })
         },
         include: {
           sellerLevel: true

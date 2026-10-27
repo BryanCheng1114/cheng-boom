@@ -26,17 +26,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'Customer has no email address' });
     }
 
-    // Enrich items with sellerPrice/boxSellerPrice for accurate email discount labeling
+    // Preserve legacy receipt labels while prices are migrated to Seller A/B.
     const productIds = [...new Set(order.items.map((i) => i.productId))];
     const products = await prisma.product.findMany({
       where: { id: { in: productIds } },
-      select: { id: true, sellerPrice: true, boxSellerPrice: true, itemsPerBox: true },
+      select: { id: true, sellerAPrice: true, sellerABoxPrice: true, itemsPerBox: true },
     });
     const productMap: Record<string, any> = {};
     products.forEach((p) => { productMap[p.id] = p; });
     const enrichedItems = order.items.map((item) => {
       const pd = productMap[item.productId];
-      return { ...item, sellerPrice: pd?.sellerPrice ?? null, boxSellerPrice: pd?.boxSellerPrice ?? null, itemsPerBox: pd?.itemsPerBox ?? null };
+      return { ...item, sellerPrice: pd?.sellerAPrice ?? null, boxSellerPrice: pd?.sellerABoxPrice ?? null, itemsPerBox: pd?.itemsPerBox ?? null };
     });
 
     // Check if customer has a seller level

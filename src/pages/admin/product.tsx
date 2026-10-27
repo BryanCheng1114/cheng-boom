@@ -60,7 +60,7 @@ const ProductPage = () => {
 
   // Fast Action States
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
-  const [editValues, setEditValues] = useState<{ stock?: number, price?: number }>({});
+  const [editValues, setEditValues] = useState<{ stock?: number, sellerAPrice?: number, sellerBPrice?: number }>({});
   const [isSavingFastAction, setIsSavingFastAction] = useState(false);
   const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
@@ -106,17 +106,14 @@ const ProductPage = () => {
       'Name': getLocalizedName(p),
       'Category': p.category || '-',
       'Total Stock': p.stock ?? 0,
-      'Normal Price ($)': p.price != null ? Number(p.price).toFixed(2) : '-',
-      'Agent Price ($)': p.sellerPrice != null && p.sellerPrice !== '' ? Number(p.sellerPrice).toFixed(2) : '-',
-      'Promo Price ($)': p.promotion != null && p.promotion !== '' ? Number(p.promotion).toFixed(2) : '-',
+      'Seller A Single Price ($)': p.sellerAPrice != null ? Number(p.sellerAPrice).toFixed(2) : '-',
+      'Seller B Single Price ($)': p.sellerBPrice != null ? Number(p.sellerBPrice).toFixed(2) : '-',
       'Items Per Box': p.itemsPerBox ?? '-',
-      'Box Price ($)': p.boxPrice != null ? Number(p.boxPrice).toFixed(2) : '-',
-      'Box Agent Price ($)': p.boxSellerPrice != null ? Number(p.boxSellerPrice).toFixed(2) : '-',
-      'Box Promo Price ($)': p.boxPromotion != null ? Number(p.boxPromotion).toFixed(2) : '-',
+      'Seller A Box Price ($)': p.sellerABoxPrice != null ? Number(p.sellerABoxPrice).toFixed(2) : '-',
+      'Seller B Box Price ($)': p.sellerBBoxPrice != null ? Number(p.sellerBBoxPrice).toFixed(2) : '-',
       'Items Per Bundle': p.bundleQuantity ?? '-',
-      'Bundle Price ($)': p.bundlePrice != null ? Number(p.bundlePrice).toFixed(2) : '-',
-      'Bundle Agent Price ($)': p.bundleSellerPrice != null ? Number(p.bundleSellerPrice).toFixed(2) : '-',
-      'Bundle Promo Price ($)': p.bundlePromotion != null ? Number(p.bundlePromotion).toFixed(2) : '-',
+      'Seller A Bundle Price ($)': p.sellerABundlePrice != null ? Number(p.sellerABundlePrice).toFixed(2) : '-',
+      'Seller B Bundle Price ($)': p.sellerBBundlePrice != null ? Number(p.sellerBBundlePrice).toFixed(2) : '-',
       'Status': getTranslatedStatus(p.status),
       'Notes': '',
     }));
@@ -160,17 +157,14 @@ const ProductPage = () => {
           'Name': cleanText(p.name),
           'Category': cleanText(p.category),
           'Total Stock': p.stock ?? 0,
-          'Normal Price ($)': p.price != null ? Number(p.price).toFixed(2) : '-',
-          'Agent Price ($)': p.sellerPrice != null && p.sellerPrice !== '' ? Number(p.sellerPrice).toFixed(2) : '-',
-          'Promo Price ($)': p.promotion != null && p.promotion !== '' ? Number(p.promotion).toFixed(2) : '-',
+          'Seller A Single Price ($)': p.sellerAPrice != null ? Number(p.sellerAPrice).toFixed(2) : '-',
+          'Seller B Single Price ($)': p.sellerBPrice != null ? Number(p.sellerBPrice).toFixed(2) : '-',
           'Items Per Box': p.itemsPerBox ?? '-',
-          'Box Price ($)': p.boxPrice != null ? Number(p.boxPrice).toFixed(2) : '-',
-          'Box Agent Price ($)': p.boxSellerPrice != null ? Number(p.boxSellerPrice).toFixed(2) : '-',
-          'Box Promo Price ($)': p.boxPromotion != null ? Number(p.boxPromotion).toFixed(2) : '-',
+          'Seller A Box Price ($)': p.sellerABoxPrice != null ? Number(p.sellerABoxPrice).toFixed(2) : '-',
+          'Seller B Box Price ($)': p.sellerBBoxPrice != null ? Number(p.sellerBBoxPrice).toFixed(2) : '-',
           'Items Per Bundle': p.bundleQuantity ?? '-',
-          'Bundle Price ($)': p.bundlePrice != null ? Number(p.bundlePrice).toFixed(2) : '-',
-          'Bundle Agent Price ($)': p.bundleSellerPrice != null ? Number(p.bundleSellerPrice).toFixed(2) : '-',
-          'Bundle Promo Price ($)': p.bundlePromotion != null ? Number(p.bundlePromotion).toFixed(2) : '-',
+          'Seller A Bundle Price ($)': p.sellerABundlePrice != null ? Number(p.sellerABundlePrice).toFixed(2) : '-',
+          'Seller B Bundle Price ($)': p.sellerBBundlePrice != null ? Number(p.sellerBBundlePrice).toFixed(2) : '-',
           'Status': p.status || '-',
           'Notes': '',
         };
@@ -196,7 +190,7 @@ const ProductPage = () => {
         0: { cellWidth: 8 },
         1: { cellWidth: 15 },
         2: { cellWidth: 40 }, // Force Name column to wrap if too long
-        17: { cellWidth: 40 }, // Give Notes column space for handwriting
+        14: { cellWidth: 40 }, // Give Notes column space for handwriting
       },
       margin: { left: 10, right: 10 },
     });
@@ -328,8 +322,8 @@ const ProductPage = () => {
       let bVal = b[sortConfig.key];
 
       if (sortConfig.key === 'price_active') {
-        aVal = a.promotion && a.promotion < a.price ? a.promotion : a.price;
-        bVal = b.promotion && b.promotion < b.price ? b.promotion : b.price;
+        aVal = a.sellerAPrice;
+        bVal = b.sellerAPrice;
       }
 
       if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
@@ -415,7 +409,7 @@ const ProductPage = () => {
 
   const handleEditStart = (p: any) => {
     setEditingProduct(p.id);
-    setEditValues({ stock: p.stock, price: p.price });
+    setEditValues({ stock: p.stock, sellerAPrice: p.sellerAPrice, sellerBPrice: p.sellerBPrice });
   };
 
   const handleFastActionSave = async (p: any, e: React.MouseEvent) => {
@@ -428,11 +422,12 @@ const ProductPage = () => {
         body: JSON.stringify({
           ...p,
           stock: editValues.stock,
-          price: editValues.price,
+          sellerAPrice: editValues.sellerAPrice,
+          sellerBPrice: editValues.sellerBPrice,
         }),
       });
       if (response.ok) {
-        setProducts(products.map(prod => prod.id === p.id ? { ...prod, stock: editValues.stock, price: editValues.price } : prod));
+        setProducts(products.map(prod => prod.id === p.id ? { ...prod, stock: editValues.stock, sellerAPrice: editValues.sellerAPrice, sellerBPrice: editValues.sellerBPrice } : prod));
         setEditingProduct(null);
       } else {
         alert('Failed to update product');
@@ -813,7 +808,7 @@ const ProductPage = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[1000px]">
+              <table className="w-full min-w-[1150px] border-collapse text-left">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50">
                   <th className="px-4 py-3 w-16">
@@ -851,12 +846,10 @@ const ProductPage = () => {
                   >
                     <div className="flex items-center justify-center gap-2">{t('stock')} <SortIndicator column="stock" /></div>
                   </th>
-                  <th 
-                    onClick={() => handleSort('price_active')}
-                    className="cursor-pointer px-4 py-3 text-[11px] font-medium uppercase tracking-wide text-slate-500 transition-colors group hover:text-sky-700"
-                  >
-                    <div className="flex items-center gap-2">{t('price')} <SortIndicator column="price_active" /></div>
+                  <th onClick={() => handleSort('price_active')} className="cursor-pointer px-4 py-3 text-[11px] font-medium uppercase tracking-wide text-slate-500 transition-colors group hover:text-sky-700">
+                    <div className="flex items-center gap-2">Seller A <SortIndicator column="price_active" /></div>
                   </th>
+                  <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wide text-slate-500">Seller B</th>
                   <th 
                     onClick={() => handleSort('status')}
                     className="cursor-pointer px-4 py-3 text-[11px] font-medium uppercase tracking-wide text-slate-500 transition-colors group hover:text-sky-700"
@@ -869,14 +862,13 @@ const ProductPage = () => {
               <tbody className="divide-y divide-slate-200">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={7} className="p-20 text-center text-zinc-500 font-bold uppercase tracking-widest text-xs animate-pulse">{t('loading_inventory')}</td>
+                    <td colSpan={9} className="p-20 text-center text-zinc-500 font-bold uppercase tracking-widest text-xs animate-pulse">{t('loading_inventory')}</td>
                   </tr>
                 ) : paginatedProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-20 text-center text-zinc-500 font-bold uppercase tracking-widest text-xs">{t('no_products_found')}</td>
+                    <td colSpan={9} className="p-20 text-center text-zinc-500 font-bold uppercase tracking-widest text-xs">{t('no_products_found')}</td>
                   </tr>
                 ) : paginatedProducts.map((p, index) => {
-                  const hasPromotion = p.promotion !== null && p.promotion !== undefined && p.promotion < p.price;
                   const isSelected = selectedIds.includes(p.id);
                   return (
                     <tr 
@@ -939,25 +931,23 @@ const ProductPage = () => {
                               <input 
                                 type="number" 
                                 step="0.01"
-                                value={editValues.price} 
-                                onChange={e => setEditValues({ ...editValues, price: parseFloat(e.target.value) || 0 })}
+                                value={editValues.sellerAPrice}
+                                onChange={e => setEditValues({ ...editValues, sellerAPrice: parseFloat(e.target.value) || 0 })}
                                 className="w-24 border border-slate-300 bg-slate-50 px-2 py-1 font-medium text-slate-900 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
                               />
                             </div>
-                            {hasPromotion && (
-                              <span className="text-[9px] text-zinc-500 line-through">RM {p.price.toFixed(2)}</span>
-                            )}
                           </div>
                         ) : (
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium text-slate-900">
-                              RM {hasPromotion ? p.promotion.toFixed(2) : p.price.toFixed(2)}
-                            </span>
-                            {hasPromotion && (
-                              <span className="text-[9px] text-zinc-500 line-through">RM {p.price.toFixed(2)}</span>
-                            )}
-                          </div>
+                          <span className="text-sm font-medium text-slate-900">RM {Number(p.sellerAPrice).toFixed(2)}</span>
                         )}
+                      </td>
+                      <td className="px-4 py-3" onDoubleClick={(e) => { e.stopPropagation(); handleEditStart(p); }} onClick={(e) => e.stopPropagation()}>
+                        {editingProduct === p.id ? (
+                          <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                            <span className="text-sm font-medium text-slate-900">RM</span>
+                            <input type="number" step="0.01" value={editValues.sellerBPrice} onChange={e => setEditValues({ ...editValues, sellerBPrice: parseFloat(e.target.value) || 0 })} className="w-24 border border-slate-300 bg-slate-50 px-2 py-1 font-medium text-slate-900 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" />
+                          </div>
+                        ) : <span className="text-sm font-medium text-slate-900">RM {Number(p.sellerBPrice).toFixed(2)}</span>}
                       </td>
                       <td className="px-4 py-3" onDoubleClick={(e) => { e.stopPropagation(); setEditingStatusId(p.id); }} onClick={(e) => e.stopPropagation()}>
                         {editingStatusId === p.id ? (

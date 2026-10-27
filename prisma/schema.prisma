@@ -16,55 +16,52 @@ model Admin {
   theme     String   @default("dark")
   language  String   @default("en")
 }
+
 model Product {
-  id          String   @id @default(cuid())
-  name        String
-  code        String?  @unique // Unique product code
-  nameZh      String?  // Chinese name translation
-  nameMs      String?  // Malay name translation
-  description   String
-  descriptionZh String?  // Chinese description translation
-  descriptionMs String?  // Malay description translation
-  videoUrl      String?
-  stock       Int      @default(0)
-  price       Float
-  sellerPrice Float?   // Seller special price
-  promotion   Float?
-  boxPrice       Float?
-  itemsPerBox    Int?
-  boxSellerPrice Float?
-  boxPromotion   Float?
-  bundleQuantity    Int?
-  bundlePrice       Float?
-  bundleSellerPrice Float?
-  bundlePromotion   Float?
-  category    String?
-  status      String   @default("Live")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  images      String[]
+  id                 String   @id @default(cuid())
+  name               String
+  description        String
+  videoUrl           String?
+  stock              Int      @default(0)
+  sellerAPrice       Float
+  category           String?
+  status             String   @default("Live")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  images             String[]
+  nameMs             String?
+  nameZh             String?
+  code               String?  @unique
+  descriptionMs      String?
+  descriptionZh      String?
+  sellerABoxPrice    Float?
+  itemsPerBox        Int?
+  sellerABundlePrice Float?
+  bundleQuantity     Int?
+  sellerBPrice       Float
+  sellerBBoxPrice    Float?
+  sellerBBundlePrice Float?
 }
 
 model Category {
-  id               String   @id @default(cuid())
-  name             String   @unique
-  code             String?  @unique
-  nameZh           String?  // Chinese name translation
-  nameMs           String?  // Malay name translation
-  description      String?  @db.Text
-  displayOrder     Int?     @default(0)
-  image            String?  // Image for homepage display
-  showInCategoryBar Boolean  @default(true)
+  id                String   @id @default(cuid())
+  name              String   @unique
+  createdAt         DateTime @default(now())
+  image             String?
+  code              String?  @unique
+  nameMs            String?
+  nameZh            String?
+  status            String   @default("Live")
+  description       String?
+  displayOrder      Int?     @default(0)
   showInAppBar      Boolean  @default(true)
-  status           String   @default("Live") // "Live" or "Hold"
-  createdAt        DateTime @default(now())
+  showInCategoryBar Boolean  @default(true)
 }
 
 model BusinessSettings {
   id                String   @id @default(cuid())
   businessName      String   @default("Cheng-BOOM")
   logoUrl           String?
-  watermarkUrl      String?
   faviconUrl        String?
   primaryColor      String?
   accentColor       String?
@@ -79,69 +76,71 @@ model BusinessSettings {
   facebook          String?
   instagram         String?
   tiktok            String?
-  bankTransferImage String?
-  tngDuitnowImage   String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+  watermarkUrl      String?
+  bankTransferImage String?
+  tngDuitnowImage   String?
 }
 
 model SellerLevel {
-  id               String     @id @default(cuid())
-  name             String     @unique
-  description      String?    @db.Text
-  discountPercent  Float      @default(0)
-  freeShipping     Boolean    @default(false)
-  prioritySupport  Boolean    @default(false)
-  customers        Customer[]
+  id              String     @id @default(cuid())
+  name            String     @unique
+  discountPercent Float      @default(0)
+  freeShipping    Boolean    @default(false)
+  prioritySupport Boolean    @default(false)
+  description     String?
+  customers       Customer[]
 }
 
 model Customer {
-  id               String   @id @default(cuid())
+  id               String       @id @default(cuid())
   name             String
-  phone            String?  @unique
-  email            String?  @unique
-  password         String?  // Optional for Guests, required for Members/Sellers
+  phone            String?      @unique
   address          String?
-  preferredPayment String?
-  orderMode        String?  // "Self Collect" or "Delivery"
-  deliveryDetails  String?
-  notes            String?
-  role             String       @default("Guest") // "Guest", "Member", or "Seller"
-  sellerLevelId    String?
-  sellerLevel      SellerLevel? @relation(fields: [sellerLevelId], references: [id])
-  isActive         Boolean      @default(true) // For suspension/activation
-  resetToken       String?
-  resetTokenExpiry DateTime?
+  role             String       @default("Guest")
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
+  password         String?
+  deliveryDetails  String?
+  notes            String?
+  preferredPayment String?
+  orderMode        String?
+  isActive         Boolean      @default(true)
+  sellerLevelId    String?
+  email            String?      @unique
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  sellerPricing    String?
+  sellerLevel      SellerLevel? @relation(fields: [sellerLevelId], references: [id])
   orders           Order[]
 }
 
 model Order {
-  id            String      @id @default(cuid())
-  customer      Customer    @relation(fields: [customerId], references: [id])
-  customerId    String
-  totalAmount   Float
-  paymentMethod String?
-  deliveryMode  String?
-  address       String?
-  notes         String?
-  status        String      @default("Pending") // "Pending", "Processing", "Completed", "Cancelled"
-  paymentReceiptUrl String? // Image URL of the payment receipt
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  items         OrderItem[]
+  id                String      @id @default(cuid())
+  customerId        String
+  totalAmount       Float
+  status            String      @default("Pending")
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  address           String?
+  deliveryMode      String?
+  notes             String?
+  paymentMethod     String?
+  paymentReceiptUrl String?
+  customer          Customer    @relation(fields: [customerId], references: [id])
+  items             OrderItem[]
 }
 
 model OrderItem {
   id        String  @id @default(cuid())
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId   String
   productId String
   name      String
   price     Float
   quantity  Int
   variant   String?
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model OtpVerification {
@@ -151,4 +150,3 @@ model OtpVerification {
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
-

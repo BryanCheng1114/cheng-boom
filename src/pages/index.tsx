@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/router';
 import { ArrowLeft, ArrowRight, ArrowUp, ChevronLeft, ChevronRight, FileCheck, ShieldCheck, Headphones, Truck, Search, ShoppingCart, CreditCard, PackageCheck, PartyPopper, Star, Zap, Clock, BadgeCheck, ThumbsUp, Heart, Diamond, Users, Award, MapPin, Navigation, Phone, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -94,8 +95,10 @@ type Category = {
 };
 
 export default function Home() {
+  const router = useRouter();
   const { t, locale } = useTranslation();
   const { settings } = useBusiness();
+  const [isSignedIn, setIsSignedIn] = useState(false);
   const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
   const [isMobileHero, setIsMobileHero] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -175,6 +178,14 @@ export default function Home() {
   const [isLoadingHomeProducts, setIsLoadingHomeProducts] = useState(true);
 
   useEffect(() => {
+    if (localStorage.getItem('user')) {
+      setIsSignedIn(true);
+      return;
+    }
+    router.replace('/login');
+  }, [router]);
+
+  useEffect(() => {
     let cancelled = false;
     const loadHomeProducts = async () => {
       try {
@@ -216,6 +227,8 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+
+  if (!isSignedIn) return null;
 
   return (
     <>

@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               preferredPayment: customerInfo.paymentMethod,
               orderMode: customerInfo.deliveryMode,
               notes: customerInfo.notes || null,
-              role: customerInfo.role || 'Guest',
+              role: 'Guest',
             },
           });
         }
@@ -71,12 +71,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
+      // Rebuild every line price from the saved account's assigned price group.
+      // Never accept a price sent by the browser as the order's source of truth.
+      const pricingGroup = customer?.role === 'Seller' && customer?.sellerPricing === 'B' ? 'B' : 'A';
+      const productIds = [...new Set(items.map((item: any) => item.productId || item.id))] as string[];
+      const orderProducts = await prisma.product.findMany({ where: { id: { in: productIds } } });
+      const orderProductMap = new Map(orderProducts.map((product) => [product.id, product]));
+      const pricedItems = items.map((item: any) => {
+        const product = orderProductMap.get(item.productId || item.id);
+        if (!product) throw new Error(`PRODUCT_NOT_FOUND:${item.name || item.id}`);
+        const variant = item.variant || 'Single';
+        const price = variant === 'Box'
+          ? (pricingGroup === 'B' ? product.sellerBBoxPrice : product.sellerABoxPrice)
+          : variant === 'Bundle'
+            ? (pricingGroup === 'B' ? product.sellerBBundlePrice : product.sellerABundlePrice)
+            : (pricingGroup === 'B' ? product.sellerBPrice : product.sellerAPrice);
+        const fallbackPrice = variant === 'Box'
+          ? product.sellerABoxPrice
+          : variant === 'Bundle'
+            ? product.sellerABundlePrice
+            : product.sellerAPrice;
+        const quantity = Number(item.quantity);
+        if (!Number.isInteger(quantity) || quantity < 1 || (price ?? fallbackPrice) == null) {
+          throw new Error(`INVALID_ORDER_ITEM:${item.name || item.id}`);
+        }
+        const unitPrice = price ?? fallbackPrice!;
+        const originalPrice = pricingGroup === 'B' && fallbackPrice != null && fallbackPrice > unitPrice ? fallbackPrice : undefined;
+        return { ...item, variant, quantity, price: unitPrice, originalPrice, itemsPerBox: product.itemsPerBox, bundleQuantity: product.bundleQuantity };
+      });
+      const authoritativeTotal = pricedItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+      const authoritativeOriginalTotal = pricedItems.reduce((sum: number, item: any) => sum + (item.originalPrice ?? item.price) * item.quantity, 0);
+      const authoritativeDiscount = authoritativeOriginalTotal - authoritativeTotal;
+
       // 2. Wrap stock deduction and order creation in an interactive transaction
       const order = await prisma.$transaction(async (tx) => {
         // 2a. Deduct stock atomically for each item
-        for (const item of items) {
-          const qty = parseInt(item.quantity);
-          const deductQty = item.variant === 'Box' && item.itemsPerBox ? qty * parseInt(item.itemsPerBox) : qty;
+        for (const item of pricedItems) {
+          const qty = item.quantity;
+          const packSize = item.variant === 'Box' ? item.itemsPerBox : item.variant === 'Bundle' ? item.bundleQuantity : 1;
+          const deductQty = qty * (packSize || 1);
           const updateResult = await tx.product.updateMany({
             where: {
               id: item.productId || item.id,
@@ -101,7 +134,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return await tx.order.create({
           data: {
             customerId: customer.id,
-            totalAmount: parseFloat(totalAmount),
+              totalAmount: authoritativeTotal,
             status: 'Pending',
             paymentMethod: customerInfo.paymentMethod,
             deliveryMode: customerInfo.deliveryMode,
@@ -109,7 +142,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             notes: customerInfo.notes,
             paymentReceiptUrl: customerInfo.paymentMethod === 'DuitNow & Bank Transfer' ? customerInfo.paymentReceiptUrl : null,
             items: {
-              create: items.map((item: any) => ({
+              create: pricedItems.map((item: any) => ({
                 productId: item.productId || item.id,
                 name: item.name,
                 price: parseFloat(item.price),
@@ -124,28 +157,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       });
 
-      // Enrich items with sellerPrice/boxSellerPrice for accurate email discount labeling
-      const productIds = [...new Set(items.map((i: any) => i.productId || i.id))];
+      // Preserve legacy receipt labels while prices are migrated to Seller A/B.
       const products = await prisma.product.findMany({
-        where: { id: { in: productIds as string[] } },
-        select: { id: true, sellerPrice: true, boxSellerPrice: true, itemsPerBox: true },
+        where: { id: { in: productIds } },
+        select: { id: true, sellerAPrice: true, sellerABoxPrice: true, itemsPerBox: true },
       });
       const productMap: Record<string, any> = {};
       products.forEach((p) => { productMap[p.id] = p; });
-      const enrichedItems = items.map((item: any) => {
+      const enrichedItems = pricedItems.map((item: any) => {
         const pd = productMap[item.productId || item.id];
-        return { ...item, sellerPrice: pd?.sellerPrice ?? null, boxSellerPrice: pd?.boxSellerPrice ?? null, itemsPerBox: pd?.itemsPerBox ?? null };
+        return { ...item, sellerPrice: pd?.sellerAPrice ?? null, boxSellerPrice: pd?.sellerABoxPrice ?? null, itemsPerBox: pd?.itemsPerBox ?? null };
       });
 
       sendOrderReceiptEmail(
         order, 
         { ...customerInfo, role: customer.role }, 
         enrichedItems, 
-        totalAmount,
-        originalAmount,
-        totalDiscount,
-        sellerLevelName,
-        discountPercent,
+        authoritativeTotal,
+        authoritativeOriginalTotal,
+        authoritativeDiscount,
+        '',
+        0,
         isFreeShipping
       ).catch(err => console.error('Failed to send admin email:', err));
 
@@ -155,11 +187,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           order, 
           { ...customerInfo, email, role: customer.role }, 
           enrichedItems, 
-          totalAmount,
-          originalAmount,
-          totalDiscount,
-          sellerLevelName,
-          discountPercent,
+          authoritativeTotal,
+          authoritativeOriginalTotal,
+          authoritativeDiscount,
+          '',
+          0,
           isFreeShipping
         ).catch(err => console.error('Failed to send customer email:', err));
       }
