@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useCart } from '../cart/CartProvider';
-import { ShoppingCart, ChevronDown, Menu, X, User, ChevronRight, Search, Globe } from 'lucide-react';
+import { ShoppingCart, ChevronDown, Menu, X, User, ChevronRight, Search, Globe, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { cn } from '../../utils/cn';
@@ -216,7 +216,29 @@ export function Navbar() {
           "bg-white text-zinc-900 border-b border-zinc-200 shadow-sm"
         )}
       >
-      <div className="mx-auto w-full max-w-[1600px] px-6 md:px-10 lg:px-16">
+      <div className="mx-auto w-full max-w-[1600px] px-0 md:px-10 lg:px-16">
+        <div className="relative flex h-16 items-center justify-between px-3 md:hidden">
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="flex h-11 w-11 items-center justify-center rounded-full text-zinc-700 transition-colors hover:bg-zinc-100 active:scale-95"
+            aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? <X size={21} strokeWidth={1.9} /> : <Menu size={21} strokeWidth={1.9} />}
+          </button>
+          <Link href="/" className="absolute left-1/2 flex max-w-[48%] -translate-x-1/2 items-center justify-center" aria-label={`${businessName} home`}>
+            {isLoading ? <div className="h-8 w-28" /> : settings?.logoUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={settings.logoUrl} alt={businessName} className="max-h-9 max-w-full object-contain" />
+            ) : <span className="truncate text-lg font-semibold tracking-tight text-zinc-900" style={{ fontFamily }}>{businessName}</span>}
+          </Link>
+          <div className="ml-auto flex items-center gap-0.5">
+            <button onClick={() => setSearchOpen(true)} className="flex h-11 w-11 items-center justify-center rounded-xl text-zinc-700 transition-all hover:bg-zinc-100 active:scale-95" aria-label="Search">
+              <Search size={22} strokeWidth={1.9} />
+            </button>
+          </div>
+        </div>
+        <div className="hidden md:block">
         <div className="flex h-16 items-center justify-between gap-2 sm:gap-4">
 
           {/* ---- Left Side: Brand + Desktop Nav ---- */}
@@ -535,67 +557,44 @@ export function Navbar() {
               )}
             </div>
 
-            {/* Mobile hamburger */}
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className={cn(
-                "ml-0.5 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full transition-all duration-300 md:hidden",
-                isTransparent ? "text-white/82 hover:bg-white/10 hover:text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-              )}
-            >
-              {mobileOpen ? <X strokeWidth={1.5} className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu strokeWidth={1.5} className="w-5 h-5 sm:w-6 sm:h-6" />}
-            </button>
           </div>
+        </div>
         </div>
 
         {/* ---- Mobile Menu Drawer (Xiaomi Style) ---- */}
         <AnimatePresence>
           {mobileOpen && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.85 }}
+              initial={{ opacity: 0, x: '-100%' }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: '-100%' }}
               transition={{ type: 'tween', ease: [0.25, 1, 0.5, 1], duration: 0.35 }}
-              style={{ transformOrigin: 'calc(100% - 28px) 32px' }}
-              className="fixed inset-0 z-[200] flex flex-col bg-white md:hidden"
+              className="fixed left-0 right-0 top-0 z-[200] flex flex-col bg-white md:hidden"
+              style={{ bottom: `calc(${user ? '66px' : '122px'} + env(safe-area-inset-bottom))` }}
             >
               {/* Top Header (Matches exactly with Mobile Navbar Header Size) */}
               <div className="flex h-16 shrink-0 items-center justify-between px-3 sm:px-5 border-b border-zinc-100">
                 {isLoading ? (
-                  <div className="w-[120px] h-[28px] sm:h-[32px]" />
+                    <div className="h-[42px] w-[160px]" />
                 ) : settings?.logoUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img 
                     src={settings.logoUrl} 
                     alt={businessName} 
-                    className="max-h-[28px] sm:max-h-[32px] max-w-[120px] object-contain"
+                    className="max-h-[42px] max-w-[180px] object-contain"
                   />
                 ) : (
                   <span
-                    className="block whitespace-nowrap text-[19px] sm:text-[22px] font-black italic leading-none tracking-wider text-zinc-900 py-1 pr-1"
+                    className="block whitespace-nowrap text-[24px] font-black italic leading-none tracking-wider text-zinc-900 py-1 pr-1"
                     style={{ fontFamily }}
                   >
                     {businessName}
                   </span>
                 )}
                 
-                <div className="flex shrink-0 items-center gap-1 sm:gap-3">
-                  {user ? (
-                    <Link 
-                      href="/profile" 
-                      onClick={() => setMobileOpen(false)} 
-                      className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-all"
-                      title={user.name}
-                    >
-                      <User className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
-                    </Link>
-                  ) : (
-                    <Link href="/login" onClick={() => setMobileOpen(false)} className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-all">
-                      <User className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
-                    </Link>
-                  )}
-                  <button onClick={() => setMobileOpen(false)} className="ml-0.5 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-all">
-                    <X className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
+                <div className="flex shrink-0 items-center">
+                  <button onClick={() => setMobileOpen(false)} aria-label="Close navigation menu" className="flex h-12 w-12 items-center justify-center rounded-full text-zinc-700 transition-colors hover:bg-zinc-100">
+                    <X className="h-8 w-8" strokeWidth={1.8} />
                   </button>
                 </div>
               </div>
@@ -689,36 +688,6 @@ export function Navbar() {
 
                 <div className="my-2 h-px w-full bg-zinc-100" />
 
-                {/* My Account */}
-                <button
-                  onClick={() => {
-                    setMobileOpen(false);
-                    router.push(user ? '/profile' : '/login');
-                  }}
-                  className="py-5 text-[18px] font-semibold text-zinc-900 transition-colors flex items-center justify-between w-full text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <User size={20} />
-                    {t.nav?.profile?.account || (locale === 'zh' ? '账号概览' : 'Account Overview')}
-                  </div>
-                  <ChevronRight size={20} className="opacity-50" />
-                </button>
-
-                {user && (
-                  <button
-                    onClick={() => {
-                      setMobileOpen(false);
-                      setIsLogoutModalOpen(true);
-                    }}
-                    className="py-5 text-[18px] font-semibold text-red-600 transition-colors flex items-center justify-between w-full text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                      {logoutTranslations.title[locale as 'en'|'zh'|'ms'] || 'Log Out'}
-                    </div>
-                  </button>
-                )}
-
                 {/* Language Switcher */}
                 <div className="flex flex-col">
                   <button
@@ -754,6 +723,18 @@ export function Navbar() {
                     )}
                   </AnimatePresence>
                 </div>
+
+                <button
+                  onClick={() => {
+                    setMobileOpen(false);
+                    if (user) setIsLogoutModalOpen(true);
+                    else router.push('/login');
+                  }}
+                  className="flex w-full items-center gap-3 py-5 text-left text-[18px] font-semibold text-red-600 transition-colors"
+                >
+                  <LogOut size={20} />
+                  {logoutTranslations.title[locale as 'en'|'zh'|'ms'] || 'Log Out'}
+                </button>
               </div>
             </motion.div>
           )}

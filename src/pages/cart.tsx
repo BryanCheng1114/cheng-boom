@@ -61,6 +61,13 @@ export default function Cart() {
   const sellerLevelName = typeof window !== 'undefined' ? 
     JSON.parse(localStorage.getItem('user') || '{}').sellerLevel?.name : '';
   const selectedItems = items.filter(i => selectedItemIds.includes(i.cartItemId));
+  const getLocalizedCartItemName = (item: any) => {
+    const product = productsMap[item.id];
+    if (locale === 'zh') {
+      return product?.nameZh || t.products?.[item.id]?.name || item.name;
+    }
+    return product?.name || t.products?.[item.id]?.name || item.name;
+  };
   
   const selectedTotalOriginalPrice = selectedItems.reduce((sum, item) => sum + (item.originalPrice || item.price) * item.quantity, 0);
   const selectedBaseTotalPrice = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -192,7 +199,7 @@ export default function Cart() {
 
   if (items.length === 0 && checkoutStep === 1) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center -mt-16">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center -mt-16 pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-0">
         <div className="max-w-md mx-auto px-4 text-center flex flex-col justify-center items-center">
           <div className="mb-6 sm:mb-8 w-24 h-24 sm:w-28 sm:h-28 bg-zinc-200 rounded-full flex items-center justify-center text-white shadow-inner">
             <ShoppingCart className="w-10 h-10 sm:w-12 sm:h-12" strokeWidth={2} />
@@ -247,7 +254,7 @@ export default function Cart() {
       <Head>
         <title>{`${t.cart.title} - Cheng-BOOM`}</title>
       </Head>
-      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 relative">
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-12 relative">
         <div className="flex flex-col items-center justify-center mb-6 sm:mb-10 w-full">
           <h1 className="text-[24px] sm:text-[40px] font-medium text-zinc-900 tracking-tight mb-5 sm:mb-12">
             {locale === 'zh' ? '您的购物车' : locale === 'ms' ? 'Troli Beli-belah Anda' : 'Your Shopping Cart'}
@@ -329,7 +336,7 @@ export default function Cart() {
                   <button
                     type="button"
                     onClick={() => toggleItemSelection(item.cartItemId)}
-                    aria-label={`${selectedItemIds.includes(item.cartItemId) ? 'Deselect' : 'Select'} ${item.name}`}
+                    aria-label={`${selectedItemIds.includes(item.cartItemId) ? (locale === 'zh' ? '取消选择' : 'Deselect') : (locale === 'zh' ? '选择' : 'Select')} ${getLocalizedCartItemName(item)}`}
                     aria-pressed={selectedItemIds.includes(item.cartItemId)}
                     className="w-11 h-11 -ml-2 flex items-center justify-center rounded-full text-zinc-400 hover:text-zinc-900 active:bg-zinc-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
                   >
@@ -355,7 +362,7 @@ export default function Cart() {
 
                 {/* Item Image Container */}
                 <Link href={`/shop/${item.id}?from=cart`} className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl bg-zinc-100 overflow-hidden shrink-0 flex items-center justify-center p-2 hover:opacity-90 transition-opacity">
-                  <img src={item.image || '/transparent-Background.png'} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
+                  <img src={item.image || '/transparent-Background.png'} alt={getLocalizedCartItemName(item)} className="w-full h-full object-contain mix-blend-multiply" />
                 </Link>
 
                 {/* Item Details */}
@@ -364,7 +371,7 @@ export default function Cart() {
                   <div className="flex justify-between items-start gap-2">
                     <Link href={`/shop/${item.id}?from=cart`} className="hover:opacity-80 transition-opacity">
                       <h3 className="text-[13px] sm:text-[15px] font-bold text-zinc-900 line-clamp-2 leading-tight">
-                        {t.products?.[item.id]?.name || item.name}
+                        {getLocalizedCartItemName(item)}
                       </h3>
                     </Link>
                     <button 

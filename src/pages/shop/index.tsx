@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { ProductCard } from '../../components/ui/ProductCard';
 import { useTranslation } from '../../hooks/useTranslation';
-import { Loader2, ChevronLeft, ChevronRight, X, ChevronDown } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, X, ChevronDown, LayoutGrid, List } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Shop() {
@@ -26,6 +26,7 @@ export default function Shop() {
   const [categories, setCategories]         = useState<any[]>([]);
   const [sortBy, setSortBy]                 = useState<string>('newest');
   const [visibleProductCount, setVisibleProductCount] = useState(30);
+  const [mobileView, setMobileView] = useState<'list' | 'grid'>('grid');
   const productsPerLoad = 30;
 
   // Read search query from URL (?q=)
@@ -370,7 +371,7 @@ export default function Shop() {
       </div>
 
       {/* ── Product Grid ──────────────────────────────────────────────────── */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-10">
 
         {/* Top Controls Row */}
         {filteredProducts.length > 0 && !isLoading && (
@@ -396,6 +397,15 @@ export default function Shop() {
                 </select>
                 <ChevronDown size={14} strokeWidth={2.5} className="absolute right-2.5 sm:right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500" />
               </div>
+              <button
+                type="button"
+                onClick={() => setMobileView((view) => view === 'list' ? 'grid' : 'list')}
+                aria-label={mobileView === 'list' ? 'Switch to grid view' : 'Switch to list view'}
+                title={mobileView === 'list' ? 'Switch to grid view' : 'Switch to list view'}
+                className="ml-2 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-700 shadow-sm transition-colors hover:bg-zinc-100 md:hidden"
+              >
+                {mobileView === 'list' ? <LayoutGrid size={18} /> : <List size={18} />}
+              </button>
             </div>
           </div>
         )}
@@ -414,7 +424,7 @@ export default function Shop() {
           </div>
         ) : (
           /* Flat grid */
-          <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-5 lg:grid-cols-5 lg:gap-6">
+          <div className={`grid ${mobileView === 'list' ? 'grid-cols-1' : 'grid-cols-2'} gap-3.5 md:grid-cols-3 md:gap-5 lg:grid-cols-5 lg:gap-6`}>
             <AnimatePresence>
               {visibleProducts.map((product, index) => {
                 const catObj = categories.find(c => c.name === product.category);
@@ -431,7 +441,7 @@ export default function Shop() {
                   }}
                   className="h-full w-full"
                 >
-                  <ProductCard {...product} categoryZh={catObj?.nameZh} categoryMs={catObj?.nameMs} />
+                  <ProductCard {...product} categoryZh={catObj?.nameZh} categoryMs={catObj?.nameMs} mobileView={mobileView} />
                 </motion.div>
                 );
               })}

@@ -5,6 +5,7 @@ import { WhatsAppButton } from '../ui/WhatsAppButton';
 import { Inter } from 'next/font/google';
 import { cn } from '../../utils/cn';
 import { useRouter } from 'next/router';
+import { MobileNavigation } from './MobileNavigation';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -15,11 +16,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className={cn("min-h-screen flex flex-col font-sans", inter.className)}>
       {!isAuthPage && <Navbar />}
-      <main className="flex-1 flex flex-col relative">
+      <main className="relative flex flex-1 flex-col">
         {children}
       </main>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <WhatsAppButton />}
+      {!isAuthPage && <MobileNavigation />}
     </div>
   );
 }

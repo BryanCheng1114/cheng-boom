@@ -65,7 +65,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-zinc-50 text-zinc-500 mt-auto border-t border-zinc-200">
+    <footer className="hidden md:block bg-zinc-50 text-zinc-500 mt-auto border-t border-zinc-200">
       {/* Main footer grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 md:py-16 md:pb-16">
         

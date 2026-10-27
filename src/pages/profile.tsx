@@ -58,6 +58,7 @@ export default function ProfilePage() {
  const [user, setUser] = useState<any>(null);
  const [orders, setOrders] = useState<any[]>([]);
  const [isLoading, setIsLoading] = useState(true);
+ const [profileLoadError, setProfileLoadError] = useState('');
  const [activeTab, setActiveTab] = useState<string>('');
  const [isSaving, setIsSaving] = useState(false);
  const [selectedOrder, setSelectedOrder] = useState<any>(null);
@@ -219,17 +220,36 @@ export default function ProfilePage() {
  }, [router]);
 
  const fetchProfile = async () => {
+ try {
  const savedUser = localStorage.getItem('user');
  if (!savedUser) {
- router.push('/login');
+ router.replace('/login');
  return;
  }
 
  const { id } = JSON.parse(savedUser);
- try {
+ if (!id || typeof id !== 'string') {
+ localStorage.removeItem('user');
+ localStorage.removeItem('user_role');
+ window.dispatchEvent(new Event('user-updated'));
+ router.replace('/login');
+ return;
+ }
+
  const res = await fetch(`/api/customers/${id}`);
- const data = await res.json();
- if (res.ok) {
+ const data = await res.json().catch(() => null);
+ if (!res.ok) {
+ if (res.status === 404) {
+ localStorage.removeItem('user');
+ localStorage.removeItem('user_role');
+ window.dispatchEvent(new Event('user-updated'));
+ router.replace('/login');
+ return;
+ }
+ throw new Error(data?.error || 'Unable to load your account. Please try again.');
+ }
+
+ if (data) {
  setUser(data);
  setOrders(data.orders || []);
  setEditForm({
@@ -250,9 +270,12 @@ export default function ProfilePage() {
  sellerLevel: data.sellerLevel 
  }));
  window.dispatchEvent(new Event('user-updated'));
+ } else {
+ throw new Error('Unable to load your account. Please try again.');
  }
  } catch (err) {
  console.error('Failed to fetch profile:', err);
+ setProfileLoadError(err instanceof Error ? err.message : 'Unable to load your account. Please try again.');
  } finally {
  setIsLoading(false);
  }
@@ -382,10 +405,22 @@ export default function ProfilePage() {
  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
  const paginatedOrders = filteredOrders.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
- if (isLoading || !user) {
+ if (isLoading) {
  return (
  <div className="min-h-screen flex items-center justify-center bg-zinc-50">
  <Loader2 className="w-10 h-10 text-primary animate-spin" />
+ </div>
+ );
+ }
+
+ if (!user) {
+ return (
+ <div className="min-h-screen flex items-center justify-center bg-zinc-50 px-4">
+ <div className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-6 text-center shadow-sm">
+ <h1 className="text-lg font-bold text-zinc-900">Unable to load your profile</h1>
+ <p className="mt-2 text-sm text-zinc-500">{profileLoadError || 'Please sign in again to continue.'}</p>
+ <Link href="/login" className="mt-5 inline-flex rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white">Sign in</Link>
+ </div>
  </div>
  );
  }
@@ -396,7 +431,7 @@ export default function ProfilePage() {
  <title>{`${user.name}'s Profile - Cheng-BOOM`}</title>
  </Head>
 
- <div className="min-h-screen bg-zinc-50 relative overflow-hidden pb-20 text-left text-zinc-900">
+ <div className="min-h-screen bg-zinc-50 relative overflow-hidden pb-0 md:pb-20 text-left text-zinc-900">
 
 
  <div className="max-w-6xl mx-auto px-4 py-12 relative z-10">
@@ -1069,32 +1104,25 @@ export default function ProfilePage() {
  >
  {/* Mobile Dashboard Menu (< lg) */}
  {/* Mobile Dashboard Menu (< lg) */}
- <div className="flex flex-col lg:hidden w-[calc(100%+2rem)] -ml-4 -mt-[80px] bg-zinc-200 min-h-screen relative">
+  <div className="flex flex-col lg:hidden w-[calc(100%+2rem)] -ml-4 -mt-[80px] bg-gradient-to-b from-zinc-100 to-zinc-50 min-h-screen relative">
  {/* Light Header Area */}
- <div className="flex flex-col items-center pt-8 pb-10 px-6 relative">
- {/* Back button & Title */}
- <div className="w-full flex items-center justify-between mb-6">
- <button onClick={() => router.push('/')} className="w-10 h-10 bg-white shadow-sm rounded-full flex items-center justify-center text-zinc-600">
- <ChevronLeft size={20} />
- </button>
- <h1 className="text-zinc-900 text-lg font-bold"></h1>
- <div className="w-10 h-10"></div> {/* placeholder for balance */}
- </div>
- 
+  <div className="flex flex-col items-center pt-8 pb-10 px-6 relative">
  {/* Avatar */}
- <div className="w-[88px] h-[88px] bg-white rounded-full flex items-center justify-center text-4xl font-bold text-zinc-600 mb-3 border-[3px] border-zinc-200 ring-1 ring-black/5 shadow-md">
+  <div className="w-[88px] h-[88px] bg-white rounded-full flex items-center justify-center text-4xl font-bold text-zinc-700 mb-3 border-[3px] border-white ring-2 ring-zinc-200 shadow-lg">
  {user.name.charAt(0).toUpperCase()}
  </div>
  
  {/* Name & Email */}
- <h2 className="text-xl font-bold text-zinc-900 mb-1">{user.name}</h2>
- <p className="text-zinc-500 text-[13px]">{user.email || user.phone || '-'}</p>
+  <h2 className="text-xl font-bold tracking-tight text-zinc-900 mb-1">{user.name}</h2>
+  <p className="text-zinc-500 text-[13px]">{user.email || user.phone || '-'}</p>
+  <span className={`mt-3 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${user.role === 'Seller' ? 'border-amber-200 bg-amber-100 text-amber-800' : 'border-zinc-200 bg-white/80 text-zinc-600'}`}>{user.role || 'Member'}</span>
  </div>
  
  {/* White Bottom Area */}
- <div className="flex-1 bg-white rounded-t-[32px] px-5 pt-8 pb-20 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] flex flex-col">
+  <div className="flex-1 bg-white rounded-t-[32px] px-5 pt-7 pb-[calc(122px+env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] flex flex-col">
  
- {/* Tabs Group 1 */}
+  <h3 className="mb-2 px-2 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-400">{locale === 'zh' ? '账户与订单' : locale === 'ms' ? 'AKAUN & PESANAN' : 'Account & Orders'}</h3>
+  {/* Tabs Group 1 */}
  <div className="bg-zinc-50 rounded-[24px] p-2 mb-4 space-y-1">
  <button onClick={() => setActiveTab('view_profile')} className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-zinc-100/80 rounded-[16px] transition-colors">
  <div className="flex items-center gap-4">
@@ -1112,7 +1140,8 @@ export default function ProfilePage() {
  </button>
  </div>
 
- {/* Tabs Group 2 */}
+  <h3 className="mb-2 px-2 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-400">{locale === 'zh' ? '账户设置' : locale === 'ms' ? 'TETAPAN AKAUN' : 'Account Settings'}</h3>
+  {/* Tabs Group 2 */}
  <div className="bg-zinc-50 rounded-[24px] p-2 space-y-1 mb-4">
  <button onClick={() => setActiveTab('edit_profile')} className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-zinc-100/80 rounded-[16px] transition-colors">
  <div className="flex items-center gap-4">
@@ -1130,8 +1159,27 @@ export default function ProfilePage() {
  </button>
  </div>
 
+  {/* Helpful store pages */}
+  <div className="mb-4">
+  <h3 className="mb-2 px-2 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-400">{locale === 'zh' ? '了解更多' : locale === 'ms' ? 'MAKLUMAT LANJUT' : 'More from us'}</h3>
+  <div className="space-y-1 rounded-[24px] bg-zinc-50 p-2">
+  <Link href="/about" className="flex items-center justify-between rounded-[16px] p-4 transition-colors hover:bg-white">
+  <span className="flex items-center gap-4"><Info size={20} className="text-zinc-500" /><span className="text-[15px] font-semibold text-zinc-800">{locale === 'zh' ? '关于我们' : locale === 'ms' ? 'Tentang Kami' : 'About Us'}</span></span>
+  <ChevronRight size={18} className="text-zinc-300" />
+  </Link>
+  <Link href="/contact" className="flex items-center justify-between rounded-[16px] p-4 transition-colors hover:bg-white">
+  <span className="flex items-center gap-4"><Phone size={20} className="text-zinc-500" /><span className="text-[15px] font-semibold text-zinc-800">{locale === 'zh' ? '联系我们' : locale === 'ms' ? 'Hubungi Kami' : 'Contact Us'}</span></span>
+  <ChevronRight size={18} className="text-zinc-300" />
+  </Link>
+  <Link href="/safety" className="flex items-center justify-between rounded-[16px] p-4 transition-colors hover:bg-white">
+  <span className="flex items-center gap-4"><Shield size={20} className="text-zinc-500" /><span className="text-[15px] font-semibold text-zinc-800">{locale === 'zh' ? '安全指南' : locale === 'ms' ? 'Panduan Keselamatan' : 'Safety Guide'}</span></span>
+  <ChevronRight size={18} className="text-zinc-300" />
+  </Link>
+  </div>
+  </div>
+
  {/* Logout Button */}
- <div className="bg-red-50/50 rounded-[24px] p-2 mt-4">
+  <div className="bg-red-50/50 rounded-[24px] p-2 mt-1 border border-red-100/70">
  <button onClick={() => setIsLogoutModalOpen(true)} className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-red-50 rounded-[16px] transition-colors">
  <div className="flex items-center gap-4">
  <div className="text-red-400"><LogOut size={20} strokeWidth={2} /></div>

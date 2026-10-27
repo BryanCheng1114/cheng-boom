@@ -56,7 +56,7 @@ export default function Contact() {
         <title>{`${t.nav.contact || 'Contact Us'} - Cheng-BOOM`}</title>
       </Head>
 
-      <div className="bg-white min-h-screen">
+      <div className="bg-white min-h-screen pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-0">
 
         {/* ── HERO BANNER ─────────────────────────────────────────── */}
         <section
@@ -76,7 +76,7 @@ export default function Contact() {
           </div>
         </section>
 
-        <div className="max-w-[1200px] mx-auto px-6 sm:px-12 pt-8 pb-16 md:py-24">
+        <div className="max-w-[1200px] mx-auto px-6 sm:px-12 pt-8 pb-0 md:py-24">
 
           {/* Two Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-24">

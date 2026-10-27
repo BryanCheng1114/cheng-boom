@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useCart } from '../cart/CartProvider';
-import { Plus, Minus, ShoppingCart } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, Flame } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useFlyToCart } from './FlyToCartProvider';
 import { useBusiness } from '../../context/BusinessContext';
@@ -29,14 +29,16 @@ export interface ProductCardProps {
   bundleSellerPrice?: number | null;
   bundlePromotion?: number | null;
   createdAt?: string | Date;
+  mobileView?: 'list' | 'grid';
 }
 
-export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, sellerPrice, boxPrice, itemsPerBox, boxSellerPrice, boxPromotion, bundleQuantity, bundlePrice, bundleSellerPrice, bundlePromotion, images = [], stock = 0, createdAt }: ProductCardProps) {
+export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, sellerPrice, boxPrice, itemsPerBox, boxSellerPrice, boxPromotion, bundleQuantity, bundlePrice, bundleSellerPrice, bundlePromotion, images = [], stock = 0, createdAt, mobileView = 'grid' }: ProductCardProps) {
   const { items, addItem, updateQuantity } = useCart();
   const { flyToCart } = useFlyToCart();
   const { t, locale } = useTranslation();
   const { settings } = useBusiness();
   const imageRef = useRef<HTMLDivElement>(null);
+  const listImageRef = useRef<HTMLDivElement>(null);
 
   const cardT = {
     new: { en: 'New', zh: '新品', ms: 'Baru' },
@@ -44,6 +46,8 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   const ct = (key: keyof typeof cardT) => cardT[key][locale as 'en'|'zh'|'ms'] || cardT[key].en;
 
   const isNew = createdAt && (new Date().getTime() - new Date(createdAt).getTime()) / (1000 * 3600 * 24) < 30;
+  const isHotSale = promotion !== null && promotion !== undefined && promotion > 0 && promotion < price;
+  const newBadge = isNew ? ct('new') : '';
 
   // Translation helpers
   const translatedName: string = (((locale === 'zh' && nameZh) ? nameZh : (locale === 'ms' && nameMs) ? nameMs : null) || (t.products as any)?.[id]?.name || name) as string;
@@ -83,6 +87,8 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
       strikeThroughPrice = price;
     }
   }
+
+  const hasActiveDiscount = strikeThroughPrice !== undefined && strikeThroughPrice > activePrice;
 
   let activeBoxPrice = boxPrice;
 
@@ -129,7 +135,6 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   const hasBundlePricing = !!(bundlePrice && bundleQuantity && bundleQuantity > 1);
   
   const minPrice = Math.min(activePrice, hasBoxPricing ? activeBoxPrice! : activePrice, hasBundlePricing ? activeBundlePrice! : activePrice);
-  const maxPrice = Math.max(activePrice, hasBoxPricing ? activeBoxPrice! : activePrice, hasBundlePricing ? activeBundlePrice! : activePrice);
   
   const displayImage = images[0] || '';
 
@@ -137,8 +142,11 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
     e.preventDefault();
     if (quantity < stock) {
       addItem({ id, cartItemId: id, code, name: translatedName, price: activePrice, originalPrice: strikeThroughPrice, image: displayImage, stock });
-      if (imageRef.current && displayImage) {
-        flyToCart(displayImage, imageRef.current);
+      const imageTarget = window.matchMedia('(max-width: 767px)').matches && mobileView === 'list'
+        ? listImageRef.current
+        : imageRef.current;
+      if (imageTarget && displayImage) {
+        flyToCart(displayImage, imageTarget);
       }
     }
   };
@@ -151,19 +159,63 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   };
 
   return (
-    <article className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-100/90 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-1 hover:border-zinc-200 hover:shadow-[0_14px_32px_rgba(0,0,0,0.08)] ${isOutOfStock ? 'opacity-75' : ''}`}>
-      {isNew && !isOutOfStock && (
-        <span className="absolute left-2.5 top-2.5 z-30 rounded-md border border-amber-300 bg-amber-100 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-amber-900 shadow-sm sm:left-3 sm:top-3 sm:text-[10px]">
-          {ct('new')}
-        </span>
-      )}
-
+    <>
+    {mobileView === 'list' && (
+      <article className={`group flex min-h-[142px] overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm md:hidden ${isOutOfStock ? 'opacity-75' : ''}`}>
+        <Link href={`/shop/${id}`} className="relative block w-[38%] min-w-[112px] max-w-[150px] shrink-0 overflow-hidden bg-zinc-50">
+          <div className="relative h-full min-h-[142px] w-full overflow-hidden">
+            <div ref={listImageRef} className="absolute inset-0 bg-contain bg-center bg-no-repeat" style={{ backgroundImage: displayImage ? `url(${displayImage})` : undefined }} />
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <img src={settings?.watermarkUrl || '/transparent-Background.png'} className="h-[82%] w-[82%] select-none object-contain opacity-25 mix-blend-multiply" alt="" draggable={false} />
+            </div>
+            {isHotSale && <Flame aria-label="Hot sale" className="absolute left-2 top-2 z-30 h-5 w-5 fill-orange-500 text-orange-600 drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]" strokeWidth={2.5} />}
+          </div>
+        </Link>
+        <div className="flex min-w-0 flex-1 flex-col p-2.5">
+          <div className="line-clamp-3 min-h-[60px] text-[16px] font-semibold leading-[1.25] text-zinc-900">
+            {newBadge && <span className="mr-1.5 inline-block rounded bg-emerald-600 px-1.5 py-0.5 align-baseline text-[11px] font-bold leading-tight text-white">{newBadge}</span>}
+            <Link href={`/shop/${id}`} className="inline">{translatedName}</Link>
+          </div>
+          <div className="mt-auto flex items-end justify-between gap-1.5 pt-2">
+            <div className="min-w-0">
+              {hasActiveDiscount ? (
+                <>
+                  <p className="text-[10px] font-extrabold uppercase tracking-wide text-rose-600">{locale === 'zh' ? '折扣价' : locale === 'ms' ? 'Diskaun' : 'Discount'}</p>
+                  <p className="text-[11px] font-medium leading-tight text-zinc-400 line-through decoration-zinc-400">RM {strikeThroughPrice.toFixed(2)}</p>
+                  <p className="text-[19px] font-black leading-tight tracking-tight text-rose-600">RM {activePrice.toFixed(2)}</p>
+                </>
+              ) : (
+                <>
+                  {isSeller && sellerPrice !== null && sellerPrice !== undefined && sellerPrice > 0 && (
+                    <p className="text-[11px] font-semibold leading-tight text-zinc-500">{locale === 'zh' ? '卖家价' : locale === 'ms' ? 'Harga Penjual' : 'Seller Price'}</p>
+                  )}
+                  <p className="text-[15px] font-extrabold leading-tight text-rose-600">RM {activePrice.toFixed(2)}</p>
+                </>
+              )}
+            </div>
+            {quantity === 0 ? (
+              <button type="button" onClick={handleAdd} disabled={isOutOfStock} className="flex h-8 shrink-0 items-center justify-center rounded-md bg-zinc-900 px-2 text-[12px] font-bold whitespace-nowrap text-white transition-colors hover:bg-zinc-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50">
+                {locale === 'zh' ? '加入购物车' : locale === 'ms' ? 'Tambah ke Troli' : 'Add to Cart'}
+              </button>
+            ) : (
+              <div className="flex h-8 shrink-0 items-center gap-0.5 rounded-md border border-zinc-300 bg-zinc-50 px-0.5">
+                <button type="button" onClick={handleMinus} aria-label={`Remove one ${translatedName}`} className="flex h-7 w-7 items-center justify-center rounded text-zinc-700 hover:bg-zinc-200"><Minus size={14} strokeWidth={2.5} /></button>
+                <span className="min-w-[18px] text-center text-xs font-bold tabular-nums text-zinc-900">{quantity}</span>
+                <button type="button" onClick={handleAdd} disabled={quantity >= stock} aria-label={`Add one ${translatedName}`} className="flex h-7 w-7 items-center justify-center rounded bg-zinc-900 text-white hover:bg-zinc-700 disabled:opacity-40"><Plus size={14} strokeWidth={2.5} /></button>
+              </div>
+            )}
+          </div>
+        </div>
+      </article>
+    )}
+    <article className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-100/90 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-1 hover:border-zinc-200 hover:shadow-[0_14px_32px_rgba(0,0,0,0.08)] ${mobileView === 'list' ? 'hidden md:flex' : ''} ${isOutOfStock ? 'opacity-75' : ''}`}>
       <Link href={`/shop/${id}`} className="block min-w-0">
         <div ref={imageRef} className="group/img relative aspect-[1.28/1] w-full overflow-hidden bg-[#fafafc]">
           <div
             className="absolute inset-0 z-10 h-full w-full bg-contain bg-center bg-no-repeat transition-transform duration-500 ease-out group-hover/img:scale-105"
             style={{ backgroundImage: displayImage ? `url(${displayImage})` : undefined }}
           />
+          {isHotSale && <Flame aria-label="Hot sale" className="absolute left-2 top-2 z-30 h-5 w-5 fill-orange-500 text-orange-600 drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]" strokeWidth={2.5} />}
           <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
             <img
               src={settings?.watermarkUrl || '/transparent-Background.png'}
@@ -177,7 +229,8 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
           </span>
         </div>
         <div className="bg-white px-3 pb-1 pt-2.5 sm:px-3.5 sm:pt-3">
-          <h3 className="line-clamp-2 min-h-9 text-[12px] font-semibold leading-snug text-zinc-900 transition-colors group-hover:text-red-700 sm:min-h-11 sm:text-sm">
+          <h3 className="line-clamp-2 min-h-10 text-[14px] font-semibold leading-snug text-zinc-900 transition-colors group-hover:text-red-700 sm:min-h-12 sm:text-base">
+            {newBadge && <span className="mr-1 inline-block rounded bg-emerald-600 px-1.5 py-0.5 align-baseline text-[11px] font-bold leading-tight text-white">{newBadge}</span>}
             {translatedName}
           </h3>
         </div>
@@ -185,9 +238,22 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
 
       <div className="mt-auto flex items-center justify-between gap-1.5 bg-white px-3 pb-3 pt-1 sm:px-3.5 sm:pb-3.5">
         <div className="min-w-0">
-          <p className="truncate text-[12px] font-extrabold tracking-tight text-zinc-900 sm:text-sm">
-            {minPrice === maxPrice ? `RM ${minPrice.toFixed(2)}` : `RM ${minPrice.toFixed(2)} – ${maxPrice.toFixed(2)}`}
-          </p>
+          <div className="min-w-0">
+            {hasActiveDiscount ? (
+              <>
+                <p className="text-[10px] font-extrabold uppercase tracking-wide text-rose-600">{isSeller && sellerPrice !== null && sellerPrice !== undefined && sellerPrice > 0 && sellerPrice < price ? (locale === 'zh' ? '卖家价' : locale === 'ms' ? 'Harga Penjual' : 'Seller Price') : (locale === 'zh' ? '折扣价' : locale === 'ms' ? 'Diskaun' : 'Discount')}</p>
+                <p className="truncate text-[10px] font-medium leading-tight text-zinc-400 line-through">RM {strikeThroughPrice.toFixed(2)}</p>
+                <p className="truncate text-[17px] font-black leading-tight tracking-tight text-rose-600 sm:text-lg">RM {minPrice.toFixed(2)}</p>
+              </>
+            ) : (
+              <>
+                {isSeller && sellerPrice !== null && sellerPrice !== undefined && sellerPrice > 0 && (
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-zinc-500">{locale === 'zh' ? '卖家价' : locale === 'ms' ? 'Harga Penjual' : 'Seller Price'}</p>
+                )}
+                <p className="truncate text-[15px] font-extrabold tracking-tight text-zinc-900 sm:text-base">RM {minPrice.toFixed(2)}</p>
+              </>
+            )}
+          </div>
         </div>
 
         {quantity === 0 ? (
@@ -195,19 +261,19 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
             type="button"
             onClick={handleAdd}
             disabled={isOutOfStock}
-            className="inline-flex h-8 min-w-14 shrink-0 items-center justify-center rounded-full bg-amber-400 px-4 text-zinc-900 shadow-sm transition-all hover:bg-amber-300 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:min-w-16"
+            className="inline-flex h-8 min-w-14 shrink-0 items-center justify-center rounded-full bg-zinc-900 px-4 text-white shadow-sm transition-all hover:bg-zinc-700 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:min-w-16"
             aria-label={`${locale === 'zh' ? '添加' : locale === 'ms' ? 'Tambah' : 'Add'} ${translatedName} to cart`}
             title={locale === 'zh' ? '加入购物车' : locale === 'ms' ? 'Tambah ke troli' : 'Add to cart'}
           >
             <ShoppingCart size={16} strokeWidth={2.2} className="sm:h-[17px] sm:w-[17px]" />
           </button>
         ) : (
-          <div className="flex h-9 shrink-0 items-center gap-1 rounded-full border border-amber-200 bg-amber-50 p-1 sm:h-10 sm:gap-1.5" aria-label={`${quantity} in cart`}>
+          <div className="flex h-9 shrink-0 items-center gap-1 rounded-full border border-zinc-300 bg-zinc-50 p-1 sm:h-10 sm:gap-1.5" aria-label={`${quantity} in cart`}>
             <button
               type="button"
               onClick={handleMinus}
               aria-label={`Remove one ${translatedName}`}
-              className="flex h-7 w-7 items-center justify-center rounded-full text-zinc-700 transition-colors hover:bg-amber-200 active:scale-90 sm:h-8 sm:w-8"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-zinc-700 transition-colors hover:bg-zinc-200 active:scale-90 sm:h-8 sm:w-8"
             >
               <Minus size={13} strokeWidth={2.5} />
             </button>
@@ -217,7 +283,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
               onClick={handleAdd}
               disabled={quantity >= stock}
               aria-label={`Add one ${translatedName}`}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 text-zinc-900 transition-colors hover:bg-amber-300 active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 sm:h-8 sm:w-8"
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900 text-white transition-colors hover:bg-zinc-700 active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 sm:h-8 sm:w-8"
             >
               <Plus size={13} strokeWidth={2.5} />
             </button>
@@ -225,5 +291,6 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
         )}
       </div>
     </article>
+    </>
   );
 }

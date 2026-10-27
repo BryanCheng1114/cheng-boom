@@ -69,7 +69,7 @@ export default function Safety() {
         <meta name="description" content="Essential fireworks safety rules and guidelines from Cheng-BOOM Malaysia." />
       </Head>
 
-      <div className="bg-white min-h-screen">
+      <div className="bg-white min-h-screen pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-0">
 
         {/* ── HERO BANNER ─────────────────────────────────────────── */}
         <section

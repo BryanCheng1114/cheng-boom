@@ -430,7 +430,7 @@ export default function Home() {
           ? storeAddress
           : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(storeAddress)}`;
         const embedQuery = isCustomLink ? 'Bintulu, Sarawak, Malaysia' : storeAddress;
-        const embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(embedQuery)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+        const embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(embedQuery)}&t=&z=15&ie=UTF8&iwloc=near&output=embed`;
 
         return (
           <section id="location" className="relative overflow-hidden border-t border-zinc-200 bg-white p-0">
@@ -509,7 +509,7 @@ export default function Home() {
                         href={googleMapsSearchUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-700 lg:hidden"
+                        className="group hidden w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-700 md:flex lg:hidden"
                       >
                         <Navigation size={17} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                         <span>{locale === 'zh' ? '在 Google Maps 开启导航' : locale === 'ms' ? 'Buka dalam Google Maps' : 'Open in Google Maps'}</span>
