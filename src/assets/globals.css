@@ -81,6 +81,20 @@
     overflow-x: clip;
   }
 
+  html:has(.auth-page),
+  body:has(.auth-page) {
+    background-color: #fff;
+    overscroll-behavior: none;
+  }
+
+  @media (max-width: 639px) {
+    html:has(.auth-register-page),
+    body:has(.auth-register-page) {
+      height: 100%;
+      overflow: hidden;
+    }
+  }
+
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }

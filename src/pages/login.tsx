@@ -283,12 +283,12 @@ function AuthContent() {
         <title>{isRegistering ? `Sign Up - ${settings?.businessName || 'Cheng-BOOM'}` : `Sign In - ${settings?.businessName || 'Cheng-BOOM'}`}</title>
       </Head>
 
-      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-white px-6 py-20 text-zinc-900 sm:px-4 md:bg-[#fffaf5]">
+      <div className={`auth-page ${isRegistering ? 'auth-register-page' : ''} relative flex items-center justify-center overflow-hidden bg-white text-zinc-900 md:bg-[#fffaf5] ${isRegistering ? 'h-[100dvh] min-h-0 px-4 py-2 sm:h-auto sm:min-h-screen sm:py-20' : 'min-h-screen px-6 py-20 sm:px-4'}`}>
         <div className="pointer-events-none absolute -left-40 top-10 hidden h-80 w-80 rounded-full bg-red-100/70 blur-3xl md:block" />
         <div className="pointer-events-none absolute -right-40 bottom-0 hidden h-96 w-96 rounded-full bg-amber-100/70 blur-3xl md:block" />
 
         {/* Absolute Back Button over everything (top left of viewport) */}
-        <div className="absolute top-6 left-6 md:top-10 md:left-10 z-50">
+        <div className={`absolute left-6 z-50 md:top-10 md:left-10 ${isRegistering ? 'top-3 sm:top-6' : 'top-6'}`}>
           <button
             type="button"
             aria-label={locale === 'zh' ? '返回' : locale === 'ms' ? 'Kembali' : 'Back'}
@@ -311,7 +311,7 @@ function AuthContent() {
           <motion.div
             layout
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="flex min-h-0 w-full flex-col justify-center rounded-none border-0 bg-transparent px-0 py-8 shadow-none backdrop-blur-none sm:min-h-[640px] sm:rounded-[2rem] sm:border sm:border-zinc-200/80 sm:bg-white/95 sm:px-10 sm:py-10 sm:shadow-[0_24px_80px_rgba(127,29,29,0.08)] sm:backdrop-blur-sm"
+            className={`flex min-h-0 w-full flex-col justify-center rounded-none border-0 bg-transparent px-0 shadow-none backdrop-blur-none sm:min-h-[640px] sm:rounded-[2rem] sm:border sm:border-zinc-200/80 sm:bg-white/95 sm:px-10 sm:py-10 sm:shadow-[0_24px_80px_rgba(127,29,29,0.08)] sm:backdrop-blur-sm ${isRegistering ? 'py-2 sm:py-10' : 'py-8'}`}
           >
             <div className="mx-auto w-full max-w-[440px]">
               <AnimatePresence mode="wait">
@@ -421,7 +421,7 @@ function AuthContent() {
                   /* --- REGISTER FORM --- */
                   <motion.div
                     key="register"
-                    className="flex min-h-[520px] flex-col justify-center"
+                    className="flex min-h-0 flex-col justify-center"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
@@ -429,12 +429,12 @@ function AuthContent() {
                   >
                     {regStep === 'form' ? (
                       <>
-                        <div className="mb-7 text-center">
-                          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-100 bg-amber-50 text-amber-700 shadow-sm">
-                            <UserRound size={24} strokeWidth={1.8} />
+                        <div className="mb-3 text-center sm:mb-7">
+                          <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl border border-amber-100 bg-amber-50 text-amber-700 shadow-sm sm:mb-4 sm:h-14 sm:w-14 sm:rounded-2xl">
+                            <UserRound size={20} strokeWidth={1.8} />
                           </div>
-                          <h1 className="mb-2 text-2xl font-semibold tracking-tight text-zinc-900">Let’s get you started</h1>
-                          <p className="text-sm leading-relaxed text-zinc-500">
+                          <h1 className="mb-1 text-xl font-semibold tracking-tight text-zinc-900 sm:mb-2 sm:text-2xl">Let’s get you started</h1>
+                          <p className="text-xs leading-snug text-zinc-500 sm:text-sm sm:leading-relaxed">
                             This email isn’t registered yet. Add your name and phone number to create your fireworks account for <span className="font-medium text-zinc-700">{registerData.email}</span>.
                           </p>
                         </div>
@@ -444,16 +444,16 @@ function AuthContent() {
                             {error}
                           </div>
                         )}
-                        <form onSubmit={handleRegisterSubmit} className="space-y-4" autoComplete="off">
+                        <form onSubmit={handleRegisterSubmit} className="space-y-2.5 sm:space-y-4" autoComplete="off">
 
-                          <div className="space-y-3">
+                          <div className="space-y-2 sm:space-y-3">
                             <div className="relative">
                               <UserRound size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
                               <input
                                 type="text"
                                 required
                                 aria-label={t.login?.fullNameLabel || 'Full Name'}
-                                className="w-full rounded-xl border border-zinc-200 bg-zinc-100 py-3 pl-11 pr-4 text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-amber-400 focus:bg-white"
+                                className="w-full rounded-xl border border-zinc-200 bg-zinc-100 py-2.5 pl-11 pr-4 text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-amber-400 focus:bg-white sm:py-3"
                                 placeholder={t.login?.fullNamePlaceholder || 'John Doe'}
                                 autoComplete="off"
                                 value={registerData.name}
@@ -468,7 +468,7 @@ function AuthContent() {
                                 aria-label={t.login?.phoneLabel || 'Phone Number'}
                                 pattern="^(\+?60|0)1[0-9]{8,9}$"
                                 title="Please enter a valid Malaysian phone number, e.g., 0123456789 or +60123456789"
-                                className="w-full rounded-xl border border-zinc-200 bg-zinc-100 py-3 pl-11 pr-4 text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-amber-400 focus:bg-white"
+                                className="w-full rounded-xl border border-zinc-200 bg-zinc-100 py-2.5 pl-11 pr-4 text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-amber-400 focus:bg-white sm:py-3"
                                 placeholder={t.login?.phonePlaceholder || '0123456789'}
                                 autoComplete="off"
                                 value={registerData.phone}
@@ -482,7 +482,7 @@ function AuthContent() {
                                 required
                                 aria-label="Password"
                                 autoComplete="new-password"
-                                className="w-full rounded-xl border border-zinc-200 bg-zinc-100 py-3 pl-11 pr-12 text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-amber-400 focus:bg-white"
+                                className="w-full rounded-xl border border-zinc-200 bg-zinc-100 py-2.5 pl-11 pr-12 text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-amber-400 focus:bg-white sm:py-3"
                                 placeholder="Create password"
                                 value={registerData.password}
                                 onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
@@ -496,13 +496,13 @@ function AuthContent() {
                           <button
                             type="submit"
                             disabled={isLoading}
-                            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 py-3.5 font-semibold text-white shadow-sm transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 sm:mt-6 sm:py-3.5"
                           >
                             {isLoading ? <Loader2 className="animate-spin" /> : 'Continue to email verification'}
                           </button>
                         </form>
 
-                        <button type="button" onClick={() => { setIsRegistering(false); setError(''); }} className="mt-5 w-full text-sm font-medium text-zinc-500 transition-colors hover:text-zinc-800">
+                        <button type="button" onClick={() => { setIsRegistering(false); setError(''); }} className="mt-2 w-full text-xs font-medium text-zinc-500 transition-colors hover:text-zinc-800 sm:mt-5 sm:text-sm">
                           Back to sign in
                         </button>
                       </>
