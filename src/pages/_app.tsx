@@ -19,7 +19,8 @@ function AppHead() {
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-title" content={settings?.businessName || 'Cheng-BOOM'} />
-      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+      <meta name="theme-color" content="#d52b20" />
     </Head>
   );
 }

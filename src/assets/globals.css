@@ -81,6 +81,18 @@
     overflow-x: clip;
   }
 
+  @media (max-width: 767px) {
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0 0 auto;
+      height: env(safe-area-inset-top, 0px);
+      background: #e23a2b;
+      pointer-events: none;
+      z-index: 9998;
+    }
+  }
+
   html:has(.auth-page),
   body:has(.auth-page) {
     background-color: #fff;

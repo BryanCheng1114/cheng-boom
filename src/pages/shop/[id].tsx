@@ -482,12 +482,11 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
               
               {/* Dynamic Price Header */}
               {isSeller ? (
-              <div className="relative flex flex-col justify-center overflow-hidden rounded-2xl border border-red-100 bg-red-50/70 px-4 py-3 shadow-sm md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-2 md:shadow-none">
-                <div className="absolute inset-y-0 left-0 w-1 bg-[#d52b20] md:hidden" />
-                <p className="mb-1 pl-1 text-[11px] font-bold uppercase tracking-[0.14em] text-red-700 md:pl-0 md:normal-case md:tracking-normal md:text-zinc-700">
+              <div className="relative flex flex-col justify-center py-2">
+                <p className="mb-1 text-sm font-medium text-zinc-700">
                   {locale === 'zh' ? '价格' : locale === 'ms' ? 'Harga' : 'Price'}
                 </p>
-                <div className="flex flex-wrap items-baseline gap-2 pl-1">
+                <div className="flex flex-wrap items-baseline gap-2">
                   {currentStrikePrice != null && <span className="text-sm text-zinc-400 line-through">RM {currentStrikePrice.toFixed(2)}</span>}
                   <span className="text-2xl font-black tracking-tight text-black">{currentDisplayPrice != null ? `RM ${currentDisplayPrice.toFixed(2)}` : '—'}</span>
                 </div>
@@ -511,7 +510,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                   )}
 
                   {/* Active Price Range or Specific */}
-                  <span className="text-2xl sm:text-3xl font-bold text-primary tracking-tight md:text-black">
+                  <span className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
                     {currentDisplayPrice ? (
                       `RM ${currentDisplayPrice.toFixed(2)}`
                     ) : (

@@ -599,15 +599,15 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
                     <input type="text" required className="w-full px-4 sm:px-6 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-[13px] sm:text-base" placeholder={t.cart.checkout.formNamePlaceholder} value={orderDetails.customerName} onChange={(e) => setOrderDetails({ ...orderDetails, customerName: e.target.value })} />
                   </div>
                   <div className="space-y-1.5 sm:space-y-2">
-                    <label className="relative flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary ml-1 group w-max">
+                    <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary ml-1">
                       <Phone size={12} className="text-primary" /> {t.cart.checkout.formPhone}
-                      <span className="cursor-help flex items-center justify-center w-4 h-4 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-500 hover:text-primary transition-colors">
+                      <button type="button" aria-label={locale === 'zh' ? '电话号码格式说明' : locale === 'ms' ? 'Panduan format nombor telefon' : 'Phone number format help'} className="group/phone-hint relative hidden h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 transition-colors hover:bg-red-50 hover:text-[#b51f26] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d52b20] sm:inline-flex">
                         <HelpCircle size={10} strokeWidth={3} />
-                      </span>
-                      <div className="absolute bottom-full mb-1.5 left-0 hidden group-hover:block w-[220px] p-2.5 bg-zinc-900 dark:bg-white text-zinc-900 dark:text-zinc-900 text-[10px] leading-relaxed font-bold rounded-lg shadow-2xl z-[110] normal-case tracking-normal">
-                        {(t.cart.checkout as any).phoneFormatHint || "Only Malaysia mobile numbers (+60 or 01) are allowed."}
-                        <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-zinc-900 dark:bg-white rotate-45 rounded-sm" />
-                      </div>
+                        <span role="tooltip" className="pointer-events-none absolute bottom-full left-1/2 z-[110] mb-2 hidden w-[220px] -translate-x-1/2 rounded-xl border border-white/10 bg-zinc-900 px-3 py-2.5 text-left text-[11px] font-semibold normal-case leading-relaxed tracking-normal text-white shadow-xl group-hover/phone-hint:block group-focus-visible/phone-hint:block">
+                          {(t.cart.checkout as any).phoneFormatHint || 'Only Malaysia mobile numbers (+60 or 01) are allowed.'}
+                          <span className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-zinc-900" />
+                        </span>
+                      </button>
                     </label>
                     <input type="tel" required minLength={10} maxLength={15} pattern="^01[0-9]{8,9}$" title={(t.cart.checkout as any).phoneFormatHint || "Only Malaysia mobile numbers (+60 or 01) are allowed."} className="w-full px-4 sm:px-6 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-[13px] sm:text-base" placeholder={t.cart.checkout.formPhonePlaceholder} value={orderDetails.customerPhone} onChange={(e) => setOrderDetails({ ...orderDetails, customerPhone: e.target.value.replace(/\D/g, '') })} />
                   </div>

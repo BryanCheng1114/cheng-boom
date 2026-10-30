@@ -2011,7 +2011,7 @@ export default function ProfilePage() {
  </div>
 
  {/* Card 4: Billing Summary */}
- <div className="bg-zinc-50 rounded-3xl p-5 sm:p-6 mt-0 space-y-3 shrink-0 border border-zinc-200/80">
+ <div className="mt-0 shrink-0 space-y-3 rounded-none border-0 bg-transparent p-0 md:rounded-3xl md:border md:border-zinc-200/80 md:bg-zinc-50 md:p-6">
  <div className="flex justify-between items-center">
  <span className="text-sm font-bold text-zinc-500">{t.profilePage?.subtotalLabel || 'Subtotal'}</span>
  <span className="text-sm font-bold text-zinc-900 ">RM {
@@ -2042,7 +2042,7 @@ export default function ProfilePage() {
 
  <div className="flex justify-between items-center pt-6 mt-4 border-t border-dashed border-zinc-200 ">
  <span className="text-base font-black text-zinc-900 ">{t.profilePage?.totalAmountPaid || 'Total Amount Paid'}</span>
- <span className="text-2xl sm:text-3xl font-black text-orange-500 tracking-tighter">
+ <span className="text-2xl sm:text-3xl font-black tracking-tighter text-zinc-900">
  RM {selectedOrder.totalAmount.toFixed(2)}
  </span>
  </div>
