@@ -11,6 +11,9 @@ import { getPwaIconUrl } from '../utils/pwa';
 
 function AppHead() {
   const { settings } = useBusiness();
+  const router = useRouter();
+  const redHeaderRoutes = ['/shop', '/shop/[id]', '/cart', '/profile', '/about', '/contact', '/safety'];
+  const hasRedHeader = router.isReady && redHeaderRoutes.includes(router.pathname);
   return (
     <Head>
       <link rel="icon" href={settings?.logoUrl || '/logo.png'} />
@@ -19,7 +22,8 @@ function AppHead() {
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-title" content={settings?.businessName || 'Cheng-BOOM'} />
-      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+      <meta name="theme-color" content={hasRedHeader ? '#d52b20' : '#ffffff'} />
     </Head>
   );
 }
