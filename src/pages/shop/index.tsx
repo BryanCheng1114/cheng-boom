@@ -6,6 +6,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { Loader2, ChevronLeft, ChevronRight, X, ChevronDown, LayoutGrid, List, ArrowUp, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBusiness } from '../../context/BusinessContext';
+import { AddToHomeScreenGuide } from '../../components/ui/AddToHomeScreenGuide';
 
 export default function Shop() {
   const router = useRouter();
@@ -401,6 +402,7 @@ export default function Shop() {
       </div>
 
       {/* ── Product Grid ──────────────────────────────────────────────────── */}
+      <AddToHomeScreenGuide className="mx-auto max-w-[1440px]" />
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-[calc(122px+env(safe-area-inset-bottom))] md:py-10">
 
         {/* Top Controls Row */}

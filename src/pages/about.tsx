@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import { useTranslation } from '../hooks/useTranslation';
 import { MobilePageTopBar } from '../components/layout/MobilePageTopBar';
+import { AddToHomeScreenGuide } from '../components/ui/AddToHomeScreenGuide';
 
 export default function About() {
   const { t, locale } = useTranslation();
@@ -14,6 +15,7 @@ export default function About() {
       <MobilePageTopBar title={t.nav.aboutUs || 'About Us'} locale={locale} />
       
       <div className="with-mobile-page-topbar min-h-screen bg-white pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-0">
+        <AddToHomeScreenGuide className="mx-auto max-w-7xl" />
         
         {/* ── HERO SECTION ───────────────────────────────────── */}
         <section className="relative w-full h-[50vh] md:h-[65vh] flex items-center bg-[#F8F9FA] overflow-hidden">

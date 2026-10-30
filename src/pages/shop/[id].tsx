@@ -8,6 +8,7 @@ import { ArrowLeft, ShoppingCart, Plus, Minus, CheckCircle, Maximize2, X, Loader
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { SharedCheckoutModal } from '../../components/checkout/SharedCheckoutModal';
 import { generateWhatsAppLink, OrderDetails } from '../../services/whatsappService';
+import { AddToHomeScreenGuide } from '../../components/ui/AddToHomeScreenGuide';
 
 const paymentMethodLabels: Record<string, Record<string, string>> = {
   'TNG e-wallet': { en: 'TNG eWallet', zh: 'TNG电子钱包', ms: 'e-Dompet TNG' },
@@ -353,6 +354,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
             {product.code?.toUpperCase() || product.id.toUpperCase()}
           </span>
         </div>
+        <AddToHomeScreenGuide className="mx-auto max-w-7xl" />
         
         {/* Top Header: Breadcrumb & Share */}
         <div className="w-full hidden lg:block">

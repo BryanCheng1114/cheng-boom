@@ -4,6 +4,7 @@ import { CheckCircle2, Mail, Phone } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import { MobilePageTopBar } from '../components/layout/MobilePageTopBar';
 import { useBusiness } from '../context/BusinessContext';
+import { AddToHomeScreenGuide } from '../components/ui/AddToHomeScreenGuide';
 
 export default function Contact() {
   const { t, locale } = useTranslation();
@@ -81,6 +82,7 @@ export default function Contact() {
         className="with-mobile-page-topbar bg-white min-h-screen pb-[calc(122px+env(safe-area-inset-bottom))] md:!pt-0 md:pb-0"
         style={{ paddingTop: 'calc(56px + env(safe-area-inset-top, 0px))' }}
       >
+        <AddToHomeScreenGuide className="mx-auto max-w-7xl" />
         <section
           className="relative hidden md:flex min-h-[252px] flex-col items-center justify-center border-b border-zinc-100 bg-gradient-to-br from-[#e23a2b] via-[#d52b20] to-[#b51f26] bg-cover bg-top bg-no-repeat pt-12 pb-8"
         >

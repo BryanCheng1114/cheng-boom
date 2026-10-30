@@ -1131,6 +1131,14 @@ export default function ProfilePage() {
   >
  {/* Light Header Area */}
   <div className="flex flex-col items-center pb-10 px-6 relative" style={{ paddingTop: 'calc(2rem + env(safe-area-inset-top, 0px))' }}>
+  <button
+   type="button"
+   onClick={() => setIsLogoutModalOpen(true)}
+   aria-label={locale === 'zh' ? '登出' : locale === 'ms' ? 'Log keluar' : 'Log out'}
+   className="absolute right-5 top-[calc(1rem+env(safe-area-inset-top,0px))] text-white transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+  >
+   <LogOut size={22} strokeWidth={2} />
+  </button>
  {/* Avatar */}
   <div className="w-[88px] h-[88px] bg-white/15 rounded-full flex items-center justify-center text-4xl font-bold text-white mb-3 border-[3px] border-white/80 ring-2 ring-white/30 shadow-lg">
  {user.name.charAt(0).toUpperCase()}
@@ -1147,7 +1155,7 @@ export default function ProfilePage() {
  </div>
  
  {/* White Bottom Area */}
-  <div className="flex-1 bg-white rounded-t-[32px] px-5 pt-7 pb-[calc(122px+env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] flex flex-col">
+  <div className="flex-1 min-h-0 overflow-y-auto bg-white rounded-t-[32px] px-5 pt-7 pb-[calc(150px+env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] flex flex-col">
  
   <div className="mb-2 flex items-center justify-between px-2">
    <h3 className="text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-400">{locale === 'zh' ? '账户' : 'Account'}</h3>

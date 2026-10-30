@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 import { useTranslation } from '../hooks/useTranslation';
 import { MobilePageTopBar } from '../components/layout/MobilePageTopBar';
+import { AddToHomeScreenGuide } from '../components/ui/AddToHomeScreenGuide';
 
 const getSafetyBlocks = (locale: string) => [
   {
@@ -72,6 +73,7 @@ export default function Safety() {
       <MobilePageTopBar title={t.nav.safetyGuide || (locale === 'zh' ? '安全指南' : locale === 'ms' ? 'Panduan Keselamatan' : 'Safety Guide')} locale={locale} />
 
       <div className="with-mobile-page-topbar bg-white min-h-screen pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-0">
+        <AddToHomeScreenGuide className="mx-auto max-w-7xl" />
 
         {/* ── HERO BANNER ─────────────────────────────────────────── */}
         <section
