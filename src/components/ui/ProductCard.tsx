@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useCart } from '../cart/CartProvider';
-import { Plus, Minus, ShoppingCart, Flame } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, Flame, Loader2 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useFlyToCart } from './FlyToCartProvider';
 import { useBusiness } from '../../context/BusinessContext';
@@ -44,7 +44,9 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   const { settings } = useBusiness();
   const imageRef = useRef<HTMLDivElement>(null);
   const listImageRef = useRef<HTMLDivElement>(null);
+  const openingDetailsRef = useRef(false);
   const [user, setUser] = useState<any>(null);
+  const [isOpeningDetails, setIsOpeningDetails] = useState(false);
 
   useEffect(() => {
     const syncUser = () => {
@@ -59,6 +61,15 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
       window.removeEventListener('user-updated', syncUser);
     };
   }, []);
+
+  useEffect(() => {
+    const resetOpeningState = () => {
+      openingDetailsRef.current = false;
+      setIsOpeningDetails(false);
+    };
+    router.events.on('routeChangeError', resetOpeningState);
+    return () => router.events.off('routeChangeError', resetOpeningState);
+  }, [router.events]);
 
   const cardT = {
     new: { en: 'New', zh: '新品', ms: 'Baru' },
@@ -161,7 +172,27 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
 
   const openDetailsFromCard = (event: React.MouseEvent<HTMLElement>) => {
     if ((event.target as HTMLElement).closest('a, button')) return;
-    void router.push(`/shop/${encodeURIComponent(id)}`);
+    if (openingDetailsRef.current) return;
+    openingDetailsRef.current = true;
+    setIsOpeningDetails(true);
+    void router.push(`/shop/${encodeURIComponent(id)}`).then((didNavigate) => {
+      if (!didNavigate) {
+        openingDetailsRef.current = false;
+        setIsOpeningDetails(false);
+      }
+    }).catch(() => {
+      openingDetailsRef.current = false;
+      setIsOpeningDetails(false);
+    });
+  };
+
+  const handleDetailsLinkClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (openingDetailsRef.current) {
+      event.preventDefault();
+      return;
+    }
+    openingDetailsRef.current = true;
+    setIsOpeningDetails(true);
   };
 
   const handleAdd = (e: React.MouseEvent) => {
@@ -187,8 +218,8 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   return (
     <>
     {mobileView === 'list' && (
-      <article onClick={openDetailsFromCard} className={`group flex min-h-[142px] cursor-pointer overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm md:hidden ${isOutOfStock ? 'opacity-75' : ''}`}>
-        <Link href={`/shop/${id}`} className="relative block w-[38%] min-w-[112px] max-w-[150px] shrink-0 overflow-hidden bg-zinc-50">
+      <article onClick={openDetailsFromCard} className={`group relative flex min-h-[142px] cursor-pointer overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm md:hidden ${isOutOfStock ? 'opacity-75' : ''}`}>
+        <Link href={`/shop/${id}`} onClick={handleDetailsLinkClick} className="relative block w-[38%] min-w-[112px] max-w-[150px] shrink-0 overflow-hidden bg-zinc-50">
           <div className="relative h-full min-h-[142px] w-full overflow-hidden">
             <div ref={listImageRef} className="absolute inset-0 bg-contain bg-center bg-no-repeat" style={{ backgroundImage: displayImage ? `url(${displayImage})` : undefined }} />
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -200,7 +231,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
         <div className="flex min-w-0 flex-1 flex-col p-2.5">
           <div className="line-clamp-3 min-h-[60px] text-[16px] font-semibold leading-[1.25] text-zinc-900">
             {newBadge && <span className="mr-1.5 inline-block rounded bg-emerald-600 px-1.5 py-0.5 align-baseline text-[11px] font-bold leading-tight text-white">{newBadge}</span>}
-            <Link href={`/shop/${id}`} className="inline">{translatedName}</Link>
+            <Link href={`/shop/${id}`} onClick={handleDetailsLinkClick} className="inline">{translatedName}</Link>
           </div>
           <div className="mt-auto flex items-end justify-between gap-1.5 pt-2">
             <div className="min-w-0">
@@ -232,10 +263,11 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
             )}
           </div>
         </div>
+        {isOpeningDetails && <div className="absolute inset-0 z-40 flex items-center justify-center gap-2 bg-white/85 text-sm font-semibold text-zinc-800 backdrop-blur-[2px]" role="status"><Loader2 size={18} className="animate-spin text-[#d52b20]" />{locale === 'zh' ? '正在打开商品…' : locale === 'ms' ? 'Membuka produk…' : 'Opening item…'}</div>}
       </article>
     )}
     <article onClick={openDetailsFromCard} className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-zinc-100/90 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-1 hover:border-zinc-200 hover:shadow-[0_14px_32px_rgba(0,0,0,0.08)] ${mobileView === 'list' ? 'hidden md:flex' : ''} ${isOutOfStock ? 'opacity-75' : ''}`}>
-      <Link href={`/shop/${id}`} className="block min-w-0">
+      <Link href={`/shop/${id}`} onClick={handleDetailsLinkClick} className="block min-w-0">
         <div ref={imageRef} className="group/img relative aspect-[1.28/1] w-full overflow-hidden bg-[#fafafc]">
           <div
             className="absolute inset-0 z-10 h-full w-full bg-contain bg-center bg-no-repeat transition-transform duration-500 ease-out group-hover/img:scale-105"
@@ -316,6 +348,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
           </div>
         )}
       </div>
+      {isOpeningDetails && <div className="absolute inset-0 z-40 flex items-center justify-center gap-2 rounded-2xl bg-white/85 text-sm font-semibold text-zinc-800 backdrop-blur-[2px]" role="status"><Loader2 size={18} className="animate-spin text-[#d52b20]" />{locale === 'zh' ? '正在打开商品…' : locale === 'ms' ? 'Membuka produk…' : 'Opening item…'}</div>}
     </article>
     </>
   );

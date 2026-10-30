@@ -1155,7 +1155,7 @@ export default function ProfilePage() {
  </div>
  
  {/* White Bottom Area */}
-  <div className="flex-1 min-h-0 overflow-y-auto bg-white rounded-t-[32px] px-5 pt-7 pb-[calc(150px+env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] flex flex-col">
+  <div className="flex-1 min-h-0 overflow-y-auto bg-white rounded-t-[32px] px-5 pt-7 pb-[calc(210px+env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] flex flex-col">
  
   <div className="mb-2 flex items-center justify-between px-2">
    <h3 className="text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-400">{locale === 'zh' ? '账户' : 'Account'}</h3>
@@ -1410,7 +1410,7 @@ export default function ProfilePage() {
   </div>
 
   {/* --- MOBILE VIEW (My Account) --- */}
-  <div className="block md:hidden pb-10">
+  <div className="block md:hidden pb-[calc(160px+env(safe-area-inset-bottom))]">
     <div className="flex flex-col">
       {/* Mobile Header */}
       <div className="flex items-center gap-4 mb-6 pt-4" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>

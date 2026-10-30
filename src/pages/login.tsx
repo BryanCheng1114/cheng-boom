@@ -7,7 +7,6 @@ import { useTranslation } from '../hooks/useTranslation';
 import { ArrowRight, CheckCircle2, ChevronDown, Eye, EyeOff, Globe2, Loader2, LockKeyhole, Mail } from 'lucide-react';
 import { useCart } from '../components/cart/CartProvider';
 import { useBusiness } from '../context/BusinessContext';
-import { AddToHomeScreenGuide } from '../components/ui/AddToHomeScreenGuide';
 
 function AuthContent() {
   const { clearCart } = useCart();
@@ -62,7 +61,6 @@ function AuthContent() {
             <div className="flex flex-col items-center text-center">
               <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-[28px]">{copy.welcome}</h2>
             </div>
-            <AddToHomeScreenGuide className="mx-0 my-3" />
 
             {error && <div role="alert" className="mt-6 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm text-red-700">{error}</div>}
             {success && <div role="status" className="mt-6 flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 p-3.5 text-sm text-green-700"><CheckCircle2 size={17} />{success}</div>}

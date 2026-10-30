@@ -11,7 +11,6 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { cn } from '../utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AddToHomeScreenGuide } from '../components/ui/AddToHomeScreenGuide';
 
 export default function Cart() {
   const { items, updateQuantity, updateVariant, removeItem, clearCart, totalPrice, totalOriginalPrice, totalItems, totalDiscount, discountPercent, isFreeShipping } = useCart();
@@ -219,7 +218,6 @@ export default function Cart() {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center pb-[calc(122px+env(safe-area-inset-bottom))] pt-[calc(56px+env(safe-area-inset-top,0px))] md:pb-0 md:pt-0">
         {cartTopBar}
-        <AddToHomeScreenGuide className="mx-auto max-w-[1400px]" />
         <div className="max-w-md mx-auto px-4 text-center flex flex-col justify-center items-center">
           <div className="mb-6 sm:mb-8 w-24 h-24 sm:w-28 sm:h-28 bg-zinc-200 rounded-full flex items-center justify-center text-white shadow-inner">
             <ShoppingCart className="w-10 h-10 sm:w-12 sm:h-12" strokeWidth={2} />
@@ -275,7 +273,6 @@ export default function Cart() {
         <title>{`${t.cart.title} - Cheng-BOOM`}</title>
       </Head>
       {cartTopBar}
-      <AddToHomeScreenGuide className="mx-auto max-w-[1400px]" />
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-12 relative">
         <div className="flex flex-col items-center justify-center mb-6 sm:mb-10 w-full">
           <h1 className="mb-5 text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl md:mb-6 md:text-3xl lg:text-4xl">
