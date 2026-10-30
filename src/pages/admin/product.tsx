@@ -470,14 +470,14 @@ const ProductPage = () => {
   const headerActions = (
     <div className="flex flex-wrap items-center gap-2">
       <Link href="/admin/product/upload" className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-800">
-        <Pencil size={14} />New Entry
+        <Pencil size={14} />{t('inventory_new_entry')}
       </Link>
       <Link href="/admin/product/bulk-upload" className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-800">
-        <Upload size={14} />Import Excel
+        <Upload size={14} />{t('inventory_import_excel')}
       </Link>
       <div className="relative">
-        <button onClick={() => setShowDownloadMenu((value) => !value)} className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-800" title="Export inventory">
-          <Download size={14} />Export<ChevronDown size={13} />
+        <button onClick={() => setShowDownloadMenu((value) => !value)} className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-800" title={t('inventory_export_title')}>
+          <Download size={14} />{t('inventory_export')}<ChevronDown size={13} />
         </button>
         <AnimatePresence>
           {showDownloadMenu && (
@@ -485,10 +485,10 @@ const ProductPage = () => {
               <div className="fixed inset-0 z-10" onClick={() => setShowDownloadMenu(false)} />
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} className="absolute right-0 top-full z-20 mt-2 w-44 border border-slate-200 bg-white shadow-xl">
                 <button onClick={downloadExcel} className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-sky-50">
-                  <Table size={15} className="text-sky-700" />Export Excel
+                  <Table size={15} className="text-sky-700" />{t('inventory_export_excel')}
                 </button>
                 <button onClick={downloadPDF} className="flex w-full items-center gap-3 border-t border-slate-100 px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-sky-50">
-                  <FileSpreadsheet size={15} className="text-sky-700" />Export PDF
+                  <FileSpreadsheet size={15} className="text-sky-700" />{t('inventory_export_pdf')}
                 </button>
               </motion.div>
             </>
@@ -496,7 +496,7 @@ const ProductPage = () => {
         </AnimatePresence>
       </div>
       <button onClick={() => setShowBulkGuideModal(true)} className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-800">
-        <HelpCircle size={14} />Tutorial
+        <HelpCircle size={14} />{t('inventory_tutorial')}
       </button>
       <AnimatePresence>
         {selectedIds.length > 0 && (
@@ -519,9 +519,9 @@ const ProductPage = () => {
         <header className="space-y-1">
           <div className="flex flex-wrap items-baseline gap-x-2">
             <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('inventory') || 'Inventory'}</h1>
-            <span className="text-xs font-normal text-slate-700">[ Access ]</span>
+            <span className="text-xs font-normal text-slate-700">[ {t('inventory_access')} ]</span>
           </div>
-          <p className="text-xs text-slate-600">Product Information /</p>
+          <p className="text-xs text-slate-600">{t('inventory_product_information_breadcrumb')} /</p>
         </header>
         <div className="flex flex-wrap items-center justify-between gap-3">{headerActions}</div>
         {/* KPI Grid */}
@@ -715,7 +715,7 @@ const ProductPage = () => {
                 <span className="text-3xl font-bold text-zinc-800 tracking-wide leading-none">
                   {products.length}
                 </span>
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{t('total') || 'Total'}</span>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{t('inventory_total_products')}</span>
               </div>
 
               {/* Legend */}
@@ -772,7 +772,7 @@ const ProductPage = () => {
                 <button
                   onClick={() => setShowQuickEditGuide(true)}
                   className="flex h-9 w-9 shrink-0 items-center justify-center border border-slate-300 bg-white text-slate-500 transition-colors hover:border-sky-600 hover:text-sky-700"
-                  title="Quick Action Guide"
+                            title={t('quick_action_guide')}
                 >
                   <HelpCircle size={18} />
                 </button>
@@ -847,9 +847,9 @@ const ProductPage = () => {
                     <div className="flex items-center justify-center gap-2">{t('stock')} <SortIndicator column="stock" /></div>
                   </th>
                   <th onClick={() => handleSort('price_active')} className="cursor-pointer px-4 py-3 text-[11px] font-medium uppercase tracking-wide text-slate-500 transition-colors group hover:text-sky-700">
-                    <div className="flex items-center gap-2">Seller A <SortIndicator column="price_active" /></div>
+                    <div className="flex items-center gap-2">{t('inventory_seller_a')} <SortIndicator column="price_active" /></div>
                   </th>
-                  <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wide text-slate-500">Seller B</th>
+                  <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wide text-slate-500">{t('inventory_seller_b')}</th>
                   <th 
                     onClick={() => handleSort('status')}
                     className="cursor-pointer px-4 py-3 text-[11px] font-medium uppercase tracking-wide text-slate-500 transition-colors group hover:text-sky-700"
@@ -1016,7 +1016,7 @@ const ProductPage = () => {
                           <button 
                             onClick={(e) => { e.stopPropagation(); setProductToDelete(p); }}
                             className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                            title="Delete Product"
+                            title={t('confirm_delete_product')}
                           >
                             <Trash2 size={16} />
                           </button>
@@ -1040,7 +1040,7 @@ const ProductPage = () => {
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(1)}
                 className="border border-slate-200 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-30"
-                title="First Page"
+                title={t('inventory_first_page')}
               >
                 <ChevronsLeft size={20} />
               </button>
@@ -1048,7 +1048,7 @@ const ProductPage = () => {
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 className="border border-slate-200 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-30"
-                title="Previous Page"
+                title={t('inventory_previous_page')}
               >
                 <ChevronLeft size={20} />
               </button>
@@ -1073,7 +1073,7 @@ const ProductPage = () => {
                 disabled={currentPage === totalPages || totalPages === 0}
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 className="border border-slate-200 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-30"
-                title="Next Page"
+                title={t('inventory_next_page')}
               >
                 <ChevronRight size={20} />
               </button>
@@ -1081,7 +1081,7 @@ const ProductPage = () => {
                 disabled={currentPage === totalPages || totalPages === 0}
                 onClick={() => setCurrentPage(totalPages)}
                 className="border border-slate-200 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-30"
-                title="Last Page"
+                title={t('inventory_last_page')}
               >
                 <ChevronsRight size={20} />
               </button>
@@ -1111,7 +1111,7 @@ const ProductPage = () => {
               </div>
               <h3 className="text-3xl font-black italic uppercase tracking-tight mb-4 text-white">{t('permanent_deletion') || 'Permanent Deletion'}</h3>
               <p className="text-zinc-400 font-medium mb-10 leading-relaxed">
-                You will forever delete <span className="text-white font-bold">{selectedIds.length} products</span> and won't be find back. All associated images will be permanently removed from storage.
+                {t('inventory_delete_multiple_desc').replace('{count}', String(selectedIds.length))}
               </p>
               
               <div className="flex gap-4">
@@ -1159,7 +1159,7 @@ const ProductPage = () => {
               </div>
               <h3 className="text-3xl font-black italic uppercase tracking-tight mb-4 text-white">{t('permanent_deletion') || 'Permanent Deletion'}</h3>
               <p className="text-zinc-400 font-medium mb-10 leading-relaxed">
-                You will forever delete <span className="text-white font-bold">{getLocalizedName(productToDelete)}</span>. It won't be recoverable.
+                {t('inventory_delete_single_desc').replace('{name}', getLocalizedName(productToDelete))}
               </p>
               
               <div className="flex gap-4">
@@ -1209,15 +1209,15 @@ const ProductPage = () => {
               <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-[28px] flex items-center justify-center mx-auto mb-8 border border-green-500/20">
                 <CheckCircle size={40} />
               </div>
-              <h3 className="text-3xl font-black italic uppercase tracking-tight mb-4  text-black">Success</h3>
+              <h3 className="text-3xl font-black italic uppercase tracking-tight mb-4  text-black">{t('inventory_success_heading')}</h3>
               <p className="text-zinc-500  font-medium mb-10 leading-relaxed">
-                You have successfully updated the info.
+                {t('inventory_update_success_desc')}
               </p>
               <button 
                 onClick={() => setShowUpdateSuccessModal(false)}
                 className="w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-yellow-500 text-zinc-950 hover:bg-yellow-400 shadow-xl shadow-yellow-500/20 transition-all"
               >
-                OK
+                {t('inventory_ok')}
               </button>
             </motion.div>
           </div>

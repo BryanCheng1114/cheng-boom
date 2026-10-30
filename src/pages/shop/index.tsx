@@ -14,7 +14,25 @@ export default function Shop() {
   const { settings } = useBusiness();
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOpeningItem, setIsOpeningItem] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    const handleRouteStart = (url: string) => {
+      const path = new URL(url, window.location.origin).pathname;
+      if (/\/shop\/[^/]+/.test(path)) setIsOpeningItem(true);
+    };
+    const clearRouteLoading = () => setIsOpeningItem(false);
+
+    router.events.on('routeChangeStart', handleRouteStart);
+    router.events.on('routeChangeComplete', clearRouteLoading);
+    router.events.on('routeChangeError', clearRouteLoading);
+    return () => {
+      router.events.off('routeChangeStart', handleRouteStart);
+      router.events.off('routeChangeComplete', clearRouteLoading);
+      router.events.off('routeChangeError', clearRouteLoading);
+    };
+  }, [router.events]);
 
   useEffect(() => {
     const updateBackToTop = () => {
@@ -525,6 +543,16 @@ export default function Shop() {
           </motion.button>
         )}
       </AnimatePresence>
+      {isOpeningItem && (
+        <div className="fixed inset-0 z-[300] flex flex-col items-center justify-center gap-4 bg-white md:hidden" role="status" aria-live="polite">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50">
+            <Loader2 size={34} className="animate-spin text-[#d52b20]" />
+          </div>
+          <p className="text-sm font-semibold text-zinc-800">
+            {locale === 'zh' ? '正在打开商品…' : locale === 'ms' ? 'Membuka produk…' : 'Opening item…'}
+          </p>
+        </div>
+      )}
       <style jsx global>{`
         .shop-hero-banner { background-image:linear-gradient(145deg,#e23a2b 0%,#d52b20 52%,#b51f26 100%) !important; }
         @media (min-width:768px) {

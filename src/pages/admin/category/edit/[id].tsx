@@ -18,7 +18,12 @@ const EditCategoryPage = () => {
   const [success, setSuccess] = useState(false);
   
   const [uploadedImage, setUploadedImage] = useState('');
+  const [imagePreview, setImagePreview] = useState('');
   const [selectedImageName, setSelectedImageName] = useState('');
+
+  useEffect(() => () => {
+    if (imagePreview.startsWith('blob:')) URL.revokeObjectURL(imagePreview);
+  }, [imagePreview]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -59,6 +64,7 @@ const EditCategoryPage = () => {
           const imageToSet = category.originalImage || (category.image !== '/example.png' ? category.image : '');
           if (imageToSet && imageToSet !== '/example.png') {
             setUploadedImage(imageToSet);
+            setImagePreview(imageToSet);
             setSelectedImageName(imageToSet.split('/').pop() || 'Current category image');
           }
         }
@@ -86,6 +92,7 @@ const EditCategoryPage = () => {
 
     setIsLoading(true);
     setErrorMsg('');
+    setImagePreview(URL.createObjectURL(file));
     setSelectedImageName(file.name);
 
     const data = new FormData();
@@ -99,6 +106,7 @@ const EditCategoryPage = () => {
       const result = await res.json();
       if (result.urls && result.urls.length > 0) {
         setUploadedImage(result.urls[0]);
+        setImagePreview(result.urls[0]);
         setSelectedImageName(file.name);
       } else {
         throw new Error(result.error || 'Upload failed');
@@ -106,6 +114,7 @@ const EditCategoryPage = () => {
     } catch (err: any) {
       console.error(err);
       setErrorMsg('Failed to upload category image. Please try again.');
+      setImagePreview(uploadedImage);
       setSelectedImageName(uploadedImage.split('/').pop() || '');
     } finally {
       setIsLoading(false);
@@ -220,9 +229,9 @@ const EditCategoryPage = () => {
         <header className="mb-6 space-y-1">
           <div className="flex flex-wrap items-baseline gap-x-2">
             <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('edit_category') || 'Edit Category'}</h1>
-            <span className="text-xs font-normal text-slate-700">[ Modification Screen ]</span>
+            <span className="text-xs font-normal text-slate-700">[ {t('modification_screen')} ]</span>
           </div>
-          <p className="text-xs text-slate-600">Category Information /</p>
+          <p className="text-xs text-slate-600">{t('category_info')} /</p>
         </header>
 
         {success ? (
@@ -237,20 +246,20 @@ const EditCategoryPage = () => {
             <div className="space-y-2">
               <h4 className="text-2xl font-bold tracking-tight text-zinc-900">{t('category_updated') || 'Category Updated!'}</h4>
               <p className="text-zinc-500 text-sm max-w-md mx-auto">
-                {formData.name} has been updated successfully.
+                {t('category_updated_desc').replace('{name}', formData.name)}
               </p>
             </div>
             <button
               onClick={() => router.push('/admin/category')}             
               className="px-10 py-4 bg-orange-500 text-white font-bold text-sm rounded-2xl hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20"
             >
-              {t('done_return') || 'Done & Return'}
+              {t('done_return_categories')}
             </button>
           </motion.div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6 relative">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <Link href="/admin/category" className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"><ArrowLeft size={16} /> Back to Category Screen</Link>
+              <Link href="/admin/category" className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"><ArrowLeft size={16} /> {t('back_to_category_screen')}</Link>
               <button type="button" onClick={() => setShowDeleteModal(true)} className="inline-flex items-center gap-2 border border-rose-300 bg-white px-3 py-2 text-xs font-medium text-rose-700 transition-colors hover:bg-rose-50"><Trash2 size={14} /> {t('delete_category_btn') || 'Delete Category'}</button>
             </div>
             {errorMsg && (
@@ -323,16 +332,16 @@ const EditCategoryPage = () => {
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[13px] font-medium text-slate-700">{locale === 'zh' ? '显示顺序（可选）' : locale === 'ms' ? 'Susunan Paparan (pilihan)' : 'Display Position (optional)'}</label>
+                          <label className="text-[13px] font-medium text-slate-700">{t('display_order_optional')}</label>
                           <input type="number" name="displayOrder" min={0} step={1} disabled={isLoading} value={formData.displayOrder} onChange={handleChange} placeholder="0" className="w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" />
                           <p className="text-[11px] text-slate-500">{locale === 'zh' ? '请输入 0 或更大的整数。数字越小越靠前；相同数字按名称排序。' : locale === 'ms' ? 'Masukkan nombor bulat 0 atau lebih. Nombor lebih kecil dipaparkan dahulu; nombor sama disusun mengikut nama.' : 'Use a whole number (0 or higher). Lower numbers appear first; ties are sorted by name.'}</p>
                         </div>
                       </div>
                       <div className="space-y-5">
                         <div className="space-y-2">
-                          <label htmlFor="category-status" className="block text-[13px] font-medium text-slate-700">Category Status <span className="text-rose-500">*</span></label>
+                          <label htmlFor="category-status" className="block text-[13px] font-medium text-slate-700">{t('category_status')} <span className="text-rose-500">*</span></label>
                           <select id="category-status" value={formData.status} required disabled={isLoading} onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))} className="w-full border border-slate-300 bg-white px-3 py-3 text-sm text-slate-700 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600">
-                            <option value="">Please select</option><option value="Live">Live</option><option value="Hold">On hold</option>
+                            <option value="">{t('please_select')}</option><option value="Live">{t('live')}</option><option value="Hold">{t('hold')}</option>
                           </select>
                         </div>
                         <div className="space-y-2">
@@ -354,13 +363,13 @@ const EditCategoryPage = () => {
                       <div className="space-y-2">
                         <label htmlFor="shop-visibility" className="block text-sm font-medium text-slate-700">{locale === 'zh' ? '显示在商店分类标签' : locale === 'ms' ? 'Tunjukkan dalam tab kategori kedai' : 'Show in shop category tabs'} <span className="text-rose-500">*</span></label>
                         <select id="shop-visibility" value={formData.showInCategoryBar ? 'Yes' : 'No'} required disabled={isLoading} onChange={(e) => setFormData((prev) => ({ ...prev, showInCategoryBar: e.target.value === 'Yes' }))} className="w-full border border-slate-300 bg-white px-3 py-3 text-sm text-slate-700 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600">
-                          <option value="Yes">Yes</option><option value="No">No</option>
+                          <option value="Yes">{t('yes')}</option><option value="No">{t('no_label')}</option>
                         </select>
                       </div>
                       <div className="space-y-2">
                         <label htmlFor="top-navigation-visibility" className="block text-sm font-medium text-slate-700">{locale === 'zh' ? '显示在顶部导航栏' : locale === 'ms' ? 'Tunjukkan dalam bar navigasi atas' : 'Show in top navigation'} <span className="text-rose-500">*</span></label>
                         <select id="top-navigation-visibility" value={formData.showInAppBar ? 'Yes' : 'No'} required disabled={isLoading} onChange={(e) => setFormData((prev) => ({ ...prev, showInAppBar: e.target.value === 'Yes' }))} className="w-full border border-slate-300 bg-white px-3 py-3 text-sm text-slate-700 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600">
-                          <option value="Yes">Yes</option><option value="No">No</option>
+                          <option value="Yes">{t('yes')}</option><option value="No">{t('no_label')}</option>
                         </select>
                       </div>
                     </div>
@@ -371,13 +380,19 @@ const EditCategoryPage = () => {
                           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
                             <div className="flex min-h-11 items-center gap-2 border border-slate-300 bg-white px-3 text-sm text-slate-600">
                               <ImageIcon size={16} className="shrink-0 text-slate-400" />
-                              <span className="truncate">{selectedImageName || 'Please select a single file (PNG or JPG, limit 10MB)'}</span>
+                              <span className="truncate">{selectedImageName || t('select_category_image_hint')}</span>
                             </div>
                             <button type="button" onClick={() => !isLoading && fileInputRef.current?.click()} disabled={isLoading} className="inline-flex min-h-11 items-center justify-center gap-2 border border-sky-700 bg-sky-700 px-5 text-sm font-medium text-white transition-colors hover:bg-sky-800 disabled:opacity-50">
-                              <Upload size={16} /> Browse
+                              <Upload size={16} /> {t('browse')}
                             </button>
                             <input type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
                           </div>
+                          {imagePreview && (
+                            <figure className="mt-4 border border-slate-200 bg-slate-50 p-3">
+                              <figcaption className="mb-2 text-xs font-semibold text-slate-600">{t('image_preview')} · {selectedImageName}</figcaption>
+                              <img src={imagePreview} alt={selectedImageName || t('image_preview')} className="max-h-56 w-full object-contain" />
+                            </figure>
+                          )}
                         </div>
                       )}
                     </div>

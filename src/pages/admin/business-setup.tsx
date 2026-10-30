@@ -205,13 +205,13 @@ const BusinessSetupPage = () => {
           <div className="min-w-0 space-y-3">
             <div className="flex items-center gap-2 text-sm text-slate-700">
               <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${imageUrl ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-              <span className="font-medium">{imageUrl ? 'Image uploaded' : 'No image uploaded'}</span>
+              <span className="font-medium">{imageUrl ? t('image_uploaded') : t('no_image_uploaded')}</span>
             </div>
-            <p className="text-xs leading-5 text-slate-500">{imageUrl ? 'Preview the current image or choose a replacement.' : 'Choose a PNG or JPG image to upload.'}</p>
+            <p className="text-xs leading-5 text-slate-500">{imageUrl ? t('image_uploaded_hint') : t('image_empty_hint')}</p>
             <div className="flex flex-wrap items-center gap-2">
               <label className="relative inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 border border-sky-700 bg-sky-700 px-4 text-xs font-medium text-white transition-colors hover:bg-sky-800">
                 {isUploading[fieldName] ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                {isUploading[fieldName] ? 'Uploading…' : imageUrl ? 'Replace image' : 'Upload image'}
+                {isUploading[fieldName] ? t('uploading_label') : imageUrl ? t('replace_image') : t('upload_image')}
                 <input
                   type="file"
                   accept="image/png,image/jpeg,.png,.jpg,.jpeg"
@@ -227,7 +227,7 @@ const BusinessSetupPage = () => {
                     onClick={() => setImagePreview({ url: imageUrl, title: label })}
                     className="inline-flex min-h-10 items-center gap-2 border border-slate-300 bg-white px-4 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100"
                   >
-                    <Eye size={14} /> Preview
+                    <Eye size={14} /> {t('preview_label')}
                   </button>
                 </>
               )}
@@ -245,9 +245,9 @@ const BusinessSetupPage = () => {
         <header className="space-y-1">
           <div className="flex flex-wrap items-baseline gap-x-2">
             <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('business_setup') || 'Business Setup'}</h1>
-            <span className="text-xs font-normal text-slate-700">[ Access ]</span>
+            <span className="text-xs font-normal text-slate-700">[ {t('access_label')} ]</span>
           </div>
-          <p className="text-xs text-slate-600">Business Setup /</p>
+          <p className="text-xs text-slate-600">{t('business_setup_breadcrumb')} /</p>
         </header>
 
         {/* Proportional Grid Layout */}
@@ -471,7 +471,7 @@ const BusinessSetupPage = () => {
                   />
                   <p className="text-[11px] text-slate-500 mt-1.5 flex items-start gap-1.5 leading-relaxed">
                     <span className="text-sky-500 mt-0.5">📍</span>
-                    <span>This location is automatically displayed on the homepage interactive map. Customers can click to navigate directly via Google Maps.</span>
+                    <span>{t('map_location_hint')}</span>
                   </p>
                 </div>
               </div>
@@ -547,7 +547,7 @@ const BusinessSetupPage = () => {
                   </div>
 
                   <div className="flex h-full flex-col justify-center gap-3">
-                    <p className="text-sm font-medium text-slate-700">Share your store</p>
+                    <p className="text-sm font-medium text-slate-700">{t('share_your_store')}</p>
                     <div className="flex flex-wrap gap-3">
                       <button
                         onClick={handleDownloadQR}
@@ -644,11 +644,11 @@ const BusinessSetupPage = () => {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-3">
-              <h2 className="text-base font-semibold text-slate-800">{imagePreview.title} Preview</h2>
+              <h2 className="text-base font-semibold text-slate-800">{imagePreview.title} {t('preview_modal_title_suffix')}</h2>
               <button
                 type="button"
                 onClick={() => setImagePreview(null)}
-                aria-label="Close image preview"
+                aria-label={t('close_image_preview')}
                 className="inline-flex h-9 w-9 items-center justify-center border border-slate-300 text-slate-600 transition-colors hover:bg-slate-100"
               >
                 <X size={18} />

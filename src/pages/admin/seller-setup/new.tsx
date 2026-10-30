@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { ArrowLeft, Check, Copy, Eye, EyeOff, Loader2, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import AdminLayout from '../../../components/admin/AdminLayout';
+import { useLanguage } from '../../../context/LanguageContext';
 
 type PricingGroup = 'A' | 'B';
 
 export default function AddCustomerAccountPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [sellerPricing, setSellerPricing] = useState<PricingGroup>('A');
@@ -29,10 +31,10 @@ export default function AddCustomerAccountPage() {
         body: JSON.stringify({ email, password, sellerPricing }),
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Unable to create the account.');
+      if (!response.ok) throw new Error(result.message || t('unable_to_create'));
       setCreatedCredentials({ email: result.email || email.trim().toLowerCase(), password, pricing: sellerPricing });
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Unable to create the account.');
+      setError(submitError instanceof Error ? submitError.message : t('unable_to_create'));
     } finally {
       setIsSaving(false);
     }
@@ -51,21 +53,21 @@ export default function AddCustomerAccountPage() {
       setCopiedField(field);
       window.setTimeout(() => setCopiedField((current) => current === field ? null : current), 1800);
     } catch {
-      setError('Could not access the clipboard. Please select and copy the details manually.');
+      setError(t('clipboard_error'));
     }
   };
 
   return (
-    <AdminLayout title="Add Customer" hideTitle>
+    <AdminLayout title={t('add_customer')} hideTitle>
       <div className="w-full space-y-6 text-slate-700">
         <header className="border-b border-slate-200 pb-5">
           <div className="flex flex-wrap items-baseline gap-x-2">
-            <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">Add Customer</h1>
-            <span className="text-xs font-normal text-slate-600">[ New Seller Account ]</span>
+            <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('add_customer')}</h1>
+            <span className="text-xs font-normal text-slate-600">[ {t('new_seller_account_label')} ]</span>
           </div>
-          <p className="mt-1 text-xs text-slate-600">Seller Account Information /</p>
+          <p className="mt-1 text-xs text-slate-600">{t('seller_account_info_breadcrumb')} /</p>
           <button type="button" onClick={() => router.push(returnTo)} className="mt-4 inline-flex items-center gap-2 border border-slate-400 bg-transparent px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-sky-700 hover:bg-sky-50 hover:text-sky-800">
-            <ArrowLeft size={16} /> Back to Seller Accounts
+            <ArrowLeft size={16} /> {t('back_to_seller_accounts')}
           </button>
         </header>
 
@@ -74,15 +76,15 @@ export default function AddCustomerAccountPage() {
             <div className="flex items-start gap-4 border-b border-slate-200 pb-5">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700"><Check size={21} strokeWidth={2.5} /></span>
               <div>
-                <h2 className="text-xl font-semibold text-slate-900">Seller account created</h2>
-                <p className="mt-1 text-sm text-slate-500">Seller {createdCredentials.pricing} pricing is assigned. Copy the sign-in details and send them to the seller.</p>
+                <h2 className="text-xl font-semibold text-slate-900">{t('seller_account_created')}</h2>
+                <p className="mt-1 text-sm text-slate-500">{t('seller')} {createdCredentials.pricing} {t('seller_created_desc')}</p>
               </div>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
               {([
-                { key: 'email' as const, label: 'Email address', value: createdCredentials.email },
-                { key: 'password' as const, label: 'Temporary password', value: createdCredentials.password },
+                { key: 'email' as const, label: t('email_address_label2'), value: createdCredentials.email },
+                { key: 'password' as const, label: t('temporary_password'), value: createdCredentials.password },
               ]).map((credential) => (
                 <div key={credential.key} className="min-w-0 border border-slate-200 bg-slate-50 p-4">
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{credential.label}</p>
@@ -90,7 +92,7 @@ export default function AddCustomerAccountPage() {
                     <code className="min-w-0 flex-1 break-all text-sm font-semibold text-slate-900">{credential.value}</code>
                     <button type="button" onClick={() => copyCredentials(credential.key)} className="inline-flex shrink-0 items-center gap-2 border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-800">
                       {copiedField === credential.key ? <Check size={14} /> : <Copy size={14} />}
-                      {copiedField === credential.key ? 'Copied' : 'Copy'}
+                      {copiedField === credential.key ? t('copied_btn') : t('copy_btn')}
                     </button>
                   </div>
                 </div>
@@ -99,21 +101,21 @@ export default function AddCustomerAccountPage() {
 
             <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
               <button type="button" onClick={() => router.push(returnTo)} className="inline-flex items-center justify-center gap-2 border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                <ArrowLeft size={16} /> Back to Seller Accounts
+                <ArrowLeft size={16} /> {t('back_to_seller_accounts')}
               </button>
               <button type="button" onClick={() => copyCredentials('all')} className="inline-flex items-center justify-center gap-2 border border-sky-800 bg-sky-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-800">
                 {copiedField === 'all' ? <Check size={16} /> : <Copy size={16} />}
-                {copiedField === 'all' ? 'Sign-in details copied' : 'Copy email and password'}
+                {copiedField === 'all' ? t('signin_details_copied') : t('copy_email_and_password')}
               </button>
             </div>
-            <p aria-live="polite" className="text-xs text-slate-500">The password is shown here only after creation. It is stored securely as a hash.</p>
+            <p aria-live="polite" className="text-xs text-slate-500">{t('password_hash_note')}</p>
             {error && <p role="alert" className="border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</p>}
           </section>
         ) : (
         <form onSubmit={handleSubmit} className="w-full space-y-6 border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
           <div className="grid gap-5 lg:grid-cols-2">
             <div>
-              <label htmlFor="customer-email" className="mb-2 block text-sm font-semibold text-slate-800">Email address</label>
+              <label htmlFor="customer-email" className="mb-2 block text-sm font-semibold text-slate-800">{t('email_address_label2')}</label>
               <div className="relative">
                 <Mail size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
@@ -127,11 +129,11 @@ export default function AddCustomerAccountPage() {
                   className="w-full border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
                 />
               </div>
-              <p className="mt-1.5 text-xs text-slate-500">The customer will use this email to sign in. Their display name starts as the part before @.</p>
+              <p className="mt-1.5 text-xs text-slate-500">{t('email_hint')}</p>
             </div>
 
             <div>
-              <label htmlFor="customer-password" className="mb-2 block text-sm font-semibold text-slate-800">Temporary password</label>
+              <label htmlFor="customer-password" className="mb-2 block text-sm font-semibold text-slate-800">{t('temporary_password')}</label>
               <div className="relative">
                 <LockKeyhole size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
@@ -142,26 +144,26 @@ export default function AddCustomerAccountPage() {
                   autoComplete="new-password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Create a password"
+                  placeholder={t('create_a_password')}
                   className="w-full border border-slate-300 bg-white py-3 pl-10 pr-12 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
                 />
-                <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800">
+                <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? t('hide_password') : t('show_password')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800">
                   {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </div>
-              <p className="mt-1.5 text-xs text-slate-500">Use at least 8 characters, including a number and a special character.</p>
+              <p className="mt-1.5 text-xs text-slate-500">{t('password_hint')}</p>
             </div>
           </div>
 
           <fieldset>
-            <legend className="mb-2 block text-sm font-semibold text-slate-800">Seller pricing</legend>
-            <p className="mb-3 text-xs text-slate-500">Choose which seller price group this account belongs to.</p>
+            <legend className="mb-2 block text-sm font-semibold text-slate-800">{t('seller_pricing_label')}</legend>
+            <p className="mb-3 text-xs text-slate-500">{t('seller_pricing_hint')}</p>
             <div className="grid gap-3 sm:grid-cols-2">
               {(['A', 'B'] as const).map((group) => (
                 <label key={group} className={`flex cursor-pointer items-center gap-3 border p-4 transition-colors ${sellerPricing === group ? 'border-sky-700 bg-sky-50 ring-1 ring-sky-700' : 'border-slate-300 bg-white hover:border-sky-300'}`}>
                   <input type="radio" name="sellerPricing" value={group} checked={sellerPricing === group} onChange={() => setSellerPricing(group)} className="h-4 w-4 accent-sky-700" />
                   <span className="flex h-9 w-9 items-center justify-center bg-white text-sky-800"><ShieldCheck size={18} /></span>
-                  <span><span className="block text-sm font-semibold text-slate-800">Seller {group}</span><span className="block text-xs text-slate-500">Price group {group}</span></span>
+                  <span><span className="block text-sm font-semibold text-slate-800">{t('seller')} {group}</span><span className="block text-xs text-slate-500">{t('price_group_label')} {group}</span></span>
                 </label>
               ))}
             </div>
@@ -170,13 +172,13 @@ export default function AddCustomerAccountPage() {
           {error && <p role="alert" className="border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</p>}
 
           <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
-            <button type="button" onClick={() => router.push(returnTo)} className="border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button type="button" onClick={() => router.push(returnTo)} className="border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">{t('cancel_btn')}</button>
             <button type="submit" disabled={isSaving} className="inline-flex items-center justify-center gap-2 border border-sky-800 bg-sky-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60">
               {isSaving && <Loader2 size={16} className="animate-spin" />}
-              {isSaving ? 'Creating account…' : 'Create account'}
+              {isSaving ? t('creating_account') : t('create_account')}
             </button>
           </div>
-          <p className="text-xs leading-relaxed text-slate-500">The password is saved securely. Share the sign-in email and temporary password with the customer directly.</p>
+          <p className="text-xs leading-relaxed text-slate-500">{t('password_security_note')}</p>
         </form>
         )}
       </div>

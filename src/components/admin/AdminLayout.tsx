@@ -160,7 +160,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, headerAction
       >
         {/* Brand */}
         <div className={`h-[72px] shrink-0 flex items-center justify-center border-b border-blue-50 px-2`}>
-          {!isCollapsed && <span className="font-bold text-[19px] tracking-tight text-[#17365d]">Admin</span>}
+          {!isCollapsed && <span className="font-bold text-[19px] tracking-tight text-[#17365d]">{t('admin_title') || 'Admin'}</span>}
         </div>
 
         {/* Sidebar Search */}

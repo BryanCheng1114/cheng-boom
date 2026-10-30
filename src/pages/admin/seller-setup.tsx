@@ -40,6 +40,10 @@ export default function SellerSetupPage() {
     );
   }, [sellers, search]);
 
+  const accountCountLabel = sellers.length === 1
+    ? `1 ${t('account_count_single')}`
+    : `${sellers.length} ${t('account_count_plural')}`;
+
   return (
     <AdminLayout title={t('seller_setup')} hideTitle>
       <div className="space-y-6 text-slate-700">
@@ -53,15 +57,15 @@ export default function SellerSetupPage() {
             onClick={() => router.push('/admin/seller-setup/new')}
             className="inline-flex items-center justify-center gap-2 border border-sky-800 bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-800"
           >
-            <Plus size={16} /> Add Customer
+            <Plus size={16} /> {t('add_customer')}
           </button>
         </header>
 
         <section className="overflow-hidden border border-slate-200 bg-white">
           <div className="flex flex-col gap-4 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-medium tracking-tight text-slate-800">Seller account list</h2>
-              <p className="mt-1 text-xs text-slate-500">{sellers.length} account{sellers.length === 1 ? '' : 's'}</p>
+              <h2 className="text-lg font-medium tracking-tight text-slate-800">{t('seller_account_list_title')}</h2>
+              <p className="mt-1 text-xs text-slate-500">{accountCountLabel}</p>
             </div>
             <div className="relative w-full sm:max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -69,7 +73,7 @@ export default function SellerSetupPage() {
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search seller accounts"
+                placeholder={t('search_seller_accounts')}
                 className="w-full border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-sky-600"
               />
             </div>
@@ -82,11 +86,11 @@ export default function SellerSetupPage() {
               <table className="w-full min-w-[720px] text-left">
                 <thead className="border-b border-slate-200 bg-slate-100">
                   <tr>
-                    <th className="px-5 py-3 text-xs font-semibold text-slate-700">Account</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-slate-700">Email</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-slate-700">Seller pricing</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-slate-700">Created</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-slate-700">Status</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-slate-700">{t('col_account')}</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-slate-700">{t('col_email')}</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-slate-700">{t('col_seller_pricing')}</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-slate-700">{t('col_created')}</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-slate-700">{t('col_status')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -99,23 +103,23 @@ export default function SellerSetupPage() {
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-50 text-sky-800"><ShieldCheck size={17} /></span>
-                          <span className="text-sm font-semibold text-slate-800">{seller.name || 'Seller account'}</span>
+                          <span className="text-sm font-semibold text-slate-800">{seller.name || t('seller_account_fallback')}</span>
                         </div>
                       </td>
                       <td className="px-5 py-4 text-sm text-slate-600">{seller.email || '—'}</td>
                       <td className="px-5 py-4">
                         {seller.sellerPricing ? (
-                          <span className="inline-flex items-center border border-sky-200 bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-800">Seller {seller.sellerPricing}</span>
-                        ) : <span className="text-sm text-slate-400">Not assigned</span>}
+                          <span className="inline-flex items-center border border-sky-200 bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-800">{t('seller')} {seller.sellerPricing}</span>
+                        ) : <span className="text-sm text-slate-400">{t('not_assigned')}</span>}
                       </td>
                       <td className="px-5 py-4 text-sm text-slate-600">
                         <span className="inline-flex items-center gap-2"><CalendarDays size={14} className="text-slate-400" />{new Date(seller.createdAt).toLocaleDateString(language === 'zh' ? 'zh-CN' : language === 'ms' ? 'ms-MY' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                       </td>
-                      <td className="px-5 py-4"><span className={`border px-2.5 py-1 text-xs font-medium ${seller.isActive ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-slate-100 text-slate-600'}`}>{seller.isActive ? 'Active' : 'Inactive'}</span></td>
+                      <td className="px-5 py-4"><span className={`border px-2.5 py-1 text-xs font-medium ${seller.isActive ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-slate-100 text-slate-600'}`}>{seller.isActive ? t('active_status_label') : t('inactive_status_label')}</span></td>
                     </tr>
                   ))}
                   {filteredSellers.length === 0 && (
-                    <tr><td colSpan={5} className="px-5 py-14 text-center text-sm text-slate-500">{sellers.length ? 'No seller accounts match your search.' : 'No seller accounts yet. Use Add Customer to create one.'}</td></tr>
+                    <tr><td colSpan={5} className="px-5 py-14 text-center text-sm text-slate-500">{sellers.length ? t('no_seller_match_search') : t('no_seller_accounts_yet')}</td></tr>
                   )}
                 </tbody>
               </table>

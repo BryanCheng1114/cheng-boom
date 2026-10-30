@@ -34,7 +34,7 @@ const CustomerDetailsPage = () => {
   const { t, language: locale } = useLanguage();
   const isSellerDetails = router.pathname.startsWith('/admin/seller-setup/') || from === 'seller';
   const backUrl = '/admin/seller-setup';
-  const backTitle = t('back_to_sellers') || 'Back to Seller Accounts';
+  const backTitle = isSellerDetails ? t('back_to_seller_accounts') : (t('back_to_customers') || 'Back to Customers');
   const [customer, setCustomer] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [temporaryPassword, setTemporaryPassword] = useState('');
@@ -80,7 +80,7 @@ const CustomerDetailsPage = () => {
         setCopiedValue(text);
         window.setTimeout(() => setCopiedValue((value) => value === text ? null : value), 1600);
       } catch {
-        setCredentialError('Could not access the clipboard. Please select and copy the text manually.');
+        setCredentialError(t('clipboard_error'));
       }
     }
   };
@@ -97,13 +97,13 @@ const CustomerDetailsPage = () => {
         body: JSON.stringify({ password: temporaryPassword }),
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Could not update the password.');
+      if (!response.ok) throw new Error(result.message || t('could_not_update_password'));
       const credentials = { email: result.email || customer.email || '', password: temporaryPassword };
       setSavedCredentials(credentials);
       setCustomer((current: any) => ({ ...current, email: credentials.email }));
       setTemporaryPassword('');
     } catch (error) {
-      setCredentialError(error instanceof Error ? error.message : 'Could not update the password.');
+      setCredentialError(error instanceof Error ? error.message : t('could_not_update_password'));
     } finally {
       setIsSavingTemporaryPassword(false);
     }
@@ -116,7 +116,7 @@ const CustomerDetailsPage = () => {
       setCredentialCopied(true);
       window.setTimeout(() => setCredentialCopied(false), 1800);
     } catch {
-      setCredentialError('Could not access the clipboard. Please select and copy the details manually.');
+      setCredentialError(t('clipboard_error'));
     }
   };
 
@@ -179,7 +179,7 @@ const CustomerDetailsPage = () => {
 
   if (isLoading) {
     return (
-      <AdminLayout title={isSellerDetails ? 'Seller Details' : 'Customer Details'}>
+      <AdminLayout title={isSellerDetails ? t('seller_details_title') : t('customer_details_title')}>
         <div className="flex flex-col items-center justify-center h-[60vh]">
           <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-sky-100 border-t-sky-700" />
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">{t('retrieving_profile') || 'Retrieving Profile...'}</p>
@@ -190,9 +190,9 @@ const CustomerDetailsPage = () => {
 
   if (!customer) {
     return (
-      <AdminLayout title={isSellerDetails ? 'Seller Not Found' : 'Not Found'}>
+      <AdminLayout title={isSellerDetails ? t('seller_not_found') : t('customer_not_found')}>
         <div className="text-center py-20">
-          <h2 className="text-2xl font-bold text-zinc-500">{t('customer_not_found') || 'Customer Not Found'}</h2>
+          <h2 className="text-2xl font-bold text-zinc-500">{isSellerDetails ? t('seller_not_found') : (t('customer_not_found') || 'Customer Not Found')}</h2>
           <button 
             onClick={() => router.push(backUrl)}
             className="mx-auto mt-6 flex items-center gap-2 font-medium text-sky-800 transition-all hover:gap-3"
@@ -206,7 +206,6 @@ const CustomerDetailsPage = () => {
   
   // Stats
   const totalOrders = customer.orders?.length || 0;
-  // Calculate total spent based on non-cancelled orders if preferred, or all orders. Using all as requested.
   const totalSpent = customer.orders?.reduce((sum: number, o: any) => sum + (o.status !== 'Cancelled' ? o.totalAmount : 0), 0) || 0;
   const averageOrderValue = totalOrders > 0 ? (totalSpent / totalOrders) : 0;
   const lastOrderDate = customer.orders && customer.orders.length > 0
@@ -241,23 +240,23 @@ const CustomerDetailsPage = () => {
   };
 
   return (
-    <AdminLayout title={isSellerDetails ? 'Seller Details' : 'Customer Details'} hideTitle={true}>
+    <AdminLayout title={isSellerDetails ? t('seller_details_title') : t('customer_details_title')} hideTitle={true}>
       <div className="w-full space-y-5 text-slate-700">
         
-        {/* Customer page title and actions */}
+        {/* Customer / Seller page title and actions */}
         <header className="space-y-1 border-b border-slate-200 pb-5">
           <div className="flex flex-wrap items-baseline gap-x-2">
-            <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{isSellerDetails ? 'Seller Details' : customer.name}</h1>
-            <span className="text-xs font-normal text-slate-700">[ {isSellerDetails ? customer.name : 'Access'} ]</span>
+            <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{isSellerDetails ? t('seller_details_title') : customer.name}</h1>
+            <span className="text-xs font-normal text-slate-700">[ {isSellerDetails ? customer.name : (t('access_badge') || 'Access')} ]</span>
           </div>
-          <p className="text-xs text-slate-600">{isSellerDetails ? 'Seller Accounts / Seller Details' : 'Customer Information /'}</p>
+          <p className="text-xs text-slate-600">{isSellerDetails ? t('seller_details_breadcrumb') : t('customer_info_breadcrumb')}</p>
           <div className="flex items-center justify-between gap-3 pt-3">
             <button onClick={() => router.push(backUrl)} className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50" title={backTitle}>
                <ChevronLeft size={15} /> {backTitle}
             </button>
             {isSellerDetails && customer.role === 'Seller' && (
               <button type="button" onClick={() => { setCredentialError(''); setIsCredentialsOpen(true); }} className="ml-auto inline-flex items-center gap-2 border border-sky-800 bg-sky-800 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-sky-900">
-                <User size={15} /> Manage sign-in details
+                <User size={15} /> {t('manage_signin_details')}
               </button>
             )}
           </div>
@@ -269,7 +268,7 @@ const CustomerDetailsPage = () => {
             <div className="group flex items-stretch justify-between gap-3 border-b border-slate-200 bg-white text-slate-700">
               <button type="button" aria-expanded={isSellerInfoExpanded} aria-controls="seller-information-content" onClick={() => setIsSellerInfoExpanded((expanded) => !expanded)} className="flex min-h-12 flex-1 items-center gap-3 px-5 py-3 text-left text-sm font-semibold transition-colors hover:bg-sky-600 hover:text-white focus-visible:bg-sky-600 focus-visible:text-white focus-visible:outline-none">
                 <ChevronDown size={17} className={`shrink-0 transition-transform duration-150 group-hover:text-white ${isSellerInfoExpanded ? '' : '-rotate-90'}`} />
-                <span>Seller Information</span>
+                <span>{isSellerDetails ? t('seller_information_title') : (t('customer_info_breadcrumb').replace(' /', '') || 'Customer Information')}</span>
                 {!isSellerInfoExpanded && <span className="truncate text-xs font-normal opacity-75">{customer.name}</span>}
               </button>
             </div>
@@ -315,10 +314,10 @@ const CustomerDetailsPage = () => {
                     </div>
                     {customer.email && (
                       <div className="flex items-center gap-1">
-                        <button type="button" aria-label={copiedValue === customer.email ? 'Email copied' : 'Copy email'} title={copiedValue === customer.email ? 'Email copied' : 'Copy email'} className="flex h-8 w-8 items-center justify-center border border-slate-200 bg-white text-slate-500 transition-colors hover:border-sky-300 hover:bg-sky-50 hover:text-sky-800" onClick={() => copyToClipboard(customer.email)}>
+                        <button type="button" aria-label={copiedValue === customer.email ? t('email_copied') : t('copy_email')} title={copiedValue === customer.email ? t('email_copied') : t('copy_email')} className="flex h-8 w-8 items-center justify-center border border-slate-200 bg-white text-slate-500 transition-colors hover:border-sky-300 hover:bg-sky-50 hover:text-sky-800" onClick={() => copyToClipboard(customer.email)}>
                           {copiedValue === customer.email ? <Check size={15} /> : <Copy size={15} />}
                         </button>
-                        <button type="button" aria-label="Email seller" title="Email seller" className="flex h-8 w-8 items-center justify-center border border-slate-200 bg-white text-slate-500 transition-colors hover:border-sky-300 hover:bg-sky-50 hover:text-sky-800" onClick={() => window.open(`mailto:${customer.email}`)}>
+                        <button type="button" aria-label={t('email_seller')} title={t('email_seller')} className="flex h-8 w-8 items-center justify-center border border-slate-200 bg-white text-slate-500 transition-colors hover:border-sky-300 hover:bg-sky-50 hover:text-sky-800" onClick={() => window.open(`mailto:${customer.email}`)}>
                           <Mail size={16} />
                         </button>
                       </div>
@@ -339,9 +338,9 @@ const CustomerDetailsPage = () => {
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-3 text-zinc-500 font-semibold">
-                      <User size={14} /> Seller pricing
+                      <User size={14} /> {t('col_seller_pricing') || 'Seller pricing'}
                     </div>
-                    <div className="font-semibold text-zinc-900">{customer.role === 'Seller' ? (customer.sellerPricing ? `Seller ${customer.sellerPricing}` : 'Not assigned') : '—'}</div>
+                    <div className="font-semibold text-zinc-900">{customer.role === 'Seller' ? (customer.sellerPricing ? `${locale === 'zh' ? '卖家 ' : 'Seller '}${customer.sellerPricing}` : t('not_assigned')) : '—'}</div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-3 text-zinc-500 font-semibold">
@@ -423,22 +422,22 @@ const CustomerDetailsPage = () => {
                     <motion.section role="dialog" aria-modal="true" aria-labelledby="seller-credentials-title" onClick={(event) => event.stopPropagation()} className="relative max-h-[92vh] w-full max-w-4xl overflow-y-auto border border-slate-200 bg-white p-6 shadow-2xl sm:p-8" initial={{ opacity: 0, y: 12, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.98 }}>
                 <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] sm:items-end">
                   <div>
-                    <h2 id="seller-credentials-title" className="text-base font-semibold text-slate-900">Seller sign-in details</h2>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-500">Manage the seller’s login and copy details to share with them.</p>
+                    <h2 id="seller-credentials-title" className="text-base font-semibold text-slate-900">{t('seller_signin_details_title')}</h2>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">{t('manage_seller_login_desc')}</p>
                   </div>
-                  <p className="text-xs leading-relaxed text-slate-500">Passwords are securely hashed and cannot be revealed. Set a new temporary password to provide the seller with updated access.</p>
+                  <p className="text-xs leading-relaxed text-slate-500">{t('passwords_hashed_notice')}</p>
                 </div>
-                <button type="button" aria-label="Close" onClick={() => setIsCredentialsOpen(false)} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"><X size={19} /></button>
+                <button type="button" aria-label={t('close_image_preview') || "Close"} onClick={() => setIsCredentialsOpen(false)} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"><X size={19} /></button>
 
                 <div className="flex flex-col gap-3 border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
-                    <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500">Email address</div>
-                    <div className="break-all text-sm font-semibold text-slate-900">{customer.email || 'No email address'}</div>
+                    <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500">{t('email_address_label')}</div>
+                    <div className="break-all text-sm font-semibold text-slate-900">{customer.email || t('no_email_address')}</div>
                   </div>
                   {customer.email && (
                     <button type="button" onClick={() => copyToClipboard(customer.email)} className="inline-flex shrink-0 items-center justify-center gap-2 border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-sky-600 hover:bg-sky-50 hover:text-sky-800">
                       {copiedValue === customer.email ? <Check size={14} /> : <Copy size={14} />}
-                      {copiedValue === customer.email ? 'Email copied' : 'Copy email'}
+                      {copiedValue === customer.email ? t('email_copied') : t('copy_email')}
                     </button>
                   )}
                 </div>
@@ -446,24 +445,24 @@ const CustomerDetailsPage = () => {
                 {savedCredentials ? (
                   <div className="space-y-4 border border-emerald-200 bg-emerald-50/50 p-4">
                     <div>
-                      <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500">New temporary password</div>
+                      <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500">{t('new_temp_password')}</div>
                       <code className="break-all text-sm font-bold text-slate-900">{savedCredentials.password}</code>
                     </div>
                     <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
                       <button type="button" onClick={() => copyToClipboard(savedCredentials.password)} className="inline-flex items-center justify-center gap-2 border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-sky-600 hover:bg-sky-50 hover:text-sky-800">
                         {copiedValue === savedCredentials.password ? <Check size={14} /> : <Copy size={14} />}
-                        {copiedValue === savedCredentials.password ? 'Password copied' : 'Copy password'}
+                        {copiedValue === savedCredentials.password ? t('password_copied') : t('copy_password')}
                       </button>
                       <button type="button" onClick={copySignInDetails} className="inline-flex items-center justify-center gap-2 border border-sky-800 bg-sky-700 px-3 py-2 text-xs font-semibold text-white hover:bg-sky-800">
                         {credentialCopied ? <Check size={14} /> : <Copy size={14} />}
-                        {credentialCopied ? 'Sign-in details copied' : 'Copy email and password'}
+                        {credentialCopied ? t('signin_details_copied') : t('copy_email_and_password')}
                       </button>
                     </div>
                   </div>
                 ) : (
                   <form onSubmit={handleSetTemporaryPassword} className="flex flex-col gap-3 sm:flex-row sm:items-end">
                     <label htmlFor="seller-temporary-password" className="min-w-0 flex-1">
-                      <span className="mb-1.5 block text-xs font-semibold text-slate-700">Set temporary password</span>
+                      <span className="mb-1.5 block text-xs font-semibold text-slate-700">{t('set_temporary_password')}</span>
                       <span className="relative block">
                         <input
                           id="seller-temporary-password"
@@ -473,17 +472,17 @@ const CustomerDetailsPage = () => {
                           autoComplete="new-password"
                           value={temporaryPassword}
                           onChange={(event) => setTemporaryPassword(event.target.value)}
-                          placeholder="At least 8 characters, with a number and special character"
+                          placeholder={t('temp_password_req_placeholder')}
                           className="w-full border border-slate-300 bg-white px-3 py-2.5 pr-10 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
                         />
-                        <button type="button" onClick={() => setShowTemporaryPassword((visible) => !visible)} aria-label={showTemporaryPassword ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800">
+                        <button type="button" onClick={() => setShowTemporaryPassword((visible) => !visible)} aria-label={showTemporaryPassword ? t('hide_password') : t('show_password')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800">
                           {showTemporaryPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
                       </span>
                     </label>
                     <button type="submit" disabled={isSavingTemporaryPassword} className="inline-flex shrink-0 items-center justify-center gap-2 border border-sky-800 bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60">
                       {isSavingTemporaryPassword && <Loader2 size={15} className="animate-spin" />}
-                      {isSavingTemporaryPassword ? 'Saving…' : 'Save password'}
+                      {isSavingTemporaryPassword ? t('saving_password') : t('save_password')}
                     </button>
                   </form>
                 )}
@@ -502,28 +501,28 @@ const CustomerDetailsPage = () => {
               <div className="group flex items-stretch justify-between gap-3 border-b border-slate-200 bg-white text-slate-700">
                 <button type="button" aria-expanded={isSellerOverviewOpen} aria-controls="seller-overview-cards" onClick={() => setIsSellerOverviewOpen((open) => !open)} className="flex min-h-12 flex-1 items-center gap-3 px-5 py-3 text-left text-sm font-semibold transition-colors hover:bg-sky-600 hover:text-white focus-visible:bg-sky-600 focus-visible:text-white focus-visible:outline-none">
                   <ChevronDown size={17} className={`shrink-0 transition-transform duration-150 group-hover:text-white ${isSellerOverviewOpen ? '' : '-rotate-90'}`} />
-                  Seller Overview
+                  {isSellerDetails ? t('seller_overview') : (t('customer_overview') || 'Customer Overview')}
                 </button>
               </div>
               {isSellerOverviewOpen && <div id="seller-overview-cards" className="grid grid-cols-1 gap-4 bg-slate-50/70 p-4 sm:grid-cols-2 xl:grid-cols-4">
               <div className="flex min-h-[138px] flex-col justify-between border border-slate-100 bg-white p-5 shadow-sm transition-colors hover:border-sky-200 hover:bg-sky-50/50">
                 <div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-500">{t('total_orders_label')}</span><span className="flex h-10 w-10 items-center justify-center bg-sky-50 text-sky-700"><Box size={19} /></span></div>
-                <div><p className="text-2xl font-bold tracking-tight text-slate-900">{totalOrders}</p><p className="mt-1 text-xs text-slate-500">Orders placed</p></div>
+                <div><p className="text-2xl font-bold tracking-tight text-slate-900">{totalOrders}</p><p className="mt-1 text-xs text-slate-500">{t('orders_placed_desc')}</p></div>
               </div>
 
               <div className="flex min-h-[138px] flex-col justify-between border border-slate-100 bg-white p-5 shadow-sm transition-colors hover:border-sky-200 hover:bg-sky-50/50">
                 <div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-500">{t('total_spent_label')}</span><span className="flex h-10 w-10 items-center justify-center bg-emerald-50 text-emerald-700"><Wallet size={19} /></span></div>
-                <div><p className="text-2xl font-bold tracking-tight text-slate-900">RM {totalSpent.toFixed(2)}</p><p className="mt-1 text-xs text-slate-500">Excludes cancelled orders</p></div>
+                <div><p className="text-2xl font-bold tracking-tight text-slate-900">RM {totalSpent.toFixed(2)}</p><p className="mt-1 text-xs text-slate-500">{t('excludes_cancelled_desc')}</p></div>
               </div>
 
               <div className="flex min-h-[138px] flex-col justify-between border border-slate-100 bg-white p-5 shadow-sm transition-colors hover:border-sky-200 hover:bg-sky-50/50">
                 <div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-500">{t('avg_order_value')}</span><span className="flex h-10 w-10 items-center justify-center bg-violet-50 text-violet-700"><Package size={19} /></span></div>
-                <div><p className="text-2xl font-bold tracking-tight text-slate-900">RM {averageOrderValue.toFixed(2)}</p><p className="mt-1 text-xs text-slate-500">Average order value</p></div>
+                <div><p className="text-2xl font-bold tracking-tight text-slate-900">RM {averageOrderValue.toFixed(2)}</p><p className="mt-1 text-xs text-slate-500">{t('avg_order_value_desc')}</p></div>
               </div>
 
               <div className="flex min-h-[138px] flex-col justify-between border border-slate-100 bg-white p-5 shadow-sm transition-colors hover:border-sky-200 hover:bg-sky-50/50">
                 <div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-500">{t('last_order')}</span><span className="flex h-10 w-10 items-center justify-center bg-amber-50 text-amber-700"><Calendar size={19} /></span></div>
-                <div><p className="text-xl font-bold tracking-tight text-slate-900">{lastOrderDate ? formatDate(lastOrderDate.toISOString(), { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</p><p className="mt-1 text-xs text-slate-500">Most recent order</p></div>
+                <div><p className="text-xl font-bold tracking-tight text-slate-900">{lastOrderDate ? formatDate(lastOrderDate.toISOString(), { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</p><p className="mt-1 text-xs text-slate-500">{t('most_recent_order_desc')}</p></div>
               </div>
               </div>}
             </section>
@@ -547,7 +546,7 @@ const CustomerDetailsPage = () => {
                             : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                         }`}
                       >
-                        {status === 'All Status' ? t('all_filter') : translateStatus(status)}
+                        {status === 'All Status' ? t('all_status') : translateStatus(status)}
                         <span className={`flex items-center justify-center border px-1.5 py-0.5 text-[10px] leading-none ${statusFilter === status ? 'border-white/20 bg-white/15 text-white' : 'border-slate-200 bg-slate-100 text-slate-600'}`}>
                           {orderCounts[status as keyof typeof orderCounts]}
                         </span>
@@ -565,7 +564,7 @@ const CustomerDetailsPage = () => {
                         ? "border-sky-800 bg-sky-800 text-white"
                         : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
                     )}
-                    title="Filter by Month"
+                    title={t('filter_by_month_title')}
                   >
                     <Calendar size={18} />
                   </button>
@@ -621,7 +620,7 @@ const CustomerDetailsPage = () => {
                 <table className="w-full text-left min-w-[700px]">
                   <thead>
                     <tr className="border-b border-slate-300 bg-slate-100">
-                      <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700">No.</th>
+                      <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700">{t('table_no')}</th>
                       <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700">{t('order_id')}</th>
                       <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700">{t('item_count')}</th>
                       <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold text-slate-700">{t('date')}</th>
@@ -644,7 +643,7 @@ const CustomerDetailsPage = () => {
                             <div className="font-mono text-sm font-medium text-slate-900" title={order.id}>{`…${String(order.id).slice(-8).toUpperCase()}`}</div>
                           </td>
                           <td className="px-6 py-4 text-sm font-semibold text-zinc-700">
-                            {order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''}
+                            {order.items?.length || 0} {locale === 'zh' ? '件商品' : order.items?.length !== 1 ? t('items_count_suffix') : t('item_count_suffix_single')}
                           </td>
                           <td className="px-6 py-4">
                             <div className="text-sm font-semibold text-zinc-700">{formatDate(order.createdAt, { month: 'short', day: 'numeric', year: 'numeric' })}</div>

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useCart } from '../cart/CartProvider';
-import { Plus, Minus, ShoppingCart, Flame, Loader2 } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, Flame } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useFlyToCart } from './FlyToCartProvider';
 import { useBusiness } from '../../context/BusinessContext';
@@ -46,7 +46,6 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   const listImageRef = useRef<HTMLDivElement>(null);
   const openingDetailsRef = useRef(false);
   const [user, setUser] = useState<any>(null);
-  const [isOpeningDetails, setIsOpeningDetails] = useState(false);
 
   useEffect(() => {
     const syncUser = () => {
@@ -65,7 +64,6 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   useEffect(() => {
     const resetOpeningState = () => {
       openingDetailsRef.current = false;
-      setIsOpeningDetails(false);
     };
     router.events.on('routeChangeError', resetOpeningState);
     return () => router.events.off('routeChangeError', resetOpeningState);
@@ -174,15 +172,12 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
     if ((event.target as HTMLElement).closest('a, button')) return;
     if (openingDetailsRef.current) return;
     openingDetailsRef.current = true;
-    setIsOpeningDetails(true);
     void router.push(`/shop/${encodeURIComponent(id)}`).then((didNavigate) => {
       if (!didNavigate) {
         openingDetailsRef.current = false;
-        setIsOpeningDetails(false);
       }
     }).catch(() => {
       openingDetailsRef.current = false;
-      setIsOpeningDetails(false);
     });
   };
 
@@ -192,7 +187,6 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
       return;
     }
     openingDetailsRef.current = true;
-    setIsOpeningDetails(true);
   };
 
   const handleAdd = (e: React.MouseEvent) => {
@@ -263,7 +257,6 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
             )}
           </div>
         </div>
-        {isOpeningDetails && <div className="absolute inset-0 z-40 flex items-center justify-center gap-2 bg-white/85 text-sm font-semibold text-zinc-800 backdrop-blur-[2px]" role="status"><Loader2 size={18} className="animate-spin text-[#d52b20]" />{locale === 'zh' ? '正在打开商品…' : locale === 'ms' ? 'Membuka produk…' : 'Opening item…'}</div>}
       </article>
     )}
     <article onClick={openDetailsFromCard} className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-zinc-100/90 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-1 hover:border-zinc-200 hover:shadow-[0_14px_32px_rgba(0,0,0,0.08)] ${mobileView === 'list' ? 'hidden md:flex' : ''} ${isOutOfStock ? 'opacity-75' : ''}`}>
@@ -348,7 +341,6 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
           </div>
         )}
       </div>
-      {isOpeningDetails && <div className="absolute inset-0 z-40 flex items-center justify-center gap-2 rounded-2xl bg-white/85 text-sm font-semibold text-zinc-800 backdrop-blur-[2px]" role="status"><Loader2 size={18} className="animate-spin text-[#d52b20]" />{locale === 'zh' ? '正在打开商品…' : locale === 'ms' ? 'Membuka produk…' : 'Opening item…'}</div>}
     </article>
     </>
   );

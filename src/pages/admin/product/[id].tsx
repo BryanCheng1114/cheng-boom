@@ -143,9 +143,9 @@ const AdminProductDetail = () => {
           <div>
             <div className="flex flex-wrap items-baseline gap-x-2">
               <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{getTranslatedText(product.name, product.nameZh, product.nameMs)}</h1>
-              <span className="text-xs font-normal text-slate-700">[ Item Details ]</span>
+              <span className="text-xs font-normal text-slate-700">[ {t('inventory_item_details')} ]</span>
             </div>
-            <p className="mt-1 text-xs text-slate-600">Product Information /</p>
+            <p className="mt-1 text-xs text-slate-600">{t('inventory_product_information_breadcrumb')} /</p>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -279,10 +279,10 @@ const AdminProductDetail = () => {
                 <DollarSign size={14} className="text-sky-700" /> {t('pricing_structure')}
               </p>
               <div className="space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3"><span className="text-xs font-semibold text-slate-600">Seller A · Single item</span><span className="text-lg font-bold text-slate-900">RM {Number(product.sellerAPrice).toFixed(2)}</span></div>
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3"><span className="text-xs font-semibold text-slate-600">Seller B · Single item</span><span className="text-lg font-bold text-sky-700">RM {Number(product.sellerBPrice).toFixed(2)}</span></div>
-                {product.itemsPerBox && <div className="flex items-center justify-between text-xs"><span className="text-slate-600">Per box ({product.itemsPerBox} items)</span><span className="font-semibold text-slate-800">A: {product.sellerABoxPrice != null ? `RM ${Number(product.sellerABoxPrice).toFixed(2)}` : '—'} · B: {product.sellerBBoxPrice != null ? `RM ${Number(product.sellerBBoxPrice).toFixed(2)}` : '—'}</span></div>}
-                {product.bundleQuantity && <div className="flex items-center justify-between text-xs"><span className="text-slate-600">Bundle ({product.bundleQuantity} items)</span><span className="font-semibold text-slate-800">A: {product.sellerABundlePrice != null ? `RM ${Number(product.sellerABundlePrice).toFixed(2)}` : '—'} · B: {product.sellerBBundlePrice != null ? `RM ${Number(product.sellerBBundlePrice).toFixed(2)}` : '—'}</span></div>}
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3"><span className="text-xs font-semibold text-slate-600">{t('inventory_seller_a')} · {t('inventory_single_item')}</span><span className="text-lg font-bold text-slate-900">RM {Number(product.sellerAPrice).toFixed(2)}</span></div>
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3"><span className="text-xs font-semibold text-slate-600">{t('inventory_seller_b')} · {t('inventory_single_item')}</span><span className="text-lg font-bold text-sky-700">RM {Number(product.sellerBPrice).toFixed(2)}</span></div>
+                {product.itemsPerBox && <div className="flex items-center justify-between text-xs"><span className="text-slate-600">{t('inventory_per_box_count').replace('{count}', String(product.itemsPerBox))}</span><span className="font-semibold text-slate-800">A: {product.sellerABoxPrice != null ? `RM ${Number(product.sellerABoxPrice).toFixed(2)}` : '—'} · B: {product.sellerBBoxPrice != null ? `RM ${Number(product.sellerBBoxPrice).toFixed(2)}` : '—'}</span></div>}
+                {product.bundleQuantity && <div className="flex items-center justify-between text-xs"><span className="text-slate-600">{t('inventory_bundle_count').replace('{count}', String(product.bundleQuantity))}</span><span className="font-semibold text-slate-800">A: {product.sellerABundlePrice != null ? `RM ${Number(product.sellerABundlePrice).toFixed(2)}` : '—'} · B: {product.sellerBBundlePrice != null ? `RM ${Number(product.sellerBBundlePrice).toFixed(2)}` : '—'}</span></div>}
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { Image as ImageIcon, Upload, AlertTriangle, Plus, Save, ArrowLeft } from 'lucide-react';
@@ -14,7 +14,12 @@ const UploadCategoryPage = () => {
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   
   const [uploadedImage, setUploadedImage] = useState('');
+  const [imagePreview, setImagePreview] = useState('');
   const [selectedImageName, setSelectedImageName] = useState('');
+
+  useEffect(() => () => {
+    if (imagePreview.startsWith('blob:')) URL.revokeObjectURL(imagePreview);
+  }, [imagePreview]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -48,7 +53,8 @@ const UploadCategoryPage = () => {
     setIsLoading(true);
     setErrorMsg('');
     setUploadedImage('');
-    setSelectedImageName('');
+    setImagePreview(URL.createObjectURL(file));
+    setSelectedImageName(file.name);
 
     const data = new FormData();
     data.append('files', file);
@@ -61,6 +67,7 @@ const UploadCategoryPage = () => {
       const result = await res.json();
       if (result.urls && result.urls.length > 0) {
         setUploadedImage(result.urls[0]);
+        setImagePreview(result.urls[0]);
         setSelectedImageName(file.name);
       } else {
         throw new Error(result.error || 'Upload failed');
@@ -171,13 +178,13 @@ const UploadCategoryPage = () => {
             <header className="space-y-1">
               <div className="flex flex-wrap items-baseline gap-x-2">
                 <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('upload_new_category') || 'Upload New Category'}</h1>
-                <span className="text-xs font-normal text-slate-700">[ New Entry Screen ]</span>
+                <span className="text-xs font-normal text-slate-700">[ {t('new_entry_screen')} ]</span>
               </div>
-              <p className="text-xs text-slate-600">Category Information /</p>
+              <p className="text-xs text-slate-600">{t('category_info')} /</p>
             </header>
             <Link href="/admin/category" className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50">
               <ArrowLeft size={17} />
-              Back to Category Screen
+              {t('back_to_category_screen')}
             </Link>
             {errorMsg && (
               <div className="flex items-center gap-3 p-4 bg-red-50 text-red-700 text-sm font-medium border border-red-200">
@@ -249,16 +256,16 @@ const UploadCategoryPage = () => {
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[13px] font-medium text-slate-700">{locale === 'zh' ? '显示顺序（可选）' : locale === 'ms' ? 'Susunan Paparan (pilihan)' : 'Display Position (optional)'}</label>
+                          <label className="text-[13px] font-medium text-slate-700">{t('display_order_optional')}</label>
                           <input type="number" name="displayOrder" min={0} step={1} disabled={isLoading} value={formData.displayOrder} onChange={handleChange} placeholder="0" className="w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" />
                           <p className="text-[11px] text-slate-500">{locale === 'zh' ? '请输入 0 或更大的整数。数字越小越靠前；相同数字按名称排序。' : locale === 'ms' ? 'Masukkan nombor bulat 0 atau lebih. Nombor lebih kecil dipaparkan dahulu; nombor sama disusun mengikut nama.' : 'Use a whole number (0 or higher). Lower numbers appear first; ties are sorted by name.'}</p>
                         </div>
                       </div>
                       <div className="space-y-5">
                         <div className="space-y-2">
-                          <label htmlFor="category-status" className="block text-[13px] font-medium text-slate-700">Category Status <span className="text-rose-500">*</span></label>
+                          <label htmlFor="category-status" className="block text-[13px] font-medium text-slate-700">{t('category_status')} <span className="text-rose-500">*</span></label>
                           <select id="category-status" value={formData.status} required disabled={isLoading} onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))} className="w-full border border-slate-300 bg-white px-3 py-3 text-sm text-slate-700 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600">
-                            <option value="">Please select</option><option value="Live">Live</option><option value="Hold">On hold</option>
+                            <option value="">{t('please_select')}</option><option value="Live">{t('live')}</option><option value="Hold">{t('hold')}</option>
                           </select>
                         </div>
                         <div className="space-y-2">
@@ -280,13 +287,13 @@ const UploadCategoryPage = () => {
                       <div className="space-y-2">
                         <label htmlFor="shop-visibility" className="block text-sm font-medium text-slate-700">{locale === 'zh' ? '显示在商店分类标签' : locale === 'ms' ? 'Tunjukkan dalam tab kategori kedai' : 'Show in shop category tabs'} <span className="text-rose-500">*</span></label>
                         <select id="shop-visibility" value={formData.showInCategoryBar === null ? '' : formData.showInCategoryBar ? 'Yes' : 'No'} required disabled={isLoading} onChange={(e) => setFormData((prev) => ({ ...prev, showInCategoryBar: e.target.value === '' ? null : e.target.value === 'Yes' }))} className="w-full border border-slate-300 bg-white px-3 py-3 text-sm text-slate-700 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600">
-                          <option value="">Please select</option><option value="Yes">Yes</option><option value="No">No</option>
+                          <option value="">{t('please_select')}</option><option value="Yes">{t('yes')}</option><option value="No">{t('no_label')}</option>
                         </select>
                       </div>
                       <div className="space-y-2">
                         <label htmlFor="top-navigation-visibility" className="block text-sm font-medium text-slate-700">{locale === 'zh' ? '显示在顶部导航栏' : locale === 'ms' ? 'Tunjukkan dalam bar navigasi atas' : 'Show in top navigation'} <span className="text-rose-500">*</span></label>
                         <select id="top-navigation-visibility" value={formData.showInAppBar === null ? '' : formData.showInAppBar ? 'Yes' : 'No'} required disabled={isLoading} onChange={(e) => setFormData((prev) => ({ ...prev, showInAppBar: e.target.value === '' ? null : e.target.value === 'Yes' }))} className="w-full border border-slate-300 bg-white px-3 py-3 text-sm text-slate-700 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600">
-                          <option value="">Please select</option><option value="Yes">Yes</option><option value="No">No</option>
+                          <option value="">{t('please_select')}</option><option value="Yes">{t('yes')}</option><option value="No">{t('no_label')}</option>
                         </select>
                       </div>
                     </div>
@@ -297,13 +304,19 @@ const UploadCategoryPage = () => {
                           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
                             <div className="flex min-h-11 items-center gap-2 border border-slate-300 bg-white px-3 text-sm text-slate-600">
                               <ImageIcon size={16} className="shrink-0 text-slate-400" />
-                              <span className="truncate">{selectedImageName || 'Please select a single file (PNG or JPG, limit 10MB)'}</span>
+                              <span className="truncate">{selectedImageName || t('select_category_image_hint')}</span>
                             </div>
                             <button type="button" onClick={() => !isLoading && fileInputRef.current?.click()} disabled={isLoading} className="inline-flex min-h-11 items-center justify-center gap-2 border border-sky-700 bg-sky-700 px-5 text-sm font-medium text-white transition-colors hover:bg-sky-800 disabled:opacity-50">
-                              <Upload size={16} /> Browse
+                              <Upload size={16} /> {t('browse')}
                             </button>
                             <input type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
                           </div>
+                          {imagePreview && (
+                            <figure className="mt-4 border border-slate-200 bg-slate-50 p-3">
+                              <figcaption className="mb-2 text-xs font-semibold text-slate-600">{t('image_preview')} · {selectedImageName}</figcaption>
+                              <img src={imagePreview} alt={selectedImageName || t('image_preview')} className="max-h-56 w-full object-contain" />
+                            </figure>
+                          )}
                         </div>
                       )}
                     </div>
@@ -334,7 +347,7 @@ const UploadCategoryPage = () => {
                   ) : (
                     <>
                       <Save size={16} />
-                      Data Entry Confirm
+                      {t('data_entry_confirm')}
                     </>
                   )}
                 </button>
@@ -344,11 +357,11 @@ const UploadCategoryPage = () => {
           <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/40 p-4">
             <div role="dialog" aria-modal="true" aria-labelledby="continue-category-title" className="w-full max-w-md border border-slate-200 bg-white p-6 shadow-xl">
               <div className="mb-4 flex h-10 w-10 items-center justify-center bg-emerald-50 text-emerald-700"><Save size={19} /></div>
-              <h2 id="continue-category-title" className="text-lg font-semibold text-slate-800">Category saved successfully</h2>
-              <p className="mt-2 text-sm text-slate-600">Do you want to continue adding a new category?</p>
+              <h2 id="continue-category-title" className="text-lg font-semibold text-slate-800">{t('category_created')}</h2>
+              <p className="mt-2 text-sm text-slate-600">{t('continue_adding_category')}</p>
               <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                <button type="button" onClick={() => router.push('/admin/category')} className="border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">No, return to categories</button>
-                <button type="button" onClick={() => { setFormData({ name: '', code: '', nameZh: '', nameMs: '', description: '', displayOrder: 0, showInCategoryBar: null, showInAppBar: null, status: '' }); setSelectedImageName(''); setUploadedImage(''); if (fileInputRef.current) fileInputRef.current.value = ''; setErrorMsg(''); setShowContinuePrompt(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="inline-flex items-center justify-center gap-2 border border-sky-700 bg-sky-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-sky-800"><Plus size={16} /> Yes, add another</button>
+                <button type="button" onClick={() => router.push('/admin/category')} className="border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">{t('no_return_categories')}</button>
+                <button type="button" onClick={() => { setFormData({ name: '', code: '', nameZh: '', nameMs: '', description: '', displayOrder: 0, showInCategoryBar: null, showInAppBar: null, status: '' }); setSelectedImageName(''); setUploadedImage(''); setImagePreview(''); if (fileInputRef.current) fileInputRef.current.value = ''; setErrorMsg(''); setShowContinuePrompt(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="inline-flex items-center justify-center gap-2 border border-sky-700 bg-sky-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-sky-800"><Plus size={16} /> {t('yes_add_another_category')}</button>
               </div>
             </div>
           </div>

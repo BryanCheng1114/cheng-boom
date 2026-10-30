@@ -110,6 +110,10 @@ const CategoryOverviewPage = () => {
   };
 
   const liveProducts = products.filter((p) => p.status === 'Live').length;
+  const categoryRangeLabel = t('showing_categories_range')
+    .replace('{start}', String((currentPage - 1) * ITEMS_PER_PAGE + 1))
+    .replace('{end}', String(Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedCategories.length)))
+    .replace('{total}', String(filteredAndSortedCategories.length));
 
   return (
     <AdminLayout title={t('category_overview') || 'Category Overview'} hideTitle>
@@ -117,9 +121,9 @@ const CategoryOverviewPage = () => {
         <header className="space-y-1">
           <div className="flex flex-wrap items-baseline gap-x-2">
             <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('category_overview') || 'Category Overview'}</h1>
-            <span className="text-xs font-normal text-slate-700">[ Access ]</span>
+            <span className="text-xs font-normal text-slate-700">[ {t('access')} ]</span>
           </div>
-          <p className="text-xs text-slate-600">Category Information /</p>
+          <p className="text-xs text-slate-600">{t('category_info')} /</p>
         </header>
 
         <div>
@@ -128,7 +132,7 @@ const CategoryOverviewPage = () => {
             className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"
           >
             <Pencil size={14} />
-            New Entry
+            {t('new_entry')}
           </Link>
         </div>
 
@@ -316,7 +320,7 @@ const CategoryOverviewPage = () => {
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-100 bg-zinc-50/50">
               <p className="text-xs font-medium text-slate-500">
-                Showing <span className="text-zinc-900">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="text-zinc-900">{Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedCategories.length)}</span> of <span className="text-zinc-900">{filteredAndSortedCategories.length}</span> categories
+                {categoryRangeLabel}
               </p>
               <div className="flex items-center gap-2">
                 <button

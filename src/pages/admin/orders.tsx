@@ -28,7 +28,7 @@ import { cn } from '../../utils/cn';
 
 const OrdersPage = () => {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -308,9 +308,9 @@ const OrdersPage = () => {
         <header className="space-y-1">
           <div className="flex flex-wrap items-baseline gap-x-2">
             <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('orders') || 'Orders'}</h1>
-            <span className="text-xs font-normal text-slate-700">[ Access ]</span>
+            <span className="text-xs font-normal text-slate-700">[ {t('order_access')} ]</span>
           </div>
-          <p className="text-xs text-slate-600">Order Management /</p>
+          <p className="text-xs text-slate-600">{t('order_management_breadcrumb')} /</p>
         </header>
 
         {/* Top Section: KPI & Charts */}
@@ -353,7 +353,7 @@ const OrdersPage = () => {
                       "flex items-center gap-0.5 text-xs font-semibold",
                       stat.gain >= 0 ? "text-emerald-600" : "text-rose-600"
                     )}
-                    title="Compared to last month"
+                    title={t('order_month_comparison')}
                   >
                     {stat.gain >= 0 ? <ArrowUp size={11} strokeWidth={2.5} /> : <ArrowDown size={11} strokeWidth={2.5} />}
                     {Math.abs(stat.gain)}%
@@ -460,7 +460,7 @@ const OrdersPage = () => {
         <div id="orders-table-section" className="mt-6 scroll-mt-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-slate-800">{t('orders') || 'Orders List'}</h2>
-            <span className="text-xs text-slate-500">{filteredOrders.length} records</span>
+            <span className="text-xs text-slate-500">{t('order_records_count').replace('{count}', String(filteredOrders.length))}</span>
           </div>
 
           <div className="flex flex-col overflow-hidden border border-slate-200 bg-white shadow-sm">
@@ -513,7 +513,7 @@ const OrdersPage = () => {
                         ? "border-sky-700 bg-sky-700 text-white"
                         : "border-slate-300 bg-white text-slate-600 hover:border-sky-600 hover:bg-sky-50"
                     )}
-                    title="Filter by Month"
+                    title={t('filter_by_month')}
                   >
                     <Calendar size={18} />
                   </button>
@@ -538,6 +538,7 @@ const OrdersPage = () => {
 
                           <input
                             type="month"
+                            lang={language === 'zh' ? 'zh-CN' : 'en'}
                             value={monthFilter}
                             onChange={(e) => { setMonthFilter(e.target.value); setCurrentPage(1); }}
                             className="w-full border border-slate-300 bg-slate-50 px-3 py-3 text-sm text-slate-800 outline-none transition-colors focus:border-sky-600 focus:bg-white focus:ring-1 focus:ring-sky-600"
@@ -654,10 +655,10 @@ const OrdersPage = () => {
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-slate-700">
-                            {new Date(order.createdAt).toLocaleDateString()}
+                            {new Date(order.createdAt).toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-MY')}
                           </span>
                           <span className="text-xs text-slate-500">
-                            {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(order.createdAt).toLocaleTimeString(language === 'zh' ? 'zh-CN' : 'en-MY', { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                       </td>
@@ -670,7 +671,7 @@ const OrdersPage = () => {
             {/* Table Footer - Pagination */}
             <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:flex-row">
               <p className="text-xs text-slate-600">
-                Showing <span className="font-medium text-slate-900">{paginatedOrders.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> to <span className="font-medium text-slate-900">{Math.min(currentPage * itemsPerPage, filteredOrders.length)}</span> of <span className="font-medium text-slate-900">{filteredOrders.length}</span> records
+                {t('order_showing_range').replace('{start}', String(paginatedOrders.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0)).replace('{end}', String(Math.min(currentPage * itemsPerPage, filteredOrders.length))).replace('{count}', String(filteredOrders.length))}
               </p>
 
               <div className="flex items-center gap-1.5">
@@ -678,7 +679,7 @@ const OrdersPage = () => {
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(1)}
                   className="border border-slate-300 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:text-sky-700 disabled:opacity-40"
-                  title="First Page"
+                  title={t('order_first_page')}
                 >
                   <ChevronsLeft size={16} />
                 </button>
@@ -686,7 +687,7 @@ const OrdersPage = () => {
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   className="border border-slate-300 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:text-sky-700 disabled:opacity-40"
-                  title="Previous Page"
+                  title={t('order_previous_page')}
                 >
                   <ChevronLeft size={16} />
                 </button>
@@ -725,7 +726,7 @@ const OrdersPage = () => {
                   disabled={currentPage === totalPages || totalPages === 0}
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   className="border border-slate-300 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:text-sky-700 disabled:opacity-40"
-                  title="Next Page"
+                  title={t('order_next_page')}
                 >
                   <ChevronRight size={16} />
                 </button>
@@ -733,7 +734,7 @@ const OrdersPage = () => {
                   disabled={currentPage === totalPages || totalPages === 0}
                   onClick={() => setCurrentPage(totalPages)}
                   className="border border-slate-300 bg-white p-2 text-slate-600 transition-colors hover:border-sky-600 hover:text-sky-700 disabled:opacity-40"
-                  title="Last Page"
+                  title={t('order_last_page')}
                 >
                   <ChevronsRight size={16} />
                 </button>

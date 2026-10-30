@@ -93,7 +93,7 @@ const UploadProductPage = () => {
     const data = new FormData();
     for (let i = 0; i < files.length; i++) {
       if (files[i].size > 10 * 1024 * 1024) {
-        alert(`${files[i].name} exceeds 10MB limit`);
+        alert(`${files[i].name} ${t('exceeds_10mb_limit')}`);
         continue;
       }
       data.append('files', files[i]);
@@ -116,7 +116,7 @@ const UploadProductPage = () => {
       }
     } catch (err) {
       console.error('Upload failed:', err);
-      alert('Failed to upload images');
+      alert(t('failed_upload_images'));
     } finally {
       setIsLoading(false);
     }
@@ -138,8 +138,8 @@ const UploadProductPage = () => {
     if (!formData.code.trim()) errors.code = t('err_code_required') || 'Code required';
     if (!formData.description.trim()) errors.description = t('err_description_required') || 'Description is required';
     if (!formData.stock) errors.stock = t('err_stock_required') || 'Stock required';
-    if (!formData.sellerAPrice) errors.sellerAPrice = 'Seller A single-item price is required';
-    if (!formData.sellerBPrice) errors.sellerBPrice = 'Seller B single-item price is required';
+    if (!formData.sellerAPrice) errors.sellerAPrice = t('err_seller_a_price_required');
+    if (!formData.sellerBPrice) errors.sellerBPrice = t('err_seller_b_price_required');
 
     setFieldErrors(errors);
 
@@ -175,7 +175,7 @@ const UploadProductPage = () => {
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to upload product');
+      alert(t('failed_upload_product'));
     } finally {
       setIsLoading(false);
     }
@@ -199,13 +199,13 @@ const UploadProductPage = () => {
           <header className="space-y-1">
             <div className="flex flex-wrap items-baseline gap-x-2">
               <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('upload_new_item') || 'Upload New Item'}</h1>
-              <span className="text-xs font-normal text-slate-700">[ New Entry Screen ]</span>
+              <span className="text-xs font-normal text-slate-700">[ {t('product_new_entry_screen')} ]</span>
             </div>
-            <p className="text-xs text-slate-600">Product Information /</p>
+            <p className="text-xs text-slate-600">{t('inventory_product_information_breadcrumb')} /</p>
           </header>
           <Link href="/admin/product" className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50">
             <ArrowLeft size={17} />
-            Back to Product Screen
+            {t('back_to_product_screen')}
           </Link>
           {Object.keys(fieldErrors).length > 0 && (
             <div className="flex items-center gap-3 border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
@@ -238,7 +238,7 @@ const UploadProductPage = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[13px] font-semibold text-zinc-800">{t('chinese_translation') || 'Chinese Translation'}</label>
+                      <label className="text-[13px] font-semibold text-zinc-800">{t('chinese_translation_label')} <span className="font-normal text-slate-500">({t('optional')})</span></label>
                       <input
                         type="text"
                         name="nameZh"
@@ -311,7 +311,7 @@ const UploadProductPage = () => {
                       {fieldErrors.description && <p className="text-red-500 text-[11px] font-semibold mt-1">⚠ {fieldErrors.description}</p>}
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[13px] font-semibold text-zinc-800">{t('chinese_translation') || 'Chinese Translation'} <span className="font-normal text-slate-500">(Optional)</span></label>
+                      <label className="text-[13px] font-semibold text-zinc-800">{t('chinese_translation_label')} <span className="font-normal text-slate-500">({t('optional')})</span></label>
                       <textarea
                         name="descriptionZh"
                         value={formData.descriptionZh}
@@ -327,7 +327,7 @@ const UploadProductPage = () => {
                   <div className="grid grid-cols-1 gap-6 border-t border-slate-200 pt-6 lg:grid-cols-2">
                     <div ref={imageRef} className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <label className="text-[13px] font-semibold text-slate-800">Product Images <span className="text-red-500">*</span></label>
+                        <label className="text-[13px] font-semibold text-slate-800">{t('product_images_title')} <span className="text-red-500">*</span></label>
                         <span className="border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600">{previews.length}/10</span>
                       </div>
                       <button
@@ -338,11 +338,11 @@ const UploadProductPage = () => {
                         <span className="flex items-center gap-3">
                           <span className="border border-slate-200 bg-white p-2 text-slate-600"><ImageIcon size={20} /></span>
                           <span>
-                            <span className="block text-sm font-medium text-slate-800">Please select a single file (PNG or JPG, limit 10MB)</span>
-                            <span className="mt-1 block text-xs text-slate-500">At least one image is required. Up to 10 images.</span>
+                            <span className="block text-sm font-medium text-slate-800">{t('product_image_select_hint')}</span>
+                            <span className="mt-1 block text-xs text-slate-500">{t('product_image_requirements')}</span>
                           </span>
                         </span>
-                        <span className="shrink-0 border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700">Browse…</span>
+                        <span className="shrink-0 border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700">{t('inventory_browse')}</span>
                       </button>
                       <input type="file" multiple accept="image/png,image/jpeg" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
                       {fieldErrors.image && <p className="text-xs font-medium text-red-600">⚠ {fieldErrors.image}</p>}
@@ -352,7 +352,7 @@ const UploadProductPage = () => {
                             {previews.map((src, idx) => (
                               <div key={idx} className="group relative aspect-square overflow-hidden border border-slate-200">
                                 <img src={src} alt={`Product image ${idx + 1}`} className="h-full w-full object-cover" />
-                                <button type="button" onClick={() => removeImage(idx)} aria-label={`Remove image ${idx + 1}`} className="absolute right-1 top-1 bg-black/60 p-1 text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"><X size={12} /></button>
+                                <button type="button" onClick={() => removeImage(idx)} aria-label={t('inventory_remove_image').replace('{number}', String(idx + 1))} className="absolute right-1 top-1 bg-black/60 p-1 text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"><X size={12} /></button>
                               </div>
                             ))}
                           </motion.div>
@@ -363,9 +363,9 @@ const UploadProductPage = () => {
                     <div className="space-y-6">
                       <div className="space-y-2">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <label className="flex items-center gap-2 text-[13px] font-semibold text-slate-800"><Video size={15} className="text-slate-500" />{t('youtube_video_link_optional') || 'YouTube Video Link'} <span className="font-normal text-slate-500">(Optional)</span></label>
+                          <label className="flex items-center gap-2 text-[13px] font-semibold text-slate-800"><Video size={15} className="text-slate-500" />{t('youtube_link') || 'YouTube Video Link'} <span className="font-normal text-slate-500">({t('optional')})</span></label>
                           <div className="flex items-center gap-3">
-                            <button type="button" onMouseEnter={() => setShowYoutubeGuide(true)} onMouseLeave={() => setShowYoutubeGuide(false)} className="text-slate-400 transition-colors hover:text-sky-700" aria-label="YouTube link help"><HelpCircle size={15} /></button>
+                            <button type="button" onMouseEnter={() => setShowYoutubeGuide(true)} onMouseLeave={() => setShowYoutubeGuide(false)} className="text-slate-400 transition-colors hover:text-sky-700" aria-label={t('product_youtube_help')}><HelpCircle size={15} /></button>
                             <a href="https://youtube.com" target="_blank" rel="noreferrer" className="text-xs font-medium text-sky-700 hover:text-sky-800">{t('open_youtube') || 'Open YouTube'} ↗</a>
                           </div>
                         </div>
@@ -395,14 +395,14 @@ const UploadProductPage = () => {
 
               {/* Pricing */}
               <div className="border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-                <h3 className="mb-2 border-b border-slate-200 pb-4 text-lg font-semibold text-slate-800">Pricing</h3>
+                <h3 className="mb-2 border-b border-slate-200 pb-4 text-lg font-semibold text-slate-800">{t('product_pricing_title')}</h3>
                 <div ref={stockRef} className="mb-5 max-w-sm space-y-2">
                   <label className="text-[12px] font-semibold text-zinc-800">{t('total_stock') || 'Total Stock'}<span className="text-red-500">*</span></label>
                   <input type="number" min="0" name="stock" value={formData.stock} onChange={handleChange} className={`w-full border bg-white px-4 py-3 text-[14px] outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${fieldErrors.stock ? 'border-red-500' : 'border-slate-300'}`} placeholder="0" />
                 </div>
                 <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-2"><label className="text-[12px] font-semibold text-zinc-800">{t('items_per_box') || 'Items Per Box'} <span className="font-normal text-slate-500">(optional, shared)</span></label><input type="number" min="1" name="itemsPerBox" value={formData.itemsPerBox} onChange={handleChange} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="e.g. 12" /></div>
-                  <div className="space-y-2"><label className="text-[12px] font-semibold text-zinc-800">{t('items_per_bundle') || 'Items Per Bundle'} <span className="font-normal text-slate-500">(optional, shared)</span></label><input type="number" min="2" name="bundleQuantity" value={formData.bundleQuantity} onChange={handleChange} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="e.g. 4" /></div>
+                  <div className="space-y-2"><label className="text-[12px] font-semibold text-zinc-800">{t('items_per_box') || 'Items Per Box'} <span className="font-normal text-slate-500">({t('product_optional_shared')})</span></label><input type="number" min="1" name="itemsPerBox" value={formData.itemsPerBox} onChange={handleChange} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="e.g. 12" /></div>
+                  <div className="space-y-2"><label className="text-[12px] font-semibold text-zinc-800">{t('items_per_bundle') || 'Items Per Bundle'} <span className="font-normal text-slate-500">({t('product_optional_shared')})</span></label><input type="number" min="2" name="bundleQuantity" value={formData.bundleQuantity} onChange={handleChange} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="e.g. 4" /></div>
                 </div>
                 <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
                   {(['A', 'B'] as const).map((group) => {
@@ -410,13 +410,13 @@ const UploadProductPage = () => {
                     const boxField = group === 'A' ? 'sellerABoxPrice' : 'sellerBBoxPrice';
                     const bundleField = group === 'A' ? 'sellerABundlePrice' : 'sellerBBundlePrice';
                     return <section key={group} className="space-y-4 border border-slate-200 bg-slate-50/60 p-5">
-                      <div className="border-b border-slate-200 pb-3"><h4 className="text-base font-semibold text-slate-900">Seller {group} Pricing</h4><p className="mt-1 text-xs text-slate-500">Single item is required. Box and bundle prices are optional.</p></div>
+                      <div className="border-b border-slate-200 pb-3"><h4 className="text-base font-semibold text-slate-900">{group === 'A' ? t('product_seller_a_pricing') : t('product_seller_b_pricing')}</h4><p className="mt-1 text-xs text-slate-500">{t('product_single_price_required')}</p></div>
                       <div ref={group === 'A' ? priceRef : undefined} className="space-y-2">
-                        <label className="text-xs font-semibold text-slate-800">Single Item Price <span className="text-red-500">*</span></label>
+                        <label className="text-xs font-semibold text-slate-800">{t('product_single_item_price')} <span className="text-red-500">*</span></label>
                         <input type="number" min="0" step="0.01" name={singleField} value={formData[singleField]} onChange={handleChange} className={`w-full border bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${fieldErrors[singleField] ? 'border-red-500' : 'border-slate-300'}`} placeholder="0.00" />
                       </div>
-                      <details className="group border-t border-slate-200 pt-3"><summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium text-slate-700"><span>Per Box Price <span className="ml-1 text-xs font-normal text-slate-500">Optional</span></span><ChevronDown size={16} className="text-slate-500 transition-transform group-open:rotate-180" /></summary><div className="pt-3"><input aria-label={`Seller ${group} per box price`} type="number" min="0" step="0.01" name={boxField} value={formData[boxField]} onChange={handleChange} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0.00" /></div></details>
-                      <details className="group border-t border-slate-200 pt-3"><summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium text-slate-700"><span>Bundle Price <span className="ml-1 text-xs font-normal text-slate-500">Optional</span></span><ChevronDown size={16} className="text-slate-500 transition-transform group-open:rotate-180" /></summary><div className="pt-3"><input aria-label={`Seller ${group} bundle price`} type="number" min="0" step="0.01" name={bundleField} value={formData[bundleField]} onChange={handleChange} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0.00" /></div></details>
+                      <details className="group border-t border-slate-200 pt-3"><summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium text-slate-700"><span>{t('product_per_box_price')} <span className="ml-1 text-xs font-normal text-slate-500">{t('product_optional')}</span></span><ChevronDown size={16} className="text-slate-500 transition-transform group-open:rotate-180" /></summary><div className="pt-3"><input aria-label={`${t('product_per_box_price')} - ${t(group === 'A' ? 'inventory_seller_a' : 'inventory_seller_b')}`} type="number" min="0" step="0.01" name={boxField} value={formData[boxField]} onChange={handleChange} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0.00" /></div></details>
+                      <details className="group border-t border-slate-200 pt-3"><summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium text-slate-700"><span>{t('product_bundle_price')} <span className="ml-1 text-xs font-normal text-slate-500">{t('product_optional')}</span></span><ChevronDown size={16} className="text-slate-500 transition-transform group-open:rotate-180" /></summary><div className="pt-3"><input aria-label={`${t('product_bundle_price')} - ${t(group === 'A' ? 'inventory_seller_a' : 'inventory_seller_b')}`} type="number" min="0" step="0.01" name={bundleField} value={formData[bundleField]} onChange={handleChange} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0.00" /></div></details>
                     </section>;
                   })}
                 </div>
@@ -443,7 +443,7 @@ const UploadProductPage = () => {
                   <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    <Save size={16} />Data Entry Confirm</>
+                    <Save size={16} />{t('product_data_entry_confirm')}</>
                 )}
               </button>
             </div>

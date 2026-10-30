@@ -110,7 +110,7 @@ const OrderDetailsPage = () => {
       if (res.ok) {
         setOrder({ ...order, status: statusToSet });
         if (statusToSet !== order.status) setNewStatus(statusToSet);
-        setSuccess(statusToSet === 'Cancelled' ? 'Order cancelled and stock restored successfully!' : 'Order status updated successfully!');
+        setSuccess(statusToSet === 'Cancelled' ? t('order_status_cancelled_success') : t('order_status_updated_success'));
         setTimeout(() => setSuccess(''), 3000);
       }
     } catch (err) {
@@ -130,7 +130,7 @@ const OrderDetailsPage = () => {
     try {
       const res = await fetch(`/api/orders/${id}/resend`, { method: 'POST' });
       if (res.ok) {
-        setEmailSuccess('Receipt resent to customer successfully!');
+        setEmailSuccess(t('order_receipt_resent_success'));
         setTimeout(() => setEmailSuccess(''), 3000);
       }
     } catch (err) {
@@ -152,7 +152,7 @@ const OrderDetailsPage = () => {
       if (res.ok) {
         setOrder({ ...order, address: editAddressText });
         setIsEditAddressModalOpen(false);
-        setSuccess('Shipping address updated successfully!');
+        setSuccess(t('order_address_updated_success'));
         setTimeout(() => setSuccess(''), 3000);
       }
     } catch (err) {
@@ -172,31 +172,31 @@ const OrderDetailsPage = () => {
         body: JSON.stringify({ subject: emailSubject.trim(), message: emailBody.trim() })
       });
       if (res.ok) {
-        setEmailSuccess('Email sent successfully!');
+        setEmailSuccess(t('order_email_sent_success'));
         setIsEmailComposerOpen(false);
         setTimeout(() => setEmailSuccess(''), 3000);
       } else {
         const errorData = await res.json();
-        alert('Failed to send email: ' + (errorData.message || 'Unknown error'));
+        alert(t('order_email_send_failed_detail').replace('{message}', errorData.message || 'Unknown error'));
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to send email. Please try again.');
+      alert(t('order_email_send_failed'));
     } finally {
       setIsSendingEmail(false);
     }
   };
 
   const openEmailComposer = () => {
-    setEmailSubject('Order update');
-    setEmailBody(`We’re writing to share an update about your order.\n\nOrder status: ${getTranslatedStatus(order.status)}\n\nIf you have any questions, please reply to this email.\n\nThank you,\n${settings?.businessName || 'Cheng-BOOM'}`);
+    setEmailSubject(t('order_email_default_subject'));
+    setEmailBody(t('order_email_default_body').replace('{status}', getTranslatedStatus(order.status)).replace('{business}', settings?.businessName || 'Cheng-BOOM'));
     setIsEmailComposerOpen(true);
   };
 
   const handleDownloadReceipt = async () => {
     if (!order) return;
     if (order.status === 'Cancelled') {
-      alert('A receipt cannot be generated for a cancelled order.');
+      alert(t('order_receipt_cancelled_alert'));
       return;
     }
     setIsGeneratingPdf(true);
@@ -355,7 +355,7 @@ const OrderDetailsPage = () => {
       pdf.save(`Receipt_${orderNumber}.pdf`);
     } catch (err) {
       console.error('Failed to generate PDF:', err);
-      alert('Failed to generate PDF receipt. Please try again.');
+      alert(t('order_receipt_failed'));
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -406,8 +406,8 @@ const OrderDetailsPage = () => {
         <header className="border-b border-slate-200 pb-5">
           <div>
             <div className="flex flex-wrap items-baseline gap-x-2">
-              <h1 className="text-2xl font-medium tracking-tight text-slate-900">Order Details</h1>
-              <span className="text-sm font-medium text-slate-600">[ Access ]</span>
+              <h1 className="text-2xl font-medium tracking-tight text-slate-900">{t('order_details_title')}</h1>
+              <span className="text-sm font-medium text-slate-600">[ {t('order_access')} ]</span>
             </div>
             <p className="mt-1 text-xs text-slate-600">{t('orders') || 'Orders'} /</p>
           </div>
@@ -416,13 +416,13 @@ const OrderDetailsPage = () => {
             <button
               onClick={() => viewOnly && customerId ? router.push(`/admin/customer/${customerId}`) : router.push('/admin/orders')}
               className="inline-flex items-center gap-2 border border-slate-400 bg-transparent px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-sky-700 hover:bg-sky-50 hover:text-sky-800"
-            ><ArrowLeft size={15} /> {viewOnly && customerId ? 'Back to Customer' : 'Back to Orders'}</button>
+            ><ArrowLeft size={15} /> {viewOnly && customerId ? t('order_back_customer') : t('order_back_orders')}</button>
 
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={handleDownloadReceipt}
                 disabled={isGeneratingPdf || order.status === 'Cancelled'}
-                title={order.status === 'Cancelled' ? 'Receipts cannot be generated for cancelled orders.' : undefined}
+                title={order.status === 'Cancelled' ? t('order_receipt_cancelled_hint') : undefined}
                 className="inline-flex items-center justify-center gap-2 border border-sky-800 bg-sky-800 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-900 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isGeneratingPdf ? <Activity size={16} className="animate-spin" /> : <FileDown size={16} />}
@@ -432,11 +432,11 @@ const OrderDetailsPage = () => {
                 onClick={() => setIsCancelModalOpen(true)}
                 disabled={order.status === 'Cancelled' || order.status === 'Completed'}
                 className="inline-flex items-center justify-center gap-2 border border-rose-300 bg-white px-4 py-2.5 text-sm font-semibold text-rose-700 transition-colors hover:border-rose-500 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
-              ><AlertCircle size={16} /> Cancel Order</button>
+              ><AlertCircle size={16} /> {t('order_cancel_button')}</button>
             </div>
           </div>
           {order.status !== 'Cancelled' && order.status !== 'Completed' && (
-            <p className="mt-2 text-right text-xs leading-5 text-slate-500">If payment has already been collected, arrange a refund with the customer after cancellation.</p>
+            <p className="mt-2 text-right text-xs leading-5 text-slate-500">{t('order_cancel_refund_note')}</p>
           )}
         </header>
 
@@ -446,11 +446,11 @@ const OrderDetailsPage = () => {
           </div>
         )}
 
-        <section aria-label="Order status progress" className="py-1">
+        <section aria-label={t('order_progress')} className="py-1">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-            <h2 className="text-sm font-semibold text-slate-800">Order Progress</h2>
+            <h2 className="text-sm font-semibold text-slate-800">{t('order_progress')}</h2>
             <p className="text-sm text-slate-500">
-              Current status: <span className={cn('font-semibold', order.status === 'Cancelled' ? 'text-rose-700' : order.status === 'Completed' ? 'text-emerald-700' : 'text-sky-800')}>{getTranslatedStatus(order.status)}</span>
+              {t('order_current_status')} <span className={cn('font-semibold', order.status === 'Cancelled' ? 'text-rose-700' : order.status === 'Completed' ? 'text-emerald-700' : 'text-sky-800')}>{getTranslatedStatus(order.status)}</span>
             </p>
           </div>
           <div className="overflow-x-auto pb-1">
@@ -474,7 +474,7 @@ const OrderDetailsPage = () => {
                         )}
                       ><StepIcon size={18} /></span>
                       <span className={cn('mt-2 text-xs', isCurrent ? 'font-semibold text-sky-900' : isComplete ? 'font-medium text-slate-700' : 'text-slate-500')}>{step.label}</span>
-                      {isCurrent && <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-sky-700">Current</span>}
+                      {isCurrent && <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-sky-700">{t('order_current')}</span>}
                     </div>
                     {index < progressSteps.length - 1 && (
                       <div className={cn('mt-5 h-0.5 min-w-4 flex-1', order.status !== 'Cancelled' && currentIndex > index ? 'bg-sky-700' : 'bg-slate-200')} />
@@ -483,7 +483,7 @@ const OrderDetailsPage = () => {
                 );
               })}
 
-              <div aria-hidden="true" className="mx-2 mt-4 shrink-0 border-l border-dashed border-slate-300 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-slate-400">or</div>
+              <div aria-hidden="true" className="mx-2 mt-4 shrink-0 border-l border-dashed border-slate-300 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-slate-400">{t('order_or')}</div>
               <div className="flex w-[108px] shrink-0 flex-col items-center text-center">
                 <span
                   aria-current={order.status === 'Cancelled' ? 'step' : undefined}
@@ -493,7 +493,7 @@ const OrderDetailsPage = () => {
                   )}
                 ><XCircle size={18} /></span>
                 <span className={cn('mt-2 text-xs', order.status === 'Cancelled' ? 'font-semibold text-rose-800' : 'text-slate-500')}>{t('cancelled_filter') || 'Cancelled'}</span>
-                {order.status === 'Cancelled' && <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-rose-700">Current</span>}
+                {order.status === 'Cancelled' && <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-rose-700">{t('order_current')}</span>}
               </div>
             </div>
           </div>
@@ -502,40 +502,40 @@ const OrderDetailsPage = () => {
         <section className="border border-slate-200 bg-white shadow-sm">
           <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">Order Details</h2>
-              <p className="mt-1 text-sm text-slate-500">Reference {getDisplayOrderNumber(order)}</p>
+              <h2 className="text-lg font-semibold text-slate-900">{t('order_details_title')}</h2>
+              <p className="mt-1 text-sm text-slate-500">{t('order_reference').replace('{number}', getDisplayOrderNumber(order))}</p>
             </div>
-            <span className="text-xs text-slate-500">{order.items?.length || 0} product lines</span>
+            <span className="text-xs text-slate-500">{t('order_product_lines').replace('{count}', String(order.items?.length || 0))}</span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2">
             <div className="px-5 py-5 lg:border-r lg:border-slate-200">
-              <h3 className="mb-2 text-sm font-semibold text-slate-800">Order Information</h3>
+              <h3 className="mb-2 text-sm font-semibold text-slate-800">{t('order_information')}</h3>
               <dl className="divide-y divide-slate-100">
-                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">Order number</dt><dd className="break-all text-sm font-medium text-slate-800">{getDisplayOrderNumber(order)}</dd></div>
-                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">Full Order ID</dt><dd className="break-all font-mono text-xs text-slate-700">{order.id}</dd></div>
-                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">Date placed</dt><dd className="text-sm font-medium text-slate-800">{new Date(order.createdAt).toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</dd></div>
-                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">Last updated</dt><dd className="text-sm font-medium text-slate-800">{new Date(order.updatedAt || order.createdAt).toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</dd></div>
-                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">Order status</dt><dd className={cn('text-sm font-semibold', order.status === 'Cancelled' ? 'text-rose-700' : order.status === 'Completed' ? 'text-emerald-700' : 'text-sky-800')}>{getTranslatedStatus(order.status)}</dd></div>
-                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">Items</dt><dd className="text-sm font-medium text-slate-800">{order.items?.reduce((sum: number, item: any) => sum + Number(item.quantity || 0), 0) || 0} items across {order.items?.length || 0} products</dd></div>
-                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">Payment method</dt><dd className="text-sm font-medium text-slate-800">{getTranslatedPaymentMethod(order.paymentMethod)}{order.paymentReceiptUrl && <button onClick={() => setIsReceiptModalOpen(true)} className="ml-2 inline-flex items-center gap-1 text-xs font-medium text-sky-800 hover:underline"><FileText size={13} />{t('view_receipt') || 'View receipt'}</button>}</dd></div>
-                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">Fulfillment</dt><dd className="text-sm font-medium text-slate-800">{getTranslatedDeliveryMode(order.deliveryMode)}</dd></div>
-                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm font-semibold text-slate-700">Total amount</dt><dd className="text-base font-semibold text-slate-900">RM {Number(order.totalAmount || 0).toFixed(2)}</dd></div>
-                {order.notes && <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">Order notes</dt><dd className="whitespace-pre-wrap text-sm leading-6 text-slate-800">{order.notes}</dd></div>}
+                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">{t('order_number')}</dt><dd className="break-all text-sm font-medium text-slate-800">{getDisplayOrderNumber(order)}</dd></div>
+                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">{t('order_full_id')}</dt><dd className="break-all font-mono text-xs text-slate-700">{order.id}</dd></div>
+                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">{t('order_date_placed')}</dt><dd className="text-sm font-medium text-slate-800">{new Date(order.createdAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</dd></div>
+                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">{t('order_last_updated')}</dt><dd className="text-sm font-medium text-slate-800">{new Date(order.updatedAt || order.createdAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</dd></div>
+                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">{t('order_status_label')}</dt><dd className={cn('text-sm font-semibold', order.status === 'Cancelled' ? 'text-rose-700' : order.status === 'Completed' ? 'text-emerald-700' : 'text-sky-800')}>{getTranslatedStatus(order.status)}</dd></div>
+                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">{t('items')}</dt><dd className="text-sm font-medium text-slate-800">{t('order_item_count_summary').replace('{quantity}', String(order.items?.reduce((sum: number, item: any) => sum + Number(item.quantity || 0), 0) || 0)).replace('{products}', String(order.items?.length || 0))}</dd></div>
+                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">{t('order_payment_method_label')}</dt><dd className="text-sm font-medium text-slate-800">{getTranslatedPaymentMethod(order.paymentMethod)}{order.paymentReceiptUrl && <button onClick={() => setIsReceiptModalOpen(true)} className="ml-2 inline-flex items-center gap-1 text-xs font-medium text-sky-800 hover:underline"><FileText size={13} />{t('view_receipt') || 'View receipt'}</button>}</dd></div>
+                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">{t('order_fulfillment')}</dt><dd className="text-sm font-medium text-slate-800">{getTranslatedDeliveryMode(order.deliveryMode)}</dd></div>
+                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm font-semibold text-slate-700">{t('order_total_amount_label')}</dt><dd className="text-base font-semibold text-slate-900">RM {Number(order.totalAmount || 0).toFixed(2)}</dd></div>
+                {order.notes && <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">{t('order_notes')}</dt><dd className="whitespace-pre-wrap text-sm leading-6 text-slate-800">{order.notes}</dd></div>}
               </dl>
             </div>
 
             <div className="px-5 py-5">
-              <h3 className="mb-2 text-sm font-semibold text-slate-800">Customer & Address</h3>
+              <h3 className="mb-2 text-sm font-semibold text-slate-800">{t('order_customer_address')}</h3>
               <dl className="divide-y divide-slate-100">
-                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">Customer</dt><dd className="text-sm font-medium text-slate-800">{order.customer?.name || 'Customer'}</dd></div>
-                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">Phone</dt><dd className="text-sm font-medium text-slate-800">{order.customer?.phone || 'No phone number'}</dd></div>
-                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">Email</dt><dd className="break-all text-sm font-medium text-slate-800">{order.customer?.email || 'No email address'}</dd></div>
+                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">{t('order_customer')}</dt><dd className="text-sm font-medium text-slate-800">{order.customer?.name || t('order_no_customer')}</dd></div>
+                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">{t('order_phone')}</dt><dd className="text-sm font-medium text-slate-800">{order.customer?.phone || t('order_no_phone')}</dd></div>
+                <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4"><dt className="text-sm text-slate-500">{t('order_email')}</dt><dd className="break-all text-sm font-medium text-slate-800">{order.customer?.email || t('order_no_email')}</dd></div>
                 <div className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4">
                   <dt className="text-sm text-slate-500">{isSelfCollectOrder ? (t('self_collect') || 'Collection') : (t('shipping_address') || 'Shipping address')}</dt>
                   <dd className="text-sm leading-6 text-slate-800">
                     <span>{isSelfCollectOrder ? (t('self_collect') || 'Self Collect') : (order.address || order.customer?.address || (t('no_address_provided') || 'No address provided'))}</span>
-                    {isDeliveryOrder && <button onClick={() => { setEditAddressText(order.address || order.customer?.address || ''); setIsEditAddressModalOpen(true); }} className="ml-2 inline-flex items-center gap-1 text-xs font-medium text-sky-800 hover:underline"><Edit size={13} /> Edit address</button>}
+                    {isDeliveryOrder && <button onClick={() => { setEditAddressText(order.address || order.customer?.address || ''); setIsEditAddressModalOpen(true); }} className="ml-2 inline-flex items-center gap-1 text-xs font-medium text-sky-800 hover:underline"><Edit size={13} /> {t('order_edit_address')}</button>}
                   </dd>
                 </div>
               </dl>
@@ -544,30 +544,30 @@ const OrderDetailsPage = () => {
 
           <div className="border-t border-slate-200">
             <div className="flex items-center justify-between gap-3 px-5 py-4">
-              <h3 className="text-sm font-semibold text-slate-900">Item Summary</h3>
-              <span className="text-xs text-slate-500">{order.items?.length || 0} product lines</span>
+              <h3 className="text-sm font-semibold text-slate-900">{t('order_item_summary')}</h3>
+              <span className="text-xs text-slate-500">{t('order_product_lines').replace('{count}', String(order.items?.length || 0))}</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-left text-sm">
                 <thead className="bg-slate-800 text-xs font-semibold uppercase tracking-wide text-white">
-                  <tr><th className="px-5 py-3">Item Code</th><th className="px-5 py-3">Product</th><th className="px-5 py-3">Type</th><th className="px-5 py-3 text-right">Unit Price</th><th className="px-5 py-3 text-center">Qty</th><th className="px-5 py-3 text-right">Total</th></tr>
+                  <tr><th className="px-5 py-3">{t('order_item_code')}</th><th className="px-5 py-3">{t('order_product')}</th><th className="px-5 py-3">{t('order_type')}</th><th className="px-5 py-3 text-right">{t('order_unit_price')}</th><th className="px-5 py-3 text-center">{t('order_quantity_short')}</th><th className="px-5 py-3 text-right">{t('total')}</th></tr>
                 </thead>
                 <tbody>
                   {order.items?.map((item: any, index: number) => (
                     <tr key={item.id} className={cn('border-t border-slate-300 bg-white', index % 2 === 1 && 'bg-slate-100')}>
                       <td className="px-5 py-4 text-slate-800">{item.code || '—'}</td>
                       <td className="px-5 py-4 font-medium text-slate-900">{language === 'zh' ? item.product?.nameZh || item.nameZh || item.name : language === 'ms' ? item.product?.nameMs || item.nameMs || item.name : item.name}</td>
-                      <td className="px-5 py-4 text-slate-800">{item.variant || 'Single'}</td>
+                      <td className="px-5 py-4 text-slate-800">{item.variant === 'Box' ? t('order_box_variant') : item.variant === 'Bundle' ? t('order_bundle_variant') : t('inventory_single_item')}</td>
                       <td className="px-5 py-4 text-right text-slate-800">RM {Number(item.price || 0).toFixed(2)}</td>
                       <td className="px-5 py-4 text-center text-slate-800">{item.quantity}</td>
                       <td className="px-5 py-4 text-right font-semibold text-slate-900">RM {(Number(item.price || 0) * Number(item.quantity || 0)).toFixed(2)}</td>
                     </tr>
                   ))}
-                  {(!order.items || order.items.length === 0) && <tr><td colSpan={6} className="px-5 py-10 text-center text-sm text-slate-500">No items found for this order.</td></tr>}
+                  {(!order.items || order.items.length === 0) && <tr><td colSpan={6} className="px-5 py-10 text-center text-sm text-slate-500">{t('order_no_items')}</td></tr>}
                 </tbody>
                 <tfoot className="border-t border-slate-300 bg-slate-50">
-                  <tr><td colSpan={5} className="px-5 py-3 text-right text-sm text-slate-500">Subtotal</td><td className="px-5 py-3 text-right text-sm font-medium text-slate-800">RM {Number(order.totalAmount || 0).toFixed(2)}</td></tr>
-                  <tr><td colSpan={5} className="px-5 pb-4 text-right text-sm font-semibold text-slate-900">{t('total_amount') || 'Grand Total'}</td><td className="px-5 pb-4 text-right text-base font-semibold text-slate-900">RM {Number(order.totalAmount || 0).toFixed(2)}</td></tr>
+                  <tr><td colSpan={5} className="px-5 py-3 text-right text-sm text-slate-500">{t('order_subtotal')}</td><td className="px-5 py-3 text-right text-sm font-medium text-slate-800">RM {Number(order.totalAmount || 0).toFixed(2)}</td></tr>
+                  <tr><td colSpan={5} className="px-5 pb-4 text-right text-sm font-semibold text-slate-900">{t('order_grand_total')}</td><td className="px-5 pb-4 text-right text-base font-semibold text-slate-900">RM {Number(order.totalAmount || 0).toFixed(2)}</td></tr>
                 </tfoot>
               </table>
             </div>
@@ -576,8 +576,8 @@ const OrderDetailsPage = () => {
         <section className="border border-slate-200 bg-white shadow-sm">
           <div className="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-base font-semibold text-slate-900">Order Status</h2>
-              <p className="mt-1 text-sm text-slate-500">Check the current status or move the order to its next available stage.</p>
+              <h2 className="text-base font-semibold text-slate-900">{t('order_status_label')}</h2>
+              <p className="mt-1 text-sm text-slate-500">{t('order_status_help')}</p>
             </div>
             <span className={cn(
               'inline-flex w-fit border px-3 py-1.5 text-sm font-semibold',
@@ -590,7 +590,7 @@ const OrderDetailsPage = () => {
           </div>
           <div className="flex flex-col gap-3 p-5 md:flex-row md:items-end">
             <div className="min-w-0 flex-1">
-              <label htmlFor="order-status-select" className="mb-1.5 block text-xs font-semibold text-slate-600">Update status</label>
+              <label htmlFor="order-status-select" className="mb-1.5 block text-xs font-semibold text-slate-600">{t('order_update_status')}</label>
               <select
                 id="order-status-select"
                 value={newStatus}
@@ -604,13 +604,13 @@ const OrderDetailsPage = () => {
                   </option>
                 ))}
               </select>
-              {(order.status === 'Cancelled' || order.status === 'Completed') && <p className="mt-1.5 text-xs text-slate-500">This order is in a final status and can no longer be changed.</p>}
+              {(order.status === 'Cancelled' || order.status === 'Completed') && <p className="mt-1.5 text-xs text-slate-500">{t('order_final_status_note')}</p>}
             </div>
             <button
               onClick={handleUpdateStatus}
               disabled={isUpdating || newStatus === order.status || order.status === 'Cancelled' || order.status === 'Completed'}
               className="inline-flex items-center justify-center gap-2 border border-sky-800 bg-sky-800 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-900 disabled:cursor-not-allowed disabled:opacity-50"
-            >{isUpdating ? <Activity size={15} className="animate-spin" /> : <Save size={15} />}{isUpdating ? (t('saving') || 'Saving...') : (t('save_changes') || 'Save status')}</button>
+            >{isUpdating ? <Activity size={15} className="animate-spin" /> : <Save size={15} />}{isUpdating ? (t('saving') || 'Saving...') : t('order_save_status')}</button>
           </div>
         </section>
 
@@ -618,9 +618,9 @@ const OrderDetailsPage = () => {
           <div className="flex min-w-0 items-start gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center border border-sky-100 bg-sky-50 text-sky-800"><Mail size={18} /></span>
             <div className="min-w-0">
-              <h2 className="text-sm font-semibold text-slate-900">Customer Email</h2>
-              <p className="mt-1 break-all text-sm text-slate-600">{order.customer?.email || 'No email address available'}</p>
-              <p className="mt-1 text-xs text-slate-500">Write a custom message or resend the order confirmation.</p>
+              <h2 className="text-sm font-semibold text-slate-900">{t('order_customer_email')}</h2>
+              <p className="mt-1 break-all text-sm text-slate-600">{order.customer?.email || t('order_no_email_available')}</p>
+              <p className="mt-1 text-xs text-slate-500">{t('order_email_instructions')}</p>
             </div>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -628,7 +628,7 @@ const OrderDetailsPage = () => {
               onClick={openEmailComposer}
               disabled={!order.customer?.email}
               className="inline-flex items-center justify-center gap-2 border border-sky-800 bg-sky-800 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-900 disabled:cursor-not-allowed disabled:opacity-50"
-            ><Mail size={15} /> Open Email Template</button>
+            ><Mail size={15} /> {t('order_open_email_template')}</button>
             <button
               onClick={handleResendEmail}
               disabled={isResendingEmail || !order.customer?.email}
@@ -652,30 +652,30 @@ const OrderDetailsPage = () => {
             >
               <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Write to customer</h2>
-                  <p className="mt-0.5 text-sm text-slate-500">An order update template is ready for you to edit.</p>
+                  <h2 className="text-lg font-semibold text-slate-900">{t('order_write_customer')}</h2>
+                  <p className="mt-0.5 text-sm text-slate-500">{t('order_email_template_ready')}</p>
                 </div>
-                <button onClick={() => setIsEmailComposerOpen(false)} className="flex h-9 w-9 items-center justify-center border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800" aria-label="Close email composer"><X size={18} /></button>
+                <button onClick={() => setIsEmailComposerOpen(false)} className="flex h-9 w-9 items-center justify-center border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800" aria-label={t('order_close_email_composer')}><X size={18} /></button>
               </div>
               <div className="space-y-4 p-6">
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-slate-600">To</label>
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-600">{t('order_to')}</label>
                   <div className="border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">{order.customer?.email}</div>
                 </div>
                 <div>
-                  <label htmlFor="order-email-subject" className="mb-1.5 block text-xs font-semibold text-slate-600">Subject</label>
+                  <label htmlFor="order-email-subject" className="mb-1.5 block text-xs font-semibold text-slate-600">{t('order_subject')}</label>
                   <input id="order-email-subject" value={emailSubject} onChange={(event) => setEmailSubject(event.target.value)} className="w-full border border-slate-300 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-sky-700 focus:ring-1 focus:ring-sky-700" />
                 </div>
                 <div>
-                  <label htmlFor="order-email-body" className="mb-1.5 block text-xs font-semibold text-slate-600">Message</label>
+                  <label htmlFor="order-email-body" className="mb-1.5 block text-xs font-semibold text-slate-600">{t('order_message')}</label>
                   <textarea id="order-email-body" value={emailBody} onChange={(event) => setEmailBody(event.target.value)} rows={8} className="w-full resize-y border border-slate-300 px-3 py-3 text-sm leading-6 text-slate-800 outline-none focus:border-sky-700 focus:ring-1 focus:ring-sky-700" />
-                  <p className="mt-1.5 text-xs text-slate-500">The order number and date are included automatically in the email.</p>
+                  <p className="mt-1.5 text-xs text-slate-500">{t('order_email_auto_details')}</p>
                 </div>
               </div>
               <div className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 px-6 py-4">
-                <button onClick={() => setIsEmailComposerOpen(false)} className="border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">Cancel</button>
+                <button onClick={() => setIsEmailComposerOpen(false)} className="border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">{t('cancel')}</button>
                 <button onClick={handleSendEmail} disabled={isSendingEmail || !emailSubject.trim() || !emailBody.trim()} className="inline-flex items-center gap-2 border border-sky-800 bg-sky-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-900 disabled:cursor-not-allowed disabled:opacity-50">
-                  {isSendingEmail ? <Activity size={15} className="animate-spin" /> : <Mail size={15} />}{isSendingEmail ? (t('sending') || 'Sending...') : 'Send Email'}
+                  {isSendingEmail ? <Activity size={15} className="animate-spin" /> : <Mail size={15} />}{isSendingEmail ? (t('sending') || 'Sending...') : t('order_send_email')}
                 </button>
               </div>
             </motion.div>
@@ -708,7 +708,7 @@ const OrderDetailsPage = () => {
             >
               <img 
                 src={order.paymentReceiptUrl} 
-                alt="Payment Receipt" 
+                alt={t('order_payment_receipt_alt')} 
                 className="w-full h-auto max-h-[85vh] object-contain"
               />
             </motion.div>

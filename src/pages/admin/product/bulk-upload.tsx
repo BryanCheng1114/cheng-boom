@@ -320,17 +320,17 @@ export default function BulkUploadPage() {
   const importFullyFailed = Boolean(importResult && importResult.success === 0 && hasImportFailures);
 
   return (
-    <AdminLayout title="Bulk Upload" hideTitle>
+    <AdminLayout title={t('bulk_upload')} hideTitle>
       <div className="w-full space-y-6 pb-8">
         <header className="space-y-1">
           <div className="flex flex-wrap items-baseline gap-x-2">
             <h1 className="text-[26px] font-normal leading-tight tracking-tight text-slate-800">{t('bulk_upload') || 'Bulk Upload'}</h1>
-            <span className="text-xs font-normal text-slate-700">[ Import Screen ]</span>
+            <span className="text-xs font-normal text-slate-700">[ {t('inventory_import_screen')} ]</span>
           </div>
-          <p className="text-xs text-slate-600">Inventory Information /</p>
+          <p className="text-xs text-slate-600">{t('inventory_list')} /</p>
         </header>
         <Link href="/admin/product" className="inline-flex items-center gap-2 border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50">
-          <ArrowLeft size={16} />Back to Inventory
+          <ArrowLeft size={16} />{t('product_back_to_inventory')}
         </Link>
 
         {importResult ? (
@@ -345,13 +345,13 @@ export default function BulkUploadPage() {
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-slate-900">
-                  {importFullyFailed ? 'Import Failed' : hasImportFailures ? 'Import Completed with Issues' : (t('import_completed') || 'Import Completed')}
+                  {importFullyFailed ? t('inventory_import_failed') : hasImportFailures ? t('inventory_import_issues') : (t('import_completed') || 'Import Completed')}
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
                   {importFullyFailed
-                    ? 'No products were imported. Review the problem details below, correct the file, and try again.'
+                    ? t('inventory_import_failed_desc')
                     : hasImportFailures
-                      ? `${importResult.success} product${importResult.success === 1 ? '' : 's'} imported successfully; ${importResult.failed} failed. Review the details below.`
+                      ? t('inventory_import_partial_desc').replace('{success}', String(importResult.success)).replace('{failed}', String(importResult.failed))
                       : (t('bulk_upload_processed') || 'Your bulk upload has been processed successfully.')}
                 </p>
               </div>
@@ -421,7 +421,7 @@ export default function BulkUploadPage() {
                 style={{ width: `${Math.max(5, progress)}%` }}
               />
             </div>
-            <p className="text-xs font-medium text-slate-500">Processing… {progress}%</p>
+            <p className="text-xs font-medium text-slate-500">{t('inventory_processing')} {progress}%</p>
           </motion.div>
         ) : (
           <>
@@ -429,18 +429,18 @@ export default function BulkUploadPage() {
             {!previewProducts.length && (
               <section className="flex min-h-[360px] flex-col border border-slate-200 bg-white px-5 py-5 shadow-sm md:px-8">
                 <div className="flex items-center gap-4 border-b border-slate-200 pb-4 text-xs text-slate-500">
-                  <span><span className="text-rose-500">*</span> Represented as a mandatory field</span>
+                  <span><span className="text-rose-500">*</span> {t('inventory_required_field')}</span>
                   <span className="text-slate-300">|</span>
-                  <span>Upload a ZIP package with the Excel sheet and product images</span>
+                  <span>{t('inventory_zip_help')}</span>
                 </div>
 
                 <div className="mt-5 max-w-3xl">
                   <label className="mb-2 block text-sm font-medium text-slate-700">
-                    File Source <span className="text-rose-500">*</span>
+                    {t('inventory_file_source')} <span className="text-rose-500">*</span>
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto]">
                     <div className="flex min-h-10 min-w-0 items-center border border-slate-300 bg-white px-3 text-sm text-slate-600">
-                      <span className="truncate">{file ? file.name : 'Select file...'}</span>
+                      <span className="truncate">{file ? file.name : t('inventory_select_file')}</span>
                     </div>
                     <button
                       type="button"
@@ -448,7 +448,7 @@ export default function BulkUploadPage() {
                       disabled={isLoading}
                       className="inline-flex min-h-10 items-center justify-center gap-2 border border-emerald-600 bg-emerald-600 px-4 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
                     >
-                      <FolderOpen size={16} />Browse...
+                      <FolderOpen size={16} />{t('inventory_browse')}
                     </button>
                     <input type="file" accept=".zip" ref={fileInputRef} onChange={handleFilePick} className="hidden" />
                   </div>
@@ -494,7 +494,7 @@ export default function BulkUploadPage() {
                       <div className="border border-sky-200 bg-sky-50 p-2 text-sky-700"><CheckCircle size={18} /></div>
                       <div>
                         <h2 className="text-lg font-semibold text-slate-800">{t('preview_validation_title') || 'Preview & Validation'}</h2>
-                        <p className="mt-1 text-xs text-slate-500">Review the imported products and resolve any issues before confirming.</p>
+                        <p className="mt-1 text-xs text-slate-500">{t('inventory_preview_help')}</p>
                       </div>
                     </div>
                     <button 
@@ -507,15 +507,15 @@ export default function BulkUploadPage() {
 
                   <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div className="border border-slate-200 bg-slate-50 px-4 py-3">
-                      <p className="text-xs text-slate-500">Rows found</p>
+                      <p className="text-xs text-slate-500">{t('inventory_rows_found')}</p>
                       <p className="mt-1 text-xl font-semibold text-slate-900">{previewProducts.length}</p>
                     </div>
                     <div className="border border-slate-200 bg-slate-50 px-4 py-3">
-                      <p className="text-xs text-slate-500">Rows passing checks</p>
+                      <p className="text-xs text-slate-500">{t('inventory_rows_valid')}</p>
                       <p className="mt-1 text-xl font-semibold text-sky-800">{previewProducts.filter(p => p.hasImage && p.name && p.code && p.category && p.description && p.stock !== undefined && p.sellerAPrice !== undefined && p.sellerBPrice !== undefined).length}</p>
                     </div>
                     <div className={`border px-4 py-3 ${validationErrors.length ? 'border-rose-200 bg-rose-50' : 'border-emerald-200 bg-emerald-50'}`}>
-                      <p className={`text-xs ${validationErrors.length ? 'text-rose-700' : 'text-emerald-700'}`}>Validation issues</p>
+                      <p className={`text-xs ${validationErrors.length ? 'text-rose-700' : 'text-emerald-700'}`}>{t('inventory_validation_issues')}</p>
                       <p className={`mt-1 text-xl font-semibold ${validationErrors.length ? 'text-rose-800' : 'text-emerald-800'}`}>{validationErrors.length}</p>
                     </div>
                   </div>
@@ -524,7 +524,7 @@ export default function BulkUploadPage() {
                     <div className="mb-6 border border-rose-200 bg-rose-50 p-4">
                       <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-rose-800">
                         <AlertTriangle size={16} /> 
-                        {t('found') || 'Found'} {validationErrors.length} {t('issues') || `Issue${validationErrors.length > 1 ? 's' : ''}`} — the entire file must pass validation before import.
+                        {t('inventory_import_issues_block').replace('{count}', String(validationErrors.length))}
                       </h3>
                       <ul className="max-h-36 space-y-1.5 overflow-y-auto pr-4 text-xs text-rose-700">
                         {validationErrors.map((err, i) => (
@@ -545,8 +545,8 @@ export default function BulkUploadPage() {
                           <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">{t('product_name_en') || 'Name (EN)'}</th>
                           <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">{t('category') || 'Category'}</th>
                           <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">{t('stock') || 'Stock'}</th>
-                          <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">Seller A</th>
-                          <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">Seller B</th>
+                          <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">{t('inventory_seller_a')}</th>
+                          <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">{t('inventory_seller_b')}</th>
                           <th className="border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-700">{t('status') || 'Status'}</th>
                         </tr>
                       </thead>
@@ -558,7 +558,7 @@ export default function BulkUploadPage() {
                               {p.hasImage && previewImages[p.imageFilename] ? (
                                 <img src={previewImages[p.imageFilename].url} alt={p.name} className="h-10 w-10 border border-slate-200 object-cover" />
                               ) : (
-                                <div className="flex h-10 w-10 items-center justify-center border border-rose-200 bg-rose-50 text-rose-600" title="Image missing">
+                                <div className="flex h-10 w-10 items-center justify-center border border-rose-200 bg-rose-50 text-rose-600" title={t('inventory_missing_image')}>
                                   <X size={14} />
                                 </div>
                               )}
