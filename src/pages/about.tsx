@@ -13,7 +13,7 @@ export default function About() {
       </Head>
       <MobilePageTopBar title={t.nav.aboutUs || 'About Us'} locale={locale} />
       
-      <div className="with-mobile-page-topbar bg-white min-h-screen">
+      <div className="with-mobile-page-topbar min-h-screen bg-white pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-0">
         
         {/* ── HERO SECTION ───────────────────────────────────── */}
         <section className="relative w-full h-[50vh] md:h-[65vh] flex items-center bg-[#F8F9FA] overflow-hidden">

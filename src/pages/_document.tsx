@@ -5,7 +5,7 @@ export default function Document() {
     <Html lang="en" className="dark">
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <meta name="theme-color" content="#d52b20" />
+        <meta name="theme-color" content="#ffffff" />
         {/* Google Fonts must be added in _document, not _app */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

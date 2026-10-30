@@ -716,7 +716,7 @@ export default function ProfilePage() {
   <div className="block md:hidden pb-10">
     <form onSubmit={handleUpdateProfile} className="flex flex-col">
       {/* Mobile Header */}
-      <div className="flex items-center gap-4 mb-6 pt-4">
+      <div className="flex items-center gap-4 mb-6 pt-4" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
         <button type="button" onClick={() => {
           if (user) {
             setEditForm({
@@ -1010,7 +1010,7 @@ export default function ProfilePage() {
   <div className="block md:hidden pb-10">
     <form onSubmit={handleChangePassword} className="flex flex-col">
       {/* Mobile Header */}
-      <div className="flex items-center gap-4 mb-6 pt-4">
+      <div className="flex items-center gap-4 mb-6 pt-4" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
         <button type="button" onClick={() => {
           setPasswordForm({ newPassword: '', confirmPassword: '' });
           setShowNewPassword(false);
@@ -1130,7 +1130,7 @@ export default function ProfilePage() {
     style={{ background: 'linear-gradient(145deg, #e23a2b 0%, #d52b20 52%, #b51f26 100%)' }}
   >
  {/* Light Header Area */}
-  <div className="flex flex-col items-center pt-8 pb-10 px-6 relative">
+  <div className="flex flex-col items-center pb-10 px-6 relative" style={{ paddingTop: 'calc(2rem + env(safe-area-inset-top, 0px))' }}>
  {/* Avatar */}
   <div className="w-[88px] h-[88px] bg-white/15 rounded-full flex items-center justify-center text-4xl font-bold text-white mb-3 border-[3px] border-white/80 ring-2 ring-white/30 shadow-lg">
  {user.name.charAt(0).toUpperCase()}
@@ -1405,7 +1405,7 @@ export default function ProfilePage() {
   <div className="block md:hidden pb-10">
     <div className="flex flex-col">
       {/* Mobile Header */}
-      <div className="flex items-center gap-4 mb-6 pt-4">
+      <div className="flex items-center gap-4 mb-6 pt-4" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
         <button type="button" onClick={() => setActiveTab('')} className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center text-zinc-900 shadow-[0_2px_10px_rgba(220,38,38,0.12)] border border-red-100 shrink-0">
           <ArrowLeft size={20} />
         </button>

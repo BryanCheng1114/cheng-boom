@@ -216,7 +216,7 @@ export default function Cart() {
 
   if (items.length === 0 && checkoutStep === 1) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center pb-[calc(122px+env(safe-area-inset-bottom))] pt-14 md:pb-0 md:pt-0">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center pb-[calc(122px+env(safe-area-inset-bottom))] pt-[calc(56px+env(safe-area-inset-top,0px))] md:pb-0 md:pt-0">
         {cartTopBar}
         <div className="max-w-md mx-auto px-4 text-center flex flex-col justify-center items-center">
           <div className="mb-6 sm:mb-8 w-24 h-24 sm:w-28 sm:h-28 bg-zinc-200 rounded-full flex items-center justify-center text-white shadow-inner">
@@ -268,7 +268,7 @@ export default function Cart() {
   const totalItemSavings = totalOriginalPrice - baseTotalPrice;
 
   return (
-    <div className="min-h-screen bg-white pt-14 md:pt-0">
+    <div className="min-h-screen bg-white pt-[calc(56px+env(safe-area-inset-top,0px))] md:pt-0">
       <Head>
         <title>{`${t.cart.title} - Cheng-BOOM`}</title>
       </Head>
