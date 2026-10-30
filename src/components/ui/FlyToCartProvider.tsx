@@ -24,7 +24,8 @@ export function FlyToCartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const flyToCart = useCallback((imageUrl: string, sourceElement: HTMLElement) => {
-    const targetElement = document.getElementById('navbar-cart-btn');
+    const isMobile = window.matchMedia('(max-width: 767px)').matches;
+    const targetElement = document.getElementById(isMobile ? 'mobile-nav-cart-btn' : 'navbar-cart-btn');
     if (!targetElement) return;
 
     const sourceRect = sourceElement.getBoundingClientRect();
@@ -66,8 +67,8 @@ export function FlyToCartProvider({ children }: { children: React.ReactNode }) {
                 zIndex: 100,
               }}
               animate={{
-                top: item.targetRect.top + 10,
-                left: item.targetRect.left + 10,
+                top: item.targetRect.top + item.targetRect.height / 2 - 10,
+                left: item.targetRect.left + item.targetRect.width / 2 - 10,
                 width: 20,
                 height: 20,
                 opacity: 0,

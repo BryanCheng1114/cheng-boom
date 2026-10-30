@@ -5,6 +5,7 @@ import { ShieldAlert, AlertTriangle, ShieldCheck, Users, X, Eye } from 'lucide-r
 import { useState } from 'react';
 
 import { useTranslation } from '../hooks/useTranslation';
+import { MobilePageTopBar } from '../components/layout/MobilePageTopBar';
 
 const getSafetyBlocks = (locale: string) => [
   {
@@ -68,13 +69,13 @@ export default function Safety() {
         <title>{`${t.nav.safety || 'Safety Guide'} - Cheng-BOOM`}</title>
         <meta name="description" content="Essential fireworks safety rules and guidelines from Cheng-BOOM Malaysia." />
       </Head>
+      <MobilePageTopBar title={t.nav.safetyGuide || (locale === 'zh' ? '安全指南' : locale === 'ms' ? 'Panduan Keselamatan' : 'Safety Guide')} locale={locale} />
 
-      <div className="bg-white min-h-screen pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-0">
+      <div className="with-mobile-page-topbar bg-white min-h-screen pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-0">
 
         {/* ── HERO BANNER ─────────────────────────────────────────── */}
         <section
-          className="relative flex flex-col items-center justify-center pt-24 pb-12 md:pt-32 md:pb-16 bg-cover sm:bg-[length:100%_auto] bg-top bg-no-repeat border-b border-zinc-100 bg-[#8b1517]"
-          style={{ backgroundImage: 'url(/shop2.png)' }}
+          className="relative hidden md:flex min-h-[252px] flex-col items-center justify-center border-b border-zinc-100 bg-gradient-to-br from-[#e23a2b] via-[#d52b20] to-[#b51f26] bg-cover sm:bg-[length:100%_auto] bg-top bg-no-repeat pt-12 pb-8"
         >
           <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/80 mb-6 drop-shadow-sm">
@@ -92,7 +93,7 @@ export default function Safety() {
 
 
         {/* ── SAFETY BLOCKS ──────────────────────────────────────── */}
-        <section className="py-16 md:py-24">
+        <section className="pt-3 pb-16 md:py-24">
           <div className="max-w-6xl mx-auto px-6 sm:px-8 flex flex-col gap-16 md:gap-24">
 
             {safetyBlocks.map((block, i) => {

@@ -199,9 +199,25 @@ export default function Cart() {
 
   if (!mounted) return null; // Prevent hydration mismatch
 
+  const cartTitle = locale === 'zh' ? '购物车' : locale === 'ms' ? 'Troli' : 'Cart';
+  const cartTopBar = (
+    <div
+      className="fixed inset-x-0 top-0 z-[120] flex w-full items-center justify-center px-4 text-center text-white shadow-md md:hidden"
+      style={{
+        height: 'calc(56px + env(safe-area-inset-top, 0px))',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        boxSizing: 'border-box',
+        background: 'linear-gradient(145deg, #e23a2b 0%, #d52b20 52%, #b51f26 100%)',
+      }}
+    >
+      <span className="truncate text-base font-semibold tracking-wide">{cartTitle} ({totalItems})</span>
+    </div>
+  );
+
   if (items.length === 0 && checkoutStep === 1) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center -mt-16 pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-0">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center pb-[calc(122px+env(safe-area-inset-bottom))] pt-14 md:pb-0 md:pt-0">
+        {cartTopBar}
         <div className="max-w-md mx-auto px-4 text-center flex flex-col justify-center items-center">
           <div className="mb-6 sm:mb-8 w-24 h-24 sm:w-28 sm:h-28 bg-zinc-200 rounded-full flex items-center justify-center text-white shadow-inner">
             <ShoppingCart className="w-10 h-10 sm:w-12 sm:h-12" strokeWidth={2} />
@@ -252,19 +268,19 @@ export default function Cart() {
   const totalItemSavings = totalOriginalPrice - baseTotalPrice;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pt-14 md:pt-0">
       <Head>
         <title>{`${t.cart.title} - Cheng-BOOM`}</title>
       </Head>
+      {cartTopBar}
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-12 relative">
         <div className="flex flex-col items-center justify-center mb-6 sm:mb-10 w-full">
-          <h1 className="text-[24px] sm:text-[40px] font-medium text-zinc-900 tracking-tight mb-5 sm:mb-12">
+          <h1 className="mb-5 text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl md:mb-6 md:text-3xl lg:text-4xl">
             {locale === 'zh' ? '您的购物车' : locale === 'ms' ? 'Troli Beli-belah Anda' : 'Your Shopping Cart'}
           </h1>
-          
-          <div className="relative mx-auto mt-2 mb-8 flex w-full max-w-[420px] items-start justify-between px-1 sm:px-4 z-10">
+          <div className="relative z-10 mx-auto mb-6 flex w-full max-w-[420px] items-start justify-between px-1 sm:px-4 md:mb-8 md:max-w-[560px]">
             {/* Background Line */}
-            <div className="absolute left-[12%] right-[12%] top-[20px] sm:top-[24px] h-[2px] bg-zinc-200 -z-10"></div>
+            <div className="absolute left-[12%] right-[12%] top-[14px] h-px bg-zinc-200 -z-10 sm:top-4 md:top-6"></div>
 
             {[
               { step: 1, label: locale === 'zh' ? '购物车' : locale === 'ms' ? 'Troli' : 'Cart', icon: Receipt },
@@ -272,13 +288,13 @@ export default function Cart() {
               { step: 3, label: locale === 'zh' ? '付款' : locale === 'ms' ? 'Bayaran' : 'Payment', icon: CreditCard },
               { step: 4, label: locale === 'zh' ? '完成' : locale === 'ms' ? 'Selesai' : 'Done', icon: Check },
             ].map(({ step, label, icon: StepIcon }) => (
-              <div key={step} className="z-10 flex w-20 flex-col items-center gap-2 sm:w-24">
-                <div className="flex items-center justify-center bg-white px-2 sm:px-4">
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors duration-300 sm:h-12 sm:w-12 ${checkoutStep >= step ? 'border-yellow-500 bg-yellow-500 text-white' : 'border-zinc-200 bg-zinc-50 text-zinc-400'}`}>
-                    <StepIcon size={20} strokeWidth={2.5} />
+              <div key={step} className="z-10 flex w-14 flex-col items-center gap-1.5 sm:w-20 md:w-24 md:gap-2">
+                <div className="flex items-center justify-center bg-white px-1.5 sm:px-3">
+                  <div className={`flex h-7 w-7 items-center justify-center rounded-full border transition-colors duration-300 sm:h-8 sm:w-8 md:h-12 md:w-12 ${checkoutStep >= step ? 'border-yellow-500 bg-yellow-500 text-white' : 'border-zinc-200 bg-white text-zinc-400'}`}>
+                    <StepIcon size={14} className="h-4 w-4 md:h-5 md:w-5" strokeWidth={2.25} />
                   </div>
                 </div>
-                <span className={`whitespace-nowrap text-center text-[10px] font-medium transition-colors duration-300 sm:text-xs ${checkoutStep >= step ? 'text-zinc-900' : 'text-zinc-400'}`}>{label}</span>
+                <span className={`whitespace-nowrap text-center text-[9px] font-medium transition-colors duration-300 sm:text-[10px] md:text-xs ${checkoutStep >= step ? 'text-zinc-900' : 'text-zinc-400'}`}>{label}</span>
               </div>
             ))}
           </div>
@@ -289,43 +305,52 @@ export default function Cart() {
           <>
           <div className="w-full max-w-6xl mx-auto flex flex-col gap-5 sm:gap-6">
           
-
-
-          {/* Bulk actions */}
-          {items.length > 0 && (
-            <div className="flex items-center justify-between bg-white border-double border-[4px] sm:border-[6px] border-zinc-200/60 rounded-[24px] sm:rounded-[40px] p-3 sm:p-4 sm:px-6 shadow-sm mb-1">
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={toggleAllSelection}
-                  aria-pressed={selectedItemIds.length === items.length && items.length > 0}
-                  className="flex items-center gap-2 text-zinc-600 hover:text-zinc-900 transition-colors focus:outline-none min-h-11"
-                >
-                  {selectedItemIds.length === items.length && items.length > 0 ? (
-                    <CheckSquare size={20} className="text-yellow-600" />
-                  ) : (
-                    <Square size={20} />
-                  )}
-                  <span className="text-[14px] font-bold">
-                    {locale === 'zh' ? '全选' : locale === 'ms' ? 'Pilih Semua' : 'Select All'}
-                  </span>
-                </button>
-                <span className="text-xs text-zinc-400 font-medium ml-2">
-                  ({selectedItemIds.length} {locale === 'zh' ? '已选' : locale === 'ms' ? 'terpilih' : 'selected'})
-                </span>
-              </div>
-              <button 
-                onClick={() => selectedItemIds.length > 0 && setIsBulkDeleteModalOpen(true)}
-                disabled={selectedItemIds.length === 0}
-                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed bg-yellow-50 text-yellow-700 hover:bg-yellow-100"
-              >
-                <Trash2 size={16} />
-                {locale === 'zh' ? '删除' : locale === 'ms' ? 'Padam' : 'Delete Selected'}
-              </button>
-            </div>
-          )}
-
           {/* Cart Items List */}
           <div className="bg-white border-double border-[4px] sm:border-[6px] border-zinc-200/60 rounded-[24px] sm:rounded-[40px] p-2 sm:p-5 shadow-sm flex flex-col mb-10">
+            {items.length > 0 && (
+              <div className="flex items-center gap-0 border-b border-zinc-100 px-3 py-1 sm:px-4">
+                <div className="flex md:hidden shrink-0 justify-center">
+                  <button
+                    type="button"
+                    onClick={toggleAllSelection}
+                    aria-label={locale === 'zh' ? '全选' : locale === 'ms' ? 'Pilih Semua' : 'Select All'}
+                    aria-pressed={selectedItemIds.length === items.length}
+                    className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full text-zinc-400 transition-colors hover:text-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
+                  >
+                    {selectedItemIds.length === items.length ? <CheckSquare size={22} className="text-yellow-600" /> : <Square size={22} />}
+                  </button>
+                </div>
+                <div className="hidden shrink-0 justify-center md:flex">
+                  <button
+                    type="button"
+                    onClick={toggleAllSelection}
+                    aria-label={locale === 'zh' ? '全选' : locale === 'ms' ? 'Pilih Semua' : 'Select All'}
+                    aria-pressed={selectedItemIds.length === items.length}
+                    className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full text-zinc-400 transition-colors hover:text-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
+                  >
+                    {selectedItemIds.length === items.length ? <CheckSquare size={20} className="text-yellow-600" /> : <Square size={20} />}
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={toggleAllSelection}
+                  className="text-[13px] font-semibold text-zinc-700 transition-colors hover:text-zinc-900"
+                >
+                  {locale === 'zh' ? '全选' : locale === 'ms' ? 'Pilih Semua' : 'Select All'}
+                </button>
+                <span className="ml-3 text-[10px] font-medium text-zinc-400">
+                  ({selectedItemIds.length} {locale === 'zh' ? '已选' : locale === 'ms' ? 'terpilih' : 'selected'})
+                </span>
+                <button
+                  onClick={() => selectedItemIds.length > 0 && setIsBulkDeleteModalOpen(true)}
+                  disabled={selectedItemIds.length === 0}
+                  className="ml-auto hidden items-center gap-2 rounded-xl bg-yellow-50 px-4 py-2 text-sm font-bold text-yellow-700 transition-colors hover:bg-yellow-100 disabled:cursor-not-allowed disabled:opacity-30 md:flex"
+                >
+                  <Trash2 size={16} />
+                  {locale === 'zh' ? '删除' : locale === 'ms' ? 'Padam' : 'Delete Selected'}
+                </button>
+              </div>
+            )}
             {items.map((item, index) => (
               <div 
                 key={item.cartItemId} 

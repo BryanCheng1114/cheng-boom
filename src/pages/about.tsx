@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Image from 'next/image';
 import { useTranslation } from '../hooks/useTranslation';
+import { MobilePageTopBar } from '../components/layout/MobilePageTopBar';
 
 export default function About() {
   const { t, locale } = useTranslation();
@@ -10,8 +11,9 @@ export default function About() {
       <Head>
         <title>{`${t.nav.aboutUs} - Cheng-BOOM`}</title>
       </Head>
+      <MobilePageTopBar title={t.nav.aboutUs || 'About Us'} locale={locale} />
       
-      <div className="bg-white min-h-screen">
+      <div className="with-mobile-page-topbar bg-white min-h-screen">
         
         {/* ── HERO SECTION ───────────────────────────────────── */}
         <section className="relative w-full h-[50vh] md:h-[65vh] flex items-center bg-[#F8F9FA] overflow-hidden">

@@ -1,100 +1,54 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '../../../lib/prisma';
 import nodemailer from 'nodemailer';
-import crypto from 'crypto';
+import { prisma } from '../../../lib/prisma';
+
+const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char] || char);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
+  if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return res.status(405).json({ message: 'Method not allowed' }); }
+
+  const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ message: 'Please enter a valid email address.' });
 
   try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ message: 'Email is required' });
-    }
-
-    // Check if customer exists
-    const customer = await (prisma as any).customer.findUnique({
-      where: { email },
+    const seller = await prisma.customer.findFirst({
+      where: { email, role: 'Seller' },
+      select: { id: true, name: true, email: true, phone: true, isActive: true },
     });
 
-    if (!customer) {
-      return res.status(404).json({ message: 'No account found with this email address.' });
+    // Return the same confirmation for unknown addresses to avoid disclosing account membership.
+    if (!seller) return res.status(200).json({ message: 'If this is an active seller account, the admin has been notified.' });
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.error('Seller password assistance email is not configured.');
+      return res.status(500).json({ message: 'Email service is temporarily unavailable. Please contact the business directly.' });
     }
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-
-    // Update customer with reset token
-    await (prisma as any).customer.update({
-      where: { email },
-      data: {
-        resetToken,
-        resetTokenExpiry,
-      },
-    });
-
-    // Send Email
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      family: 4, // Force IPv4
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS?.replace(/\s+/g, ''),
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    } as any);
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: Number(process.env.SMTP_PORT || 465),
+      secure: (process.env.SMTP_PORT || '465') === '465',
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS.replace(/\s+/g, '') },
+      tls: { rejectUnauthorized: false },
+      ...({ family: 4 } as any),
+    });
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (req.headers.origin ? req.headers.origin : 'http://localhost:3000');
-    const resetLink = `${baseUrl}/reset-password?token=${resetToken}`;
+    const adminEmail = process.env.SMTP_FROM || process.env.SMTP_USER;
+    const safeName = escapeHtml(seller.name);
+    const safeEmail = escapeHtml(seller.email);
+    const safePhone = escapeHtml(seller.phone || 'Not provided');
+    const receivedAt = new Date().toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur', dateStyle: 'medium', timeStyle: 'short' });
+    await transporter.sendMail({
+      from: `"${process.env.SMTP_FROM_NAME || 'Cheng-BOOM'} Seller Support" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+      to: adminEmail,
+      replyTo: seller.email || undefined,
+      subject: `Seller password assistance requested — ${seller.name}`,
+      text: `A seller requested password assistance. Please create a new temporary password and contact them.\n\nName: ${seller.name}\nEmail: ${seller.email}\nPhone: ${seller.phone || 'Not provided'}\nActive account: ${seller.isActive ? 'Yes' : 'No'}\nReceived: ${receivedAt}`,
+      html: `<div style="margin:0;padding:24px 12px;background:#f4f4f5;font-family:Arial,sans-serif;color:#27272a"><div style="max-width:620px;margin:auto;background:#fff;border:1px solid #e4e4e7;border-radius:16px;overflow:hidden"><div style="padding:24px 28px;background:#d92e20;color:#fff"><h1 style="margin:0;font-size:22px">Seller password help</h1><p style="margin:7px 0 0;font-size:13px;color:#ffe4df">Admin action required</p></div><div style="padding:28px"><p style="font-size:15px;line-height:1.6">A seller has confirmed that they forgot their password. Please create a new temporary password and contact them using the details below.</p><table style="width:100%;border-collapse:collapse;font-size:14px"><tr><td style="padding:10px 0;color:#71717a;width:130px">Seller</td><td style="padding:10px 0;font-weight:700">${safeName}</td></tr><tr><td style="padding:10px 0;color:#71717a">Email</td><td style="padding:10px 0"><a href="mailto:${safeEmail}">${safeEmail}</a></td></tr><tr><td style="padding:10px 0;color:#71717a">Phone</td><td style="padding:10px 0">${safePhone}</td></tr><tr><td style="padding:10px 0;color:#71717a">Account status</td><td style="padding:10px 0">${seller.isActive ? 'Active' : 'Inactive'}</td></tr></table><p style="margin:22px 0 0;padding-top:16px;border-top:1px solid #e4e4e7;color:#71717a;font-size:12px">Received ${escapeHtml(receivedAt)} · Do not send a permanent password by email.</p></div></div></div>`,
+    });
 
-    const businessName = process.env.SMTP_FROM_NAME || 'Cheng-BOOM';
-    const mailOptions = {
-      from: `"${businessName}" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-      to: email,
-      subject: 'Password Reset Request',
-      text: `You requested a password reset. Click this link to set a new password: ${resetLink} \n\nThis link will expire in 1 hour.`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 680px; margin: 0 auto; color: #333;">
-          <div style="background-color: #09090b; padding: 24px 28px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: #f59e0b; margin: 0; font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 26px;">${businessName}</h1>
-            <p style="color: #fff; margin: 6px 0 0 0; letter-spacing: 2px; font-size: 11px;">🔒 ACCOUNT SECURITY</p>
-          </div>
-          <div style="padding: 28px; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 8px 8px;">
-            <p style="font-size: 16px; font-weight: bold;">Dear ${customer.name || 'Customer'},</p>
-            <p style="font-size: 14px; line-height: 1.6; color: #444;">
-              We received a request to reset the password for your account. Click the button below to set a new password:
-            </p>
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${resetLink}" style="background-color: #f59e0b; color: #000; padding: 12px 30px; text-decoration: none; border-radius: 9999px; font-weight: bold; display: inline-block;">Reset Password</a>
-            </div>
-            <p style="font-size: 14px; line-height: 1.6; color: #444;">
-              Or copy and paste this link into your browser:<br/>
-              <a href="${resetLink}" style="color: #f59e0b; word-break: break-all;">${resetLink}</a>
-            </p>
-            <p style="font-size: 13px; color: #888; margin-top: 30px;">
-              Date: ${new Date().toLocaleDateString('en-MY')}
-            </p>
-            <p style="font-size: 12px; color: #999; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; text-align: center;">
-              This link will expire in 1 hour. If you did not request this, you can safely ignore this automated message.
-            </p>
-          </div>
-        </div>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    return res.status(200).json({ message: 'Password reset link sent successfully' });
+    return res.status(200).json({ message: 'The admin has been notified and will contact you with a temporary password.' });
   } catch (error) {
-    console.error('Forgot password error:', error);
-    return res.status(500).json({ message: 'Internal server error while processing request' });
+    console.error('Seller password assistance request failed:', error);
+    return res.status(500).json({ message: 'Could not send your request. Please try again later.' });
   }
 }

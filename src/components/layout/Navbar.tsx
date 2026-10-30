@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useCart } from '../cart/CartProvider';
-import { ShoppingCart, ChevronDown, Menu, X, User, ChevronRight, Search, Globe, LogOut } from 'lucide-react';
+import { ShoppingCart, ChevronDown, X, User, ChevronRight, Search, Globe, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { cn } from '../../utils/cn';
@@ -211,63 +211,43 @@ export function Navbar() {
     <>
       <nav 
         className={cn(
-          "top-0 z-[100] w-full transition-all duration-300",
+          "hidden md:block top-0 z-[100] w-full transition-all duration-300",
           "sticky",
           "bg-white text-zinc-900 border-b border-zinc-200 shadow-sm"
         )}
       >
       <div className="mx-auto w-full max-w-[1600px] px-0 md:px-10 lg:px-16">
-        <div className="relative flex h-16 items-center justify-between px-3 md:hidden">
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-zinc-700 transition-colors hover:bg-zinc-100 active:scale-95"
-            aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
-            aria-expanded={mobileOpen}
-          >
-            {mobileOpen ? <X size={21} strokeWidth={1.9} /> : <Menu size={21} strokeWidth={1.9} />}
-          </button>
+        <div className="relative flex h-16 items-center justify-center px-3 md:hidden">
           <Link href="/" className="absolute left-1/2 flex max-w-[48%] -translate-x-1/2 items-center justify-center" aria-label={`${businessName} home`}>
-            {isLoading ? <div className="h-8 w-28" /> : settings?.logoUrl ? (
+            {isLoading ? <div className="h-8 w-28" /> : (settings?.watermarkUrl || settings?.logoUrl) ? (
               /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={settings.logoUrl} alt={businessName} className="max-h-9 max-w-full object-contain" />
+              <img src={settings?.watermarkUrl || settings?.logoUrl || ''} alt={businessName} className="max-h-9 max-w-full object-contain" />
             ) : <span className="truncate text-lg font-semibold tracking-tight text-zinc-900" style={{ fontFamily }}>{businessName}</span>}
           </Link>
-          <div className="ml-auto flex items-center gap-0.5">
-            <button onClick={() => setSearchOpen(true)} className="flex h-11 w-11 items-center justify-center rounded-xl text-zinc-700 transition-all hover:bg-zinc-100 active:scale-95" aria-label="Search">
-              <Search size={22} strokeWidth={1.9} />
-            </button>
-          </div>
         </div>
         <div className="hidden md:block">
-        <div className="flex h-16 items-center justify-between gap-2 sm:gap-4">
+        <div className="relative flex h-16 items-center justify-between gap-2 sm:gap-4">
 
-          {/* ---- Left Side: Brand + Desktop Nav ---- */}
-          <div className="flex flex-1 justify-start items-center h-full gap-8 lg:gap-14">
-            
-            {/* Brand */}
-            <Link href="/" className="flex shrink-0 items-center cursor-pointer" aria-label={`${businessName} home`}>
-              {isLoading ? (
-                <div className="w-[120px] h-[32px] sm:h-[40px]" />
-              ) : settings?.logoUrl ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img 
-                  src={settings.logoUrl} 
-                  alt={businessName} 
-                  className="w-auto h-auto max-h-[38px] sm:max-h-[42px] max-w-[190px] object-contain"
-                />
-              ) : (
-                <span
-                  className={cn(
-                    "block whitespace-nowrap text-[22px] sm:text-[26px] font-medium leading-none tracking-tight pr-2",
-                    isTransparent ? "text-white" : "text-zinc-900"
-                  )}
-                  style={{ fontFamily }}
-                  title={businessName}
-                >
-                  {businessName}
-                </span>
-              )}
-            </Link>
+          {/* Centered Desktop Brand */}
+          <Link href="/" className="absolute left-1/2 top-1/2 z-10 flex max-w-[180px] -translate-x-1/2 -translate-y-1/2 items-center justify-center cursor-pointer" aria-label={`${businessName} home`}>
+            {isLoading ? (
+              <div className="h-[32px] w-[120px]" />
+            ) : (settings?.watermarkUrl || settings?.logoUrl) ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={settings?.watermarkUrl || settings?.logoUrl || ''}
+                alt={businessName}
+                className="h-auto max-h-[38px] w-auto max-w-[180px] object-contain"
+              />
+            ) : (
+              <span className="block max-w-[180px] truncate whitespace-nowrap text-[22px] font-medium leading-none tracking-tight text-zinc-900" style={{ fontFamily }} title={businessName}>
+                {businessName}
+              </span>
+            )}
+          </Link>
+
+          {/* ---- Left Side: Desktop Nav ---- */}
+          <div className="flex flex-1 justify-start items-center h-full">
 
             {/* Desktop Nav */}
             <div className="hidden md:flex shrink-0 items-center gap-6 lg:gap-8 h-full">
@@ -302,7 +282,7 @@ export function Navbar() {
               
               {/* Dropdown Mega Menu (Full Width) */}
               <div className={cn(
-                "absolute top-[63px] left-0 w-full transition-all duration-300",
+                "fixed inset-x-0 top-16 w-screen transition-all duration-300",
                 isShopHovered 
                   ? "visible opacity-100" 
                   : "invisible opacity-0 group-hover/shop:visible group-hover/shop:opacity-100"
@@ -313,8 +293,8 @@ export function Navbar() {
                     ? "bg-zinc-950/95 backdrop-blur-md border-b border-white/10 shadow-2xl"
                     : "bg-white border-b border-zinc-200 shadow-xl"
                 )}>
-                  <div className="mx-auto w-full max-w-[1400px] overflow-x-auto scrollbar-hide px-4 py-6">
-                    <div className="flex items-start justify-center gap-6 sm:gap-8 lg:gap-12 flex-nowrap min-w-max px-2">
+                  <div className="w-full overflow-x-auto scrollbar-hide px-6 py-6 lg:px-10">
+                    <div className="flex min-w-full flex-nowrap items-start justify-between gap-6 px-2">
                       {categories.map((category) => {
                         const key = category.code || category.key || category.name.toLowerCase().replace(/\s+/g, '');
                         
@@ -394,18 +374,6 @@ export function Navbar() {
           {/* ---- Right Actions ---- */}
           <div className="flex flex-1 justify-end items-center gap-1 sm:gap-3 h-full">
 
-            {/* Search Icon */}
-            <button
-              onClick={() => setSearchOpen(true)}
-              className={cn(
-                "flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full transition-all duration-300 group",
-                isTransparent ? "text-white/82 hover:bg-white/10 hover:text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-              )}
-              aria-label="Search"
-            >
-              <Search strokeWidth={1.5} className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" />
-            </button>
-
             {/* Cart */}
             <Link
               id="navbar-cart-btn"
@@ -413,7 +381,7 @@ export function Navbar() {
               className={cn(
                 "relative flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full transition-all duration-300 group",
                 router.pathname === '/cart'
-                  ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-100 hover:text-yellow-800"
+                  ? "bg-zinc-100 text-zinc-900 hover:bg-zinc-100 hover:text-zinc-900"
                   : isTransparent ? "text-white/82 hover:bg-white/10 hover:text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
               )}
               aria-label="Cart"

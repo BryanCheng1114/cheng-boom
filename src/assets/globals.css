@@ -464,3 +464,8 @@ html {
   line-height: 1.25;
 }
 
+body.product-image-viewer-open .mobile-navigation,
+body.product-image-viewer-open .product-detail-topbar {
+  display: none !important;
+}
+

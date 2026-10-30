@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/router';
 import { useState, useRef, useEffect } from 'react';
 import { prisma } from '../../lib/prisma';
@@ -42,6 +43,24 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   const [isCopied, setIsCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'description' | 'video'>('description');
   const [pricingGroup, setPricingGroup] = useState<'A' | 'B'>('A');
+
+  useEffect(() => {
+    if (!isViewerOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('product-image-viewer-open');
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsViewerOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.classList.remove('product-image-viewer-open');
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [isViewerOpen]);
 
   useEffect(() => {
     const syncPricingGroup = () => {
@@ -309,7 +328,31 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
         <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : ''} />
         <meta property="og:type" content="product" />
       </Head>
-      <div className="min-h-screen bg-white pt-0 md:pt-6">
+      <div className="min-h-screen bg-white pt-[calc(56px+env(safe-area-inset-top,0px))] md:pt-0">
+        <div
+          className="product-detail-topbar fixed inset-x-0 top-0 z-[120] flex items-center px-4 pb-3 text-white shadow-md md:hidden"
+          style={{
+            height: 'calc(56px + env(safe-area-inset-top, 0px))',
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+            boxSizing: 'border-box',
+            background: 'linear-gradient(145deg, #e23a2b 0%, #d52b20 52%, #b51f26 100%)',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              if (window.history.length > 1) router.back();
+              else void router.push('/shop');
+            }}
+            aria-label={locale === 'zh' ? '返回' : locale === 'ms' ? 'Kembali' : 'Go back'}
+            className="-ml-2 mr-3 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition hover:bg-white/15 active:bg-white/20"
+          >
+            <ArrowLeft size={23} strokeWidth={2.5} />
+          </button>
+          <span className="absolute left-1/2 max-w-[65%] -translate-x-1/2 truncate text-center text-sm font-semibold tracking-wide">
+            {product.code?.toUpperCase() || product.id.toUpperCase()}
+          </span>
+        </div>
         
         {/* Top Header: Breadcrumb & Share */}
         <div className="w-full hidden lg:block">
@@ -439,13 +482,14 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
               
               {/* Dynamic Price Header */}
               {isSeller ? (
-              <div className="relative flex flex-col justify-center rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3">
-                <p className="mb-1 text-xs font-bold uppercase tracking-wide text-amber-800">
+              <div className="relative flex flex-col justify-center overflow-hidden rounded-2xl border border-red-100 bg-red-50/70 px-4 py-3 shadow-sm md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-2 md:shadow-none">
+                <div className="absolute inset-y-0 left-0 w-1 bg-[#d52b20] md:hidden" />
+                <p className="mb-1 pl-1 text-[11px] font-bold uppercase tracking-[0.14em] text-red-700 md:pl-0 md:normal-case md:tracking-normal md:text-zinc-700">
                   {locale === 'zh' ? '价格' : locale === 'ms' ? 'Harga' : 'Price'}
                 </p>
-                <div className="flex flex-wrap items-baseline gap-2">
+                <div className="flex flex-wrap items-baseline gap-2 pl-1">
                   {currentStrikePrice != null && <span className="text-sm text-zinc-400 line-through">RM {currentStrikePrice.toFixed(2)}</span>}
-                  <span className="text-2xl font-black tracking-tight text-zinc-900">{currentDisplayPrice != null ? `RM ${currentDisplayPrice.toFixed(2)}` : '—'}</span>
+                  <span className="text-2xl font-black tracking-tight text-black">{currentDisplayPrice != null ? `RM ${currentDisplayPrice.toFixed(2)}` : '—'}</span>
                 </div>
               </div>
               ) : (
@@ -467,7 +511,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                   )}
 
                   {/* Active Price Range or Specific */}
-                  <span className="text-2xl sm:text-3xl font-bold text-primary tracking-tight">
+                  <span className="text-2xl sm:text-3xl font-bold text-primary tracking-tight md:text-black">
                     {currentDisplayPrice ? (
                       `RM ${currentDisplayPrice.toFixed(2)}`
                     ) : (
@@ -701,67 +745,36 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
         </div>
       </div>
       </div>
-      <AnimatePresence>
-        {isViewerOpen && images.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 cursor-zoom-out"
-            onClick={() => setIsViewerOpen(false)}
-          >
-            {/* Close Button */}
-            <button 
-              className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors p-2 z-[110]"
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {isViewerOpen && images.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 flex cursor-zoom-out items-center justify-center overflow-hidden bg-black"
+              style={{ position: 'fixed', inset: 0, zIndex: 2147483000, height: '100dvh', background: '#000' }}
               onClick={() => setIsViewerOpen(false)}
             >
-              <X size={40} />
-            </button>
-
-            {/* Viewer Content */}
-            <div 
-              className="relative max-w-7xl w-full h-full flex items-center justify-center select-none"
-              onClick={(e) => e.stopPropagation()}
-            >
               <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
+                initial={{ scale: 0.96, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="relative w-full h-full flex items-center justify-center p-4 md:p-12"
+                exit={{ scale: 0.96, opacity: 0 }}
+                className="relative flex h-full w-full select-none items-center justify-center"
               >
-                <div 
-                  className="absolute inset-0 z-10" 
+                <img
+                  src={images[activeImageIdx]}
+                  alt={translatedName}
+                  className="pointer-events-none h-full w-full select-none object-contain"
                   onContextMenu={(e) => e.preventDefault()}
                   draggable="false"
                 />
-                
-                <div className="relative max-w-full max-h-full flex items-center justify-center">
-                  <img 
-                    src={images[activeImageIdx]} 
-                    alt={translatedName}
-                    className="max-w-full max-h-full object-contain shadow-2xl pointer-events-none select-none rounded-lg"
-                    onContextMenu={(e) => e.preventDefault()}
-                    draggable="false"
-                  />
-                  {/* Centered Watermark Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                    <img 
-                      src={settings?.watermarkUrl || "/transparent-Background.png"} 
-                      className="w-[70%] h-[70%] max-h-[70vh] object-contain opacity-30 select-none mix-blend-multiply dark:mix-blend-screen transition-all duration-700" 
-                      alt="" 
-                      draggable={false}
-                    />
-                  </div>
-                </div>
               </motion.div>
-            </div>
-
-            <p className="text-white/40 text-xs mt-4 font-black uppercase tracking-[0.3em] select-none">
-              {t.productDetail.protectedHint}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
 {/* ── CHECKOUT MODAL ────────────────────────────────────────── */}
         {isCheckoutOpen && (

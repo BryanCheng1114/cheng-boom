@@ -41,6 +41,7 @@ import {
  Crown,
  Search,
  Mail,
+ Globe2,
  Eye,
  EyeOff,
  Home
@@ -66,6 +67,7 @@ export default function ProfilePage() {
  const [statusFilter, setStatusFilter] = useState('All');
  const [currentPage, setCurrentPage] = useState(1);
  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+ const [isLanguagePickerOpen, setIsLanguagePickerOpen] = useState(false);
  
  const ITEMS_PER_PAGE = 8;
  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -218,6 +220,13 @@ export default function ProfilePage() {
  useEffect(() => {
  fetchProfile();
  }, [router]);
+
+ useEffect(() => {
+  if (!router.isReady) return;
+  const isOrdersTab = router.query.tab === 'orders';
+  setActiveTab(isOrdersTab ? 'all_orders' : '');
+  if (!isOrdersTab) setSelectedOrder(null);
+ }, [router.isReady, router.query.tab]);
 
  const fetchProfile = async () => {
  try {
@@ -431,16 +440,39 @@ export default function ProfilePage() {
  <title>{`${user.name}'s Profile - Cheng-BOOM`}</title>
  </Head>
 
- <div className="min-h-screen bg-zinc-50 relative overflow-hidden pb-0 md:pb-20 text-left text-zinc-900">
+ {activeTab === 'all_orders' && !selectedOrder && (
+  <div
+   className="fixed inset-x-0 top-0 z-[120] flex items-center justify-center px-4 text-center text-white shadow-md"
+   style={{
+    height: 'calc(56px + env(safe-area-inset-top, 0px))',
+    paddingTop: 'env(safe-area-inset-top, 0px)',
+    boxSizing: 'border-box',
+    background: 'linear-gradient(145deg, #e23a2b 0%, #d52b20 52%, #b51f26 100%)',
+   }}
+  >
+   <span className="text-base font-semibold tracking-wide">{t.profilePage?.myOrders || 'My Orders'}</span>
+  </div>
+ )}
+
+ <div className={`min-h-screen bg-zinc-50 relative overflow-hidden pb-0 md:pb-20 text-left text-zinc-900 ${activeTab === '' ? 'profile-dashboard-no-scroll' : ''}`}>
+ <style jsx global>{`
+  @media (max-width: 767px) {
+    .profile-dashboard-no-scroll {
+      height: 100dvh;
+      min-height: 100dvh;
+      overflow: hidden;
+    }
+  }
+ `}</style>
 
 
- <div className="max-w-6xl mx-auto px-4 py-12 relative z-10">
+ <div className={`max-w-6xl mx-auto px-4 relative z-10 ${activeTab === 'all_orders' ? 'py-0' : 'py-12'}`}>
  
  {/* Header Spacer */}
- <div className="w-full h-8 md:h-12"></div>
+ <div className={`w-full h-8 md:h-12 ${activeTab === 'all_orders' ? 'hidden' : ''}`}></div>
 
  {/* Breadcrumbs */}
- <div className="hidden md:flex items-center gap-2 text-zinc-400 text-sm font-medium mb-6 overflow-x-auto whitespace-nowrap scrollbar-hide pb-2">
+ {activeTab !== 'all_orders' && <div className="hidden md:flex items-center gap-2 text-zinc-400 text-sm font-medium mb-6 overflow-x-auto whitespace-nowrap scrollbar-hide pb-2">
             <Link href="/" className="inline-flex items-center gap-1.5 hover:text-primary transition-colors">
               <Home size={16} />
               {t.nav?.home || (locale === 'zh' ? '主页' : locale === 'ms' ? 'Laman Utama' : 'Home Page')}
@@ -464,7 +496,7 @@ export default function ProfilePage() {
             ) : (
               <span className="text-zinc-900 font-bold">{t.profilePage?.profileDetails || 'Profile Details'}</span>
             )}
-          </div>
+          </div>}
 
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
  
@@ -481,17 +513,6 @@ export default function ProfilePage() {
  <span className="text-base font-medium">{t.profilePage?.accountOverview || 'Account Overview'}</span>
  </div>
  </button>
-
- {/* Orders Section */}
- <div className="mb-6">
- <h4 className="text-xs text-zinc-500 uppercase tracking-widest font-semibold mb-3">{t.profilePage?.ordersHeader || 'Orders'}</h4>
- <button 
- onClick={() => setActiveTab('all_orders')}
- className={`flex items-center gap-3 w-full text-left text-sm py-2 transition-colors ${activeTab === 'all_orders' ? 'text-zinc-900 font-medium' : 'text-zinc-400 hover:text-zinc-900'}`}
- >
- <Receipt size={16} /> {t.profilePage?.myOrders || 'My Orders'}
- </button>
- </div>
 
  {/* Account Settings Section */}
  <div className="mb-6">
@@ -1104,24 +1125,61 @@ export default function ProfilePage() {
  >
  {/* Mobile Dashboard Menu (< lg) */}
  {/* Mobile Dashboard Menu (< lg) */}
-  <div className="flex flex-col lg:hidden w-[calc(100%+2rem)] -ml-4 -mt-[80px] bg-gradient-to-b from-zinc-100 to-zinc-50 min-h-screen relative">
+  <div
+    className="flex flex-col lg:hidden w-[calc(100%+2rem)] -ml-4 -mt-[80px] min-h-screen relative"
+    style={{ background: 'linear-gradient(145deg, #e23a2b 0%, #d52b20 52%, #b51f26 100%)' }}
+  >
  {/* Light Header Area */}
   <div className="flex flex-col items-center pt-8 pb-10 px-6 relative">
  {/* Avatar */}
-  <div className="w-[88px] h-[88px] bg-white rounded-full flex items-center justify-center text-4xl font-bold text-zinc-700 mb-3 border-[3px] border-white ring-2 ring-zinc-200 shadow-lg">
+  <div className="w-[88px] h-[88px] bg-white/15 rounded-full flex items-center justify-center text-4xl font-bold text-white mb-3 border-[3px] border-white/80 ring-2 ring-white/30 shadow-lg">
  {user.name.charAt(0).toUpperCase()}
  </div>
  
  {/* Name & Email */}
-  <h2 className="text-xl font-bold tracking-tight text-zinc-900 mb-1">{user.name}</h2>
-  <p className="text-zinc-500 text-[13px]">{user.email || user.phone || '-'}</p>
-  <span className={`mt-3 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${user.role === 'Seller' ? 'border-amber-200 bg-amber-100 text-amber-800' : 'border-zinc-200 bg-white/80 text-zinc-600'}`}>{user.role || 'Member'}</span>
+  <h2 className="text-xl font-bold tracking-tight text-white mb-1">{user.name}</h2>
+  <p className="text-white/85 text-[13px]">{user.email || user.phone || '-'}</p>
+  <span className="mt-3 rounded-full border border-white/35 bg-white/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+   {user.role?.toLowerCase() === 'seller'
+    ? (t.profilePage?.roles?.Seller || (locale === 'zh' ? '卖家' : 'Seller'))
+    : user.role || (locale === 'zh' ? '会员' : 'Member')}
+  </span>
  </div>
  
  {/* White Bottom Area */}
   <div className="flex-1 bg-white rounded-t-[32px] px-5 pt-7 pb-[calc(122px+env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] flex flex-col">
  
-  <h3 className="mb-2 px-2 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-400">{locale === 'zh' ? '账户与订单' : locale === 'ms' ? 'AKAUN & PESANAN' : 'Account & Orders'}</h3>
+  <div className="mb-2 flex items-center justify-between px-2">
+   <h3 className="text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-400">{locale === 'zh' ? '账户' : 'Account'}</h3>
+   <div className="relative">
+    <button
+     type="button"
+     onClick={() => setIsLanguagePickerOpen((open) => !open)}
+     aria-expanded={isLanguagePickerOpen}
+     aria-label={locale === 'zh' ? '切换语言' : 'Change language'}
+     className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-sm transition-colors hover:border-red-200 hover:text-red-700"
+    >
+     <Globe2 size={13} />{locale === 'zh' ? '中文' : 'English'}<ChevronDown size={12} className={`transition-transform ${isLanguagePickerOpen ? 'rotate-180' : ''}`} />
+    </button>
+    {isLanguagePickerOpen && (
+     <div className="absolute right-0 top-full z-30 mt-2 min-w-[120px] overflow-hidden rounded-xl border border-zinc-100 bg-white p-1 shadow-lg">
+      {[{ code: 'en', label: 'English' }, { code: 'zh', label: '中文' }].map((language) => (
+       <button
+        key={language.code}
+        type="button"
+        onClick={() => {
+         setIsLanguagePickerOpen(false);
+         if (locale !== language.code) void router.push(router.pathname, router.asPath, { locale: language.code });
+        }}
+        className={`block w-full rounded-lg px-3 py-2 text-left text-xs transition-colors hover:bg-red-50 hover:text-red-700 ${locale === language.code ? 'font-bold text-red-700' : 'font-medium text-zinc-700'}`}
+       >
+        {language.label}{locale === language.code ? ' ✓' : ''}
+       </button>
+      ))}
+     </div>
+    )}
+   </div>
+  </div>
   {/* Tabs Group 1 */}
  <div className="bg-zinc-50 rounded-[24px] p-2 mb-4 space-y-1">
  <button onClick={() => setActiveTab('view_profile')} className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-zinc-100/80 rounded-[16px] transition-colors">
@@ -1131,18 +1189,6 @@ export default function ProfilePage() {
  </div>
  <ChevronRight size={18} className="text-zinc-300" />
  </button>
- <button onClick={() => setActiveTab('all_orders')} className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-zinc-100/80 rounded-[16px] transition-colors">
- <div className="flex items-center gap-4">
- <div className="text-zinc-400"><Receipt size={20} strokeWidth={2} /></div>
- <span className="text-[15px] font-bold text-zinc-800">{t.profilePage?.myOrders || 'My Orders'}</span>
- </div>
- <ChevronRight size={18} className="text-zinc-300" />
- </button>
- </div>
-
-  <h3 className="mb-2 px-2 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-400">{locale === 'zh' ? '账户设置' : locale === 'ms' ? 'TETAPAN AKAUN' : 'Account Settings'}</h3>
-  {/* Tabs Group 2 */}
- <div className="bg-zinc-50 rounded-[24px] p-2 space-y-1 mb-4">
  <button onClick={() => setActiveTab('edit_profile')} className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-zinc-100/80 rounded-[16px] transition-colors">
  <div className="flex items-center gap-4">
  <div className="text-zinc-400"><Edit3 size={20} strokeWidth={2} /></div>
@@ -1297,11 +1343,11 @@ export default function ProfilePage() {
   {/* --- DESKTOP VIEW --- */}
   <div className="hidden md:flex bg-white rounded-2xl p-8 shadow-sm flex-col">
   <div className="flex items-center gap-3 mb-8">
-  <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
+  <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-zinc-900 transition-colors">
   <ArrowLeft size={18} />
   </button>
-  <User size={20} className="text-zinc-400" />
-  <h3 className="text-xl font-medium text-zinc-900 ">
+  <User size={20} className="text-zinc-700" />
+  <h3 className="text-xl font-semibold text-zinc-900">
   {t.profilePage?.myAccount || 'My Account'}
   </h3>
   </div>
@@ -1360,7 +1406,7 @@ export default function ProfilePage() {
     <div className="flex flex-col">
       {/* Mobile Header */}
       <div className="flex items-center gap-4 mb-6 pt-4">
-        <button type="button" onClick={() => setActiveTab('')} className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-zinc-900 shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-zinc-100 shrink-0">
+        <button type="button" onClick={() => setActiveTab('')} className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center text-zinc-900 shadow-[0_2px_10px_rgba(220,38,38,0.12)] border border-red-100 shrink-0">
           <ArrowLeft size={20} />
         </button>
         <div>
@@ -1372,14 +1418,14 @@ export default function ProfilePage() {
       </div>
 
       {/* Profile Hero Card */}
-      <div className="relative bg-zinc-900 rounded-[24px] p-5 mb-4 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
+      <div className="relative rounded-[24px] p-5 mb-4 overflow-hidden shadow-[0_8px_32px_rgba(181,31,38,0.22)]" style={{ background: 'linear-gradient(145deg, #e23a2b 0%, #d52b20 52%, #b51f26 100%)' }}>
         {/* Decorative circles */}
-        <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
-        <div className="absolute -bottom-10 -right-2 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
+        <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
+        <div className="absolute -bottom-10 -right-2 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
 
         {/* User info row */}
         <div className="flex items-center gap-4 mb-5 relative z-10">
-          <div className="w-14 h-14 bg-zinc-700 rounded-full flex items-center justify-center text-2xl font-bold text-zinc-300 shrink-0 border-2 border-zinc-600">
+          <div className="w-14 h-14 bg-white/15 rounded-full flex items-center justify-center text-2xl font-bold text-white shrink-0 border-2 border-white/40">
             {user.name.charAt(0).toUpperCase()}
           </div>
           <div>
@@ -1414,14 +1460,14 @@ export default function ProfilePage() {
 
       {/* Order & Delivery Information */}
       <div className="mb-2">
-        <div className="text-[13px] font-bold text-zinc-900 mb-3 ml-1">
+          <div className="text-[13px] font-bold text-zinc-900 mb-3 ml-1">
           {t.profilePage?.orderAndDelivery || (locale === 'zh' ? '订单和送货信息' : 'Order & Delivery Information')}
         </div>
 
         <div className="space-y-2">
           {/* Preferred Payment */}
           <div className="bg-white rounded-[18px] shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-zinc-100 flex items-center px-4 py-3.5 gap-4">
-            <div className="w-9 h-9 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-500 shrink-0">
+            <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center text-zinc-700 shrink-0">
               <CreditCard size={16} />
             </div>
             <div className="flex-1 min-w-0">
@@ -1432,7 +1478,7 @@ export default function ProfilePage() {
 
           {/* Order Mode */}
           <div className="bg-white rounded-[18px] shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-zinc-100 flex items-center px-4 py-3.5 gap-4">
-            <div className="w-9 h-9 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-500 shrink-0">
+            <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center text-zinc-700 shrink-0">
               <Package size={16} />
             </div>
             <div className="flex-1 min-w-0">
@@ -1443,7 +1489,7 @@ export default function ProfilePage() {
 
           {/* Delivery / Collection Address */}
           <div className="bg-white rounded-[18px] shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-zinc-100 flex items-center px-4 py-3.5 gap-4">
-            <div className="w-9 h-9 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-500 shrink-0">
+            <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center text-zinc-700 shrink-0">
               <MapPin size={16} />
             </div>
             <div className="flex-1 min-w-0">
@@ -1454,7 +1500,7 @@ export default function ProfilePage() {
 
           {/* Default Notes */}
           <div className="bg-white rounded-[18px] shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-zinc-100 flex items-center px-4 py-3.5 gap-4">
-            <div className="w-9 h-9 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-500 shrink-0">
+            <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center text-zinc-700 shrink-0">
               <MessageSquare size={16} />
             </div>
             <div className="flex-1 min-w-0">
@@ -1466,8 +1512,8 @@ export default function ProfilePage() {
       </div>
 
       {/* Account Information Card */}
-      <div className="mt-4 bg-zinc-50 border border-zinc-100 rounded-[20px] p-5 flex items-center gap-4 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
-        <div className="w-12 h-12 bg-zinc-200 rounded-full flex items-center justify-center text-zinc-500 shrink-0">
+      <div className="mt-4 bg-red-50/70 border border-red-100 rounded-[20px] p-5 flex items-center gap-4 shadow-[0_2px_10px_rgba(220,38,38,0.05)]">
+        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-zinc-800 shrink-0">
           <UserCheck size={20} />
         </div>
         <div className="flex-1 min-w-0">
@@ -1480,7 +1526,8 @@ export default function ProfilePage() {
       <div className="mt-4">
         <button
           onClick={() => setActiveTab('edit_profile')}
-          className="w-full py-4 bg-zinc-900 text-white rounded-full font-bold text-[13px] shadow-[0_4px_14px_rgba(0,0,0,0.15)] active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+          className="w-full py-4 text-white rounded-full font-bold text-[13px] shadow-[0_4px_14px_rgba(181,31,38,0.24)] active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+          style={{ background: 'linear-gradient(145deg, #e23a2b 0%, #d52b20 52%, #b51f26 100%)' }}
         >
           <Edit3 size={16} />
           {t.profilePage?.editProfile || (locale === 'zh' ? '更新信息' : 'Update Information')} ›
@@ -1501,21 +1548,13 @@ export default function ProfilePage() {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  exit={{ opacity: 0, y: -20 }}
- className="space-y-8 -mt-16 md:mt-0"
+ className="space-y-8"
+ style={{ paddingTop: 'calc(72px + env(safe-area-inset-top, 0px))' }}
  >
 
  {/* ── DESKTOP VIEW ── */}
  <div className="hidden md:flex bg-white rounded-2xl p-8 shadow-sm lg:h-[700px] flex-col">
- <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 shrink-0">
- <div className="flex items-center gap-3">
- <button onClick={() => setActiveTab('')} className="p-2 rounded-xl bg-zinc-500/5 hover:bg-primary/10 text-zinc-500 hover:text-primary transition-colors">
- <ArrowLeft size={18} />
- </button>
- <Package size={20} className="text-zinc-400" />
- <h3 className="text-xl font-medium text-zinc-900">
- {t.profilePage?.myOrders || 'My Orders'}
- </h3>
- </div>
+ <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-4 mb-8 shrink-0">
  <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
  <div className="relative flex-1 sm:flex-none">
  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1603,36 +1642,25 @@ export default function ProfilePage() {
 
  {/* ── MOBILE VIEW ── */}
  <div className="flex md:hidden flex-col pb-10">
- {/* Mobile Header */}
- <div className="flex items-center gap-4 mb-6">
- <button onClick={() => setActiveTab('')} className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-zinc-900 shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-zinc-100 shrink-0">
- <ArrowLeft size={20} />
- </button>
- <div>
- <h3 className="text-xl font-bold text-zinc-900">{t.profilePage?.myOrders || 'My Orders'}</h3>
- <p className="text-[11px] text-zinc-500">{locale === 'zh' ? '查看并跟踪您的订单' : 'View and track your orders'}</p>
- </div>
- </div>
-
  {/* Hero Stats Banner */}
- <div className="relative bg-zinc-900 rounded-[24px] p-5 mb-5 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
- <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
- <div className="absolute -bottom-10 -right-2 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
+ <div className="relative rounded-[24px] p-5 mb-5 overflow-hidden shadow-[0_8px_32px_rgba(181,31,38,0.22)]" style={{ background: 'linear-gradient(145deg, #e23a2b 0%, #d52b20 52%, #b51f26 100%)' }}>
+ <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
+ <div className="absolute -bottom-10 -right-2 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
  <div className="relative z-10">
- <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-3">{locale === 'zh' ? '订单摘要' : 'Order Summary'}</div>
+ <div className="text-[11px] font-bold text-white/90 uppercase tracking-widest mb-3">{locale === 'zh' ? '订单摘要' : 'Order Summary'}</div>
  <div className="grid grid-cols-3 gap-3">
- <div className="bg-white/10 rounded-[14px] px-3 py-3 text-center">
- <div className="text-[22px] font-black text-white leading-none mb-1">{orders.length}</div>
- <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{locale === 'zh' ? '总计' : 'Total'}</div>
+ <div className="bg-white/15 rounded-[14px] px-3 py-3 text-center">
+ <div className="text-[22px] font-black text-white leading-none mb-1 drop-shadow-sm">{orders.length}</div>
+ <div className="text-[9px] font-bold text-white/85 uppercase tracking-wider">{locale === 'zh' ? '总计' : 'Total'}</div>
  </div>
- <div className="bg-white/10 rounded-[14px] px-3 py-3 text-center">
- <div className="text-[22px] font-black text-white leading-none mb-1">{orders.filter((o: any) => o.status === 'Completed').length}</div>
- <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{locale === 'zh' ? '已完成' : 'Done'}</div>
+ <div className="bg-white/15 rounded-[14px] px-3 py-3 text-center">
+ <div className="text-[22px] font-black text-white leading-none mb-1 drop-shadow-sm">{orders.filter((o: any) => o.status === 'Completed').length}</div>
+ <div className="text-[9px] font-bold text-white/85 uppercase tracking-wider">{locale === 'zh' ? '已完成' : 'Done'}</div>
  </div>
- <div className="bg-white/10 rounded-[14px] px-2 py-3 text-center overflow-hidden">
- <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider leading-none mb-0.5">RM</div>
- <div className="text-[18px] font-black text-white leading-none mb-1 truncate">{orders.reduce((s: number, o: any) => s + o.totalAmount, 0).toFixed(0)}</div>
- <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{locale === 'zh' ? '消费' : 'Spent'}</div>
+ <div className="bg-white/15 rounded-[14px] px-2 py-3 text-center overflow-hidden">
+ <div className="text-[9px] font-bold text-white/85 uppercase tracking-wider leading-none mb-0.5">RM</div>
+ <div className="text-[18px] font-black text-white leading-none mb-1 truncate drop-shadow-sm">{orders.reduce((s: number, o: any) => s + o.totalAmount, 0).toFixed(0)}</div>
+ <div className="text-[9px] font-bold text-white/85 uppercase tracking-wider">{locale === 'zh' ? '消费' : 'Spent'}</div>
  </div>
  </div>
  </div>
@@ -1780,14 +1808,17 @@ export default function ProfilePage() {
  initial={{ opacity: 0, scale: 0.95, y: 20 }} 
  animate={{ opacity: 1, scale: 1, y: 0 }} 
  exit={{ opacity: 0, scale: 0.95, y: 20 }} 
- className="relative w-full h-full md:h-auto max-w-6xl bg-zinc-50 rounded-none md:rounded-[32px] shadow-2xl overflow-y-auto md:overflow-hidden border-0 md:border border-white/20 flex flex-col md:flex-row max-h-none md:max-h-[90vh] lg:max-h-[88vh]"
+ className="relative w-full h-full md:h-auto max-w-6xl bg-zinc-50 rounded-none md:rounded-[32px] shadow-2xl overflow-y-auto md:overflow-hidden border-0 md:border border-white/20 flex flex-col md:flex-row max-h-none md:max-h-[90vh] lg:max-h-[88vh] pb-[calc(66px+env(safe-area-inset-bottom))] md:pb-0"
  >
  {/* Mobile Header */}
- <div className="md:hidden sticky top-0 z-50 flex items-center px-4 py-4 bg-white border-b border-zinc-100 shadow-sm">
- <button onClick={() => setSelectedOrder(null)} className="p-2 -ml-2 text-zinc-900 absolute left-4">
+ <div
+  className="md:hidden sticky top-0 z-50 flex shrink-0 items-center justify-center px-4 text-white shadow-md"
+  style={{ height: 'calc(56px + env(safe-area-inset-top, 0px))', paddingTop: 'env(safe-area-inset-top, 0px)', boxSizing: 'border-box', background: 'linear-gradient(145deg, #e23a2b 0%, #d52b20 52%, #b51f26 100%)' }}
+ >
+ <button onClick={() => setSelectedOrder(null)} aria-label={locale === 'zh' ? '返回订单' : 'Back to orders'} className="absolute left-4 flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors hover:bg-white/15">
  <ArrowLeft size={24} />
  </button>
- <h2 className="text-lg font-bold text-zinc-900 w-full text-center">{t.profilePage?.orderDetails || 'Order Details'}</h2>
+ <h2 className="w-full text-center text-base font-semibold tracking-wide">{t.profilePage?.orderDetails || (locale === 'zh' ? '订单详情' : 'Order Details')}</h2>
  </div>
 
  {/* Close Button (Desktop Only) */}
@@ -1955,7 +1986,11 @@ export default function ProfilePage() {
  <div className="bg-white rounded-3xl p-5 sm:p-6 mb-4 flex flex-col shrink-0 md:flex-1 md:min-h-0 border border-zinc-200/80 shadow-sm">
  <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest mb-4 shrink-0 flex items-center justify-between">
  {t.profilePage?.orderItems || 'Order Items'}
- <span className="normal-case tracking-normal text-[11px] font-bold text-zinc-500 bg-zinc-100 px-2.5 py-1 rounded-full">{selectedOrder.items?.length || 0} items</span>
+ <span className="normal-case tracking-normal text-[11px] font-bold text-zinc-500 bg-zinc-100 px-2.5 py-1 rounded-full">
+  {locale === 'zh'
+   ? `${selectedOrder.items?.length || 0} 件商品`
+   : `${selectedOrder.items?.length || 0} ${(selectedOrder.items?.length || 0) === 1 ? 'item' : 'items'}`}
+ </span>
  </h3>
 
  {/* Items List */}
@@ -2014,7 +2049,7 @@ export default function ProfilePage() {
  </div>
 
  {/* Mobile Download Receipt Button */}
- <div className="md:hidden sticky bottom-0 -mx-4 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] mt-2 shrink-0 bg-white/95 backdrop-blur border-t border-zinc-200">
+ <div className="md:hidden -mx-4 px-4 pt-3 pb-4 mt-2 shrink-0 bg-white/95 backdrop-blur border-t border-zinc-200">
  <button 
  onClick={handleDownloadReceipt}
  disabled={isGeneratingPdf || selectedOrder.status === 'Cancelled'}

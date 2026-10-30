@@ -1,18 +1,48 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
-import { Mail, Phone, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Mail, Phone } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
+import { MobilePageTopBar } from '../components/layout/MobilePageTopBar';
 import { useBusiness } from '../context/BusinessContext';
 
 export default function Contact() {
   const { t, locale } = useTranslation();
   const { settings } = useBusiness();
 
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [formData, setFormData] = useState({ message: '' });
+  const [sender, setSender] = useState({ name: '', email: '' });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  useEffect(() => {
+    const loadSender = async () => {
+      try {
+        const savedUser = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!savedUser?.id) return;
+
+        setSender({ name: savedUser.name || '', email: savedUser.email || '' });
+        const response = await fetch(`/api/customers/${savedUser.id}`);
+        if (!response.ok) return;
+
+        const profile = await response.json();
+        setSender({ name: profile.name || savedUser.name || '', email: profile.email || savedUser.email || '' });
+      } catch (error) {
+        console.error('Failed to load contact sender details:', error);
+      }
+    };
+
+    loadSender();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const email = sender.email.trim();
+    const name = sender.name.trim() || email.split('@')[0];
+    if (!email) {
+      setStatus('error');
+      setTimeout(() => setStatus('idle'), 5000);
+      return;
+    }
 
     setStatus('loading');
     
@@ -22,7 +52,7 @@ export default function Contact() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ name, email, message: formData.message }),
       });
 
       if (!response.ok) {
@@ -30,7 +60,7 @@ export default function Contact() {
       }
 
       setStatus('success');
-      setFormData({ name: '', email: '', message: '' });
+      setFormData({ message: '' });
       
       setTimeout(() => setStatus('idle'), 5000);
     } catch (error) {
@@ -40,85 +70,39 @@ export default function Contact() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    if (type === 'checkbox') {
-      const checked = (e.target as HTMLInputElement).checked;
-      setFormData(prev => ({ ...prev, [name]: checked }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
-  };
-
   return (
     <>
       <Head>
         <title>{`${t.nav.contact || 'Contact Us'} - Cheng-BOOM`}</title>
       </Head>
+      <MobilePageTopBar title={t.nav.contact || 'Contact Us'} locale={locale} />
 
-      <div className="bg-white min-h-screen pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-0">
-
-        {/* ── HERO BANNER ─────────────────────────────────────────── */}
+      <div
+        className="with-mobile-page-topbar bg-white min-h-screen pb-[calc(122px+env(safe-area-inset-bottom))] md:!pt-0 md:pb-0"
+        style={{ paddingTop: 'calc(56px + env(safe-area-inset-top, 0px))' }}
+      >
         <section
-          className="relative flex flex-col items-center justify-center pt-24 pb-12 md:pt-32 md:pb-16 bg-cover sm:bg-[length:100%_auto] bg-top bg-no-repeat border-b border-zinc-100 bg-[#8b1517]"
-          style={{ backgroundImage: 'url(/shop2.png)' }}
+          className="relative hidden md:flex min-h-[252px] flex-col items-center justify-center border-b border-zinc-100 bg-gradient-to-br from-[#e23a2b] via-[#d52b20] to-[#b51f26] bg-cover bg-top bg-no-repeat pt-12 pb-8"
         >
           <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/80 mb-6 drop-shadow-sm">
-              {locale === 'zh' ? '联系我们' : locale === 'ms' ? 'HUBUNGI KAMI' : 'CONTACT US'}
-            </p>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight drop-shadow-md">
+            <h1 className="text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight drop-shadow-md">
               {locale === 'zh' ? '与我们取得联系' : locale === 'ms' ? 'Berhubung dengan kami' : 'Get in touch with us'}
             </h1>
-            <p className="text-white/90 text-lg md:text-xl max-w-2xl mx-auto font-medium drop-shadow-sm">
+            <p className="text-white/90 text-xl max-w-2xl mx-auto font-medium drop-shadow-sm">
               {locale === 'zh' ? '请填写下表或在您方便时联系我们。' : locale === 'ms' ? 'Isi borang di bawah atau hubungi kami pada bila-bila masa.' : 'Fill out the form below or reach us at your convenience.'}
             </p>
           </div>
         </section>
 
-        <div className="max-w-[1200px] mx-auto px-6 sm:px-12 pt-8 pb-0 md:py-24">
+        <div className="max-w-[1200px] mx-auto px-6 sm:px-12 pt-6 pb-0 md:py-24">
 
           {/* Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-24">
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-1 lg:gap-12">
             
             {/* Left Column: Form */}
-            <div className="order-2 lg:order-1">
+            <div className="order-2 lg:order-2">
               <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                 
-                {/* Name */}
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="name" className="text-xs font-bold uppercase text-zinc-500 tracking-wider">
-                    {locale === 'zh' ? '姓名' : locale === 'ms' ? 'Nama' : 'Name'}
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder={locale === 'zh' ? '您的姓名' : locale === 'ms' ? 'Nama anda' : 'Your name'}
-                    required
-                    className="w-full px-4 py-3.5 rounded-lg border border-zinc-200 bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all"
-                  />
-                </div>
-
-                {/* Email */}
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="email" className="text-xs font-bold uppercase text-zinc-500 tracking-wider">
-                    {locale === 'zh' ? '电子邮件' : locale === 'ms' ? 'E-mel' : 'Email'}
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder={locale === 'zh' ? '输入您的电子邮件' : locale === 'ms' ? 'Masukkan E-mel Anda' : 'Enter Your Email'}
-                    required
-                    className="w-full px-4 py-3.5 rounded-lg border border-zinc-200 bg-white text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all"
-                  />
-                </div>
-
                 {/* Message */}
                 <div className="flex flex-col gap-2">
                   <label htmlFor="message" className="text-xs font-bold uppercase text-zinc-500 tracking-wider">
@@ -128,7 +112,7 @@ export default function Contact() {
                     id="message"
                     name="message"
                     value={formData.message}
-                    onChange={handleChange}
+                    onChange={(e) => setFormData({ message: e.target.value })}
                     placeholder={locale === 'zh' ? '输入您的留言' : locale === 'ms' ? 'Masukkan Mesej Anda' : 'Enter Your Message'}
                     required
                     rows={4}
@@ -140,7 +124,8 @@ export default function Contact() {
                 <button
                   type="submit"
                   disabled={status === 'loading'}
-                  className="w-full py-4 mt-2 bg-[#1A1F24] hover:bg-black text-white font-bold rounded-lg transition-colors flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full py-4 mt-2 text-white font-bold rounded-full shadow-[0_6px_18px_rgba(181,31,38,0.22)] transition-all hover:brightness-95 active:scale-[0.99] flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+                  style={{ background: 'linear-gradient(145deg, #e23a2b 0%, #d52b20 52%, #b51f26 100%)' }}
                 >
                   {status === 'loading' 
                     ? (locale === 'zh' ? '发送中...' : locale === 'ms' ? 'Sedang Dihantar...' : 'Sending...') 
@@ -154,40 +139,17 @@ export default function Contact() {
                 )}
                 {status === 'error' && (
                   <p className="text-red-500 font-medium text-center mt-2">
-                    {locale === 'zh' ? '留言发送失败。请重试或通过 WhatsApp 联系我们。' : locale === 'ms' ? 'Gagal menghantar mesej. Sila cuba lagi atau hubungi kami melalui WhatsApp.' : 'Failed to send message. Please try again or contact us via WhatsApp.'}
+                    {!sender.email
+                      ? (locale === 'zh' ? '无法读取您的账户电子邮件。请重新登录后再试。' : locale === 'ms' ? 'E-mel akaun anda tidak dapat dimuatkan. Sila log masuk semula dan cuba lagi.' : 'Your account email could not be loaded. Please sign in again and retry.')
+                      : (locale === 'zh' ? '留言发送失败。请重试或通过 WhatsApp 联系我们。' : locale === 'ms' ? 'Gagal menghantar mesej. Sila cuba lagi atau hubungi kami melalui WhatsApp.' : 'Failed to send message. Please try again or contact us via WhatsApp.')}
                   </p>
                 )}
               </form>
 
-              {/* Alternative Contact Methods */}
-              <div className="mt-16 pt-8 border-t border-zinc-100">
-                <p className="font-bold text-zinc-900 mb-6">{locale === 'zh' ? '您也可以通过以下方式联系我们' : locale === 'ms' ? 'Anda juga boleh Hubungi Kami melalui' : 'You can also Contact Us via'}</p>
-                <div className="flex flex-col sm:flex-row gap-6 sm:gap-12">
-                  
-                  <a href={`mailto:${settings?.email || 'contact@cheng-boom.com'}`} className="flex items-center gap-4 group cursor-pointer transition-transform hover:-translate-y-0.5">
-                    <div className="w-10 h-10 rounded-full border border-zinc-200 flex items-center justify-center bg-white shadow-sm group-hover:border-zinc-900 transition-colors">
-                      <Mail className="w-4 h-4 text-zinc-700 group-hover:text-zinc-900 transition-colors" />
-                    </div>
-                    <span className="text-sm font-medium text-zinc-700 group-hover:text-zinc-900 transition-colors">
-                      {settings?.email || 'contact@cheng-boom.com'}
-                    </span>
-                  </a>
-
-                  <a href={`tel:${(settings?.phone || '+60 111-226-9835').replace(/[^0-9+]/g, '')}`} className="flex items-center gap-4 group cursor-pointer transition-transform hover:-translate-y-0.5">
-                    <div className="w-10 h-10 rounded-full border border-zinc-200 flex items-center justify-center bg-white shadow-sm group-hover:border-zinc-900 transition-colors">
-                      <Phone className="w-4 h-4 text-zinc-700 group-hover:text-zinc-900 transition-colors" />
-                    </div>
-                    <span className="text-sm font-medium text-zinc-700 group-hover:text-zinc-900 transition-colors">
-                      {settings?.phone || '+60 111-226-9835'}
-                    </span>
-                  </a>
-
-                </div>
-              </div>
             </div>
 
             {/* Right Column: Services List */}
-            <div className="flex flex-col order-1 lg:order-2">
+            <div className="flex flex-col order-1 lg:order-1">
               <h3 className="text-xl font-bold text-zinc-900 mb-8">
                 {locale === 'zh' ? '通过我们，您可以：' : locale === 'ms' ? 'Dengan perkhidmatan kami, anda boleh:' : 'With our services you can:'}
               </h3>
@@ -218,6 +180,26 @@ export default function Contact() {
                   </span>
                 </li>
               </ul>
+
+              <div className="hidden md:block mt-8 border-t border-zinc-200 pt-6">
+                <h4 className="mb-4 text-base font-bold text-zinc-900">
+                  {locale === 'zh' ? '您也可以通过以下方式联系我们' : locale === 'ms' ? 'Anda juga boleh menghubungi kami melalui' : 'You can also Contact Us via'}
+                </h4>
+                <div className="flex flex-wrap gap-x-8 gap-y-3">
+                  {settings?.email && (
+                    <a href={`mailto:${settings.email}`} className="inline-flex items-center gap-2 text-sm font-medium text-zinc-700 transition-colors hover:text-[#b51f26]">
+                      <Mail size={17} className="text-[#d52b20]" />
+                      {settings.email}
+                    </a>
+                  )}
+                  {(settings?.phone || settings?.whatsapp) && (
+                    <a href={`tel:${settings.phone || settings.whatsapp}`} className="inline-flex items-center gap-2 text-sm font-medium text-zinc-700 transition-colors hover:text-[#b51f26]">
+                      <Phone size={17} className="text-[#d52b20]" />
+                      {settings.phone || settings.whatsapp}
+                    </a>
+                  )}
+                </div>
+              </div>
               
               {/* Mobile Divider */}
               <div className="w-full h-px bg-zinc-200 mt-10 lg:hidden" />

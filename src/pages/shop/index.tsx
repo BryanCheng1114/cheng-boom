@@ -3,14 +3,31 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { ProductCard } from '../../components/ui/ProductCard';
 import { useTranslation } from '../../hooks/useTranslation';
-import { Loader2, ChevronLeft, ChevronRight, X, ChevronDown, LayoutGrid, List } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, X, ChevronDown, LayoutGrid, List, ArrowUp, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useBusiness } from '../../context/BusinessContext';
 
 export default function Shop() {
   const router = useRouter();
   const { t, locale } = useTranslation();
+  const { settings } = useBusiness();
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    const updateBackToTop = () => {
+      const scrollPosition = Math.max(window.scrollY, document.documentElement.scrollTop, document.body.scrollTop);
+      setShowBackToTop(scrollPosition > 48);
+    };
+    updateBackToTop();
+    window.addEventListener('scroll', updateBackToTop, { passive: true });
+    document.addEventListener('scroll', updateBackToTop, { passive: true, capture: true });
+    return () => {
+      window.removeEventListener('scroll', updateBackToTop);
+      document.removeEventListener('scroll', updateBackToTop, true);
+    };
+  }, []);
 
   const sortTranslations = {
     sortBy: { en: 'Sort By:', zh: '排序：', ms: 'Susun mengikut:' },
@@ -31,10 +48,15 @@ export default function Shop() {
 
   // Read search query from URL (?q=)
   const searchQuery = (router.query.q as string) || '';
+  const [searchInput, setSearchInput] = useState(searchQuery);
+
+  useEffect(() => {
+    setSearchInput(searchQuery);
+  }, [searchQuery]);
 
   useEffect(() => {
     setVisibleProductCount(productsPerLoad);
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, searchQuery, searchInput]);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftScroll, setShowLeftScroll] = useState(false);
@@ -111,12 +133,12 @@ export default function Shop() {
     }
 
     // 2. Search filter from URL ?q= param
-    const q = searchQuery.trim().toLowerCase();
+    const q = searchInput.trim().toLowerCase();
     if (q) {
       list = list.filter(p =>
-        p.name.toLowerCase().includes(q) ||
-        (p.category || '').toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q)
+        String(p.name || '').toLowerCase().includes(q) ||
+        String(p.category || '').toLowerCase().includes(q) ||
+        String(p.description || '').toLowerCase().includes(q)
       );
     }
 
@@ -138,7 +160,7 @@ export default function Shop() {
     }
 
     return list;
-  }, [allProducts, activeCategory, searchQuery, sortBy]);
+  }, [allProducts, activeCategory, searchInput, sortBy]);
 
   const visibleProducts = filteredProducts.slice(0, visibleProductCount);
 
@@ -147,13 +169,23 @@ export default function Shop() {
     setActiveCategory(key);
     // Preserve ?q= if active, update category
     const query: any = {};
-    if (searchQuery) query.q = searchQuery;
+    if (searchInput.trim()) query.q = searchInput.trim();
     if (key !== 'all') query.category = key;
     router.replace({ pathname: '/shop', query }, undefined, { shallow: true, scroll: false });
   };
 
   const clearSearch = () => {
+    setSearchInput('');
     const query: any = {};
+    if (activeCategory !== 'all') query.category = activeCategory;
+    router.replace({ pathname: '/shop', query }, undefined, { shallow: true, scroll: false });
+  };
+
+  const handleProductSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query: any = {};
+    const trimmedQuery = searchInput.trim();
+    if (trimmedQuery) query.q = trimmedQuery;
     if (activeCategory !== 'all') query.category = activeCategory;
     router.replace({ pathname: '/shop', query }, undefined, { shallow: true, scroll: false });
   };
@@ -175,11 +207,12 @@ export default function Shop() {
     }
     return (t.shopCategories as any)[activeCategory] || activeCategory;
   }, [activeCategory, activeCatObj, locale, t]);
+  const allCategoryLabel = locale === 'zh' ? '全部分类' : locale === 'ms' ? 'Semua Kategori' : 'All Category';
 
 
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="shop-page min-h-screen bg-white">
       <Head>
         <title>{`${t.nav.shop} - Cheng-BOOM`}</title>
         <meta name="description" content="Browse our entire fireworks collection." />
@@ -192,18 +225,13 @@ export default function Shop() {
         
         {/* ── HERO BANNER ────────────────────────────────────────────────── */}
         <section 
-          className="relative flex flex-col items-center justify-center pt-24 pb-8 md:pt-32 md:pb-12 bg-cover sm:bg-[length:100%_auto] bg-top bg-no-repeat border-b border-zinc-100 bg-[#8b1517]"
-          style={{ backgroundImage: 'url(/shop2.png)' }}
+          className="shop-hero-banner relative flex flex-col items-center justify-center border-b border-zinc-100 bg-gradient-to-br from-[#e23a2b] via-[#d52b20] to-[#b51f26] bg-cover bg-top bg-no-repeat pt-5 pb-3 md:pt-12 md:pb-8 sm:bg-[length:100%_auto]"
         >
-          <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-8">
-            <motion.p 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-xs font-bold tracking-[0.2em] uppercase text-white/80 mb-6 drop-shadow-sm"
-            >
-              {t.nav.shop?.toUpperCase() || 'SHOP'}
-            </motion.p>
+          <div className="shop-hero-mobile-summary relative z-20 mb-4 w-full px-4 pb-2 text-center md:hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={settings?.watermarkUrl || '/transparent-Background.png'} alt={`${settings?.businessName || 'Cheng-BOOM'} transparent logo`} className="mx-auto h-12 max-w-[180px] object-contain drop-shadow-sm" />
+          </div>
+          <div className="relative z-20 mb-5 hidden w-full max-w-7xl mx-auto px-4 text-center sm:px-6 lg:px-8 md:block">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -273,18 +301,19 @@ export default function Shop() {
                 {/* "All" tab */}
                 <button
                   onClick={() => handleCategoryClick('all')}
+                  aria-pressed={activeCategory === 'all'}
                   className={[
-                    'relative shrink-0 flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full drop-shadow-sm',
+                    'shop-category-tab relative shrink-0 flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full drop-shadow-sm',
                     activeCategory === 'all'
                       ? 'text-zinc-900'
                       : 'text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-sm',
                   ].join(' ')}
                 >
-                  <span className="relative z-10">{t.shopCategories.all}</span>
+                  <span className="relative z-10">{allCategoryLabel}</span>
                   <span className={[
                     'relative z-10 inline-flex items-center justify-center min-w-[20px] sm:min-w-[24px] h-4 sm:h-5 px-1.5 sm:px-2 rounded-full text-[9px] sm:text-[10px] font-black transition-colors',
                     activeCategory === 'all'
-                      ? 'bg-white/90 text-zinc-900 shadow-sm'
+                      ? 'bg-[#fff0ed] text-[#b51f26] shadow-sm'
                       : 'bg-white/20 text-white',
                   ].join(' ')}>
                     {allProducts.length}
@@ -292,7 +321,7 @@ export default function Shop() {
                   {activeCategory === 'all' && (
                     <motion.div
                       layoutId="activeTabBackground"
-                      className="absolute inset-0 bg-primary rounded-full shadow-[0_4px_15px_rgba(245,158,11,0.4)]"
+                      className="shop-category-active absolute inset-0 rounded-full bg-primary shadow-[0_4px_15px_rgba(245,158,11,0.4)]"
                       transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                     />
                   )}
@@ -317,8 +346,9 @@ export default function Shop() {
                     <button
                       key={cat.id}
                       onClick={() => handleCategoryClick(key)}
+                      aria-pressed={isActive}
                       className={[
-                        'relative shrink-0 flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full drop-shadow-sm',
+                        'shop-category-tab relative shrink-0 flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap rounded-full drop-shadow-sm',
                         isActive
                           ? 'text-zinc-900'
                           : 'text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-sm',
@@ -328,7 +358,7 @@ export default function Shop() {
                       <span className={[
                         'relative z-10 inline-flex items-center justify-center min-w-[20px] sm:min-w-[24px] h-4 sm:h-5 px-1.5 sm:px-2 rounded-full text-[9px] sm:text-[10px] font-black transition-colors',
                         isActive
-                          ? 'bg-white/90 text-zinc-900 shadow-sm'
+                          ? 'bg-[#fff0ed] text-[#b51f26] shadow-sm'
                           : 'bg-white/20 text-white',
                       ].join(' ')}>
                         {count}
@@ -336,7 +366,7 @@ export default function Shop() {
                       {isActive && (
                         <motion.div
                           layoutId="activeTabBackground"
-                          className="absolute inset-0 bg-primary rounded-full shadow-[0_4px_15px_rgba(245,158,11,0.4)]"
+                          className="shop-category-active absolute inset-0 rounded-full bg-primary shadow-[0_4px_15px_rgba(245,158,11,0.4)]"
                           transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                         />
                       )}
@@ -371,44 +401,52 @@ export default function Shop() {
       </div>
 
       {/* ── Product Grid ──────────────────────────────────────────────────── */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-10">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-[calc(122px+env(safe-area-inset-bottom))] md:py-10">
 
         {/* Top Controls Row */}
-        {filteredProducts.length > 0 && !isLoading && (
-          <div className="flex flex-row items-center justify-between w-full gap-2 mb-6">
-            <p className="text-[11px] sm:text-sm text-zinc-500 whitespace-nowrap">
-              {t.shop.showing}&nbsp;
-              <span className="font-bold text-zinc-900">{visibleProducts.length}</span>
-              {visibleProducts.length < filteredProducts.length && <>&nbsp;of&nbsp;<span className="font-bold text-zinc-900">{filteredProducts.length}</span></>}&nbsp;
-              <span className="hidden sm:inline">{t.shop.products}</span>
-            </p>
-            <div className="flex items-center shrink-0">
-              <span className="text-[11px] sm:text-sm text-zinc-500 mr-2 sm:mr-3 font-medium">{st('sortBy')}</span>
+        <div className="mb-5 flex w-full flex-row items-center gap-2 sm:mb-6 sm:justify-between sm:gap-5">
+          <form onSubmit={handleProductSearch} role="search" className="relative flex min-w-0 flex-1 items-center max-w-[220px] sm:max-w-[520px]">
+            <Search size={17} className="pointer-events-none absolute left-3 text-zinc-400" />
+            <input
+              type="text"
+              inputMode="search"
+              enterKeyHint="search"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder={locale === 'zh' ? '搜索商品...' : locale === 'ms' ? 'Cari produk...' : 'Search products...'}
+              aria-label={locale === 'zh' ? '搜索商品' : locale === 'ms' ? 'Cari produk' : 'Search products'}
+              className="h-10 w-full min-w-0 rounded-full border border-zinc-200 bg-white py-2 pl-9 pr-4 text-xs text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-[#d92e20] focus:ring-2 focus:ring-[#d92e20]/10 sm:h-11 sm:text-sm"
+            />
+          </form>
+
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => setMobileView((view) => view === 'list' ? 'grid' : 'list')}
+              aria-label={mobileView === 'list' ? 'Switch to grid view' : 'Switch to list view'}
+              title={mobileView === 'list' ? 'Switch to grid view' : 'Switch to list view'}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d92e20]/20 md:hidden"
+            >
+              {mobileView === 'list' ? <LayoutGrid size={17} /> : <List size={17} />}
+            </button>
+            <div className="flex min-w-0 items-center">
               <div className="relative">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="appearance-none bg-zinc-100 hover:bg-zinc-200 text-zinc-900 text-[11px] sm:text-sm font-bold py-1.5 sm:py-2 pl-3 sm:pl-4 pr-8 sm:pr-10 rounded-lg transition-colors cursor-pointer outline-none focus:ring-0 focus:outline-none max-w-[140px] sm:max-w-none text-ellipsis"
+                  aria-label={st('sortBy')}
+                  className={`h-10 shrink-0 appearance-none rounded-full border border-zinc-200 bg-white py-2 pl-3 pr-7 text-xs font-bold text-zinc-900 whitespace-nowrap shadow-sm transition-colors hover:bg-zinc-50 focus:border-[#d92e20] focus:outline-none focus:ring-2 focus:ring-[#d92e20]/10 sm:w-auto sm:max-w-none sm:pl-4 sm:pr-10 sm:text-sm ${locale === 'ms' ? 'w-[180px]' : locale === 'zh' ? 'w-[140px]' : 'w-[148px]'}`}
                 >
                   <option className="bg-white text-zinc-900" value="newest">{st('newest')}</option>
                   <option className="bg-white text-zinc-900" value="price-asc">{st('priceAsc')}</option>
                   <option className="bg-white text-zinc-900" value="price-desc">{st('priceDesc')}</option>
                   <option className="bg-white text-zinc-900" value="name-asc">{st('nameAsc')}</option>
                 </select>
-                <ChevronDown size={14} strokeWidth={2.5} className="absolute right-2.5 sm:right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500" />
+                <ChevronDown size={12} strokeWidth={2.5} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 sm:right-3.5 sm:h-[14px] sm:w-[14px]" />
               </div>
-              <button
-                type="button"
-                onClick={() => setMobileView((view) => view === 'list' ? 'grid' : 'list')}
-                aria-label={mobileView === 'list' ? 'Switch to grid view' : 'Switch to list view'}
-                title={mobileView === 'list' ? 'Switch to grid view' : 'Switch to list view'}
-                className="ml-2 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-700 shadow-sm transition-colors hover:bg-zinc-100 md:hidden"
-              >
-                {mobileView === 'list' ? <LayoutGrid size={18} /> : <List size={18} />}
-              </button>
             </div>
           </div>
-        )}
+        </div>
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
@@ -468,6 +506,38 @@ export default function Shop() {
           </div>
         )}
       </div>
+      <AnimatePresence>
+        {showBackToTop && (
+          <motion.button
+            type="button"
+            aria-label={locale === 'zh' ? '返回顶部' : 'Back to top'}
+            title={locale === 'zh' ? '返回顶部' : 'Back to top'}
+            initial={{ opacity: 0, y: 10, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.94 }}
+            transition={{ duration: 0.18 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="shop-back-to-top fixed bottom-36 right-4 z-[160] flex h-12 w-12 items-center justify-center rounded-xl border border-white/20 bg-[#d92e20] text-white shadow-[0_8px_24px_rgba(120,20,20,0.28)] transition-colors hover:bg-[#b51f26] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d92e20] focus-visible:ring-offset-2 md:hidden"
+          >
+            <ArrowUp size={21} strokeWidth={2.4} />
+          </motion.button>
+        )}
+      </AnimatePresence>
+      <style jsx global>{`
+        .shop-hero-banner { background-image:linear-gradient(145deg,#e23a2b 0%,#d52b20 52%,#b51f26 100%) !important; }
+        @media (min-width:768px) {
+          .shop-hero-banner { background-image:linear-gradient(145deg,#e23a2b 0%,#d52b20 52%,#b51f26 100%) !important; }
+          .shop-category-tab[aria-pressed="true"] { color:#b51f26 !important; }
+          .shop-category-active { background:#fff !important; box-shadow:0 4px 15px rgba(105,20,22,.2) !important; }
+        }
+        @media (max-width:767px) {
+          .shop-page { padding-top:calc(124px + max(20px,env(safe-area-inset-top))); }
+          .shop-hero-banner { position:fixed !important; top:0; left:0; right:0; z-index:120; width:100%; padding-top:max(1.25rem,env(safe-area-inset-top)); }
+          .shop-category-tab[aria-pressed="true"] { color:#b51f26 !important; }
+          .shop-category-active { background:#fff !important; box-shadow:0 4px 14px rgba(105,20,22,.2) !important; }
+        }
+        @media (min-width:768px) { .shop-page { padding-top:0; } }
+      `}</style>
     </div>
   );
 }

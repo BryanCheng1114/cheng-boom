@@ -1,7 +1,6 @@
 import React from 'react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
-import { WhatsAppButton } from '../ui/WhatsAppButton';
 import { Inter } from 'next/font/google';
 import { cn } from '../../utils/cn';
 import { useRouter } from 'next/router';
@@ -20,7 +19,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       {!isAuthPage && <Footer />}
-      {!isAuthPage && <WhatsAppButton />}
       {!isAuthPage && <MobileNavigation />}
     </div>
   );
