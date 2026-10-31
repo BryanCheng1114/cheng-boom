@@ -874,7 +874,7 @@ const ProductPage = () => {
                     <tr 
                       key={p.id} 
                       className={`group cursor-pointer transition-colors hover:bg-sky-50 ${isSelected ? 'bg-sky-50' : index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}
-                      onClick={() => router.push(`/admin/product/edit/${p.id}`)}
+                      onClick={() => router.push(`/admin/product/${encodeURIComponent(p.id)}`)}
                     >
                       <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <button 
@@ -938,7 +938,7 @@ const ProductPage = () => {
                             </div>
                           </div>
                         ) : (
-                          <span className="text-sm font-medium text-slate-900">RM {Number(p.sellerAPrice).toFixed(2)}</span>
+                          <span className="text-sm font-medium text-slate-900">{p.sellerAPrice != null ? `RM ${Number(p.sellerAPrice).toFixed(2)}` : '—'}</span>
                         )}
                       </td>
                       <td className="px-4 py-3" onDoubleClick={(e) => { e.stopPropagation(); handleEditStart(p); }} onClick={(e) => e.stopPropagation()}>
@@ -947,7 +947,7 @@ const ProductPage = () => {
                             <span className="text-sm font-medium text-slate-900">RM</span>
                             <input type="number" step="0.01" value={editValues.sellerBPrice} onChange={e => setEditValues({ ...editValues, sellerBPrice: parseFloat(e.target.value) || 0 })} className="w-24 border border-slate-300 bg-slate-50 px-2 py-1 font-medium text-slate-900 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" />
                           </div>
-                        ) : <span className="text-sm font-medium text-slate-900">RM {Number(p.sellerBPrice).toFixed(2)}</span>}
+                        ) : <span className="text-sm font-medium text-slate-900">{p.sellerBPrice != null ? `RM ${Number(p.sellerBPrice).toFixed(2)}` : '—'}</span>}
                       </td>
                       <td className="px-4 py-3" onDoubleClick={(e) => { e.stopPropagation(); setEditingStatusId(p.id); }} onClick={(e) => e.stopPropagation()}>
                         {editingStatusId === p.id ? (

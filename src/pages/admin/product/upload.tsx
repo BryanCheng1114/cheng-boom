@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronRight, ChevronDown, Image as ImageIcon, Video, X, HelpCircle, AlertTriangle, Save } from 'lucide-react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import Link from 'next/link';
+import { validateProductPricing } from '../../../utils/validateProductPricing';
 import { useLanguage } from '../../../context/LanguageContext';
 
 const UploadProductPage = () => {
@@ -138,8 +139,9 @@ const UploadProductPage = () => {
     if (!formData.code.trim()) errors.code = t('err_code_required') || 'Code required';
     if (!formData.description.trim()) errors.description = t('err_description_required') || 'Description is required';
     if (!formData.stock) errors.stock = t('err_stock_required') || 'Stock required';
-    if (!formData.sellerAPrice) errors.sellerAPrice = t('err_seller_a_price_required');
-    if (!formData.sellerBPrice) errors.sellerBPrice = t('err_seller_b_price_required');
+    const pricingError = validateProductPricing(formData);
+    if (pricingError) errors.sellerAPrice = pricingError;
+
 
     setFieldErrors(errors);
 
@@ -229,9 +231,8 @@ const UploadProductPage = () => {
                         name="name"
                         value={formData.name}
                         onChange={(e) => { handleChange(e); if (fieldErrors.name) setFieldErrors(p => ({ ...p, name: '' })); }}
-                        className={`w-full border px-4 py-3 text-[14px] text-zinc-900 outline-none transition-all focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${
-                          fieldErrors.name ? 'border-red-500' : 'border-zinc-200'
-                        }`}
+                        className={`w-full border px-4 py-3 text-[14px] text-zinc-900 outline-none transition-all focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${fieldErrors.name ? 'border-red-500' : 'border-zinc-200'
+                          }`}
                         placeholder={t("eg_thunder_clap") || "e.g. Thunder Clap"}
                       />
                       {fieldErrors.name && <p className="text-red-500 text-[11px] font-semibold mt-1">⚠ {fieldErrors.name}</p>}
@@ -258,9 +259,8 @@ const UploadProductPage = () => {
                         name="category"
                         value={formData.category}
                         onChange={(e) => { handleChange(e); if (fieldErrors.category) setFieldErrors(p => ({ ...p, category: '' })); }}
-                        className={`w-full border px-4 py-3 text-[14px] text-slate-800 outline-none transition-colors focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${
-                          fieldErrors.category ? 'border-red-500' : 'border-zinc-200'
-                        }`}
+                        className={`w-full border px-4 py-3 text-[14px] text-slate-800 outline-none transition-colors focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${fieldErrors.category ? 'border-red-500' : 'border-zinc-200'
+                          }`}
                       >
                         <option value="">{t('choose_category')}</option>
                         {categories.map(cat => {
@@ -279,9 +279,8 @@ const UploadProductPage = () => {
                           name="code"
                           value={formData.code}
                           onChange={(e) => { handleChange(e); if (fieldErrors.code) setFieldErrors(p => ({ ...p, code: '' })); }}
-                          className={`flex-1 border py-3 pl-4 pr-24 text-[14px] text-slate-800 outline-none transition-colors focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${
-                            fieldErrors.code ? 'border-red-500' : 'border-zinc-200'
-                          }`}
+                          className={`flex-1 border py-3 pl-4 pr-24 text-[14px] text-slate-800 outline-none transition-colors focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${fieldErrors.code ? 'border-red-500' : 'border-zinc-200'
+                            }`}
                           placeholder={t("eg_tc00001") || "e.g. TC00001"}
                         />
                         <button
@@ -303,9 +302,8 @@ const UploadProductPage = () => {
                         value={formData.description}
                         onChange={(e) => { handleChange(e); if (fieldErrors.description) setFieldErrors(p => ({ ...p, description: '' })); }}
                         rows={3}
-                        className={`w-full resize-none border px-4 py-3 text-[14px] text-slate-800 outline-none transition-colors focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${
-                          fieldErrors.description ? 'border-red-500' : 'border-zinc-200'
-                        }`}
+                        className={`w-full resize-none border px-4 py-3 text-[14px] text-slate-800 outline-none transition-colors focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${fieldErrors.description ? 'border-red-500' : 'border-zinc-200'
+                          }`}
                         placeholder={t("product_details_ph") || "Product details..."}
                       />
                       {fieldErrors.description && <p className="text-red-500 text-[11px] font-semibold mt-1">⚠ {fieldErrors.description}</p>}
@@ -412,7 +410,7 @@ const UploadProductPage = () => {
                     return <section key={group} className="space-y-4 border border-slate-200 bg-slate-50/60 p-5">
                       <div className="border-b border-slate-200 pb-3"><h4 className="text-base font-semibold text-slate-900">{group === 'A' ? t('product_seller_a_pricing') : t('product_seller_b_pricing')}</h4><p className="mt-1 text-xs text-slate-500">{t('product_single_price_required')}</p></div>
                       <div ref={group === 'A' ? priceRef : undefined} className="space-y-2">
-                        <label className="text-xs font-semibold text-slate-800">{t('product_single_item_price')} <span className="text-red-500">*</span></label>
+                        <label className="text-xs font-semibold text-slate-800">{t('product_single_item_price')}</label>
                         <input type="number" min="0" step="0.01" name={singleField} value={formData[singleField]} onChange={handleChange} className={`w-full border bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${fieldErrors[singleField] ? 'border-red-500' : 'border-slate-300'}`} placeholder="0.00" />
                       </div>
                       <details className="group border-t border-slate-200 pt-3"><summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium text-slate-700"><span>{t('product_per_box_price')} <span className="ml-1 text-xs font-normal text-slate-500">{t('product_optional')}</span></span><ChevronDown size={16} className="text-slate-500 transition-transform group-open:rotate-180" /></summary><div className="pt-3"><input aria-label={`${t('product_per_box_price')} - ${t(group === 'A' ? 'inventory_seller_a' : 'inventory_seller_b')}`} type="number" min="0" step="0.01" name={boxField} value={formData[boxField]} onChange={handleChange} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0.00" /></div></details>
@@ -426,27 +424,27 @@ const UploadProductPage = () => {
 
           {/* Bottom Actions */}
           <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">
-              <button
-                type="button"
-                onClick={() => router.push('/admin/product')}
-                disabled={isLoading}
-                className="border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
-              >
-                {t('cancel') || 'Cancel'}
-              </button>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="flex items-center gap-2 bg-sky-700 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isLoading ? (
-                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Save size={16} />{t('product_data_entry_confirm')}</>
-                )}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => router.push('/admin/product')}
+              disabled={isLoading}
+              className="border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+            >
+              {t('cancel') || 'Cancel'}
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex items-center gap-2 bg-sky-700 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isLoading ? (
+                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Save size={16} />{t('product_data_entry_confirm')}</>
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </AdminLayout>

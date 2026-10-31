@@ -111,15 +111,29 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
     }
   }, [currentMaxAvailable, localQty, selectedVariant]);
 
-  // Auto-select Single if no Box pricing is available
+  // Auto-select first available variant
   useEffect(() => {
-    const availableBoxPrice = pricingGroup === 'B' ? (product?.sellerBBoxPrice ?? product?.sellerABoxPrice) : product?.sellerABoxPrice;
-    const hasBoxPricing = !!(availableBoxPrice && product?.itemsPerBox && product?.itemsPerBox > 1);
-    if (!hasBoxPricing && maxAvailableSingle > 0) {
-      if (!selectedVariant) setSelectedVariant('Single');
-      if (localQty === 0) setLocalQty(1);
+    if (!product) return;
+    const availablePrice = pricingGroup === 'B' ? (product.sellerBPrice ?? product.sellerAPrice ?? product.price) : (product.sellerAPrice ?? product.price);
+    const hasSingle = availablePrice != null && availablePrice > 0;
+    const availableBox = pricingGroup === 'B' ? (product.sellerBBoxPrice ?? product.sellerABoxPrice) : product.sellerABoxPrice;
+    const hasBox = !!(availableBox && product.itemsPerBox && product.itemsPerBox > 1);
+    const availableBundle = pricingGroup === 'B' ? (product.sellerBBundlePrice ?? product.sellerABundlePrice) : product.sellerABundlePrice;
+    const hasBundle = !!(availableBundle && product.bundleQuantity && product.bundleQuantity > 1);
+
+    if (!selectedVariant) {
+      if (hasSingle && maxAvailableSingle > 0) {
+        setSelectedVariant('Single');
+        if (localQty === 0) setLocalQty(1);
+      } else if (hasBox && maxAvailableBox > 0) {
+        setSelectedVariant('Box');
+        if (localQty === 0) setLocalQty(1);
+      } else if (hasBundle && maxAvailableBundle > 0) {
+        setSelectedVariant('Bundle');
+        if (localQty === 0) setLocalQty(1);
+      }
     }
-  }, [product, maxAvailableSingle, selectedVariant, localQty, pricingGroup]);
+  }, [product, maxAvailableSingle, maxAvailableBox, maxAvailableBundle, selectedVariant, localQty, pricingGroup]);
 
   // Auto-open checkout if navigated with ?buy=true
   useEffect(() => {
@@ -296,18 +310,27 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   const images = product.images || [];
 
   // Dynamic Pricing Calculations for Shopee Style
+  const hasSinglePricing = !!(activePrice && activePrice > 0);
   const hasBoxPricing = !!(activeBoxPrice && product.itemsPerBox && product.itemsPerBox > 1);
   const hasBundlePricing = !!(activeBundlePrice && product.bundleQuantity && product.bundleQuantity > 1);
   
-  const minPrice = Math.min(activePrice, hasBoxPricing ? activeBoxPrice! : activePrice, hasBundlePricing ? activeBundlePrice! : activePrice);
-  const maxPrice = Math.max(activePrice, hasBoxPricing ? activeBoxPrice! : activePrice, hasBundlePricing ? activeBundlePrice! : activePrice);
+  const validPrices: number[] = [];
+  if (hasSinglePricing && activePrice != null) validPrices.push(activePrice);
+  if (hasBoxPricing && activeBoxPrice != null) validPrices.push(activeBoxPrice);
+  if (hasBundlePricing && activeBundlePrice != null) validPrices.push(activeBundlePrice);
+  const minPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+  const maxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
   
-  const effectiveSingleStrike = strikeThroughPrice || activePrice;
-  const effectiveBoxStrike = strikeThroughBoxPrice || activeBoxPrice || activePrice;
-  const effectiveBundleStrike = strikeThroughBundlePrice || activeBundlePrice || activePrice;
+  const effectiveSingleStrike = strikeThroughPrice || (hasSinglePricing ? activePrice : undefined);
+  const effectiveBoxStrike = strikeThroughBoxPrice || (hasBoxPricing ? activeBoxPrice : undefined);
+  const effectiveBundleStrike = strikeThroughBundlePrice || (hasBundlePricing ? activeBundlePrice : undefined);
   
-  const minOriginal = Math.min(effectiveSingleStrike, hasBoxPricing ? effectiveBoxStrike : effectiveSingleStrike, hasBundlePricing ? effectiveBundleStrike : effectiveSingleStrike);
-  const maxOriginal = Math.max(effectiveSingleStrike, hasBoxPricing ? effectiveBoxStrike : effectiveSingleStrike, hasBundlePricing ? effectiveBundleStrike : effectiveSingleStrike);
+  const validOriginals: number[] = [];
+  if (hasSinglePricing && effectiveSingleStrike != null) validOriginals.push(effectiveSingleStrike);
+  if (hasBoxPricing && effectiveBoxStrike != null) validOriginals.push(effectiveBoxStrike);
+  if (hasBundlePricing && effectiveBundleStrike != null) validOriginals.push(effectiveBundleStrike);
+  const minOriginal = validOriginals.length > 0 ? Math.min(...validOriginals) : minPrice;
+  const maxOriginal = validOriginals.length > 0 ? Math.max(...validOriginals) : maxPrice;
   
   const hasAnyDiscount = hasDiscount || hasBoxDiscount || hasBundleDiscount;
   
@@ -551,16 +574,18 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                     {locale === 'zh' ? '选项' : locale === 'ms' ? 'Saiz' : 'Size:'}
                     </span>
                     <div className="flex flex-wrap gap-3 w-full">
-                      <button
-                        onClick={() => {
-                          setSelectedVariant('Single');
-                          setLocalQty(1);
-                          setShowVariantError(false);
-                        }}
-                        className={`h-12 px-6 rounded-full border transition-all flex items-center justify-center text-sm font-bold flex-1 min-w-[120px] ${selectedVariant === 'Single' ? 'border-orange-500 bg-orange-100 text-orange-950 shadow-md ring-1 ring-orange-500/50' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
-                      >
-                        {locale === 'zh' ? '单品' : locale === 'ms' ? 'Satu' : 'Single'}
-                      </button>
+                      {hasSinglePricing && (
+                        <button
+                          onClick={() => {
+                            setSelectedVariant('Single');
+                            setLocalQty(1);
+                            setShowVariantError(false);
+                          }}
+                          className={`h-12 px-6 rounded-full border transition-all flex items-center justify-center text-sm font-bold flex-1 min-w-[120px] ${selectedVariant === 'Single' ? 'border-orange-500 bg-orange-100 text-orange-950 shadow-md ring-1 ring-orange-500/50' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
+                        >
+                          {locale === 'zh' ? '单品' : locale === 'ms' ? 'Satu' : 'Single'}
+                        </button>
+                      )}
                       
                       {hasBundlePricing && (
                         <button

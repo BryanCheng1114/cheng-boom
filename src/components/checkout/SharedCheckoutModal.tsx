@@ -304,7 +304,7 @@ export function SharedCheckoutModal({ mode, product, quantity = 1, cartItems, ca
                         <h4 className="font-bold text-xs text-zinc-900 truncate mb-0.5">{singleTranslatedName}</h4>
                         <p className="text-[10px] text-zinc-500">Single • Qty: {quantity}</p>
                       </div>
-                      <div className="text-xs font-bold text-zinc-900 shrink-0">RM {activePrice.toFixed(2)}</div>
+                      <div className="text-xs font-bold text-zinc-900 shrink-0">RM {(activePrice ?? 0).toFixed(2)}</div>
                     </div>
                   </div>
                 )}

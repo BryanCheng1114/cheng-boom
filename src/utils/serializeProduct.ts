@@ -1,6 +1,6 @@
 type ProductWithSellerPricing = {
-  sellerAPrice: number;
-  sellerBPrice: number;
+  sellerAPrice: number | null;
+  sellerBPrice: number | null;
   sellerABoxPrice: number | null;
   sellerBBoxPrice: number | null;
   sellerABundlePrice: number | null;

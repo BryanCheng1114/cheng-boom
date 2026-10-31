@@ -1,19 +1,51 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useTranslation } from '../hooks/useTranslation';
-import { Loader2, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Eye, EyeOff, Globe2, Loader2 } from 'lucide-react';
 import Image from 'next/image';
+import { useLanguage } from '../context/LanguageContext';
+
+const loginCopy = {
+  en: {
+    title: 'Admin Portal',
+    subtitle: 'Sign in to manage your Cheng-BOOM store.',
+    username: 'User ID',
+    usernamePlaceholder: 'Enter your admin ID',
+    password: 'Password',
+    passwordPlaceholder: 'Enter your password',
+    remember: 'Remember me',
+    signIn: 'Sign in',
+    signingIn: 'Signing in…',
+    redirecting: 'Redirecting…',
+    browserNote: 'For the best experience, use Chrome or Safari.',
+    imageTitle: 'Admin Management',
+    imageDescription: 'Manage products, inventory, orders, and store settings in one place.',
+    pageTitle: 'Admin Portal | Cheng-BOOM',
+  },
+  zh: {
+    title: '管理后台',
+    subtitle: '登录以管理 Cheng-BOOM 商店。',
+    username: '管理员账号',
+    usernamePlaceholder: '请输入管理员账号',
+    password: '密码',
+    passwordPlaceholder: '请输入密码',
+    remember: '记住我',
+    signIn: '登录',
+    signingIn: '正在登录…',
+    redirecting: '正在跳转…',
+    browserNote: '建议使用 Chrome 或 Safari 浏览器。',
+    imageTitle: '管理中心',
+    imageDescription: '在一个地方管理商品、库存、订单和店铺设置。',
+    pageTitle: '管理后台 | Cheng-BOOM',
+  },
+} as const;
 
 export default function AdminLogin() {
   const router = useRouter();
-  const { t } = useTranslation();
-  const [formData, setFormData] = useState({
-    username: '',
-    password: ''
-  });
-
+  const { language, setLanguage } = useLanguage();
+  const copy = language === 'zh' ? loginCopy.zh : loginCopy.en;
+  const [formData, setFormData] = useState({ username: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [loginStatus, setLoginStatus] = useState<'idle' | 'success'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -23,13 +55,13 @@ export default function AdminLogin() {
   useEffect(() => {
     const remembered = localStorage.getItem('admin_remembered_username');
     if (remembered) {
-      setFormData(prev => ({ ...prev, username: remembered }));
+      setFormData((previous) => ({ ...previous, username: remembered }));
       setRememberMe(true);
     }
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setIsLoading(true);
     setError(null);
 
@@ -39,33 +71,19 @@ export default function AdminLogin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
       const data = await response.json();
 
-      if (response.ok) {
-        if (rememberMe) {
-          localStorage.setItem('admin_remembered_username', formData.username);
-        } else {
-          localStorage.removeItem('admin_remembered_username');
-        }
-        
-        // Write theme & language choices from database to memory
-        if (data.user?.theme) {
-          localStorage.setItem('theme', data.user.theme);
-        }
-        if (data.user?.language) {
-          localStorage.setItem('admin_selected_language', data.user.language);
-        }
+      if (!response.ok) throw new Error(data.message || 'Invalid credentials');
 
-        setLoginStatus('success');
-        setTimeout(() => {
-          window.location.href = '/admin/dashboard';
-        }, 1500);
-      } else {
-        throw new Error(data.message || 'Invalid Credentials');
-      }
-    } catch (err: any) {
-      setError(err.message);
+      if (rememberMe) localStorage.setItem('admin_remembered_username', formData.username);
+      else localStorage.removeItem('admin_remembered_username');
+      if (data.user?.theme) localStorage.setItem('theme', data.user.theme);
+      if (data.user?.language) localStorage.setItem('admin_selected_language', data.user.language);
+
+      setLoginStatus('success');
+      window.setTimeout(() => { window.location.href = '/admin/dashboard'; }, 1200);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'Unable to sign in. Please try again.');
       setIsLoading(false);
     }
   };
@@ -73,161 +91,87 @@ export default function AdminLogin() {
   return (
     <>
       <Head>
-        <title>{t.admin?.headTitle || 'Admin Login - Cheng-BOOM'}</title>
+        <title>{copy.pageTitle}</title>
+        <meta name="description" content={copy.subtitle} />
       </Head>
 
-      <div className="min-h-screen bg-white flex flex-col md:flex-row text-zinc-900 font-sans relative overflow-hidden">
-        
-        {/* Subtle radial gradient background effect on the left side */}
-        <div className="absolute top-0 left-0 w-full md:w-[40%] h-full overflow-hidden pointer-events-none">
-          <div className="absolute top-[20%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px]" />
-        </div>
+      <main className="grid min-h-screen bg-white font-sans text-slate-800 md:grid-cols-[56%_44%]">
+        <section className="relative hidden min-h-screen flex-col items-center justify-center p-6 md:flex lg:p-8">
+          <div className="mb-8 w-full text-left sm:mb-10">
+            <h2 className="text-3xl font-bold leading-tight tracking-tight text-black sm:text-4xl">{copy.imageTitle}</h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600 sm:mt-4 sm:text-base">{copy.imageDescription}</p>
+          </div>
+          <div className="relative h-[50vh] max-h-[520px] min-h-[260px] w-full overflow-hidden bg-slate-100">
+            <Image src="/adminlogin.jpg" alt="Cheng-BOOM" fill priority sizes="54vw" className="object-cover" />
+          </div>
+          <p className="mt-3 w-full text-left text-[10px] text-slate-500">© 2026 All rights reserved.</p>
+        </section>
 
-        {/* LEFT SIDE: Form */}
-        <div className="w-full md:w-[40%] flex flex-col p-6 sm:p-8 relative z-10 min-h-screen md:min-h-0 bg-white">
-          
-          <div className="w-full max-w-[400px] mx-auto flex-1 flex flex-col justify-center pb-20">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <h1 className="text-4xl md:text-5xl font-light text-zinc-900 mb-3">
-                Admin Login
-              </h1>
-              <p className="text-zinc-500 text-sm mb-10">
-                Please enter your credentials to proceed.
-              </p>
+        <section className="flex min-h-screen items-center justify-center px-6 py-12 md:px-10 lg:px-14">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="w-full max-w-[360px]">
+            <header className="mb-12 text-center">
+              <h1 className="text-[32px] font-bold leading-tight tracking-tight text-slate-800">{copy.title}</h1>
+              <p className="mt-2 text-sm text-slate-600">Cheng-BOOM</p>
+            </header>
 
-              {error && (
-                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm animate-shake">
-                  {error}
-                </div>
-              )}
+            {error && <div role="alert" className="mb-5 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
-              <motion.form 
-                key="form"
-                onSubmit={handleSubmit} 
-                className="space-y-6"
-              >
-                {/* Username Input */}
-                <div className="relative mt-2">
-                  <label className="absolute -top-2.5 left-3 bg-white px-1 text-sm font-medium text-zinc-600 z-10 transition-colors">
-                    Username
-                  </label>
-                  <input 
-                    type="text"
-                    required
-                    disabled={isLoading || loginStatus === 'success'}
-                    className="w-full bg-zinc-50 border border-zinc-200 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 rounded-2xl px-5 py-4 text-zinc-900 outline-none transition-all disabled:opacity-50"
-                    placeholder="Enter your username"
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  />
-                </div>
-
-                {/* Password Input */}
-                <div className="relative mt-4">
-                  <label className="absolute -top-2.5 left-3 bg-white px-1 text-sm font-medium text-zinc-600 z-10 transition-colors">
-                    Password
-                  </label>
-                  <input 
-                    type={showPassword ? "text" : "password"}
-                    required
-                    disabled={isLoading || loginStatus === 'success'}
-                    className="w-full bg-zinc-50 border border-zinc-200 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 rounded-2xl px-5 py-4 text-zinc-900 outline-none transition-all tracking-wide disabled:opacity-50"
-                    placeholder="Enter password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  />
-                  <button 
-                    type="button"
-                    disabled={isLoading || loginStatus === 'success'}
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors disabled:opacity-50"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-
-                {/* Remember Me */}
-                <div className="flex items-center">
-                  <label className={`flex items-center gap-2.5 cursor-pointer select-none group ${(isLoading || loginStatus === 'success') ? 'opacity-50 pointer-events-none' : ''}`}>
-                    <div className="relative flex items-center justify-center">
-                      <input 
-                        type="checkbox"
-                        className="sr-only"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        disabled={isLoading || loginStatus === 'success'}
-                      />
-                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${rememberMe ? 'bg-zinc-900 border-zinc-900 text-white' : 'border-zinc-300 bg-transparent group-hover:border-zinc-900'}`}>
-                        {rememberMe && (
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                          </svg>
-                        )}
-                      </div>
-                    </div>
-                    <span className="text-sm text-zinc-500 group-hover:text-zinc-700 transition-colors">
-                      Remember me
-                    </span>
-                  </label>
-                </div>
-
-                {/* Submit Button */}
-                <button 
-                  type="submit"
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <label className="block">
+                <span className="mb-2 block text-xs font-medium text-slate-500">{copy.username}</span>
+                <input
+                  type="text"
+                  required
+                  autoComplete="username"
                   disabled={isLoading || loginStatus === 'success'}
-                  className="w-full py-4 bg-zinc-900 text-white rounded-2xl font-semibold hover:bg-zinc-800 transition-all flex items-center justify-center gap-2 mt-4 shadow-xl shadow-zinc-900/20 disabled:opacity-70 disabled:cursor-wait"
-                >
-                  {(isLoading || loginStatus === 'success') ? (
-                    <>
-                      <Loader2 className="animate-spin" size={20} />
-                      {loginStatus === 'success' ? 'Redirecting...' : 'Signing in...'}
-                    </>
-                  ) : 'Sign in'}
+                  placeholder={copy.usernamePlaceholder}
+                  value={formData.username}
+                  onChange={(event) => setFormData({ ...formData, username: event.target.value })}
+                  className="h-11 w-full border-0 border-b border-slate-300 bg-transparent px-0 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-0 disabled:opacity-60"
+                />
+              </label>
+
+              <label className="relative block">
+                <span className="mb-2 block text-xs font-medium text-slate-500">{copy.password}</span>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  disabled={isLoading || loginStatus === 'success'}
+                  placeholder={copy.passwordPlaceholder}
+                  value={formData.password}
+                  onChange={(event) => setFormData({ ...formData, password: event.target.value })}
+                  className="h-11 w-full border-0 border-b border-slate-300 bg-transparent px-0 pr-10 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-0 disabled:opacity-60"
+                />
+                <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute bottom-3 right-1 text-slate-500 hover:text-slate-800">
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
-              </motion.form>
-            </motion.div>
-          </div>
+              </label>
 
-          {/* Secure System Footer */}
-          <div className="mt-auto pt-6 text-center text-xs text-zinc-500 select-none">
-            <div className="flex items-center justify-center gap-1.5 mb-1 text-zinc-500">
-              <ShieldCheck size={14} /> 
-              <span className="text-xs">Secure System Protection</span>
+              <label className="flex cursor-pointer items-center gap-2 pt-1 text-xs text-slate-600">
+                <input type="checkbox" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} disabled={isLoading || loginStatus === 'success'} className="h-3.5 w-3.5 accent-blue-600" />
+                {copy.remember}
+              </label>
+
+              <button type="submit" disabled={isLoading || loginStatus === 'success'} className="mt-1 flex h-11 w-full items-center justify-center gap-2 border border-blue-600 bg-white text-xs font-medium text-blue-700 transition hover:bg-blue-50 disabled:cursor-wait disabled:opacity-60">
+                {(isLoading || loginStatus === 'success') && <Loader2 size={15} className="animate-spin" />}
+                {loginStatus === 'success' ? copy.redirecting : isLoading ? copy.signingIn : copy.signIn}
+              </button>
+            </form>
+
+            <div className="mt-8 flex flex-col items-center gap-4 text-center">
+              <label className="flex items-center gap-2 text-xs text-slate-600">
+                <Globe2 size={14} />
+                <select aria-label="Language" value={language === 'zh' ? 'zh' : 'en'} onChange={(event) => { void setLanguage(event.target.value as 'en' | 'zh'); }} className="cursor-pointer border-0 bg-transparent pr-1 text-xs text-slate-700 outline-none focus:ring-0">
+                  <option value="en">English</option>
+                  <option value="zh">简体中文</option>
+                </select>
+              </label>
+              <p className="text-[10px] text-slate-500">{copy.browserNote}</p>
             </div>
-            &copy; 2026 Cheng-BOOM. All rights reserved.
-          </div>
-        </div>
-
-        {/* RIGHT SIDE: Image */}
-        <div className="hidden md:block w-[60%] relative bg-zinc-100 border-l border-zinc-200">
-          <Image 
-            src="/adminlogin.jpg"
-            alt="Admin Dashboard Preview"
-            fill
-            className="object-cover object-left"
-            priority
-          />
-          <div className="absolute inset-0 bg-black/5 mix-blend-overlay pointer-events-none" />
-        </div>
-
-      </div>
-
-      <style jsx global>{`
-        body {
-          overflow-y: auto !important;
-        }
-        input:-webkit-autofill,
-        input:-webkit-autofill:hover, 
-        input:-webkit-autofill:focus {
-          -webkit-text-fill-color: #18181b;
-          -webkit-box-shadow: 0 0 0px 1000px #f4f4f5 inset;
-          transition: background-color 5000s ease-in-out 0s;
-        }
-      `}</style>
+          </motion.div>
+        </section>
+      </main>
     </>
   );
 }

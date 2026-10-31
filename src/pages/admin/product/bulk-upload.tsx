@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, FolderOpen, Upload, AlertTriangle, CheckCircle, X } from 'lucide-react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import Link from 'next/link';
+import { validateProductPricing } from '../../../utils/validateProductPricing';
 
 export default function BulkUploadPage() {
   const { t } = useLanguage();
@@ -22,6 +23,9 @@ export default function BulkUploadPage() {
   const [isConfirmed, setIsConfirmed] = useState(false);
   
   const [importResult, setImportResult] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
+
+  const isProductRowValid = (p: any) =>
+    Boolean(p.hasImage && p.name && p.code && p.category && p.description && p.stock !== undefined && p.stock !== null && !validateProductPricing(p));
 
   const downloadBulkTemplate = async () => {
     setIsLoading(true);
@@ -45,7 +49,7 @@ export default function BulkUploadPage() {
       // Define columns
       const headers = [
         'Code*', 'Name_EN*', 'Name_ZH', 'Category*', 'Description_EN*', 'Description_ZH',
-        'Video_URL', 'Stock*', 'Seller_A_Single_Price*', 'Seller_B_Single_Price*',
+        'Video_URL', 'Stock*', 'Seller_A_Single_Price', 'Seller_B_Single_Price',
         'Items_Per_Box', 'Seller_A_Box_Price', 'Seller_B_Box_Price',
         'Items_Per_Bundle', 'Seller_A_Bundle_Price', 'Seller_B_Bundle_Price',
         'Status', 'Image_Filename*'
@@ -184,25 +188,45 @@ export default function BulkUploadPage() {
       const parsedProducts = jsonData.map((row: any, index: number) => {
         const rowNum = index + 2; // +1 for 0-index, +1 for header
         
-        // Handle optional * suffix gracefully if users didn't delete the asterisks
-        const getValue = (key: string) => row[`${key}*`] !== undefined ? row[`${key}*`] : row[key];
+        // Flexible key getter: matches direct, with/without '*', and strips notes in parentheses
+        const getValue = (key: string) => {
+          if (row[`${key}*`] !== undefined) return row[`${key}*`];
+          if (row[key] !== undefined) return row[key];
+          const cleanTarget = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+          for (const rowKey of Object.keys(row)) {
+            const stripped = rowKey.replace(/[\(\（].*?[\)\）]/g, '').trim();
+            if (stripped.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanTarget) {
+              return row[rowKey];
+            }
+          }
+          for (const rowKey of Object.keys(row)) {
+            if (rowKey.toLowerCase().replace(/[^a-z0-9]/g, '').startsWith(cleanTarget)) {
+              return row[rowKey];
+            }
+          }
+          return undefined;
+        };
 
-        const filename = getValue('Image_Filename')?.trim();
+        const filename = getValue('Image_Filename')?.toString().trim();
         const nameEN = getValue('Name_EN');
         const code = getValue('Code');
         const category = getValue('Category');
         const stock = getValue('Stock');
-        const sellerAPrice = getValue('Seller_A_Single_Price');
-        const sellerBPrice = getValue('Seller_B_Single_Price');
+        const rawSellerAPrice = getValue('Seller_A_Single_Price');
+        const rawSellerBPrice = getValue('Seller_B_Single_Price');
+        const rawItemsPerBox = getValue('Items_Per_Box');
+        const rawSellerABoxPrice = getValue('Seller_A_Box_Price');
+        const rawSellerBBoxPrice = getValue('Seller_B_Box_Price');
+        const rawBundleQty = getValue('Items_Per_Bundle');
+        const rawSellerABundlePrice = getValue('Seller_A_Bundle_Price');
+        const rawSellerBBundlePrice = getValue('Seller_B_Bundle_Price');
         const descriptionEN = getValue('Description_EN');
         
         if (!nameEN) errors.push(`Row ${rowNum}: Missing Product Name (EN)`);
         if (!code) errors.push(`Row ${rowNum}: Missing Product Code`);
         if (!category) errors.push(`Row ${rowNum}: Missing Category`);
         if (!descriptionEN) errors.push(`Row ${rowNum}: Missing Description (EN)`);
-        if (stock === undefined) errors.push(`Row ${rowNum}: Missing Stock`);
-        if (sellerAPrice === undefined || sellerAPrice === '') errors.push(`Row ${rowNum}: Missing Seller A single-item price`);
-        if (sellerBPrice === undefined || sellerBPrice === '') errors.push(`Row ${rowNum}: Missing Seller B single-item price`);
+        if (stock === undefined || stock === null || stock === '') errors.push(`Row ${rowNum}: Missing Stock`);
         if (!filename) errors.push(`Row ${rowNum}: Missing Image_Filename`);
         
         let hasImage = false;
@@ -210,6 +234,41 @@ export default function BulkUploadPage() {
           errors.push(`Row ${rowNum}: Image file "${filename}" not found in ZIP.`);
         } else if (filename && images[filename]) {
           hasImage = true;
+        }
+
+        const parsePrice = (v: any) => {
+          if (v === undefined || v === null || String(v).trim() === '') return null;
+          const num = Number(v);
+          return Number.isFinite(num) ? num : null;
+        };
+
+        const parseIntVal = (v: any) => {
+          if (v === undefined || v === null || String(v).trim() === '') return null;
+          const num = Number(v);
+          return Number.isInteger(num) ? num : null;
+        };
+
+        const sellerAPrice = parsePrice(rawSellerAPrice);
+        const sellerBPrice = parsePrice(rawSellerBPrice);
+        const itemsPerBox = parseIntVal(rawItemsPerBox);
+        const sellerABoxPrice = parsePrice(rawSellerABoxPrice);
+        const sellerBBoxPrice = parsePrice(rawSellerBBoxPrice);
+        const bundleQuantity = parseIntVal(rawBundleQty);
+        const sellerABundlePrice = parsePrice(rawSellerABundlePrice);
+        const sellerBBundlePrice = parsePrice(rawSellerBBundlePrice);
+
+        const pricingError = validateProductPricing({
+          sellerAPrice,
+          sellerBPrice,
+          itemsPerBox,
+          sellerABoxPrice,
+          sellerBBoxPrice,
+          bundleQuantity,
+          sellerABundlePrice,
+          sellerBBundlePrice,
+        });
+        if (pricingError) {
+          errors.push(`Row ${rowNum}: ${pricingError}`);
         }
         
         return {
@@ -219,14 +278,14 @@ export default function BulkUploadPage() {
           code: code || '',
           category: category || '',
           stock: Number(stock) || 0,
-          sellerAPrice: Number(sellerAPrice) || 0,
-          sellerBPrice: Number(sellerBPrice) || 0,
-          itemsPerBox: getValue('Items_Per_Box') ? Number(getValue('Items_Per_Box')) : null,
-          sellerABoxPrice: getValue('Seller_A_Box_Price') ? Number(getValue('Seller_A_Box_Price')) : null,
-          sellerBBoxPrice: getValue('Seller_B_Box_Price') ? Number(getValue('Seller_B_Box_Price')) : null,
-          bundleQuantity: getValue('Items_Per_Bundle') ? Number(getValue('Items_Per_Bundle')) : null,
-          sellerABundlePrice: getValue('Seller_A_Bundle_Price') ? Number(getValue('Seller_A_Bundle_Price')) : null,
-          sellerBBundlePrice: getValue('Seller_B_Bundle_Price') ? Number(getValue('Seller_B_Bundle_Price')) : null,
+          sellerAPrice,
+          sellerBPrice,
+          itemsPerBox,
+          sellerABoxPrice,
+          sellerBBoxPrice,
+          bundleQuantity,
+          sellerABundlePrice,
+          sellerBBundlePrice,
           status: getValue('Status') || 'Live',
           description: descriptionEN || '',
           descriptionZh: getValue('Description_ZH') || '',
@@ -512,7 +571,7 @@ export default function BulkUploadPage() {
                     </div>
                     <div className="border border-slate-200 bg-slate-50 px-4 py-3">
                       <p className="text-xs text-slate-500">{t('inventory_rows_valid')}</p>
-                      <p className="mt-1 text-xl font-semibold text-sky-800">{previewProducts.filter(p => p.hasImage && p.name && p.code && p.category && p.description && p.stock !== undefined && p.sellerAPrice !== undefined && p.sellerBPrice !== undefined).length}</p>
+                      <p className="mt-1 text-xl font-semibold text-sky-800">{previewProducts.filter(isProductRowValid).length}</p>
                     </div>
                     <div className={`border px-4 py-3 ${validationErrors.length ? 'border-rose-200 bg-rose-50' : 'border-emerald-200 bg-emerald-50'}`}>
                       <p className={`text-xs ${validationErrors.length ? 'text-rose-700' : 'text-emerald-700'}`}>{t('inventory_validation_issues')}</p>
@@ -552,7 +611,7 @@ export default function BulkUploadPage() {
                       </thead>
                       <tbody className="divide-y divide-slate-200">
                         {previewProducts.map((p, i) => (
-                          <tr key={i} className={`transition-colors odd:bg-white even:bg-slate-50 hover:bg-sky-50 ${!p.hasImage || !p.name || !p.code || !p.category || !p.description || p.stock === undefined || p.sellerAPrice === undefined || p.sellerBPrice === undefined ? '!bg-rose-50' : ''}`}>
+                          <tr key={i} className={`transition-colors odd:bg-white even:bg-slate-50 hover:bg-sky-50 ${!isProductRowValid(p) ? '!bg-rose-50' : ''}`}>
                             <td className="px-4 py-3 text-xs text-slate-500">{p.rowNum}</td>
                             <td className="px-4 py-3">
                               {p.hasImage && previewImages[p.imageFilename] ? (
@@ -567,8 +626,8 @@ export default function BulkUploadPage() {
                             <td className="max-w-xs truncate px-4 py-3 text-sm text-slate-700">{p.name || <span className="text-rose-600">{t('missing') || 'Missing'}</span>}</td>
                             <td className="px-4 py-3 text-sm text-slate-600">{p.category || '-'}</td>
                             <td className="px-4 py-3 text-sm text-slate-700">{p.stock}</td>
-                            <td className="px-4 py-3 text-sm font-medium text-slate-900">RM {p.sellerAPrice.toFixed(2)}</td>
-                            <td className="px-4 py-3 text-sm font-medium text-slate-900">RM {p.sellerBPrice.toFixed(2)}</td>
+                            <td className="px-4 py-3 text-sm font-medium text-slate-900">{p.sellerAPrice != null ? `RM ${p.sellerAPrice.toFixed(2)}` : p.sellerABoxPrice != null ? `Box: RM ${p.sellerABoxPrice.toFixed(2)}` : p.sellerABundlePrice != null ? `Bundle: RM ${p.sellerABundlePrice.toFixed(2)}` : '—'}</td>
+                            <td className="px-4 py-3 text-sm font-medium text-slate-900">{p.sellerBPrice != null ? `RM ${p.sellerBPrice.toFixed(2)}` : p.sellerBBoxPrice != null ? `Box: RM ${p.sellerBBoxPrice.toFixed(2)}` : p.sellerBBundlePrice != null ? `Bundle: RM ${p.sellerBBundlePrice.toFixed(2)}` : '—'}</td>
                             <td className="px-4 py-3">
                               <span className={`inline-flex border px-2 py-1 text-xs font-medium ${p.status === 'Hold' ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800'}`}>
                                 {p.status}
@@ -589,7 +648,7 @@ export default function BulkUploadPage() {
                     >{t('reupload') || 'Re-upload'}</button>
                     <button 
                       onClick={handleConfirmImport}
-                      disabled={isLoading || validationErrors.length > 0 || previewProducts.length === 0 || previewProducts.some(p => !p.hasImage || !p.name || !p.code || !p.category || !p.description || p.stock === undefined || p.sellerAPrice === undefined || p.sellerBPrice === undefined)}
+                      disabled={isLoading || validationErrors.length > 0 || previewProducts.length === 0 || previewProducts.some(p => !isProductRowValid(p))}
                       className="inline-flex items-center justify-center gap-2 bg-sky-700 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {isLoading ? (

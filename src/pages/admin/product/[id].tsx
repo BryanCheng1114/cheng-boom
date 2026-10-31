@@ -28,6 +28,7 @@ const AdminProductDetail = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
+  const [activeMediaTab, setActiveMediaTab] = useState<'image' | 'video'>('image');
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const { language, t } = useLanguage();
@@ -122,7 +123,20 @@ const AdminProductDetail = () => {
 
   if (!product) return null;
 
-  const videoId = product.videoUrl?.split('v=')[1]?.split('&')[0] || product.videoUrl?.split('youtu.be/')[1];
+  const getYouTubeVideoId = (videoUrl?: string | null) => {
+    if (!videoUrl) return null;
+    try {
+      const url = new URL(videoUrl);
+      if (url.hostname.endsWith('youtu.be')) return url.pathname.split('/').filter(Boolean)[0] || null;
+      if (url.pathname.startsWith('/shorts/') || url.pathname.startsWith('/embed/')) {
+        return url.pathname.split('/').filter(Boolean)[1] || null;
+      }
+      return url.searchParams.get('v');
+    } catch {
+      return null;
+    }
+  };
+  const videoId = getYouTubeVideoId(product.videoUrl);
   const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : null;
 
   // Localized Product Name
@@ -174,53 +188,38 @@ const AdminProductDetail = () => {
           </div>
         </div>
 
-        {/* Main: Image Left | Info Right */}
-        <div className="mb-6 grid grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
-
-          {/* LEFT — Image Gallery */}
-          <div className="flex flex-col gap-4 h-full">
-            <div className="relative min-h-[360px] flex-1 cursor-zoom-in overflow-hidden border border-slate-200 bg-slate-100 shadow-sm group" onClick={() => product.images?.[activeImageIdx] && setLightboxOpen(true)}>
-              {product.images && product.images[activeImageIdx] ? (
-                <>
-                  <img
-                    src={product.images[activeImageIdx]}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-                    <div className="p-3 bg-black/60 rounded-2xl backdrop-blur-sm">
-                      <ZoomIn size={24} className="text-white" />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-zinc-400">
-                  <ImageIcon size={64} />
-                </div>
-              )}
+        {/* Main product summary: media on the left, identity on the right */}
+        <div className="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <section className="overflow-hidden border border-slate-200 bg-white shadow-sm">
+            <div className="flex border-b border-slate-200 bg-slate-50">
+              <button type="button" onClick={() => setActiveMediaTab('image')} className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold ${activeMediaTab === 'image' ? 'border-sky-700 text-sky-800' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
+                <ImageIcon size={16} /> Image
+              </button>
+              {product.videoUrl && <button type="button" onClick={() => setActiveMediaTab('video')} className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold ${activeMediaTab === 'video' ? 'border-sky-700 text-sky-800' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
+                <VideoIcon size={16} /> YouTube
+              </button>}
             </div>
-            {product.images && product.images.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-                {product.images.map((img: string, i: number) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveImageIdx(i)}
-                    className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all shrink-0 ${
-                      activeImageIdx === i
-                        ? 'border-sky-700 shadow-sm'
-                        : 'border-slate-200 opacity-60 hover:opacity-100'
-                    }`}
-                  >
-                    <img src={img} className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
 
-          {/* RIGHT — Identity + Stats + Pricing */}
+            <div className="group relative aspect-video w-full cursor-zoom-in overflow-hidden bg-slate-100" onClick={() => activeMediaTab === 'image' && product.images?.[activeImageIdx] && setLightboxOpen(true)}>
+              {activeMediaTab === 'image' ? product.images?.[activeImageIdx] ? <>
+                <img src={product.images[activeImageIdx]} className="h-full w-full object-contain" />
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/10 group-hover:opacity-100"><ZoomIn size={24} className="text-white" /></div>
+              </> : <div className="flex h-full items-center justify-center text-slate-400"><ImageIcon size={48} /></div>
+                : embedUrl ? <iframe src={embedUrl} className="h-full w-full border-0" allowFullScreen title={t('product_demo')} />
+                  : <div className="flex h-full items-center justify-center text-slate-500">Video preview unavailable</div>}
+            </div>
+            {activeMediaTab === 'image' && product.images?.length > 1 && <div className="flex gap-2 overflow-x-auto border-t border-slate-200 bg-white p-3">
+                {product.images.map((img: string, i: number) => <button key={i} type="button" onClick={() => setActiveImageIdx(i)} className={`h-12 w-12 shrink-0 overflow-hidden border-2 ${activeImageIdx === i ? 'border-sky-700' : 'border-slate-300 opacity-70 hover:opacity-100'}`}>
+                  <img src={img} className="h-full w-full object-cover" />
+                </button>)}
+            </div>}
+            {activeMediaTab === 'video' && product.videoUrl && <a href={product.videoUrl} target="_blank" rel="noreferrer" className="block break-all border-t border-slate-200 bg-white px-4 py-3 text-sm text-sky-800 underline" title={product.videoUrl}>
+              {product.videoUrl}
+            </a>}
+          </section>
+
           <div className="flex flex-col gap-5">
-
-            {/* Identity Card */}
+            {/* Identity card */}
             <div className="relative overflow-hidden border border-slate-200 bg-white p-6 shadow-sm md:p-8">
               <div className="absolute -bottom-4 -right-4 opacity-[0.04]">
                 <Package size={140} className=" text-zinc-900" />
@@ -239,57 +238,55 @@ const AdminProductDetail = () => {
               </div>
             </div>
 
-            {/* Stock & Visibility */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                  <Package size={11} className="text-blue-500" /> {t('stock_level')}
-                </p>
-                <p className="text-2xl font-semibold text-slate-900">
-                  {product.stock}
-                  <span className="text-xs not-italic font-bold text-zinc-500 uppercase ml-1.5">{t('units')}</span>
-                </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="border border-slate-200 bg-white p-4 shadow-sm">
+                <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500"><Package size={13} className="text-sky-700" /> {t('stock_level')}</p>
+                <p className="text-2xl font-semibold text-slate-900">{product.stock}<span className="ml-1.5 text-xs font-semibold uppercase text-slate-500">{t('units')}</span></p>
               </div>
-              <div className="border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className={`p-2 rounded-xl ${
-                    product.status === 'Live' ? 'bg-emerald-500/10 text-emerald-500' :
-                    product.status === 'Hold' ? 'bg-orange-500/10 text-orange-500' :
-                    'bg-red-500/10 text-red-500'
-                  }`}>
-                    <CheckCircle size={16} />
-                  </div>
-                  <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t('col_status')}</h4>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className={`text-2xl font-black tracking-tight ${
-                    product.status === 'Live' ? 'text-emerald-500' :
-                    product.status === 'Hold' ? 'text-orange-500' :
-                    'text-red-500'
-                  }`}>
-                    {getTranslatedStatus(product.status)}
-                  </span>
-                </div>
+              <div className="border border-slate-200 bg-white p-4 shadow-sm">
+                <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500"><CheckCircle size={13} className="text-sky-700" /> {t('col_status')}</p>
+                <p className={`text-xl font-bold ${product.status === 'Live' ? 'text-emerald-700' : product.status === 'Hold' ? 'text-orange-700' : 'text-red-700'}`}>{getTranslatedStatus(product.status)}</p>
               </div>
             </div>
 
-            {/* Pricing */}
-            <div className="border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-5 flex items-center gap-1.5">
-                <DollarSign size={14} className="text-sky-700" /> {t('pricing_structure')}
-              </p>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3"><span className="text-xs font-semibold text-slate-600">{t('inventory_seller_a')} · {t('inventory_single_item')}</span><span className="text-lg font-bold text-slate-900">RM {Number(product.sellerAPrice).toFixed(2)}</span></div>
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3"><span className="text-xs font-semibold text-slate-600">{t('inventory_seller_b')} · {t('inventory_single_item')}</span><span className="text-lg font-bold text-sky-700">RM {Number(product.sellerBPrice).toFixed(2)}</span></div>
-                {product.itemsPerBox && <div className="flex items-center justify-between text-xs"><span className="text-slate-600">{t('inventory_per_box_count').replace('{count}', String(product.itemsPerBox))}</span><span className="font-semibold text-slate-800">A: {product.sellerABoxPrice != null ? `RM ${Number(product.sellerABoxPrice).toFixed(2)}` : '—'} · B: {product.sellerBBoxPrice != null ? `RM ${Number(product.sellerBBoxPrice).toFixed(2)}` : '—'}</span></div>}
-                {product.bundleQuantity && <div className="flex items-center justify-between text-xs"><span className="text-slate-600">{t('inventory_bundle_count').replace('{count}', String(product.bundleQuantity))}</span><span className="font-semibold text-slate-800">A: {product.sellerABundlePrice != null ? `RM ${Number(product.sellerABundlePrice).toFixed(2)}` : '—'} · B: {product.sellerBBundlePrice != null ? `RM ${Number(product.sellerBBundlePrice).toFixed(2)}` : '—'}</span></div>}
+            <div className="overflow-hidden border border-slate-300 bg-white shadow-sm">
+              <div className="border-b border-slate-300 bg-slate-100 px-4 py-3">
+                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700"><DollarSign size={14} className="text-sky-700" /> {t('pricing_structure')}</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[360px] border-collapse text-left text-xs">
+                  <thead className="bg-slate-200">
+                    <tr className="text-[10px] font-bold uppercase tracking-wide text-slate-700">
+                      <th className="border border-slate-300 px-3 py-2.5">Item / pack</th>
+                      <th className="border border-slate-300 px-3 py-2.5">{t('inventory_seller_a')}</th>
+                      <th className="border border-slate-300 px-3 py-2.5">{t('inventory_seller_b')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-slate-800">
+                    <tr className="bg-white">
+                      <td className="border border-slate-300 px-3 py-2.5 font-semibold">{t('inventory_single_item')}</td>
+                      <td className="border border-slate-300 px-3 py-2.5 font-semibold">{product.sellerAPrice != null ? `RM ${Number(product.sellerAPrice).toFixed(2)}` : '—'}</td>
+                      <td className="border border-slate-300 px-3 py-2.5 font-semibold text-sky-800">{product.sellerBPrice != null ? `RM ${Number(product.sellerBPrice).toFixed(2)}` : '—'}</td>
+                    </tr>
+                    {product.itemsPerBox && <tr className="bg-slate-50">
+                      <td className="border border-slate-300 px-3 py-2.5 font-semibold">{t('inventory_per_box_count').replace('{count}', String(product.itemsPerBox))}</td>
+                      <td className="border border-slate-300 px-3 py-2.5 font-semibold">{product.sellerABoxPrice != null ? `RM ${Number(product.sellerABoxPrice).toFixed(2)}` : '—'}</td>
+                      <td className="border border-slate-300 px-3 py-2.5 font-semibold text-sky-800">{product.sellerBBoxPrice != null ? `RM ${Number(product.sellerBBoxPrice).toFixed(2)}` : '—'}</td>
+                    </tr>}
+                    {product.bundleQuantity && <tr className="bg-white">
+                      <td className="border border-slate-300 px-3 py-2.5 font-semibold">{t('inventory_bundle_count').replace('{count}', String(product.bundleQuantity))}</td>
+                      <td className="border border-slate-300 px-3 py-2.5 font-semibold">{product.sellerABundlePrice != null ? `RM ${Number(product.sellerABundlePrice).toFixed(2)}` : '—'}</td>
+                      <td className="border border-slate-300 px-3 py-2.5 font-semibold text-sky-800">{product.sellerBBundlePrice != null ? `RM ${Number(product.sellerBBundlePrice).toFixed(2)}` : '—'}</td>
+                    </tr>}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom: Description + Video */}
-        <div className="space-y-6">
+        {/* Description follows the product and pricing information */}
+        <div className="mb-6">
           <div className="border border-slate-200 bg-white p-6 shadow-sm md:p-8">
             <div className="flex items-center gap-3 mb-5">
               <div className="border border-slate-200 bg-slate-50 p-2 text-sky-700"><Info size={16} /></div>
@@ -304,22 +301,6 @@ const AdminProductDetail = () => {
             </div>
           </div>
 
-          {embedUrl && (
-            <div className="overflow-hidden border border-slate-200 bg-white shadow-sm">
-                <div className="flex items-center gap-3 border-b border-slate-200 px-6 py-4 md:px-8">
-                <div className="p-2 bg-red-500/10 text-red-500 rounded-xl"><VideoIcon size={16} /></div>
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('live_demonstration')}</h3>
-              </div>
-              <div className="aspect-video w-full">
-                <iframe
-                  src={embedUrl}
-                  className="w-full h-full border-0"
-                  allowFullScreen
-                  title={t('product_demo')}
-                />
-              </div>
-            </div>
-          )}
         </div>
 
       </div>

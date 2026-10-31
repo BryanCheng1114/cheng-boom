@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronDown, ChevronRight, Image as ImageIcon, Video, X, HelpCircle, AlertTriangle, Save } from 'lucide-react';
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import Link from 'next/link';
+import { validateProductPricing } from '../../../../utils/validateProductPricing';
 import { useLanguage } from '../../../../context/LanguageContext';
 
 const EditProductPage = () => {
@@ -96,8 +97,8 @@ const EditProductPage = () => {
             category: data.category || '',
             videoUrl: data.videoUrl || '',
             stock: String(data.stock || '0'),
-            sellerAPrice: String(data.sellerAPrice ?? data.price ?? '0'),
-            sellerBPrice: String(data.sellerBPrice ?? data.price ?? '0'),
+            sellerAPrice: data.sellerAPrice != null ? String(data.sellerAPrice) : (data.price != null ? String(data.price) : ''),
+            sellerBPrice: data.sellerBPrice != null ? String(data.sellerBPrice) : (data.price != null ? String(data.price) : ''),
             itemsPerBox: String(data.itemsPerBox || ''),
             bundleQuantity: String(data.bundleQuantity || ''),
             sellerABoxPrice: String(data.sellerABoxPrice ?? data.boxPrice ?? ''),
@@ -189,8 +190,9 @@ const EditProductPage = () => {
     if (!formData.code.trim()) errors.code = t('err_code_required') || 'Code required';
     if (!formData.description.trim()) errors.description = t('err_description_required') || 'Description is required';
     if (!formData.stock) errors.stock = t('err_stock_required') || 'Stock required';
-    if (!formData.sellerAPrice) errors.sellerAPrice = 'Seller A single-item price is required';
-    if (!formData.sellerBPrice) errors.sellerBPrice = 'Seller B single-item price is required';
+    const pricingError = validateProductPricing(formData);
+    if (pricingError) errors.sellerAPrice = pricingError;
+
 
     setFieldErrors(errors);
 
@@ -364,7 +366,7 @@ const EditProductPage = () => {
                   const bundleField = group === 'A' ? 'sellerABundlePrice' : 'sellerBBundlePrice';
                   return <div key={group} className="space-y-4 border border-slate-200 bg-slate-50/60 p-5">
                     <div className="border-b border-slate-200 pb-3"><h3 className="text-base font-semibold text-slate-900">{group === 'A' ? t('product_seller_a_pricing') : t('product_seller_b_pricing')}</h3><p className="mt-1 text-xs text-slate-500">{t('product_single_price_required')}</p></div>
-                    <div ref={group === 'A' ? priceRef : undefined} className="space-y-2"><label className="text-xs font-semibold text-slate-800">{t('product_single_item_price')} <span className="text-red-500">*</span></label><input type="number" min="0" step="0.01" name={singleField} value={formData[singleField]} onChange={handleChange} className={`w-full border bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${fieldErrors[singleField] ? 'border-red-500' : 'border-slate-300'}`} placeholder="0.00" /></div>
+                    <div ref={group === 'A' ? priceRef : undefined} className="space-y-2"><label className="text-xs font-semibold text-slate-800">{t('product_single_item_price')}</label><input type="number" min="0" step="0.01" name={singleField} value={formData[singleField]} onChange={handleChange} className={`w-full border bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 ${fieldErrors[singleField] ? 'border-red-500' : 'border-slate-300'}`} placeholder="0.00" /></div>
                     <details className="group border-t border-slate-200 pt-3"><summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium text-slate-700"><span>{t('product_per_box_price')} <span className="ml-1 text-xs font-normal text-slate-500">{t('product_optional')}</span></span><ChevronDown size={16} className="text-slate-500 transition-transform group-open:rotate-180" /></summary><div className="pt-3"><input aria-label={`${t('product_per_box_price')} - ${t(group === 'A' ? 'inventory_seller_a' : 'inventory_seller_b')}`} type="number" min="0" step="0.01" name={boxField} value={formData[boxField]} onChange={handleChange} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0.00" /></div></details>
                     <details className="group border-t border-slate-200 pt-3"><summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium text-slate-700"><span>{t('product_bundle_price')} <span className="ml-1 text-xs font-normal text-slate-500">{t('product_optional')}</span></span><ChevronDown size={16} className="text-slate-500 transition-transform group-open:rotate-180" /></summary><div className="pt-3"><input aria-label={`${t('product_bundle_price')} - ${t(group === 'A' ? 'inventory_seller_a' : 'inventory_seller_b')}`} type="number" min="0" step="0.01" name={bundleField} value={formData[bundleField]} onChange={handleChange} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600" placeholder="0.00" /></div></details>
                   </div>;
