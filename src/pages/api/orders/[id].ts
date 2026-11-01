@@ -1,8 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
+import { getAdminFromRequest } from '../../../utils/adminAuth';
+import { getCustomerFromRequest } from '../../../utils/customerAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
+  const admin = await getAdminFromRequest(req);
+  const customer = admin ? null : await getCustomerFromRequest(req);
+  if (!admin && !customer) return res.status(401).json({ message: 'Please sign in.' });
 
   if (req.method === 'GET') {
     try {
@@ -26,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!order) {
         return res.status(404).json({ message: 'Order not found' });
       }
+      if (!admin && order.customerId !== customer?.id) return res.status(403).json({ message: 'You can only access your own orders.' });
 
       // Fetch translated product names manually
       for (const item of order.items) {
@@ -51,6 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === 'PATCH') {
+    if (!admin) return res.status(403).json({ message: 'Admin sign-in is required to update orders.' });
     try {
       const { status, address } = req.body;
       
@@ -82,22 +89,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           // 2. Restore stock for each item
           for (const item of existingOrder.items) {
-            let restoreQty = item.quantity;
-            
-            if (item.variant === 'Box') {
-              const product = await tx.product.findUnique({
-                where: { id: item.productId },
-                select: { itemsPerBox: true }
-              });
-              if (product && product.itemsPerBox) {
-                restoreQty = item.quantity * product.itemsPerBox;
-              }
-            }
-
             await tx.product.updateMany({
               where: { id: item.productId },
               data: {
-                stock: { increment: restoreQty }
+                stock: { increment: item.quantity }
               }
             });
           }

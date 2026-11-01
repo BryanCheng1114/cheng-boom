@@ -2,10 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import bcrypt from 'bcryptjs';
 import * as jose from 'jose';
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'fallback-secret-key-123'
-);
+import { getJwtSecretBytes } from '../../../lib/jwtSecret';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -35,6 +32,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    const secret = getJwtSecretBytes();
+    if (!secret) return res.status(500).json({ message: 'Authentication is not configured.' });
+
     // Create JWT
     const token = await new jose.SignJWT({ 
       id: admin.id, 
@@ -44,10 +44,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('2h')
-      .sign(JWT_SECRET);
+      .sign(secret);
 
     // Set cookie
-    res.setHeader('Set-Cookie', `admin_token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=7200`);
+    const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+    res.setHeader('Set-Cookie', `admin_token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=7200${secure}`);
 
     return res.status(200).json({ 
       message: 'Login successful',

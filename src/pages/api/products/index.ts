@@ -2,10 +2,34 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { serializeProduct } from '../../../utils/serializeProduct';
 import { validateProductPricing } from '../../../utils/validateProductPricing';
+import { requireAdmin, requireCustomerOrAdmin } from '../../../utils/customerAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
+    if (!(await requireCustomerOrAdmin(req, res))) return;
+  } else if (req.method === 'POST' || req.method === 'DELETE') {
+    if (!(await requireAdmin(req, res))) return;
+  }
+
+  if (req.method === 'GET') {
     try {
+      if (req.query.summary === '1') {
+        res.setHeader('Cache-Control', 'private, no-store, max-age=0');
+        const products = await prisma.product.findMany({
+          where: { status: 'Live', stock: { gt: 0 } },
+          select: {
+            id: true, code: true, name: true, nameZh: true, nameMs: true,
+            description: true, category: true, images: true, stock: true,
+            sellerAPrice: true, sellerBPrice: true,
+            sellerABoxPrice: true, sellerBBoxPrice: true, itemsPerBox: true,
+            sellerABundlePrice: true, sellerBBundlePrice: true, bundleQuantity: true,
+            createdAt: true, status: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        });
+        return res.status(200).json(products.map(serializeProduct));
+      }
+
       const products = await prisma.product.findMany({
         orderBy: { createdAt: 'desc' },
       });

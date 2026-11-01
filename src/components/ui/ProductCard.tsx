@@ -254,6 +254,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
                   <p className="text-[15px] font-extrabold leading-tight text-rose-600">RM {cardDisplayPrice.toFixed(2)}{cardPriceSuffix ? <span className="text-xs font-normal text-zinc-500 ml-1">{cardPriceSuffix}</span> : null}</p>
                 </>
               )}
+              <p className="mt-0.5 text-[11px] font-medium leading-tight text-zinc-500 md:hidden">{locale === 'zh' ? '库存' : locale === 'ms' ? 'Stok' : 'Stock'}: {stock}</p>
             </div>
             {quantity === 0 ? (
               <button type="button" onClick={handleAdd} disabled={isOutOfStock} className="flex h-8 shrink-0 items-center justify-center rounded-md bg-zinc-900 px-2 text-[12px] font-bold whitespace-nowrap text-white transition-colors hover:bg-zinc-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50">
@@ -286,7 +287,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
               draggable={false}
             />
           </div>
-          <span className="absolute bottom-2 right-2 z-30 rounded-md border border-white/80 bg-white/90 px-2 py-1 text-[9px] font-medium text-zinc-600 shadow-sm backdrop-blur-sm sm:bottom-2.5 sm:right-2.5 sm:px-2.5 sm:text-[10px]">
+          <span className="absolute bottom-2 right-2 z-30 hidden rounded-md border border-white/80 bg-white/90 px-2 py-1 text-[9px] font-medium text-zinc-600 shadow-sm backdrop-blur-sm md:block sm:bottom-2.5 sm:right-2.5 sm:px-2.5 sm:text-[10px]">
             {locale === 'zh' ? '库存' : locale === 'ms' ? 'Stok' : 'Stock'}: <span className="font-bold text-zinc-900">{stock}</span>
           </span>
         </div>
@@ -314,7 +315,8 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
                 )}
                 <p className="truncate text-[15px] font-extrabold tracking-tight text-zinc-900 sm:text-base">RM {minPrice.toFixed(2)}{cardPriceSuffix ? <span className="text-xs font-normal text-zinc-500 ml-1">{cardPriceSuffix}</span> : null}</p>
               </>
-            )}
+              )}
+              <p className="mt-0.5 text-[11px] font-medium leading-tight text-zinc-500 md:hidden">{locale === 'zh' ? '库存' : locale === 'ms' ? 'Stok' : 'Stock'}: {stock}</p>
           </div>
         </div>
 

@@ -104,7 +104,8 @@ export function Navbar() {
     return () => window.removeEventListener('storage', checkUser);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
     localStorage.removeItem('user');
     localStorage.removeItem('user_role');
     setUser(null);

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import bcrypt from 'bcryptjs';
+import { createCustomerSessionToken } from '../../../lib/customerSession';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -31,6 +32,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    if (customer.isActive === false) {
+      return res.status(403).json({ code: 'ACCOUNT_DISABLED', message: 'This account is disabled. Please contact the store administrator.' });
+    }
+
     const isPasswordValid = await bcrypt.compare(password, customer.password);
 
     if (!isPasswordValid) {
@@ -39,6 +44,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Return user info (omit password)
     const { password: _, ...userWithoutPassword } = customer;
+    const token = await createCustomerSessionToken({ id: customer.id, role: customer.role || 'Member' });
+    const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+    res.setHeader('Set-Cookie', `customer_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800${secure}`);
     return res.status(200).json(userWithoutPassword);
   } catch (error) {
     console.error('Login error:', error);

@@ -390,7 +390,8 @@ export default function ProfilePage() {
  }
  };
 
- const handleLogout = () => {
+ const handleLogout = async () => {
+ await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
  localStorage.removeItem('user');
  localStorage.removeItem('user_role');
  clearCart();
@@ -454,16 +455,7 @@ export default function ProfilePage() {
   </div>
  )}
 
- <div className={`min-h-screen bg-zinc-50 relative overflow-hidden pb-0 md:pb-20 text-left text-zinc-900 ${activeTab === '' ? 'profile-dashboard-no-scroll' : ''}`}>
- <style jsx global>{`
-  @media (max-width: 767px) {
-    .profile-dashboard-no-scroll {
-      height: 100dvh;
-      min-height: 100dvh;
-      overflow: hidden;
-    }
-  }
- `}</style>
+ <div className="min-h-screen bg-white md:bg-zinc-50 relative overflow-x-hidden pb-[calc(110px+env(safe-area-inset-bottom))] md:pb-20 text-left text-zinc-900">
 
 
  <div className={`max-w-6xl mx-auto px-4 relative z-10 ${activeTab === 'all_orders' ? 'py-0' : 'py-12'}`}>
@@ -1155,7 +1147,7 @@ export default function ProfilePage() {
  </div>
  
  {/* White Bottom Area */}
-  <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain bg-white rounded-t-[32px] px-5 pt-7 pb-[calc(280px+env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] flex flex-col">
+  <div className="flex-1 bg-white rounded-t-[32px] px-5 pt-7 pb-[calc(140px+env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] flex flex-col">
  
   <div className="mb-2 flex items-center justify-between px-2">
    <h3 className="text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-400">{locale === 'zh' ? '账户' : 'Account'}</h3>
@@ -1233,7 +1225,7 @@ export default function ProfilePage() {
   </div>
 
  {/* Logout Button */}
-  <div className="mb-20 bg-red-50/50 rounded-[24px] p-2 mt-1 border border-red-100/70">
+  <div className="mb-16 bg-red-50/50 rounded-[24px] p-2 mt-1 border border-red-100/70">
  <button onClick={() => setIsLogoutModalOpen(true)} className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-red-50 rounded-[16px] transition-colors">
  <div className="flex items-center gap-4">
  <div className="text-red-400"><LogOut size={20} strokeWidth={2} /></div>
@@ -1414,7 +1406,7 @@ export default function ProfilePage() {
     <div className="flex flex-col">
       {/* Mobile Header */}
       <div className="flex items-center gap-4 mb-6 pt-4" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
-        <button type="button" onClick={() => setActiveTab('')} className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center text-zinc-900 shadow-[0_2px_10px_rgba(220,38,38,0.12)] border border-red-100 shrink-0">
+        <button type="button" onClick={() => setActiveTab('')} className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-zinc-900 shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-zinc-100 shrink-0">
           <ArrowLeft size={20} />
         </button>
         <div>
@@ -2082,7 +2074,7 @@ export default function ProfilePage() {
  initial={{ opacity: 0 }}
  animate={{ opacity: 1 }}
  exit={{ opacity: 0 }}
- className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+ className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
  >
  <motion.div
  initial={{ scale: 0.95, opacity: 0 }}

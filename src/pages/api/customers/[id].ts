@@ -1,8 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
+import { getAdminFromRequest } from '../../../utils/adminAuth';
+import { getCustomerFromRequest } from '../../../utils/customerAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
+  const admin = await getAdminFromRequest(req);
+  const currentCustomer = admin ? null : await getCustomerFromRequest(req);
+  if (!admin && !currentCustomer) return res.status(401).json({ error: 'Please sign in.' });
+  if (!admin && currentCustomer?.id !== String(id)) return res.status(403).json({ error: 'You can only access your own account.' });
 
   if (req.method === 'GET') {
     try {

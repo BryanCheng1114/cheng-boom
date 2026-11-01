@@ -4,6 +4,7 @@ import multer from 'multer';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { requireCustomerOrAdmin } from '../../utils/customerAuth';
 
 // Setup multer (disk storage for temporary local file before uploading to cloud)
 const storage = multer.diskStorage({
@@ -37,6 +38,7 @@ export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+  if (!(await requireCustomerOrAdmin(req, res))) return;
 
   try {
     // Run multer middleware to handle file upload (accepts any field name: file, files, etc.)

@@ -1,7 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
+import { requireAdmin, requireCustomerOrAdmin } from '../../../utils/customerAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === 'GET') {
+    if (!(await requireCustomerOrAdmin(req, res))) return;
+  } else if (req.method === 'POST') {
+    if (!(await requireAdmin(req, res))) return;
+  }
+
   try {
     if (req.method === 'GET') {
       const levels = await prisma.sellerLevel.findMany({

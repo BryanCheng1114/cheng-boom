@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../../lib/prisma';
 import { sendCustomerOrderReceiptEmail } from '../../../../lib/email';
+import { getAdminFromRequest } from '../../../../utils/adminAuth';
+import { getCustomerFromRequest } from '../../../../utils/customerAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -8,6 +10,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { id } = req.query;
+  const admin = await getAdminFromRequest(req);
+  const customer = admin ? null : await getCustomerFromRequest(req);
+  if (!admin && !customer) return res.status(401).json({ message: 'Please sign in.' });
 
   try {
     const order = await prisma.order.findUnique({
@@ -20,6 +25,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
+    }
+    if (!admin && order.customerId !== customer?.id) {
+      return res.status(403).json({ message: 'You can only access your own orders.' });
     }
 
     if (!order.customer.email) {

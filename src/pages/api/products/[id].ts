@@ -2,11 +2,13 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { serializeProduct } from '../../../utils/serializeProduct';
 import { validateProductPricing } from '../../../utils/validateProductPricing';
+import { requireAdmin, requireCustomerOrAdmin } from '../../../utils/customerAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
 
   if (req.method === 'GET') {
+    if (!(await requireCustomerOrAdmin(req, res))) return;
     try {
       const product = await prisma.product.findUnique({
         where: { id: String(id) },
@@ -22,6 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === 'PUT') {
+    if (!(await requireAdmin(req, res))) return;
     try {
       const { name, code, nameZh, nameMs, description, descriptionZh, descriptionMs, images, videoUrl, stock, sellerAPrice, sellerBPrice, sellerABoxPrice, sellerBBoxPrice, itemsPerBox, bundleQuantity, sellerABundlePrice, sellerBBundlePrice, category, status } = req.body;
       
@@ -88,6 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === 'DELETE') {
+    if (!(await requireAdmin(req, res))) return;
     try {
       const product = await prisma.product.findUnique({
         where: { id: String(id) },

@@ -7,13 +7,23 @@ import { Loader2, ChevronLeft, ChevronRight, X, ChevronDown, LayoutGrid, List, A
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBusiness } from '../../context/BusinessContext';
 import { AddToHomeScreenGuide } from '../../components/ui/AddToHomeScreenGuide';
+import type { GetServerSideProps } from 'next';
+import { prisma } from '../../lib/prisma';
+import { verifyCustomerSessionToken } from '../../lib/customerSession';
+import { serializeProduct } from '../../utils/serializeProduct';
 
-export default function Shop() {
+interface ShopPageProps {
+  initialProducts: any[];
+  initialCategories: any[];
+  initialLoadFailed: boolean;
+}
+
+export default function Shop({ initialProducts, initialCategories, initialLoadFailed }: ShopPageProps) {
   const router = useRouter();
   const { t, locale } = useTranslation();
   const { settings } = useBusiness();
-  const [allProducts, setAllProducts] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [allProducts, setAllProducts] = useState<any[]>(initialProducts);
+  const [isLoading, setIsLoading] = useState(initialLoadFailed);
   const [isOpeningItem, setIsOpeningItem] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
@@ -59,7 +69,7 @@ export default function Shop() {
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [categories, setCategories]         = useState<any[]>([]);
+  const [categories, setCategories]         = useState<any[]>(initialCategories);
   const [sortBy, setSortBy]                 = useState<string>('newest');
   const [visibleProductCount, setVisibleProductCount] = useState(30);
   const [mobileView, setMobileView] = useState<'list' | 'grid'>('grid');
@@ -96,16 +106,20 @@ export default function Shop() {
 
   // Fetch from DB
   useEffect(() => {
+    if (!initialLoadFailed) return;
     const fetchData = async () => {
       try {
         const [prodRes, catRes] = await Promise.all([
-          fetch('/api/products'),
-          fetch('/api/categories')
+          fetch('/api/products?summary=1'),
+          fetch('/api/categories?summary=1')
         ]);
+        if (!prodRes.ok || !catRes.ok) throw new Error('Unable to load store inventory.');
         const [prodData, catData] = await Promise.all([
           prodRes.json(),
           catRes.json()
         ]);
+
+        if (!Array.isArray(prodData) || !Array.isArray(catData)) throw new Error('Store inventory response is invalid.');
 
         const activeProducts = prodData.filter((p: any) =>
           p.status !== 'Hold' &&
@@ -122,7 +136,7 @@ export default function Shop() {
       }
     };
     fetchData();
-  }, []);
+  }, [initialLoadFailed]);
 
   // Sync category from URL query on mount / route change
   useEffect(() => {
@@ -469,9 +483,8 @@ export default function Shop() {
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <Loader2 className="w-10 h-10 text-foreground/40 animate-spin mb-4" />
-            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">{locale === 'zh' ? '正在同步库存...' : locale === 'ms' ? 'Menyegerakkan Inventori...' : 'Syncing Inventory...'}</p>
+          <div className="flex items-center justify-center py-24" role="status" aria-label={locale === 'zh' ? '加载中' : locale === 'ms' ? 'Memuatkan' : 'Loading'}>
+            <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
           </div>
         ) : filteredProducts.length === 0 ? (
           /* Empty state */
@@ -544,13 +557,10 @@ export default function Shop() {
         )}
       </AnimatePresence>
       {isOpeningItem && (
-        <div className="fixed inset-0 z-[300] flex flex-col items-center justify-center gap-4 bg-white md:hidden" role="status" aria-live="polite">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-white md:hidden" role="status" aria-label={locale === 'zh' ? '加载中' : locale === 'ms' ? 'Memuatkan' : 'Loading'}>
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50">
             <Loader2 size={34} className="animate-spin text-[#d52b20]" />
           </div>
-          <p className="text-sm font-semibold text-zinc-800">
-            {locale === 'zh' ? '正在打开商品…' : locale === 'ms' ? 'Membuka produk…' : 'Opening item…'}
-          </p>
         </div>
       )}
       <style jsx global>{`
@@ -571,3 +581,52 @@ export default function Shop() {
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps<ShopPageProps> = async (context) => {
+  context.res.setHeader('Cache-Control', 'private, no-store, max-age=0');
+  const session = await verifyCustomerSessionToken(context.req.cookies.customer_token);
+  const customer = session
+    ? await prisma.customer.findUnique({ where: { id: session.id }, select: { isActive: true } })
+    : null;
+
+  if (!customer?.isActive) {
+    const next = encodeURIComponent(context.resolvedUrl || '/shop');
+    const loginPath = context.locale && context.locale !== context.defaultLocale
+      ? `/${context.locale}/login`
+      : '/login';
+    return { redirect: { destination: `${loginPath}?next=${next}`, permanent: false } };
+  }
+
+  try {
+    const [products, categories] = await Promise.all([
+      prisma.product.findMany({
+        where: { status: 'Live', stock: { gt: 0 } },
+        select: {
+          id: true, code: true, name: true, nameZh: true, nameMs: true,
+          description: true, category: true, images: true, stock: true,
+          sellerAPrice: true, sellerBPrice: true,
+          sellerABoxPrice: true, sellerBBoxPrice: true, itemsPerBox: true,
+          sellerABundlePrice: true, sellerBBundlePrice: true, bundleQuantity: true,
+          createdAt: true, status: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.category.findMany({
+        where: { status: { not: 'Hold' }, showInCategoryBar: true },
+        select: { id: true, name: true, nameZh: true, nameMs: true, code: true, status: true, showInCategoryBar: true, displayOrder: true },
+        orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
+      }),
+    ]);
+
+    return {
+      props: JSON.parse(JSON.stringify({
+        initialProducts: products.map(serializeProduct),
+        initialCategories: categories,
+        initialLoadFailed: false,
+      })),
+    };
+  } catch (error) {
+    console.error('Failed to load initial shop inventory:', error);
+    return { props: { initialProducts: [], initialCategories: [], initialLoadFailed: true } };
+  }
+};

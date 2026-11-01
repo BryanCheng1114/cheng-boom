@@ -6,7 +6,7 @@ import { SharedCheckoutModal } from '../components/checkout/SharedCheckoutModal'
 import { InlineCheckoutDetails } from '../components/checkout/InlineCheckoutDetails';
 import { OrderComplete } from '../components/checkout/OrderComplete';
 import type { OrderCompletionDetails } from '../components/checkout/OrderCompletionDetails';
-import { Trash2, Plus, Minus, ChevronUp, ChevronDown, CheckSquare, Square, ArrowRight, MessageCircle, Shield, X, MapPin, CreditCard, User, Phone, Check, Zap, HelpCircle, Upload, ExternalLink, AlertTriangle, ShoppingCart, Receipt } from 'lucide-react';
+import { Trash2, Plus, Minus, ChevronUp, ChevronDown, CheckSquare, Square, ArrowRight, MessageCircle, Shield, X, MapPin, CreditCard, User, Phone, Check, Zap, HelpCircle, Upload, ExternalLink, AlertTriangle, ShoppingCart, Receipt, Package } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { cn } from '../utils/cn';
@@ -69,6 +69,16 @@ export default function Cart() {
       return product?.nameZh || t.products?.[item.id]?.name || item.name;
     }
     return product?.name || t.products?.[item.id]?.name || item.name;
+  };
+
+  const getAvailableVariants = (product: any) => {
+    if (!product) return [];
+    const hasPrice = (...prices: unknown[]) => prices.some((price) => Number(price) > 0);
+    return [
+      { value: 'Single' as const, available: hasPrice(product.sellerAPrice, product.sellerBPrice, product.price) },
+      { value: 'Bundle' as const, available: Number(product.bundleQuantity) > 1 && hasPrice(product.sellerABundlePrice, product.sellerBBundlePrice, product.bundlePrice) },
+      { value: 'Box' as const, available: Number(product.itemsPerBox) > 1 && hasPrice(product.sellerABoxPrice, product.sellerBBoxPrice, product.boxPrice) },
+    ].filter((variant) => variant.available);
   };
   
   const selectedTotalOriginalPrice = selectedItems.reduce((sum, item) => sum + (item.originalPrice || item.price) * item.quantity, 0);
@@ -218,7 +228,15 @@ export default function Cart() {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center pb-[calc(122px+env(safe-area-inset-bottom))] pt-[calc(56px+env(safe-area-inset-top,0px))] md:pb-0 md:pt-0">
         {cartTopBar}
-        <div className="max-w-md mx-auto px-4 text-center flex flex-col justify-center items-center">
+        <div className="flex md:hidden flex-col items-center justify-center px-4 text-center">
+          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-zinc-100 text-zinc-300">
+            <Package size={32} strokeWidth={1.5} />
+          </div>
+          <p className="max-w-[250px] text-[14px] font-semibold leading-relaxed text-zinc-500">
+            {t.cart.emptyTitle || (locale === 'zh' ? '购物车是空的' : locale === 'ms' ? 'Troli anda kosong' : 'Your cart is empty')}
+          </p>
+        </div>
+        <div className="hidden md:flex max-w-md mx-auto px-4 text-center flex-col justify-center items-center">
           <div className="mb-6 sm:mb-8 w-24 h-24 sm:w-28 sm:h-28 bg-zinc-200 rounded-full flex items-center justify-center text-white shadow-inner">
             <ShoppingCart className="w-10 h-10 sm:w-12 sm:h-12" strokeWidth={2} />
           </div>
@@ -306,7 +324,7 @@ export default function Cart() {
           <div className="w-full max-w-6xl mx-auto flex flex-col gap-5 sm:gap-6">
           
           {/* Cart Items List */}
-          <div className="bg-white border-double border-[4px] sm:border-[6px] border-zinc-200/60 rounded-[24px] sm:rounded-[40px] p-2 sm:p-5 shadow-sm flex flex-col mb-10">
+          <div className="bg-white border border-zinc-200 rounded-[24px] sm:rounded-[32px] p-2 sm:p-5 shadow-sm flex flex-col mb-10">
             {items.length > 0 && (
               <div className="flex items-center gap-0 border-b border-zinc-100 px-3 py-1 sm:px-4">
                 <div className="flex md:hidden shrink-0 justify-center">
@@ -413,7 +431,7 @@ export default function Cart() {
                   {(item.variant || item.code) && (
                     <div className="text-[11px] sm:text-[13px] text-zinc-500 mt-1">
                       {item.variant ? (
-                        (productsMap[item.id] && ((productsMap[item.id].boxPrice !== null && productsMap[item.id].boxPrice !== undefined) || (productsMap[item.id].bundlePrice !== null && productsMap[item.id].bundlePrice !== undefined))) ? (
+                        (productsMap[item.id] && getAvailableVariants(productsMap[item.id]).length > 1 && getAvailableVariants(productsMap[item.id]).some((variant) => variant.value === item.variant)) ? (
                           <div className="flex items-center gap-1">
                             <span>{locale === 'zh' ? '分类:' : locale === 'ms' ? 'Variasi:' : 'Variation:'}</span>
                             <select 
@@ -439,13 +457,15 @@ export default function Cart() {
                               }}
                               className="bg-transparent text-zinc-700 font-medium p-0 border-none outline-none cursor-pointer hover:text-zinc-900 transition-colors"
                             >
-                              <option value="Single">{locale === 'zh' ? '单件' : locale === 'ms' ? 'Keping' : 'Single'}</option>
-                              {productsMap[item.id].bundlePrice && (
-                                <option value="Bundle">{locale === 'zh' ? '套装' : locale === 'ms' ? 'Set' : 'Bundle'}</option>
-                              )}
-                              {productsMap[item.id].boxPrice && (
-                                <option value="Box">{locale === 'zh' ? '盒装' : locale === 'ms' ? 'Kotak' : 'Box'}</option>
-                              )}
+                              {getAvailableVariants(productsMap[item.id]).map((variant) => (
+                                <option key={variant.value} value={variant.value}>
+                                  {variant.value === 'Single'
+                                    ? (locale === 'zh' ? '单件' : locale === 'ms' ? 'Keping' : 'Single')
+                                    : variant.value === 'Bundle'
+                                      ? (locale === 'zh' ? '套装' : locale === 'ms' ? 'Set' : 'Bundle')
+                                      : (locale === 'zh' ? '盒装' : locale === 'ms' ? 'Kotak' : 'Box')}
+                                </option>
+                              ))}
                             </select>
                           </div>
                         ) : (
@@ -501,9 +521,9 @@ export default function Cart() {
         </div>
 
         {/* Mobile Total Section */}
-        <div className="sm:hidden w-full bg-white border-double border-[4px] border-zinc-200/60 rounded-[24px] mt-2 mb-8 p-5 shadow-sm">
+        <div className="sm:hidden w-full bg-white mt-2 mb-8 p-5">
           {/* Details */}
-          <div className="space-y-3 text-[13px] mb-5 border-b border-zinc-100 pb-4">
+          <div className="space-y-3 text-[13px] mb-5 pb-4">
             <div className="flex justify-between items-center gap-4 text-zinc-600 font-medium">
               <span>{locale === 'zh' ? `小计 (${selectedItemIds.length})` : locale === 'ms' ? `Subjumlah (${selectedItemIds.length})` : `Subtotal (${selectedItemIds.length})`}</span>
               <span className="font-bold text-zinc-900">RM {selectedTotalOriginalPrice.toFixed(2)}</span>
@@ -537,9 +557,9 @@ export default function Cart() {
               </div>
             )}
             
-            <div className="flex justify-between items-center gap-4 font-black text-zinc-900 text-[17px] mt-4 pt-4 border-t border-zinc-100">
+            <div className="flex justify-between items-center gap-4 font-black text-zinc-900 text-[17px] mt-4 pt-2">
               <span>{locale === 'zh' ? `总计 (${selectedItemIds.length} 件)` : locale === 'ms' ? `Jumlah (${selectedItemIds.length} item)` : `Total (${selectedItemIds.length} Items)`}</span>
-              <span className="text-primary">RM {finalSelectedTotalPrice.toFixed(2)}</span>
+              <span className="text-2xl font-black text-zinc-900">RM {finalSelectedTotalPrice.toFixed(2)}</span>
             </div>
           </div>
 
@@ -570,7 +590,7 @@ export default function Cart() {
 
         {/* Sticky Bottom Bar (Desktop Only) */}
         <div className="hidden sm:block sticky bottom-6 z-50 w-full max-w-6xl mx-auto">
-          <div className="bg-white border-double border-[6px] border-zinc-200/60 rounded-[40px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 overflow-hidden flex flex-col">
+          <div className="bg-white border-0 shadow-none transition-all duration-300 overflow-hidden flex flex-col">
             
             {/* Discount Details Drawer */}
             <AnimatePresence>
@@ -582,7 +602,7 @@ export default function Cart() {
                   transition={{ duration: 0.3, ease: "easeInOut" }}
                   className="w-full bg-zinc-50/50"
                 >
-                  <div className="px-8 sm:px-10 pt-8 pb-4 border-b border-zinc-100">
+                  <div className="px-8 sm:px-10 pt-8 pb-4">
                     <h4 className="text-lg font-black text-zinc-900 mb-6 text-left">
                       {locale === 'zh' ? '折扣详情' : locale === 'ms' ? 'Perincian Diskaun' : 'Discount Detail'}
                     </h4>
@@ -614,7 +634,7 @@ export default function Cart() {
                         </div>
                       )}
 
-                      <div className="pt-4 mt-4 border-t border-zinc-200">
+                      <div className="pt-2 mt-3">
                         <div className="flex justify-between items-center gap-4 text-primary font-bold">
                           <span className="whitespace-nowrap">{locale === 'zh' ? '已节省' : locale === 'ms' ? 'Jimat' : 'Saved'}</span>
                           <span className="whitespace-nowrap">-RM {selectedTotalSaved.toFixed(2)}</span>

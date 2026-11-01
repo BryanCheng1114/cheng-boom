@@ -12,7 +12,7 @@ function AuthContent() {
   const { clearCart } = useCart();
   const { t, locale } = useTranslation();
   const router = useRouter();
-  const { settings } = useBusiness();
+  const { settings, isLoading: isBusinessLoading } = useBusiness();
   const [showPassword, setShowPassword] = useState(false);
   const [showLanguages, setShowLanguages] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +44,9 @@ function AuthContent() {
       localStorage.setItem('user_role', result.role);
       window.dispatchEvent(new Event('user-updated'));
       clearCart();
-      await router.push('/shop');
+      const requestedPath = typeof router.query.next === 'string' ? router.query.next : '';
+      const destination = requestedPath.startsWith('/') && !requestedPath.startsWith('//') ? requestedPath : '/shop';
+      await router.push(destination);
     } catch {
       setError(locale === 'zh' ? '发生错误，请重试。' : 'An error occurred. Please try again.');
     } finally {
@@ -73,7 +75,7 @@ function AuthContent() {
           </svg>
         </div>
         <div className="absolute bottom-[-54px] left-1/2 z-10 flex h-[116px] w-[116px] -translate-x-1/2 items-center justify-center overflow-hidden rounded-full border-[7px] border-white bg-white shadow-lg">
-          <img src={settings?.logoUrl || '/logo.png'} alt={`${settings?.businessName || 'Business'} logo`} className="h-full w-full object-contain p-2" />
+          {!isBusinessLoading && settings?.logoUrl && <img src={settings.logoUrl} alt={`${settings.businessName || 'Business'} logo`} className="h-full w-full object-contain p-2" />}
         </div>
       </section>
 

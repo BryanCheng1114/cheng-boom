@@ -13,8 +13,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       select: { businessName: true, logoUrl: true, faviconUrl: true },
     });
     const name = settings?.businessName?.trim() || 'Cheng-BOOM';
-    const logo = settings?.faviconUrl || settings?.logoUrl;
-    const icons = [192, 512].map((size) => {
+    const logo = settings?.logoUrl || settings?.faviconUrl;
+    const icons = logo ? [192, 512].map((size) => {
       const src = getPwaIconUrl(logo, size);
       const isCloudinaryPng = src.includes('res.cloudinary.com') && src.includes(`w_${size},h_${size}`);
 
@@ -23,10 +23,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ...(isCloudinaryPng ? { sizes: `${size}x${size}`, type: 'image/png' } : {}),
         purpose: 'any',
       };
-    });
+    }) : [];
 
     res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json({
       id: '/',
       name,
@@ -35,8 +35,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       start_url: '/',
       scope: '/',
       display: 'standalone',
-      background_color: '#ffffff',
-      theme_color: '#ffffff',
+      background_color: '#000000',
+      theme_color: '#000000',
       icons,
     });
   } catch (error) {
@@ -49,14 +49,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       start_url: '/',
       scope: '/',
       display: 'standalone',
-      background_color: '#ffffff',
-      theme_color: '#ffffff',
-      icons: [192, 512].map((size) => ({
-        src: `/pwa-icon-${size}.png`,
-        sizes: `${size}x${size}`,
-        type: 'image/png',
-        purpose: 'any',
-      })),
+      background_color: '#000000',
+      theme_color: '#000000',
+      icons: [],
     });
   }
 }

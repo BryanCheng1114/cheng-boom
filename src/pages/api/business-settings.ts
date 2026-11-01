@@ -1,10 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../lib/prisma';
+import { requireAdmin } from '../../utils/customerAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'GET') {
-      const settings = await prisma.businessSettings.findFirst();
+      res.setHeader('Cache-Control', 'private, no-store, max-age=0');
+      const settings = await prisma.businessSettings.findFirst({
+        select: { businessName: true, logoUrl: true, faviconUrl: true, watermarkUrl: true, primaryColor: true, accentColor: true, businessType: true, phone: true, email: true, whatsapp: true, description: true, operatingHours: true, facebook: true, instagram: true, tiktok: true },
+      });
       if (!settings) {
         // Return default structure if no settings exist yet
         return res.status(200).json({
@@ -17,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } 
     
     if (req.method === 'POST' || req.method === 'PATCH') {
+      if (!(await requireAdmin(req, res))) return;
       const existingSettings = await prisma.businessSettings.findFirst();
       
       const allowedFields = [

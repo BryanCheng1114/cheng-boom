@@ -1,9 +1,25 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
+import { requireAdmin, requireCustomerOrAdmin } from '../../../utils/customerAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
+    if (!(await requireCustomerOrAdmin(req, res))) return;
+  } else if (req.method === 'POST') {
+    if (!(await requireAdmin(req, res))) return;
+  }
+
+  if (req.method === 'GET') {
     try {
+      if (req.query.summary === '1') {
+        const categories = await prisma.category.findMany({
+          where: { status: { not: 'Hold' }, showInCategoryBar: true },
+          select: { id: true, name: true, nameZh: true, nameMs: true, code: true, status: true, showInCategoryBar: true, displayOrder: true },
+          orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
+        });
+        return res.status(200).json(categories);
+      }
+
       const categories = await prisma.category.findMany({
         orderBy: [
           { displayOrder: 'asc' },

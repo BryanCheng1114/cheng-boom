@@ -82,25 +82,13 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   }, []);
 
 
-  const cartItemIdSingle = `${product?.id}-Single`;
-  const cartItemSingleQty = items.find((item) => item.cartItemId === cartItemIdSingle)?.quantity || 0;
-  
-  const cartItemIdBox = `${product?.id}-Box`;
-  const cartItemBoxQty = items.find((item) => item.cartItemId === cartItemIdBox)?.quantity || 0;
-  
-  const totalItemsInCart = cartItemSingleQty + (cartItemBoxQty * (product?.itemsPerBox || 1));
   const baseStock = product?.stock || 0;
   const trueRemainingStock = baseStock; // Do not deduct cart items live
 
   const maxAvailableSingle = trueRemainingStock;
-  let maxAvailableBox = 0;
-  if (product?.itemsPerBox && product.itemsPerBox > 1) {
-    maxAvailableBox = Math.floor(trueRemainingStock / product.itemsPerBox);
-  }
-  let maxAvailableBundle = 0;
-  if (product?.bundleQuantity && product.bundleQuantity > 1) {
-    maxAvailableBundle = Math.floor(trueRemainingStock / product.bundleQuantity);
-  }
+  // Stock counts sellable units (single, box, or bundle), not pieces inside a pack.
+  const maxAvailableBox = trueRemainingStock;
+  const maxAvailableBundle = trueRemainingStock;
 
   const currentMaxAvailable = selectedVariant === 'Box' ? maxAvailableBox : selectedVariant === 'Bundle' ? maxAvailableBundle : (selectedVariant === 'Single' ? maxAvailableSingle : 0);
 
@@ -151,9 +139,8 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   // Handle fallback state for static generation
   if (router.isFallback) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
-        <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">{t.productDetail.loading}</p>
+      <div className="min-h-screen flex items-center justify-center" role="status" aria-label={locale === 'zh' ? '加载中' : locale === 'ms' ? 'Memuatkan' : 'Loading'}>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -561,6 +548,9 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
               </div>
 
               )}
+              <p className="-mt-1 mb-2 text-sm font-medium text-zinc-600">
+                {locale === 'zh' ? '库存：' : locale === 'ms' ? 'Stok: ' : 'Stock: '}{stock}
+              </p>
               {/* Divider removed as requested */}
 
               <div className={cn(
@@ -581,7 +571,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                             setLocalQty(1);
                             setShowVariantError(false);
                           }}
-                          className={`h-12 px-6 rounded-full border transition-all flex items-center justify-center text-sm font-bold flex-1 min-w-[120px] ${selectedVariant === 'Single' ? 'border-orange-500 bg-orange-100 text-orange-950 shadow-md ring-1 ring-orange-500/50' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
+                          className={`h-12 px-6 rounded-full border border-[#d52b20] transition-all flex items-center justify-center text-sm font-bold flex-1 min-w-[120px] text-white ${selectedVariant === 'Single' ? 'bg-[#b51f26] shadow-md ring-2 ring-[#d52b20]/25' : 'bg-[#d52b20] hover:bg-[#b51f26]'}`}
                         >
                           {locale === 'zh' ? '单品' : locale === 'ms' ? 'Satu' : 'Single'}
                         </button>
@@ -594,7 +584,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                             setLocalQty(1);
                             setShowVariantError(false);
                           }}
-                          className={`h-12 px-6 rounded-full border transition-all flex items-center justify-center text-sm font-bold flex-1 min-w-[120px] ${selectedVariant === 'Bundle' ? 'border-orange-500 bg-orange-100 text-orange-950 shadow-md ring-1 ring-orange-500/50' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
+                          className={`h-12 px-6 rounded-full border border-[#d52b20] transition-all flex items-center justify-center text-sm font-bold flex-1 min-w-[120px] text-white ${selectedVariant === 'Bundle' ? 'bg-[#b51f26] shadow-md ring-2 ring-[#d52b20]/25' : 'bg-[#d52b20] hover:bg-[#b51f26]'}`}
                         >
                           {locale === 'zh' ? `套装 (${product.bundleQuantity} 件)` : locale === 'ms' ? `Set (${product.bundleQuantity} Item)` : `Bundle Set (${product.bundleQuantity} Items)`}
                         </button>
@@ -607,7 +597,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                             setLocalQty(1);
                             setShowVariantError(false);
                           }}
-                          className={`h-12 px-6 rounded-full border transition-all flex items-center justify-center text-sm font-bold flex-1 min-w-[120px] ${selectedVariant === 'Box' ? 'border-orange-500 bg-orange-100 text-orange-950 shadow-md ring-1 ring-orange-500/50' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
+                          className={`h-12 px-6 rounded-full border border-[#d52b20] transition-all flex items-center justify-center text-sm font-bold flex-1 min-w-[120px] text-white ${selectedVariant === 'Box' ? 'bg-[#b51f26] shadow-md ring-2 ring-[#d52b20]/25' : 'bg-[#d52b20] hover:bg-[#b51f26]'}`}
                         >
                           {locale === 'zh' ? `整箱 (${product.itemsPerBox} 件)` : locale === 'ms' ? `Kotak (${product.itemsPerBox} Item)` : `Box (${product.itemsPerBox} Items)`}
                         </button>
@@ -618,7 +608,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
                 
                 {/* Unified Action Row */}
-                <div className="flex items-center gap-3 w-full mt-6 pb-6 border-b border-zinc-100">
+                <div className="flex items-center gap-3 w-full mt-4 pb-2 border-b border-zinc-100">
                   {/* Quantity selector */}
                   <div className="flex items-center justify-between w-[150px] bg-white rounded-full border border-zinc-200 shadow-sm px-2 py-1.5 shrink-0" onClick={(e) => e.preventDefault()}>
                     <button 
@@ -655,14 +645,8 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                   </div>
                 )}
 
-                {/* Availability */}
-                <div className="flex items-center justify-center gap-2 text-zinc-500 mt-4 px-2 w-full">
-                  <CheckCircle size={14} className={trueRemainingStock > 0 ? "text-green-500" : "text-red-500"} />
-                  <span className="text-xs font-medium">{trueRemainingStock} {locale === 'zh' ? '件库存 — 现货供应' : locale === 'ms' ? 'unit dalam stok — Sedia untuk dihantar' : 'units in stock — Ready to deliver'}</span>
-                </div>
-
                 {/* Guarantees Box - Borderless style */}
-                <div className="mt-8 bg-[#f9f9f9] rounded-[14px] py-6 px-2 sm:px-4 flex flex-row items-center justify-between w-full">
+                <div className="mt-3 bg-[#f9f9f9] rounded-[14px] py-6 px-2 sm:px-4 flex flex-row items-center justify-between w-full">
                   <div className="flex flex-col items-center gap-2 flex-1 text-center">
                     <ShieldCheck size={24} className="text-zinc-700" strokeWidth={1.5} />
                     <div className="flex flex-col">
@@ -690,6 +674,12 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
                       <span className="text-[10px] font-medium text-zinc-700 leading-tight">{locale === 'zh' ? '全天候支持' : locale === 'ms' ? 'Sokongan 24/7' : '24/7 Support'}</span>
                     </div>
                   </div>
+                </div>
+
+                {/* Availability */}
+                <div className="flex items-center justify-center gap-2 text-zinc-500 mt-3 px-2 w-full">
+                  <CheckCircle size={14} className={trueRemainingStock > 0 ? "text-green-500" : "text-red-500"} />
+                  <span className="text-xs font-medium">{trueRemainingStock > 0 ? (locale === 'zh' ? '现货供应' : locale === 'ms' ? 'Sedia untuk dihantar' : 'Ready to deliver') : (locale === 'zh' ? '暂时缺货' : locale === 'ms' ? 'Kehabisan stok' : 'Out of stock')}</span>
                 </div>
 
               </div>

@@ -1,11 +1,27 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { sendOrderReceiptEmail, sendCustomerOrderReceiptEmail } from '../../../lib/email';
+import { getAdminFromRequest } from '../../../utils/adminAuth';
+import { getCustomerFromRequest } from '../../../utils/customerAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     try {
+      const signedInCustomer = await getCustomerFromRequest(req);
+      if (!signedInCustomer) return res.status(401).json({ error: 'Please sign in to place an order.' });
+      if (req.body?.customerInfo) {
+        req.body.customerInfo = {
+          ...req.body.customerInfo,
+          customerId: signedInCustomer.id,
+          name: signedInCustomer.name || req.body.customerInfo.name,
+          email: signedInCustomer.email || req.body.customerInfo.email,
+          phone: signedInCustomer.phone || req.body.customerInfo.phone,
+        };
+      }
       const { customerInfo, items, totalAmount, originalAmount, totalDiscount, sellerLevelName, discountPercent, isFreeShipping } = req.body;
+      if (!customerInfo || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ error: 'Customer details and at least one item are required.' });
+      }
       const { name, phone, email, address } = customerInfo;
       const allowedPaymentMethods = ['Cash on Delivery', 'DuitNow & Bank Transfer'];
       if (!allowedPaymentMethods.includes(customerInfo.paymentMethod)) {
@@ -107,14 +123,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const order = await prisma.$transaction(async (tx) => {
         // 2a. Deduct stock atomically for each item
         for (const item of pricedItems) {
-          const qty = item.quantity;
-          const packSize = item.variant === 'Box' ? item.itemsPerBox : item.variant === 'Bundle' ? item.bundleQuantity : 1;
-          const deductQty = qty * (packSize || 1);
+          const deductQty = item.quantity;
           const updateResult = await tx.product.updateMany({
             where: {
               id: item.productId || item.id,
               stock: {
-                gte: deductQty // ONLY update if stock is sufficient
+                gte: deductQty // Stock is counted in sellable units, including boxes and bundles.
               }
             },
             data: {
@@ -215,6 +229,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === 'GET') {
+    if (!(await getAdminFromRequest(req))) return res.status(401).json({ error: 'Admin sign-in is required.' });
     try {
       const orders = await prisma.order.findMany({
         include: {

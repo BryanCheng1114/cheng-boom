@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { validateProductPricing } from '../../../utils/validateProductPricing';
+import { requireAdmin } from '../../../utils/customerAuth';
 import cloudinary from '../../../lib/cloudinary';
 import multer from 'multer';
 import fs from 'fs';
@@ -32,6 +33,7 @@ function runMiddleware(req: any, res: any, fn: any) {
 }
 
 export default async function handler(req: any, res: NextApiResponse) {
+  if (!(await requireAdmin(req, res))) return;
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
