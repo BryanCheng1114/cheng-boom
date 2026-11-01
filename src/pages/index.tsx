@@ -1,9 +1,7 @@
-import { useEffect } from 'react';
 import Head from 'next/head';
-import { useRouter } from 'next/router';
-import { Loader2 } from 'lucide-react';
 import type { GetServerSideProps } from 'next';
 import { prisma } from '../lib/prisma';
+import { verifyCustomerSessionToken } from '../lib/customerSession';
 
 interface IndexRouteProps {
   businessName: string;
@@ -12,21 +10,6 @@ interface IndexRouteProps {
 }
 
 export default function IndexRoute({ businessName, logoUrl, canonicalUrl }: IndexRouteProps) {
-  const router = useRouter();
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch('/api/auth/session', { cache: 'no-store' })
-      .then((response) => {
-        if (cancelled) return;
-        void router.replace(response.ok ? '/shop' : '/login');
-      })
-      .catch(() => {
-        if (!cancelled) void router.replace('/login');
-      });
-    return () => { cancelled = true; };
-  }, [router]);
-
   return (
     <>
       <Head>
@@ -42,8 +25,8 @@ export default function IndexRoute({ businessName, logoUrl, canonicalUrl }: Inde
         <meta name="twitter:title" content={businessName} />
         {logoUrl && <meta name="twitter:image" content={logoUrl} />}
       </Head>
-      <main className="flex min-h-[60vh] items-center justify-center bg-white" aria-live="polite">
-        <Loader2 className="h-6 w-6 animate-spin text-[#d92e20]" aria-label="Opening the shop" />
+      <main className="flex min-h-screen items-center justify-center bg-white px-6 text-center">
+        <p className="text-sm text-slate-600">{`Welcome to ${businessName}`}</p>
       </main>
     </>
   );
@@ -51,6 +34,26 @@ export default function IndexRoute({ businessName, logoUrl, canonicalUrl }: Inde
 
 export const getServerSideProps: GetServerSideProps<IndexRouteProps> = async ({ req, res }) => {
   res.setHeader('Cache-Control', 'private, no-store, max-age=0');
+
+  const userAgent = Array.isArray(req.headers['user-agent'])
+    ? req.headers['user-agent'].join(' ')
+    : req.headers['user-agent'] || '';
+  const isLinkPreviewBot = /facebookexternalhit|facebot|twitterbot|linkedinbot|slackbot|telegrambot|discordbot|pinterest|whatsapp|googlebot|bingbot/i.test(userAgent);
+
+  if (!isLinkPreviewBot) {
+    const session = await verifyCustomerSessionToken(req.cookies.customer_token);
+    if (session) {
+      const customer = await prisma.customer.findUnique({
+        where: { id: session.id },
+        select: { isActive: true },
+      });
+      if (customer?.isActive) {
+        return { redirect: { destination: '/shop', permanent: false } };
+      }
+    }
+    return { redirect: { destination: '/login', permanent: false } };
+  }
+
   const settings = await prisma.businessSettings.findFirst({ select: { businessName: true, logoUrl: true } });
   const businessName = settings?.businessName?.trim() || 'Cheng-BOOM';
   const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:3000';
