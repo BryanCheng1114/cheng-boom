@@ -32,16 +32,15 @@ function AppHead() {
 
 function CustomerSessionGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [verifiedPath, setVerifiedPath] = useState('');
+  const [hasVerifiedSession, setHasVerifiedSession] = useState(false);
   const path = router.pathname.replace(/^\/(en|zh)(?=\/|$)/, '') || '/';
   const isAdminPath = path === '/admin' || path.startsWith('/admin/');
   const isPublicPath = ['/', '/login', '/forgot-password', '/reset-password'].includes(path);
   const requiresCustomerSession = !isAdminPath && !isPublicPath;
 
   useEffect(() => {
-    if (!router.isReady || !requiresCustomerSession) return;
+    if (!router.isReady || !requiresCustomerSession || hasVerifiedSession) return;
     let active = true;
-    setVerifiedPath('');
     fetch('/api/auth/session', { cache: 'no-store' })
       .then((response) => {
         if (!active) return;
@@ -50,15 +49,15 @@ function CustomerSessionGate({ children }: { children: React.ReactNode }) {
           void router.replace(`/login?next=${next}`);
           return;
         }
-        setVerifiedPath(router.pathname);
+        setHasVerifiedSession(true);
       })
       .catch(() => {
         if (active) void router.replace('/login');
       });
     return () => { active = false; };
-  }, [router, requiresCustomerSession]);
+  }, [router.isReady, requiresCustomerSession, hasVerifiedSession]);
 
-  if (requiresCustomerSession && verifiedPath !== router.pathname) {
+  if (requiresCustomerSession && !hasVerifiedSession) {
     return <main className="flex min-h-screen items-center justify-center bg-white" aria-label="Checking sign-in"><Loader2 className="h-6 w-6 animate-spin text-[#d92e20]" /></main>;
   }
   return <>{children}</>;

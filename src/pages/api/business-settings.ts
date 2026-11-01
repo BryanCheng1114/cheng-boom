@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method === 'GET') {
       res.setHeader('Cache-Control', 'private, no-store, max-age=0');
       const settings = await prisma.businessSettings.findFirst({
-        select: { businessName: true, logoUrl: true, faviconUrl: true, watermarkUrl: true, primaryColor: true, accentColor: true, businessType: true, phone: true, email: true, whatsapp: true, description: true, operatingHours: true, facebook: true, instagram: true, tiktok: true },
+        select: { businessName: true, logoUrl: true, faviconUrl: true, watermarkUrl: true, primaryColor: true, accentColor: true, businessType: true, phone: true, email: true, whatsapp: true, description: true, operatingHours: true, facebook: true, instagram: true, tiktok: true, bankTransferImage: true, tngDuitnowImage: true },
       });
       if (!settings) {
         // Return default structure if no settings exist yet

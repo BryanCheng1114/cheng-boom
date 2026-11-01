@@ -9,14 +9,23 @@ export function MobileNavigation() {
   const router = useRouter();
   const { locale } = useTranslation();
   const { totalItems } = useCart();
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const checkUser = () => setIsSignedIn(Boolean(localStorage.getItem('user')));
-    checkUser();
+    let active = true;
+    const checkUser = async () => {
+      try {
+        const response = await fetch('/api/auth/session', { cache: 'no-store' });
+        if (active) setIsSignedIn(response.ok);
+      } catch {
+        if (active) setIsSignedIn(Boolean(localStorage.getItem('user')));
+      }
+    };
+    void checkUser();
     window.addEventListener('storage', checkUser);
     window.addEventListener('user-updated', checkUser);
     return () => {
+      active = false;
       window.removeEventListener('storage', checkUser);
       window.removeEventListener('user-updated', checkUser);
     };
@@ -30,13 +39,13 @@ export function MobileNavigation() {
   const items = [
     { key: 'shop', label: labels.shop, href: '/shop', icon: ShoppingBag, active: router.pathname.startsWith('/shop') },
     { key: 'cart', label: labels.cart, href: '/cart', icon: ShoppingCart, active: router.pathname === '/cart' },
-    { key: 'order', label: labels.order, href: isSignedIn ? '/profile?tab=orders' : '/login', icon: ClipboardList, active: router.pathname === '/profile' && router.query.tab === 'orders' },
-    { key: 'profile', label: labels.profile, href: isSignedIn ? '/profile' : '/login', icon: UserRound, active: ['/profile', '/login'].includes(router.pathname) && router.query.tab !== 'orders' },
+    { key: 'order', label: labels.order, href: '/profile?tab=orders', icon: ClipboardList, active: router.pathname === '/profile' && router.query.tab === 'orders' },
+    { key: 'profile', label: labels.profile, href: '/profile', icon: UserRound, active: ['/profile', '/login'].includes(router.pathname) && router.query.tab !== 'orders' },
   ];
 
   return (
     <div className="mobile-navigation fixed inset-x-0 bottom-0 z-[150] bg-white md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      {!isSignedIn && (
+      {isSignedIn === false && (
         <div className="flex h-14 shrink-0 items-center justify-between gap-3 border-t border-zinc-200 bg-zinc-100 px-4">
           <p className="text-[13px] font-semibold text-zinc-700">{labels.signInPrompt}</p>
           <Link href="/login" className="shrink-0 rounded-full bg-zinc-900 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-zinc-700">

@@ -198,11 +198,14 @@ export default function Cart() {
   // Monitor stock and auto-clamp quantities if database stock levels decrease
   useEffect(() => {
     if (Object.keys(productsStock).length > 0) {
+      const reservedByProduct: Record<string, number> = {};
       items.forEach((item) => {
         const dbStock = productsStock[item.id];
-        if (dbStock !== undefined && item.quantity > dbStock) {
-          updateQuantity(item.cartItemId, dbStock);
-        }
+        if (dbStock === undefined) return;
+        const alreadyReserved = reservedByProduct[item.id] || 0;
+        const allowedQuantity = Math.max(0, Math.min(item.quantity, dbStock - alreadyReserved));
+        reservedByProduct[item.id] = alreadyReserved + allowedQuantity;
+        if (item.quantity > allowedQuantity) updateQuantity(item.cartItemId, allowedQuantity, dbStock);
       });
     }
   }, [productsStock, items, updateQuantity]);

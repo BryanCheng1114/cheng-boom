@@ -113,14 +113,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) => {
       const existing = prev.find((item) => item.cartItemId === newItem.cartItemId);
       const maxStock = newItem.stock !== undefined ? newItem.stock : Infinity;
+      const alreadyInCart = prev
+        .filter((item) => item.id === newItem.id)
+        .reduce((total, item) => total + item.quantity, 0);
+      const remainingStock = Math.max(0, maxStock - alreadyInCart);
+      if (remainingStock === 0) return prev;
+
       if (existing) {
         return prev.map((item) =>
           item.cartItemId === newItem.cartItemId
-            ? { ...item, quantity: Math.min(item.quantity + quantity, maxStock) }
+            ? { ...item, quantity: item.quantity + Math.min(quantity, remainingStock) }
             : item
         );
       }
-      return [...prev, { ...newItem, quantity: Math.min(quantity, maxStock) }];
+      return [...prev, { ...newItem, quantity: Math.min(quantity, remainingStock) }];
     });
   };
 
@@ -139,7 +145,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           const limit = maxStockOverride !== undefined 
             ? maxStockOverride 
             : (item.stock !== undefined ? item.stock : Infinity);
-          return { ...item, quantity: Math.min(quantity, limit) };
+          const usedByOtherVariants = prev
+            .filter((other) => other.id === item.id && other.cartItemId !== item.cartItemId)
+            .reduce((total, other) => total + other.quantity, 0);
+          return { ...item, quantity: Math.min(quantity, Math.max(0, limit - usedByOtherVariants)) };
         }
         return item;
       })

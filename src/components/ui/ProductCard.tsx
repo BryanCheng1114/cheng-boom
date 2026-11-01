@@ -81,9 +81,6 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   // Translation helpers
   const translatedName: string = (((locale === 'zh' && nameZh) ? nameZh : (locale === 'ms' && nameMs) ? nameMs : null) || (t.products as any)?.[id]?.name || name) as string;
 
-  const cartItem = items.find((item) => item.id === id);
-  const quantity = cartItem?.quantity || 0;
-
   const isOutOfStock = stock <= 0;
   
   // Seller Logic
@@ -161,17 +158,51 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
   }
 
   // Dynamic Pricing Calculations for Shopee Style
-  const hasBoxPricing = !!(boxPrice && itemsPerBox && itemsPerBox > 1);
-  const hasBundlePricing = !!(bundlePrice && bundleQuantity && bundleQuantity > 1);
+  const hasBoxPricing = !!(activeBoxPrice && itemsPerBox && itemsPerBox > 1);
+  const hasBundlePricing = !!(activeBundlePrice && bundleQuantity && bundleQuantity > 1);
   
   const hasSinglePricing = activePrice !== null && activePrice !== undefined && activePrice > 0;
   const validPrices: number[] = [];
-  if (hasSinglePricing && activePrice != null) validPrices.push(activePrice);
-  if (hasBoxPricing && activeBoxPrice != null) validPrices.push(activeBoxPrice);
-  if (hasBundlePricing && activeBundlePrice != null) validPrices.push(activeBundlePrice);
+  const availableTiers: { variant: 'Single' | 'Box' | 'Bundle'; price: number }[] = [];
+  if (hasSinglePricing && activePrice != null) {
+    validPrices.push(activePrice);
+    availableTiers.push({ variant: 'Single', price: activePrice });
+  }
+  if (hasBoxPricing && activeBoxPrice != null) {
+    validPrices.push(activeBoxPrice);
+    availableTiers.push({ variant: 'Box', price: activeBoxPrice });
+  }
+  if (hasBundlePricing && activeBundlePrice != null) {
+    validPrices.push(activeBundlePrice);
+    availableTiers.push({ variant: 'Bundle', price: activeBundlePrice });
+  }
   const minPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
-  const cardDisplayPrice = hasSinglePricing ? activePrice! : (hasBoxPricing ? activeBoxPrice! : (hasBundlePricing ? activeBundlePrice! : 0));
-  const cardPriceSuffix = !hasSinglePricing && hasBoxPricing ? (locale === 'zh' ? '/箱' : '/Box') : (!hasSinglePricing && hasBundlePricing ? (locale === 'zh' ? '/套' : '/Bundle') : '');
+  const defaultTier = availableTiers.find((tier) => tier.price === minPrice);
+  const cardDisplayPrice = defaultTier?.price || 0;
+  const cardPriceSuffix = defaultTier?.variant === 'Box'
+    ? (locale === 'zh' ? '/箱' : '/Box')
+    : defaultTier?.variant === 'Bundle'
+      ? (locale === 'zh' ? '/套' : '/Bundle')
+      : '';
+
+  // Add the card's displayed/default pricing tier directly. Box-only and
+  // bundle-only products should not send shoppers to the details page.
+  const cardVariant = defaultTier?.variant;
+  const cardCartItemId = cardVariant ? `${id}-${cardVariant}` : id;
+  const cartItem = items.find((item) =>
+    item.id === id && (
+      item.variant === cardVariant ||
+      (cardVariant === 'Single' && !item.variant)
+    )
+  );
+  const activeCartItemId = cartItem?.cartItemId || cardCartItemId;
+  const quantity = cartItem?.quantity || 0;
+  const totalProductQuantityInCart = items
+    .filter((item) => item.id === id)
+    .reduce((total, item) => total + item.quantity, 0);
+  const productStockLimitReached = totalProductQuantityInCart >= stock;
+  const canAddToCart = !!cardVariant && cardDisplayPrice > 0;
+  const hasCardDiscount = cardVariant === 'Single' && hasActiveDiscount;
   
   const displayImage = images[0] || '';
 
@@ -198,12 +229,21 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!hasSinglePricing) {
-      void router.push(`/shop/${encodeURIComponent(id)}`);
-      return;
-    }
-    if (quantity < stock) {
-      addItem({ id, cartItemId: id, code, name: translatedName, price: activePrice, originalPrice: strikeThroughPrice, image: displayImage, stock });
+    e.stopPropagation();
+    if (!canAddToCart || !cardVariant) return;
+    if (totalProductQuantityInCart < stock) {
+      addItem({
+        id,
+        cartItemId: activeCartItemId,
+        variant: cardVariant,
+        itemsPerBox: cardVariant === 'Box' ? (itemsPerBox || undefined) : cardVariant === 'Bundle' ? (bundleQuantity || undefined) : 1,
+        code,
+        name: translatedName,
+        price: cardDisplayPrice,
+        originalPrice: cardVariant === 'Single' ? strikeThroughPrice : undefined,
+        image: displayImage,
+        stock,
+      });
       const imageTarget = window.matchMedia('(max-width: 767px)').matches && mobileView === 'list'
         ? listImageRef.current
         : imageRef.current;
@@ -215,8 +255,9 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
 
   const handleMinus = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (quantity > 0) {
-      updateQuantity(id, quantity - 1);
+      updateQuantity(activeCartItemId, quantity - 1);
     }
   };
 
@@ -240,7 +281,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
           </div>
           <div className="mt-auto flex items-end justify-between gap-1.5 pt-2">
             <div className="min-w-0">
-              {hasActiveDiscount && strikeThroughPrice !== undefined ? (
+              {hasCardDiscount && strikeThroughPrice !== undefined ? (
                 <>
                   <p className="text-[10px] font-extrabold uppercase tracking-wide text-rose-600">{locale === 'zh' ? '折扣价' : locale === 'ms' ? 'Diskaun' : 'Discount'}</p>
                   <p className="text-[11px] font-medium leading-tight text-zinc-400 line-through decoration-zinc-400">RM {strikeThroughPrice.toFixed(2)}</p>
@@ -257,14 +298,14 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
               <p className="mt-0.5 text-[11px] font-medium leading-tight text-zinc-500 md:hidden">{locale === 'zh' ? '库存' : locale === 'ms' ? 'Stok' : 'Stock'}: {stock}</p>
             </div>
             {quantity === 0 ? (
-              <button type="button" onClick={handleAdd} disabled={isOutOfStock} className="flex h-8 shrink-0 items-center justify-center rounded-md bg-zinc-900 px-2 text-[12px] font-bold whitespace-nowrap text-white transition-colors hover:bg-zinc-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50">
-                {hasSinglePricing ? (locale === 'zh' ? '加入购物车' : locale === 'ms' ? 'Tambah ke Troli' : 'Add to Cart') : (locale === 'zh' ? '选规格' : locale === 'ms' ? 'Pilih' : 'Options')}
+                <button type="button" onClick={handleAdd} disabled={isOutOfStock || productStockLimitReached || !canAddToCart} className="flex h-8 shrink-0 items-center justify-center rounded-md bg-zinc-900 px-2 text-[12px] font-bold whitespace-nowrap text-white transition-colors hover:bg-zinc-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50">
+                {locale === 'zh' ? '加入购物车' : locale === 'ms' ? 'Tambah ke Troli' : 'Add to Cart'}
               </button>
             ) : (
               <div className="flex h-8 shrink-0 items-center gap-0.5 rounded-md border border-zinc-300 bg-zinc-50 px-0.5">
                 <button type="button" onClick={handleMinus} aria-label={`Remove one ${translatedName}`} className="flex h-7 w-7 items-center justify-center rounded text-zinc-700 hover:bg-zinc-200"><Minus size={14} strokeWidth={2.5} /></button>
                 <span className="min-w-[18px] text-center text-xs font-bold tabular-nums text-zinc-900">{quantity}</span>
-                <button type="button" onClick={handleAdd} disabled={quantity >= stock} aria-label={`Add one ${translatedName}`} className="flex h-7 w-7 items-center justify-center rounded bg-zinc-900 text-white hover:bg-zinc-700 disabled:opacity-40"><Plus size={14} strokeWidth={2.5} /></button>
+                <button type="button" onClick={handleAdd} disabled={productStockLimitReached || !canAddToCart} aria-label={`Add one ${translatedName}`} className="flex h-7 w-7 items-center justify-center rounded bg-zinc-900 text-white hover:bg-zinc-700 disabled:opacity-40"><Plus size={14} strokeWidth={2.5} /></button>
               </div>
             )}
           </div>
@@ -302,18 +343,18 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
       <div className="mt-auto flex items-center justify-between gap-1.5 bg-white px-3 pb-3 pt-1 sm:px-3.5 sm:pb-3.5">
         <div className="min-w-0">
           <div className="min-w-0">
-            {hasActiveDiscount && strikeThroughPrice !== undefined ? (
+            {hasCardDiscount && strikeThroughPrice !== undefined ? (
               <>
                 <p className="text-[10px] font-extrabold uppercase tracking-wide text-rose-600">{isSeller && sellerPrice !== null && sellerPrice !== undefined && sellerPrice > 0 && sellerPrice < price ? (locale === 'zh' ? '卖家价' : locale === 'ms' ? 'Harga Penjual' : 'Seller Price') : (locale === 'zh' ? '折扣价' : locale === 'ms' ? 'Diskaun' : 'Discount')}</p>
                 <p className="truncate text-[10px] font-medium leading-tight text-zinc-400 line-through">RM {strikeThroughPrice.toFixed(2)}</p>
-                <p className="truncate text-[17px] font-black leading-tight tracking-tight text-rose-600 sm:text-lg">RM {minPrice.toFixed(2)}</p>
+                <p className="truncate text-[17px] font-black leading-tight tracking-tight text-rose-600 sm:text-lg">RM {cardDisplayPrice.toFixed(2)}</p>
               </>
             ) : (
               <>
                 {isSeller && sellerPrice !== null && sellerPrice !== undefined && sellerPrice > 0 && (
                   <p className="text-[10px] font-bold uppercase tracking-wide text-zinc-500">{locale === 'zh' ? '卖家价' : locale === 'ms' ? 'Harga Penjual' : 'Seller Price'}</p>
                 )}
-                <p className="truncate text-[15px] font-extrabold tracking-tight text-zinc-900 sm:text-base">RM {minPrice.toFixed(2)}{cardPriceSuffix ? <span className="text-xs font-normal text-zinc-500 ml-1">{cardPriceSuffix}</span> : null}</p>
+                <p className="truncate text-[15px] font-extrabold tracking-tight text-zinc-900 sm:text-base">RM {cardDisplayPrice.toFixed(2)}{cardPriceSuffix ? <span className="text-xs font-normal text-zinc-500 ml-1">{cardPriceSuffix}</span> : null}</p>
               </>
               )}
               <p className="mt-0.5 text-[11px] font-medium leading-tight text-zinc-500 md:hidden">{locale === 'zh' ? '库存' : locale === 'ms' ? 'Stok' : 'Stock'}: {stock}</p>
@@ -324,7 +365,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
           <button
             type="button"
             onClick={handleAdd}
-            disabled={isOutOfStock}
+            disabled={isOutOfStock || productStockLimitReached || !canAddToCart}
             className="inline-flex h-8 min-w-14 shrink-0 items-center justify-center rounded-full bg-zinc-900 px-4 text-white shadow-sm transition-all hover:bg-zinc-700 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:min-w-16"
             aria-label={`${locale === 'zh' ? '添加' : locale === 'ms' ? 'Tambah' : 'Add'} ${translatedName} to cart`}
             title={locale === 'zh' ? '加入购物车' : locale === 'ms' ? 'Tambah ke troli' : 'Add to cart'}
@@ -345,7 +386,7 @@ export function ProductCard({ id, code, name, nameZh, nameMs, price, promotion, 
             <button
               type="button"
               onClick={handleAdd}
-              disabled={quantity >= stock}
+              disabled={productStockLimitReached || !canAddToCart}
               aria-label={`Add one ${translatedName}`}
               className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900 text-white transition-colors hover:bg-zinc-700 active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 sm:h-8 sm:w-8"
             >

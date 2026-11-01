@@ -218,8 +218,9 @@ export default function ProfilePage() {
  };
 
  useEffect(() => {
+ if (!router.isReady) return;
  fetchProfile();
- }, [router]);
+ }, [router.isReady]);
 
  useEffect(() => {
   if (!router.isReady) return;
@@ -230,13 +231,27 @@ export default function ProfilePage() {
 
  const fetchProfile = async () => {
  try {
- const savedUser = localStorage.getItem('user');
- if (!savedUser) {
+ let cachedUser: any = null;
+ try {
+ cachedUser = JSON.parse(localStorage.getItem('user') || 'null');
+ } catch {
+ localStorage.removeItem('user');
+ }
+
+ if (!cachedUser?.id || typeof cachedUser.id !== 'string') {
+ const sessionResponse = await fetch('/api/auth/session', { cache: 'no-store' });
+ const sessionData = await sessionResponse.json().catch(() => null);
+ if (!sessionResponse.ok || !sessionData?.user?.id) {
  router.replace('/login');
  return;
  }
+ cachedUser = sessionData.user;
+ localStorage.setItem('user', JSON.stringify(cachedUser));
+ localStorage.setItem('user_role', cachedUser.role || 'Member');
+ window.dispatchEvent(new Event('user-updated'));
+ }
 
- const { id } = JSON.parse(savedUser);
+ const { id } = cachedUser;
  if (!id || typeof id !== 'string') {
  localStorage.removeItem('user');
  localStorage.removeItem('user_role');
@@ -417,8 +432,8 @@ export default function ProfilePage() {
 
  if (isLoading) {
  return (
- <div className="min-h-screen flex items-center justify-center bg-zinc-50">
- <Loader2 className="w-10 h-10 text-primary animate-spin" />
+ <div className="min-h-screen flex items-center justify-center bg-white">
+ <Loader2 className="w-8 h-8 text-[#d52b20] animate-spin" />
  </div>
  );
  }
@@ -735,8 +750,8 @@ export default function ProfilePage() {
 
       <div className="space-y-3 mb-8">
         {/* Full Name */}
-        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 focus-within:border-zinc-300 transition-colors">
-          <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-700 shrink-0">
+        <div className="bg-[#fffafa] rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-red-100 flex items-center gap-4 focus-within:border-red-200 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-[#b51f26] shrink-0">
             <User size={18} />
           </div>
           <div className="flex-1">
@@ -751,8 +766,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Phone Number */}
-        <div className={`bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 ${user?.phone ? 'opacity-70' : 'focus-within:border-zinc-300 transition-colors'}`}>
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${user?.phone ? 'bg-zinc-100 text-zinc-500' : 'bg-zinc-50 text-zinc-700'}`}>
+        <div className={`rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex items-center gap-4 ${user?.phone ? 'bg-zinc-50 border border-zinc-200 opacity-70' : 'bg-[#fffafa] border border-red-100 focus-within:border-red-200 transition-colors'}`}>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${user?.phone ? 'bg-zinc-100 text-zinc-500' : 'bg-red-50 text-[#b51f26]'}`}>
             <Phone size={18} />
           </div>
           <div className="flex-1">
@@ -772,8 +787,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Preferred Payment */}
-        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 focus-within:border-zinc-300 transition-colors">
-          <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-700 shrink-0">
+        <div className="bg-[#fffafa] rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-red-100 flex items-center gap-4 focus-within:border-red-200 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-[#b51f26] shrink-0">
             <CreditCard size={18} />
           </div>
           <div className="flex-1 relative">
@@ -793,8 +808,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Order Mode */}
-        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 focus-within:border-zinc-300 transition-colors">
-          <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-700 shrink-0">
+        <div className="bg-[#fffafa] rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-red-100 flex items-center gap-4 focus-within:border-red-200 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-[#b51f26] shrink-0">
             <Package size={18} />
           </div>
           <div className="flex-1 relative">
@@ -814,8 +829,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Address */}
-        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-start gap-4 focus-within:border-zinc-300 transition-colors">
-          <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-700 shrink-0">
+        <div className="bg-[#fffafa] rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-red-100 flex items-start gap-4 focus-within:border-red-200 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-[#b51f26] shrink-0">
             <MapPin size={18} />
           </div>
           <div className="flex-1">
@@ -830,8 +845,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Notes */}
-        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 focus-within:border-zinc-300 transition-colors">
-          <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-700 shrink-0">
+        <div className="bg-[#fffafa] rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-red-100 flex items-center gap-4 focus-within:border-red-200 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-[#b51f26] shrink-0">
             <MessageSquare size={18} />
           </div>
           <div className="flex-1">
@@ -1021,8 +1036,8 @@ export default function ProfilePage() {
 
       <div className="space-y-3 mb-8">
         {/* New Password */}
-        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 focus-within:border-zinc-300 transition-colors">
-          <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-700 shrink-0">
+        <div className="bg-[#fffafa] rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-red-100 flex items-center gap-4 focus-within:border-red-200 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-[#b51f26] shrink-0">
             <Lock size={18} />
           </div>
           <div className="flex-1 relative">
@@ -1056,8 +1071,8 @@ export default function ProfilePage() {
         )}
 
         {/* Confirm New Password */}
-        <div className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 flex items-center gap-4 focus-within:border-zinc-300 transition-colors">
-          <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-700 shrink-0">
+        <div className="bg-[#fffafa] rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-red-100 flex items-center gap-4 focus-within:border-red-200 transition-colors">
+          <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-[#b51f26] shrink-0">
             <Lock size={18} />
           </div>
           <div className="flex-1 relative">

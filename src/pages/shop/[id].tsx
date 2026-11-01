@@ -83,7 +83,10 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
 
   const baseStock = product?.stock || 0;
-  const trueRemainingStock = baseStock; // Do not deduct cart items live
+  const quantityAlreadyInCart = items
+    .filter((item) => item.id === product?.id)
+    .reduce((total, item) => total + item.quantity, 0);
+  const trueRemainingStock = Math.max(0, baseStock - quantityAlreadyInCart);
 
   const maxAvailableSingle = trueRemainingStock;
   // Stock counts sellable units (single, box, or bundle), not pieces inside a pack.
@@ -220,7 +223,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
         price: selectedVariant === 'Single' ? activePrice : selectedVariant === 'Box' ? activeBoxPrice! : activeBundlePrice!, 
         originalPrice: selectedVariant === 'Single' ? strikeThroughPrice : selectedVariant === 'Box' ? strikeThroughBoxPrice : strikeThroughBundlePrice, 
         image: images[activeImageIdx] || '',
-        stock: currentMaxAvailable // Limit to remaining available stock for this variant
+        stock: baseStock // CartProvider enforces the total stock across all variants
       }, localQty);
       
       // Reset after add
