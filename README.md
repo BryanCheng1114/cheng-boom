@@ -1,4 +1,4 @@
-# Cheng-BOOM
+# Dolphin Firework
 
 A full-stack e-commerce and business management platform built for a Malaysian retail/wholesale business. The system provides a public-facing customer storefront and a private admin dashboard, running from a single Next.js codebase.
 

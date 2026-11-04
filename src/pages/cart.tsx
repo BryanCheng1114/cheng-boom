@@ -249,10 +249,10 @@ export default function Cart() {
             <>
               <p className="text-zinc-500 mb-8 sm:mb-10 text-[15px] sm:text-base leading-relaxed px-2">
                 {locale === 'zh' 
-                  ? `登录您的 ${settings?.businessName || 'Cheng-BOOM'} 帐户以查看您保存的商品或继续购物` 
+                  ? `登录您的 ${settings?.businessName || 'Dolphin Firework'} 帐户以查看您保存的商品或继续购物` 
                   : locale === 'ms'
-                  ? `Log masuk ke akaun ${settings?.businessName || 'Cheng-BOOM'} anda untuk melihat item anda yang disimpan atau teruskan membeli-belah`
-                  : `Sign in to your ${settings?.businessName || 'Cheng-BOOM'} account to view your saved items or continue shopping`}
+                  ? `Log masuk ke akaun ${settings?.businessName || 'Dolphin Firework'} anda untuk melihat item anda yang disimpan atau teruskan membeli-belah`
+                  : `Sign in to your ${settings?.businessName || 'Dolphin Firework'} account to view your saved items or continue shopping`}
               </p>
               <div className="flex flex-row items-center justify-center gap-3 sm:gap-4 w-full px-2">
                 <Link 
@@ -291,7 +291,7 @@ export default function Cart() {
   return (
     <div className="min-h-screen bg-white pt-[calc(56px+env(safe-area-inset-top,0px))] md:pt-0">
       <Head>
-        <title>{`${t.cart.title} - Cheng-BOOM`}</title>
+        <title>{`${t.cart.title} - Dolphin Firework`}</title>
       </Head>
       {cartTopBar}
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 pb-[calc(122px+env(safe-area-inset-bottom))] md:pb-12 relative">

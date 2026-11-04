@@ -38,7 +38,7 @@ export function WhatsAppButton() {
                 <MessageCircle size={18} className="text-white" />
               </div>
               <div>
-                <p className="text-sm font-bold text-zinc-900">{settings?.businessName || 'Cheng-BOOM'}</p>
+                <p className="text-sm font-bold text-zinc-900">{settings?.businessName || 'Dolphin Firework'}</p>
                 <p className="text-xs text-green-500 font-medium flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block animate-pulse" />
                   {t.floating.whatsapp.online}

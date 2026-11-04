@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import nodemailer from 'nodemailer';
 import { requireAdmin } from '../../../../utils/customerAuth';
+import { resolveBusinessName } from '../../../../lib/brand';
 
 const prisma = new PrismaClient();
 
@@ -40,14 +41,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ message: 'Order or customer email not found' });
     }
 
-    const businessName = "Cheng-BOOM";
+    const settings = await prisma.businessSettings.findFirst({ select: { businessName: true } });
+    const businessName = resolveBusinessName(settings?.businessName);
+    const safeBusinessName = businessName.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char] || char);
     const customerName = order.customer.name;
     const adminEmail = process.env.SMTP_FROM || process.env.SMTP_USER!;
 
     const emailHtml = `
 <div style="font-family: Arial, sans-serif; max-width: 680px; margin: 0 auto; color: #333;">
   <div style="background-color: #09090b; padding: 24px 28px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: #f59e0b; margin: 0; font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 26px;">${businessName}</h1>
+    <h1 style="color: #f59e0b; margin: 0; font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 26px;">${safeBusinessName}</h1>
     <p style="color: #fff; margin: 6px 0 0 0; letter-spacing: 2px; font-size: 11px;">📦 ORDER NOTIFICATION</p>
   </div>
   <div style="padding: 28px; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 8px 8px;">

@@ -205,7 +205,7 @@ export function Navbar() {
 
   const selectedFont = settings?.businessFont || 'Impact';
   const fontFamily = FONT_MAP[selectedFont] || FONT_MAP['Impact'];
-  const businessName = settings?.businessName || 'Cheng-BOOM';
+  const businessName = settings?.businessName || 'Dolphin Firework';
   const profileInitial = user?.name?.trim().charAt(0).toUpperCase() || 'U';
   const isTransparent = false;
   return (

@@ -3,14 +3,18 @@ import Image from 'next/image';
 import { useTranslation } from '../hooks/useTranslation';
 import { MobilePageTopBar } from '../components/layout/MobilePageTopBar';
 import { AddToHomeScreenGuide } from '../components/ui/AddToHomeScreenGuide';
+import { useBusiness } from '../context/BusinessContext';
+import { resolveBusinessName } from '../lib/brand';
 
 export default function About() {
   const { t, locale } = useTranslation();
+  const { settings } = useBusiness();
+  const businessName = resolveBusinessName(settings?.businessName);
 
   return (
     <>
       <Head>
-        <title>{`${t.nav.aboutUs} - Cheng-BOOM`}</title>
+        <title>{`${t.nav.aboutUs} - ${businessName}`}</title>
       </Head>
       <MobilePageTopBar title={t.nav.aboutUs || 'About Us'} locale={locale} />
       
@@ -65,7 +69,7 @@ export default function About() {
                   {locale === 'zh' ? '公司历史' : locale === 'ms' ? 'Sejarah Syarikat' : 'History Of The Company'}
                 </h3>
                 <p className="text-zinc-500 leading-relaxed text-[15px] md:text-base">
-                  {locale === 'zh' ? 'Cheng-BOOM 源于对庆祝活动的热爱，最初只是一个专注的小团队。通过对质量和安全的不懈承诺，我们已发展成为该地区最值得信赖的高级烟花品牌，让每一个重大节日和个人里程碑都令人难以忘怀。' : locale === 'ms' ? 'Ditubuhkan dengan semangat untuk meraikan, Cheng-BOOM bermula sebagai sebuah pasukan kecil yang berdedikasi. Melalui komitmen yang tidak berbelah bahagi terhadap kualiti dan keselamatan, kami telah berkembang menjadi nama yang paling dipercayai di rantau ini dalam piroteknik premium, menjadikan setiap perayaan utama dan peristiwa penting peribadi benar-benar tidak dapat dilupakan.' : 'Founded with a passion for celebration, Cheng-BOOM started as a small, dedicated team. Through a relentless commitment to quality and safety, we have grown into the region\'s most trusted name in premium pyrotechnics, making every major festival and personal milestone truly unforgettable.'}
+                  {locale === 'zh' ? `${businessName} 源于对庆祝活动的热爱，最初只是一个专注的小团队。通过对质量和安全的不懈承诺，我们已发展成为该地区最值得信赖的高级烟花品牌，让每一个重大节日和个人里程碑都令人难以忘怀。` : locale === 'ms' ? `Ditubuhkan dengan semangat untuk meraikan, ${businessName} bermula sebagai sebuah pasukan kecil yang berdedikasi. Melalui komitmen yang tidak berbelah bahagi terhadap kualiti dan keselamatan, kami telah berkembang menjadi nama yang paling dipercayai di rantau ini dalam piroteknik premium, menjadikan setiap perayaan utama dan peristiwa penting peribadi benar-benar tidak dapat dilupakan.` : `Founded with a passion for celebration, ${businessName} started as a small, dedicated team. Through a relentless commitment to quality and safety, we have grown into the region's most trusted name in premium pyrotechnics, making every major festival and personal milestone truly unforgettable.`}
                 </p>
               </div>
 

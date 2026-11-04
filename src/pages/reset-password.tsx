@@ -74,7 +74,7 @@ export default function ResetPassword() {
   return (
     <>
       <Head>
-        <title>{locale === 'zh' ? '重置密码 - Cheng-BOOM' : locale === 'ms' ? 'Tetapkan Semula Kata Laluan - Cheng-BOOM' : 'Reset Password - Cheng-BOOM'}</title>
+        <title>{locale === 'zh' ? '重置密码 - Dolphin Firework' : locale === 'ms' ? 'Tetapkan Semula Kata Laluan - Dolphin Firework' : 'Reset Password - Dolphin Firework'}</title>
       </Head>
 
       <div className="min-h-screen bg-black w-full overflow-hidden relative font-sans">

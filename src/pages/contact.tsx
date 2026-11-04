@@ -5,10 +5,12 @@ import { useTranslation } from '../hooks/useTranslation';
 import { MobilePageTopBar } from '../components/layout/MobilePageTopBar';
 import { useBusiness } from '../context/BusinessContext';
 import { AddToHomeScreenGuide } from '../components/ui/AddToHomeScreenGuide';
+import { resolveBusinessName } from '../lib/brand';
 
 export default function Contact() {
   const { t, locale } = useTranslation();
   const { settings } = useBusiness();
+  const businessName = resolveBusinessName(settings?.businessName);
 
   const [formData, setFormData] = useState({ message: '' });
   const [sender, setSender] = useState({ name: '', email: '' });
@@ -74,7 +76,7 @@ export default function Contact() {
   return (
     <>
       <Head>
-        <title>{`${t.nav.contact || 'Contact Us'} - Cheng-BOOM`}</title>
+        <title>{`${t.nav.contact || 'Contact Us'} - ${businessName}`}</title>
       </Head>
       <MobilePageTopBar title={t.nav.contact || 'Contact Us'} locale={locale} />
 

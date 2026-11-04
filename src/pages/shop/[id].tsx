@@ -26,8 +26,16 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useFlyToCart } from '../../components/ui/FlyToCartProvider';
 import { useBusiness } from '../../context/BusinessContext';
 import { cn } from '../../utils/cn';
+import type { GetServerSideProps } from 'next';
 
-export default function ProductDetail({ product, categoryZh, categoryMs }: { product: any, categoryZh?: string | null, categoryMs?: string | null }) {
+interface ProductDetailProps {
+  product: any;
+  categoryZh?: string | null;
+  categoryMs?: string | null;
+  siteOrigin: string;
+}
+
+export default function ProductDetail({ product, categoryZh, categoryMs, siteOrigin }: ProductDetailProps) {
   const router = useRouter();
   const { items, addItem } = useCart();
   const { flyToCart } = useFlyToCart();
@@ -83,10 +91,9 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
 
 
   const baseStock = product?.stock || 0;
-  const quantityAlreadyInCart = items
-    .filter((item) => item.id === product?.id)
-    .reduce((total, item) => total + item.quantity, 0);
-  const trueRemainingStock = Math.max(0, baseStock - quantityAlreadyInCart);
+  // Cart quantities are not a stock reservation. The shopper may add up to
+  // the product's full stock; CartProvider still caps their combined cart.
+  const trueRemainingStock = baseStock;
 
   const maxAvailableSingle = trueRemainingStock;
   // Stock counts sellable units (single, box, or bundle), not pieces inside a pack.
@@ -142,8 +149,8 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   // Handle fallback state for static generation
   if (router.isFallback) {
     return (
-      <div className="min-h-screen flex items-center justify-center" role="status" aria-label={locale === 'zh' ? '加载中' : locale === 'ms' ? 'Memuatkan' : 'Loading'}>
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-white" role="status" aria-label={locale === 'zh' ? '加载中' : locale === 'ms' ? 'Memuatkan' : 'Loading'}>
+        <Loader2 className="h-8 w-8 animate-spin text-[#d52b20]" />
       </div>
     );
   }
@@ -185,11 +192,11 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   const handleWhatsAppShare = () => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
     const priceToDisplay = currentDisplayPrice || minPrice;
-    let msg = `Check out ${translatedName} for RM${priceToDisplay.toFixed(2)}. Get it on Cheng-BOOM now! ${url}`;
+    let msg = `Check out ${translatedName} for RM${priceToDisplay.toFixed(2)}. Get it on Dolphin Firework now! ${url}`;
     if (locale === 'zh') {
-      msg = `快来看看 ${translatedName}，只需 RM${priceToDisplay.toFixed(2)}。立即在 Cheng-BOOM 购买！${url}`;
+      msg = `快来看看 ${translatedName}，只需 RM${priceToDisplay.toFixed(2)}。立即在 Dolphin Firework 购买！${url}`;
     } else if (locale === 'ms') {
-      msg = `Lihat ${translatedName} untuk RM${priceToDisplay.toFixed(2)}. Dapatkannya di Cheng-BOOM sekarang! ${url}`;
+      msg = `Lihat ${translatedName} untuk RM${priceToDisplay.toFixed(2)}. Dapatkannya di Dolphin Firework sekarang! ${url}`;
     }
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
@@ -298,6 +305,9 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : null;
 
   const images = product.images || [];
+  const openGraphImage = images[0]
+    ? new URL(images[0], siteOrigin).toString()
+    : '';
 
   // Dynamic Pricing Calculations for Shopee Style
   const hasSinglePricing = !!(activePrice && activePrice > 0);
@@ -335,11 +345,11 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   return (
     <>
       <Head>
-        <title>{`${translatedName} - Cheng-BOOM`}</title>
+        <title>{`${translatedName} - Dolphin Firework`}</title>
         <meta property="og:title" content={translatedName || 'Product Details'} />
-        <meta property="og:description" content={translatedDesc ? (translatedDesc.length > 150 ? translatedDesc.substring(0, 150) + '...' : translatedDesc) : 'Check out this product on Cheng-BOOM'} />
-        <meta property="og:image" content={images[0] ? (images[0].startsWith('http') ? images[0] : `https://cheng-boom.com${images[0]}`) : ''} />
-        <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : ''} />
+        <meta property="og:description" content={translatedDesc ? (translatedDesc.length > 150 ? translatedDesc.substring(0, 150) + '...' : translatedDesc) : 'Check out this product on Dolphin Firework'} />
+        <meta property="og:image" content={openGraphImage} />
+        <meta property="og:url" content={`${siteOrigin}/shop/${product.id}`} />
         <meta property="og:type" content="product" />
       </Head>
       <div className="min-h-screen bg-white pt-[calc(56px+env(safe-area-inset-top,0px))] md:pt-0">
@@ -810,8 +820,8 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   );
 }
 
-export async function getServerSideProps({ params }: { params?: { id?: string } }) {
-  const id = params?.id;
+export const getServerSideProps: GetServerSideProps<ProductDetailProps> = async ({ params, req }) => {
+  const id = typeof params?.id === 'string' ? params.id : undefined;
   if (!id) return { notFound: true };
   const product = await prisma.product.findUnique({
     where: { id },
@@ -820,6 +830,12 @@ export async function getServerSideProps({ params }: { params?: { id?: string } 
   if (!product) {
     return { notFound: true };
   }
+
+  const forwardedHost = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:3000';
+  const forwardedProtocol = req.headers['x-forwarded-proto'] || (String(forwardedHost).startsWith('localhost') ? 'http' : 'https');
+  const host = (Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost).split(',')[0].trim();
+  const protocol = (Array.isArray(forwardedProtocol) ? forwardedProtocol[0] : forwardedProtocol).split(',')[0].trim();
+  const siteOrigin = `${protocol}://${host}`;
 
   let categoryObj = null;
   if (product.category) {
@@ -832,7 +848,8 @@ export async function getServerSideProps({ params }: { params?: { id?: string } 
     props: { 
       product: JSON.parse(JSON.stringify(product)), // serialize dates
       categoryZh: categoryObj?.nameZh || null,
-      categoryMs: categoryObj?.nameMs || null
+      categoryMs: categoryObj?.nameMs || null,
+      siteOrigin,
     },
   };
-}
+};

@@ -6,7 +6,7 @@ export function Footer() {
   const { t, locale } = useTranslation();
   const { settings } = useBusiness();
   const router = useRouter();
-  const businessName = settings?.businessName || 'Cheng-BOOM';
+  const businessName = settings?.businessName || 'Dolphin Firework';
   const year = new Date().getFullYear();
 
   return (

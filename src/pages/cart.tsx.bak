@@ -373,10 +373,10 @@ export default function Cart() {
             <>
               <p className="text-muted-foreground mb-8 text-sm max-w-md leading-relaxed">
                 {locale === 'zh' 
-                  ? `登录您的 ${settings?.businessName || 'Cheng-BOOM'} 帐户以查看您保存的商品或继续购物` 
+                  ? `登录您的 ${settings?.businessName || 'Dolphin Firework'} 帐户以查看您保存的商品或继续购物` 
                   : locale === 'ms'
-                  ? `Log masuk ke akaun ${settings?.businessName || 'Cheng-BOOM'} anda untuk melihat item anda yang disimpan atau teruskan membeli-belah`
-                  : `Sign in to your ${settings?.businessName || 'Cheng-BOOM'} account to view your saved items or continue shopping`}
+                  ? `Log masuk ke akaun ${settings?.businessName || 'Dolphin Firework'} anda untuk melihat item anda yang disimpan atau teruskan membeli-belah`
+                  : `Sign in to your ${settings?.businessName || 'Dolphin Firework'} account to view your saved items or continue shopping`}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
                 <Link 
@@ -555,10 +555,10 @@ export default function Cart() {
             <>
               <p className="text-muted-foreground mb-8 text-sm max-w-md leading-relaxed">
                 {locale === 'zh' 
-                  ? `登录您的 ${settings?.businessName || 'Cheng-BOOM'} 帐户以查看您保存的商品或继续购物` 
+                  ? `登录您的 ${settings?.businessName || 'Dolphin Firework'} 帐户以查看您保存的商品或继续购物` 
                   : locale === 'ms'
-                  ? `Log masuk ke akaun ${settings?.businessName || 'Cheng-BOOM'} anda untuk melihat item anda yang disimpan atau teruskan membeli-belah`
-                  : `Sign in to your ${settings?.businessName || 'Cheng-BOOM'} account to view your saved items or continue shopping`}
+                  ? `Log masuk ke akaun ${settings?.businessName || 'Dolphin Firework'} anda untuk melihat item anda yang disimpan atau teruskan membeli-belah`
+                  : `Sign in to your ${settings?.businessName || 'Dolphin Firework'} account to view your saved items or continue shopping`}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
                 <Link 
@@ -678,7 +678,7 @@ export default function Cart() {
   return (
     <>
       <Head>
-        <title>{`${t.cart.title} - Cheng-BOOM`}</title>
+        <title>{`${t.cart.title} - Dolphin Firework`}</title>
       </Head>
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
         <div className="flex items-center justify-between mb-12">

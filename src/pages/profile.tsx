@@ -81,7 +81,7 @@ export default function ProfilePage() {
  const pageWidth = pdf.internal.pageSize.getWidth();
  const left = 10;
  const right = pageWidth - 10;
- const businessName = settings?.businessName || 'CHENG-BOOM';
+ const businessName = settings?.businessName || 'DOLPHIN FIREWORK';
  const createdAt = new Date(selectedOrder.createdAt);
  const date = createdAt.toLocaleDateString('en-MY', { year: 'numeric', month: '2-digit', day: '2-digit' });
  const compactDate = `${String(createdAt.getFullYear()).slice(-2)}${String(createdAt.getMonth() + 1).padStart(2, '0')}${String(createdAt.getDate()).padStart(2, '0')}`;
@@ -453,7 +453,7 @@ export default function ProfilePage() {
  return (
  <>
  <Head>
- <title>{`${user.name}'s Profile - Cheng-BOOM`}</title>
+ <title>{`${user.name}'s Profile - Dolphin Firework`}</title>
  </Head>
 
  {activeTab === 'all_orders' && !selectedOrder && (

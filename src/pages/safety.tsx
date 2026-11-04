@@ -7,8 +7,10 @@ import { useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { MobilePageTopBar } from '../components/layout/MobilePageTopBar';
 import { AddToHomeScreenGuide } from '../components/ui/AddToHomeScreenGuide';
+import { useBusiness } from '../context/BusinessContext';
+import { resolveBusinessName } from '../lib/brand';
 
-const getSafetyBlocks = (locale: string) => [
+const getSafetyBlocks = (locale: string, businessName: string) => [
   {
     number: '01',
     tag: locale === 'zh' ? '产品知识' : locale === 'ms' ? 'PENGETAHUAN PRODUK' : 'PRODUCT KNOWLEDGE',
@@ -32,7 +34,7 @@ const getSafetyBlocks = (locale: string) => [
     image: '/safe2.png',
     alt: locale === 'zh' ? '责任警告' : locale === 'ms' ? 'Amaran Liabiliti' : 'Liability Warning',
     title: locale === 'zh' ? '我们不对不当使用承担任何责任。' : locale === 'ms' ? 'Kami tidak bertanggungjawab atas penyalahgunaan.' : 'We do not accept responsibility for misuse.',
-    body: locale === 'zh' ? '处理不当时，烟花本质上具有危险性。购买 Cheng-BOOM 产品即表示您自愿承担所有相关风险。确保安全的环境、保持适当的距离以及遵守所有当地法律法规是您唯一的责任。' : locale === 'ms' ? 'Bunga api pada dasarnya berbahaya jika disalahgunakan. Dengan membeli daripada Cheng-BOOM, anda secara sukarela menanggung semua risiko yang berkaitan. Ia adalah tanggungjawab anda sepenuhnya untuk memastikan persekitaran yang selamat, mengekalkan jarak yang betul, dan mematuhi semua undang-undang dan peraturan tempatan.' : 'Fireworks are inherently hazardous when mishandled. By purchasing from Cheng-BOOM, you voluntarily assume all associated risks. It is your sole responsibility to ensure a safe environment, maintain proper distances, and comply with all local laws and regulations.',
+    body: locale === 'zh' ? `处理不当时，烟花本质上具有危险性。购买 ${businessName} 产品即表示您自愿承担所有相关风险。确保安全的环境、保持适当的距离以及遵守所有当地法律法规是您唯一的责任。` : locale === 'ms' ? `Bunga api pada dasarnya berbahaya jika disalahgunakan. Dengan membeli daripada ${businessName}, anda secara sukarela menanggung semua risiko yang berkaitan. Ia adalah tanggungjawab anda sepenuhnya untuk memastikan persekitaran yang selamat, mengekalkan jarak yang betul, dan mematuhi semua undang-undang dan peraturan tempatan.` : `Fireworks are inherently hazardous when mishandled. By purchasing from ${businessName}, you voluntarily assume all associated risks. It is your sole responsibility to ensure a safe environment, maintain proper distances, and comply with all local laws and regulations.`,
     bullets: [
       locale === 'zh' ? '始终在开阔的户外空间操作' : locale === 'ms' ? 'Sentiasa beroperasi di ruang terbuka dan luar' : 'Always operate in open, outdoor spaces',
       locale === 'zh' ? '让观众保持安全距离' : locale === 'ms' ? 'Pastikan penonton berada pada jarak yang selamat' : 'Keep spectators at a safe distance',
@@ -62,13 +64,15 @@ const getSafetyBlocks = (locale: string) => [
 export default function Safety() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const { t, locale } = useTranslation();
-  const safetyBlocks = getSafetyBlocks(locale);
+  const { settings } = useBusiness();
+  const businessName = resolveBusinessName(settings?.businessName);
+  const safetyBlocks = getSafetyBlocks(locale, businessName);
 
   return (
     <>
       <Head>
-        <title>{`${t.nav.safety || 'Safety Guide'} - Cheng-BOOM`}</title>
-        <meta name="description" content="Essential fireworks safety rules and guidelines from Cheng-BOOM Malaysia." />
+        <title>{`${t.nav.safety || 'Safety Guide'} - ${businessName}`}</title>
+        <meta name="description" content={`Essential fireworks safety rules and guidelines from ${businessName} Malaysia.`} />
       </Head>
       <MobilePageTopBar title={t.nav.safetyGuide || (locale === 'zh' ? '安全指南' : locale === 'ms' ? 'Panduan Keselamatan' : 'Safety Guide')} locale={locale} />
 
@@ -182,7 +186,7 @@ export default function Safety() {
               <div className="flex flex-col gap-2">
                 <span className="text-[10px] font-black tracking-[0.25em] uppercase text-black/60">{locale === 'zh' ? '法律免责声明' : locale === 'ms' ? 'Penafian Undang-undang' : 'Legal Disclaimer'}</span>
                 <p className="text-sm font-medium text-black/90 leading-relaxed max-w-3xl">
-                  {locale === 'zh' ? 'Cheng-BOOM 仅向成年人销售烟花，供其在合法和负责任的情况下使用。我们对因使用不当造成的伤害、财产损失或违法行为不承担任何责任。' : locale === 'ms' ? 'Cheng-BOOM menjual bunga api secara ketat untuk penggunaan yang sah dan bertanggungjawab oleh orang dewasa. Kami tidak menerima liabiliti untuk kecederaan, kerosakan harta benda, atau pelanggaran undang-undang yang timbul daripada penggunaan yang tidak wajar.' : 'Cheng-BOOM sells fireworks strictly for lawful, responsible use by adults. We accept no liability for injury, property damage, or legal violations arising from improper use.'}{' '}
+                  {locale === 'zh' ? `${businessName} 仅向成年人销售烟花，供其在合法和负责任的情况下使用。我们对因使用不当造成的伤害、财产损失或违法行为不承担任何责任。` : locale === 'ms' ? `${businessName} menjual bunga api secara ketat untuk penggunaan yang sah dan bertanggungjawab oleh orang dewasa. Kami tidak menerima liabiliti untuk kecederaan, kerosakan harta benda, atau pelanggaran undang-undang yang timbul daripada penggunaan yang tidak wajar.` : `${businessName} sells fireworks strictly for lawful, responsible use by adults. We accept no liability for injury, property damage, or legal violations arising from improper use.`}{' '}
                   <strong className="text-black font-bold">{locale === 'zh' ? '请始终遵守您当地的法律法规。' : locale === 'ms' ? 'Sentiasa patuhi undang-undang dan peraturan tempatan anda.' : 'Always follow your local laws and regulations.'}</strong>
                 </p>
               </div>

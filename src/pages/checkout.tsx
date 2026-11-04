@@ -146,7 +146,7 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-white">
       <Head>
-        <title>{t.nav?.checkout || 'Checkout'} - Cheng-BOOM</title>
+        <title>{t.nav?.checkout || 'Checkout'} - Dolphin Firework</title>
       </Head>
 
       <main className="pt-6 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto min-h-[calc(100vh-80px)]">

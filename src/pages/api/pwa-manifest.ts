@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../lib/prisma';
+import { resolveBusinessName } from '../../lib/brand';
 import { getPwaIconUrl } from '../../utils/pwa';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -12,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const settings = await prisma.businessSettings.findFirst({
       select: { businessName: true, logoUrl: true, faviconUrl: true },
     });
-    const name = settings?.businessName?.trim() || 'Cheng-BOOM';
+    const name = resolveBusinessName(settings?.businessName);
     const logo = settings?.logoUrl || settings?.faviconUrl;
     const icons = logo ? [192, 512].map((size) => {
       const src = getPwaIconUrl(logo, size);
@@ -44,8 +45,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
     return res.status(200).json({
       id: '/',
-      name: 'Cheng-BOOM',
-      short_name: 'Cheng-BOOM',
+      name: 'Dolphin Firework',
+      short_name: 'Dolphin Firework',
       start_url: '/',
       scope: '/',
       display: 'standalone',

@@ -1,6 +1,7 @@
 import React from 'react';
 import Barcode from 'react-barcode';
 import { QRCodeSVG } from 'qrcode.react';
+import { resolveBusinessName } from '../../lib/brand';
 import { 
   MapPin, Phone, Mail, Calendar, ClipboardList, 
   Wallet, Truck, User as UserIcon
@@ -14,11 +15,11 @@ interface ReceiptTemplateProps {
 
 export const ReceiptTemplate = React.forwardRef<HTMLDivElement, ReceiptTemplateProps>(({ order, businessSettings, user }, ref) => {
   // Safe defaults
-  const bName = businessSettings?.businessName || 'CHENG-BOOM';
+  const bName = resolveBusinessName(businessSettings?.businessName);
   const logo = businessSettings?.logoUrl || null;
   const address = businessSettings?.address || 'No. 123, Jalan Example, 81400\nSenai, Johor, Malaysia';
   const phone = businessSettings?.phone || '+60 12-345 6789';
-  const email = businessSettings?.email || 'info@chengboom.com';
+  const email = businessSettings?.email || '—';
   
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('en-MY', { 

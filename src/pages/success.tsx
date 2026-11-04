@@ -12,7 +12,7 @@ export default function SuccessPage() {
   return (
     <div className="min-h-screen bg-zinc-50 flex flex-col pt-24 sm:pt-32 pb-16">
       <Head>
-        <title>{locale === 'zh' ? '订单成功 - Cheng-BOOM' : locale === 'ms' ? 'Pesanan Berjaya - Cheng-BOOM' : 'Order Success - Cheng-BOOM'}</title>
+        <title>{locale === 'zh' ? '订单成功 - Dolphin Firework' : locale === 'ms' ? 'Pesanan Berjaya - Dolphin Firework' : 'Order Success - Dolphin Firework'}</title>
       </Head>
 
       <main className="flex-1 flex flex-col items-center justify-center px-4 max-w-3xl mx-auto w-full">

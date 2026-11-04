@@ -9,7 +9,7 @@ import { useLanguage } from '../context/LanguageContext';
 const loginCopy = {
   en: {
     title: 'Admin Portal',
-    subtitle: 'Sign in to manage your Cheng-BOOM store.',
+    subtitle: 'Sign in to manage your Dolphin Firework store.',
     username: 'User ID',
     usernamePlaceholder: 'Enter your admin ID',
     password: 'Password',
@@ -21,11 +21,11 @@ const loginCopy = {
     browserNote: 'For the best experience, use Chrome or Safari.',
     imageTitle: 'Admin Management',
     imageDescription: 'Manage products, inventory, orders, and store settings in one place.',
-    pageTitle: 'Admin Portal | Cheng-BOOM',
+    pageTitle: 'Admin Portal | Dolphin Firework',
   },
   zh: {
     title: '管理后台',
-    subtitle: '登录以管理 Cheng-BOOM 商店。',
+    subtitle: '登录以管理 Dolphin Firework 商店。',
     username: '管理员账号',
     usernamePlaceholder: '请输入管理员账号',
     password: '密码',
@@ -37,7 +37,7 @@ const loginCopy = {
     browserNote: '建议使用 Chrome 或 Safari 浏览器。',
     imageTitle: '管理中心',
     imageDescription: '在一个地方管理商品、库存、订单和店铺设置。',
-    pageTitle: '管理后台 | Cheng-BOOM',
+    pageTitle: '管理后台 | Dolphin Firework',
   },
 } as const;
 
@@ -102,7 +102,7 @@ export default function AdminLogin() {
             <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600 sm:mt-4 sm:text-base">{copy.imageDescription}</p>
           </div>
           <div className="relative h-[50vh] max-h-[520px] min-h-[260px] w-full overflow-hidden bg-slate-100">
-            <Image src="/adminlogin.jpg" alt="Cheng-BOOM" fill priority sizes="54vw" className="object-cover" />
+            <Image src="/adminlogin.jpg" alt="Dolphin Firework" fill priority sizes="54vw" className="object-cover" />
           </div>
           <p className="mt-3 w-full text-left text-[10px] text-slate-500">© 2026 All rights reserved.</p>
         </section>
@@ -111,7 +111,7 @@ export default function AdminLogin() {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="w-full max-w-[360px]">
             <header className="mb-12 text-center">
               <h1 className="text-[32px] font-bold leading-tight tracking-tight text-slate-800">{copy.title}</h1>
-              <p className="mt-2 text-sm text-slate-600">Cheng-BOOM</p>
+              <p className="mt-2 text-sm text-slate-600">Dolphin Firework</p>
             </header>
 
             {error && <div role="alert" className="mb-5 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}

@@ -176,7 +176,7 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   const handleWhatsAppShare = () => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
     const priceToDisplay = currentDisplayPrice || minPrice;
-    const msg = `Check out ${translatedName} for RM${priceToDisplay.toFixed(2)}. Get it on Cheng-BOOM now! ${url}`;
+    const msg = `Check out ${translatedName} for RM${priceToDisplay.toFixed(2)}. Get it on Dolphin Firework now! ${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -308,9 +308,9 @@ export default function ProductDetail({ product, categoryZh, categoryMs }: { pro
   return (
     <>
       <Head>
-        <title>{`${translatedName} - Cheng-BOOM`}</title>
+        <title>{`${translatedName} - Dolphin Firework`}</title>
         <meta property="og:title" content={translatedName || 'Product Details'} />
-        <meta property="og:description" content={translatedDesc ? (translatedDesc.length > 150 ? translatedDesc.substring(0, 150) + '...' : translatedDesc) : 'Check out this product on Cheng-BOOM'} />
+        <meta property="og:description" content={translatedDesc ? (translatedDesc.length > 150 ? translatedDesc.substring(0, 150) + '...' : translatedDesc) : 'Check out this product on Dolphin Firework'} />
         <meta property="og:image" content={images[0] ? (images[0].startsWith('http') ? images[0] : `https://cheng-boom.com${images[0]}`) : ''} />
         <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : ''} />
         <meta property="og:type" content="product" />

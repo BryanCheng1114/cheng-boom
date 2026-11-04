@@ -147,7 +147,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, headerAction
   return (
     <div className="min-h-screen font-sans bg-[#f3f7fc] text-zinc-900 flex">
       <Head>
-        <title>{`${title} | Cheng-BOOM Admin`}</title>
+        <title>{`${title} | Dolphin Firework Admin`}</title>
       </Head>
 
       {/* Sidebar */}
@@ -203,7 +203,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, headerAction
           <button onClick={() => setIsCollapsed(!isCollapsed)} aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'} title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'} className="w-10 h-10 rounded-xl flex items-center justify-center text-white/85 hover:text-white hover:bg-white/10 transition-colors shrink-0">
             <Menu size={21} strokeWidth={2} />
           </button>
-          <span className="min-w-0 truncate text-sm font-semibold tracking-tight text-white">{settings?.businessName || 'Cheng-BOOM'}</span>
+          <span className="min-w-0 truncate text-sm font-semibold tracking-tight text-white">{settings?.businessName || 'Dolphin Firework'}</span>
           <div className="flex-1" />
 
           <div className="relative">
@@ -261,7 +261,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, headerAction
 
       <motion.footer initial={false} animate={{ left: isCollapsed ? 0 : 264 }} transition={{ duration: 0.18, ease: 'easeOut' }} className="fixed bottom-0 right-0 z-30 h-5 bg-[#7b808a] text-white/95 shadow-[0_-1px_4px_rgba(15,23,42,0.04)]">
         <div className="h-full flex items-center justify-between px-3 sm:px-5 text-[9px] font-medium">
-          <span>© 2026 {settings?.businessName || 'Cheng-BOOM'}. All rights reserved.</span>
+          <span>© 2026 {settings?.businessName || 'Dolphin Firework'}. All rights reserved.</span>
           <span className="tabular-nums">v0.1.0</span>
         </div>
       </motion.footer>

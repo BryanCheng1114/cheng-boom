@@ -23,7 +23,7 @@ function AppHead() {
       {!isLoading && (settings?.logoUrl || settings?.faviconUrl) && <link rel="apple-touch-icon" href={getPwaIconUrl(settings?.logoUrl || settings?.faviconUrl, 180)} />}
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="mobile-web-app-capable" content="yes" />
-      <meta name="apple-mobile-web-app-title" content={settings?.businessName || 'Cheng-BOOM'} />
+      <meta name="apple-mobile-web-app-title" content={settings?.businessName || 'Dolphin Firework'} />
       <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       <meta name="theme-color" content={hasRedHeader ? '#d52b20' : '#ffffff'} />
     </Head>
@@ -66,6 +66,25 @@ function CustomerSessionGate({ children }: { children: React.ReactNode }) {
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const isAdminPath = router.pathname.startsWith('/admin');
+  const [isEnteringShop, setIsEnteringShop] = useState(false);
+
+  useEffect(() => {
+    const isMobile = () => window.matchMedia('(max-width: 767px)').matches;
+    const handleStart = (url: string) => {
+      const destination = new URL(url, window.location.origin).pathname.replace(/^\/(en|zh|ms)(?=\/|$)/, '') || '/';
+      const current = new URL(window.location.href).pathname.replace(/^\/(en|zh|ms)(?=\/|$)/, '') || '/';
+      if (isMobile() && destination === '/shop' && !current.startsWith('/shop')) setIsEnteringShop(true);
+    };
+    const clear = () => setIsEnteringShop(false);
+    router.events.on('routeChangeStart', handleStart);
+    router.events.on('routeChangeComplete', clear);
+    router.events.on('routeChangeError', clear);
+    return () => {
+      router.events.off('routeChangeStart', handleStart);
+      router.events.off('routeChangeComplete', clear);
+      router.events.off('routeChangeError', clear);
+    };
+  }, [router]);
 
   return (
     <BusinessProvider>
@@ -76,6 +95,7 @@ export default function App({ Component, pageProps }: AppProps) {
             <CustomerSessionGate>
               {isAdminPath ? <Component {...pageProps} /> : <Layout><Component {...pageProps} /></Layout>}
             </CustomerSessionGate>
+            {isEnteringShop && <div className="fixed inset-0 z-[500] flex items-center justify-center bg-white md:hidden" role="status" aria-label="Loading"><Loader2 className="h-8 w-8 animate-spin text-[#d52b20]" /></div>}
           </FlyToCartProvider>
         </CartProvider>
       </LanguageProvider>

@@ -62,7 +62,7 @@ function AuthContent() {
 
   return <>
     <Head>
-      <title>{`Sign In - ${settings?.businessName || 'Cheng-BOOM'}`}</title>
+      <title>{`Sign In - ${settings?.businessName || 'Dolphin Firework'}`}</title>
       <meta name="theme-color" content="#b4232c" />
     </Head>
 

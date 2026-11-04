@@ -60,7 +60,7 @@ model Category {
 
 model BusinessSettings {
   id                String   @id @default(cuid())
-  businessName      String   @default("Cheng-BOOM")
+  businessName      String   @default("Dolphin Firework")
   logoUrl           String?
   faviconUrl        String?
   primaryColor      String?

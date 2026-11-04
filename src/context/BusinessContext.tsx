@@ -31,7 +31,7 @@ interface BusinessContextType {
 }
 
 const defaultSettings: BusinessSettings = {
-  businessName: 'Cheng-BOOM',
+  businessName: 'Dolphin Firework',
 };
 
 const BusinessContext = createContext<BusinessContextType>({

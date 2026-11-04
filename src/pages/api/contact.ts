@@ -1,5 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import nodemailer from 'nodemailer';
+import { prisma } from '../../lib/prisma';
+import { resolveBusinessName } from '../../lib/brand';
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -25,6 +27,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const adminEmail = process.env.SMTP_FROM || process.env.SMTP_USER!;
+  let businessName = resolveBusinessName();
+  try {
+    const settings = await prisma.businessSettings.findFirst({ select: { businessName: true } });
+    businessName = resolveBusinessName(settings?.businessName);
+  } catch (error) {
+    console.error('Failed to fetch business name for contact emails:', error);
+  }
+  const safeBusinessName = businessName.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char] || char);
+  const encodedBusinessName = encodeURIComponent(businessName);
 
   const now = new Date();
   const formattedDate = now.toLocaleString('en-MY', {
@@ -39,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   <!-- Header -->
   <div style="background-color: #09090b; padding: 24px 28px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: #f59e0b; margin: 0; font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 26px;">CHENG-BOOM</h1>
+    <h1 style="color: #f59e0b; margin: 0; font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 26px;">${safeBusinessName}</h1>
     <p style="color: #fff; margin: 6px 0 0 0; letter-spacing: 2px; font-size: 11px;">📩 NEW CONTACT REQUEST</p>
   </div>
 
@@ -78,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     <!-- Action Note -->
     <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 14px 16px; font-size: 14px; border-radius: 0 4px 4px 0;">
       <strong>Action Required:</strong> Reply to this inquiry at
-      <a href="mailto:${email}?subject=Re:%20Your%20Inquiry%20to%20Cheng-BOOM" style="color: #f59e0b; font-weight: bold;">${email}</a>
+      <a href="mailto:${email}?subject=Re:%20Your%20Inquiry%20to%20${encodedBusinessName}" style="color: #f59e0b; font-weight: bold;">${email}</a>
       to address their request promptly.
     </div>
   </div>
@@ -91,7 +102,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   <!-- Header -->
   <div style="background-color: #09090b; padding: 24px 28px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: #f59e0b; margin: 0; font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 26px;">CHENG-BOOM</h1>
+    <h1 style="color: #f59e0b; margin: 0; font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 26px;">${safeBusinessName}</h1>
     <p style="color: #fff; margin: 6px 0 0 0; letter-spacing: 2px; font-size: 11px;">🎆 REQUEST RECEIVED CONFIRMATION</p>
   </div>
 
@@ -162,7 +173,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     <!-- Footer note -->
     <p style="font-size: 12px; color: #999; text-align: center; margin: 0; padding-top: 16px; border-top: 1px solid #e5e5e5;">
-      Thank you for choosing <strong>Cheng-BOOM</strong> — Malaysia's No.1 Fireworks Destination 🎇<br/>
+      Thank you for choosing <strong>${safeBusinessName}</strong> — Malaysia's No.1 Fireworks Destination 🎇<br/>
       <span style="font-size: 11px;">This is an automated reply. Please do not respond to this email directly.</span>
     </p>
   </div>
@@ -173,7 +184,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await Promise.all([
       // Admin notification
       transporter.sendMail({
-        from: `"Cheng-BOOM System" <${adminEmail}>`,
+        from: `"${businessName} System" <${adminEmail}>`,
         replyTo: email,
         to: adminEmail,
         subject: `📩 NEW CONTACT REQUEST - ${name}`,
@@ -182,10 +193,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }),
       // Auto-reply to user
       transporter.sendMail({
-        from: `"Cheng-BOOM" <${adminEmail}>`,
+        from: `"${businessName}" <${adminEmail}>`,
         to: email,
-        subject: `We've Received Your Request — Cheng-BOOM 🎆`,
-        text: `Hi ${name},\n\nThank you for contacting Cheng-BOOM! We have received your message and will reply within 1–2 business days.\n\nYour message:\n${message}\n\nBest regards,\nCheng-BOOM Team`,
+        subject: `We've Received Your Request — ${businessName} 🎆`,
+        text: `Hi ${name},\n\nThank you for contacting ${businessName}! We have received your message and will reply within 1–2 business days.\n\nYour message:\n${message}\n\nBest regards,\n${businessName} Team`,
         html: autoReplyHtml,
       }),
     ]);

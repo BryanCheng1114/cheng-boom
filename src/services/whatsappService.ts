@@ -97,7 +97,7 @@ export const generateWhatsAppLink = (
   details: OrderDetails,
   locale: Locale = 'en',
   isSeller: boolean = false,
-  businessName: string = 'CHENG-BOOM',
+  businessName: string = 'DOLPHIN FIREWORK',
   whatsappNumber: string = '601112269835',
   sellerLevelName: string = '',
   discountPercent: number = 0,

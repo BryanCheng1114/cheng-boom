@@ -2,6 +2,7 @@ import Head from 'next/head';
 import type { GetServerSideProps } from 'next';
 import { prisma } from '../lib/prisma';
 import { verifyCustomerSessionToken } from '../lib/customerSession';
+import { resolveBusinessName } from '../lib/brand';
 
 interface IndexRouteProps {
   businessName: string;
@@ -55,7 +56,7 @@ export const getServerSideProps: GetServerSideProps<IndexRouteProps> = async ({ 
   }
 
   const settings = await prisma.businessSettings.findFirst({ select: { businessName: true, logoUrl: true } });
-  const businessName = settings?.businessName?.trim() || 'Cheng-BOOM';
+  const businessName = resolveBusinessName(settings?.businessName);
   const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:3000';
   const protocol = req.headers['x-forwarded-proto'] || (host.toString().startsWith('localhost') ? 'http' : 'https');
   const firstHost = (Array.isArray(host) ? host[0] : host).split(',')[0].trim();

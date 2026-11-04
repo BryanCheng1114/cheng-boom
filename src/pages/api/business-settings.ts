@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../lib/prisma';
+import { resolveBusinessName } from '../../lib/brand';
 import { requireAdmin } from '../../utils/customerAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -12,12 +13,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!settings) {
         // Return default structure if no settings exist yet
         return res.status(200).json({
-          businessName: 'Cheng-BOOM',
+          businessName: 'Dolphin Firework',
           logoUrl: null,
           whatsapp: null,
         });
       }
-      return res.status(200).json(settings);
+      return res.status(200).json({
+        ...settings,
+        businessName: resolveBusinessName(settings.businessName),
+      });
     } 
     
     if (req.method === 'POST' || req.method === 'PATCH') {
@@ -52,18 +56,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           cleanData[field] = req.body[field];
         }
       }
+      if (cleanData.businessName !== undefined) {
+        cleanData.businessName = resolveBusinessName(cleanData.businessName);
+      }
 
       if (existingSettings) {
         const updated = await prisma.businessSettings.update({
           where: { id: existingSettings.id },
           data: cleanData,
         });
-        return res.status(200).json(updated);
+        return res.status(200).json({
+          ...updated,
+          businessName: resolveBusinessName(updated.businessName),
+        });
       } else {
         const created = await prisma.businessSettings.create({
           data: cleanData as any,
         });
-        return res.status(201).json(created);
+        return res.status(201).json({
+          ...created,
+          businessName: resolveBusinessName(created.businessName),
+        });
       }
     }
 

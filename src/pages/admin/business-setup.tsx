@@ -50,7 +50,7 @@ const BusinessSetupPage = () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: formData.businessName || 'My Store',
+          title: formData.businessName || 'Dolphin Firework',
           text: 'Check out our store!',
           url: websiteUrl,
         });

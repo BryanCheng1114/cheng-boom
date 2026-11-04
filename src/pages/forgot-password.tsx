@@ -58,7 +58,7 @@ export default function ForgotPassword() {
 
   return <>
     <Head>
-      <title>{`${text.title} - ${settings?.businessName || 'Cheng-BOOM'}`}</title>
+      <title>{`${text.title} - ${settings?.businessName || 'Dolphin Firework'}`}</title>
       <meta name="theme-color" content="#d92e20" />
     </Head>
     <main className="forgot-password-screen relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-12 text-white" style={{ height: '100dvh', background: 'linear-gradient(145deg, #e23a2b 0%, #d52b20 52%, #b51f26 100%)' }}>

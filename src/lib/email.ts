@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { prisma } from './prisma';
+import { resolveBusinessName } from './brand';
 
 // You will need to set these in your .env file
 // SMTP_USER=bryancheng3396@gmail.com
@@ -30,11 +31,11 @@ export const sendCustomerAccountUpdateEmail = async (customer: { name?: string |
   if (!customer.email) throw new Error('Customer email is not available.');
   if (!process.env.SMTP_PASS) throw new Error('SMTP_PASS is not configured.');
 
-  let businessName = 'CHENG-BOOM';
+  let businessName = 'DOLPHIN FIREWORK';
   let supportPhone = '';
   try {
     const settings = await prisma.businessSettings.findFirst();
-    if (settings?.businessName) businessName = settings.businessName;
+    if (settings?.businessName) businessName = resolveBusinessName(settings.businessName);
     if (settings?.whatsapp) supportPhone = settings.whatsapp;
   } catch (error) {
     console.error('Failed to fetch business settings for account update email:', error);
@@ -111,11 +112,11 @@ export const sendOrderReceiptEmail = async (
   }
 
   // Fetch dynamic business settings
-  let businessName = 'CHENG-BOOM';
+  let businessName = 'DOLPHIN FIREWORK';
   try {
     const settings = await prisma.businessSettings.findFirst();
     if (settings && settings.businessName) {
-      businessName = settings.businessName;
+      businessName = resolveBusinessName(settings.businessName);
     }
   } catch (error) {
     console.error('Failed to fetch business settings for email:', error);
@@ -269,8 +270,9 @@ export const sendOrderReceiptEmail = async (
   `;
 
 
+  const senderAddress = process.env.SMTP_FROM || process.env.SMTP_USER || 'bryancheng3396@gmail.com';
   const mailOptions = {
-    from: `"${businessName} System" <no-reply@cheng-boom.com>`,
+    from: `"${businessName} System" <${senderAddress}>`,
     to: 'bryancheng3396@gmail.com',
     subject: `🚨 NEW ORDER RECEIVED - RM ${parseFloat(totalAmount.toString()).toFixed(2)} (${customerInfo.name})`,
     html: htmlContent,
@@ -301,12 +303,12 @@ export const sendCustomerOrderReceiptEmail = async (
     return;
   }
 
-  let businessName = 'CHENG-BOOM';
+  let businessName = 'DOLPHIN FIREWORK';
   let supportPhone = '';
   try {
     const settings = await prisma.businessSettings.findFirst();
     if (settings && settings.businessName) {
-      businessName = settings.businessName;
+      businessName = resolveBusinessName(settings.businessName);
     }
     if (settings && settings.whatsapp) {
       supportPhone = settings.whatsapp;
@@ -464,8 +466,9 @@ export const sendCustomerOrderReceiptEmail = async (
     </div>
   `;
 
+  const senderAddress = process.env.SMTP_FROM || process.env.SMTP_USER || 'bryancheng3396@gmail.com';
   const mailOptions = {
-    from: `"${businessName}" <no-reply@cheng-boom.com>`,
+    from: `"${businessName}" <${senderAddress}>`,
     to: customerInfo.email,
     subject: `Order Confirmation - ${businessName}`,
     html: htmlContent,

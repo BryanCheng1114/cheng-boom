@@ -189,7 +189,7 @@ const OrderDetailsPage = () => {
 
   const openEmailComposer = () => {
     setEmailSubject(t('order_email_default_subject'));
-    setEmailBody(t('order_email_default_body').replace('{status}', getTranslatedStatus(order.status)).replace('{business}', settings?.businessName || 'Cheng-BOOM'));
+    setEmailBody(t('order_email_default_body').replace('{status}', getTranslatedStatus(order.status)).replace('{business}', settings?.businessName || 'Dolphin Firework'));
     setIsEmailComposerOpen(true);
   };
 
@@ -206,7 +206,7 @@ const OrderDetailsPage = () => {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const left = 10;
       const right = pageWidth - 10;
-      const businessName = settings?.businessName || 'CHENG-BOOM';
+      const businessName = settings?.businessName || 'DOLPHIN FIREWORK';
       const createdAt = new Date(order.createdAt);
       const date = createdAt.toLocaleDateString('en-MY', {
         year: 'numeric', month: '2-digit', day: '2-digit',

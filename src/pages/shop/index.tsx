@@ -79,6 +79,26 @@ export default function Shop({ initialProducts, initialCategories, initialLoadFa
   const searchQuery = (router.query.q as string) || '';
   const [searchInput, setSearchInput] = useState(searchQuery);
 
+  // Keep the mobile catalog mounted through client-side navigation so returning
+  // from another page restores both the fetched data and the shopper's position.
+  useEffect(() => {
+    const key = 'mobile-shop-scroll-y';
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      const savedScroll = sessionStorage.getItem(key);
+      if (savedScroll) requestAnimationFrame(() => window.scrollTo(0, Number(savedScroll)));
+    }
+    const savePosition = () => {
+      if (window.matchMedia('(max-width: 767px)').matches) sessionStorage.setItem(key, String(window.scrollY));
+    };
+    window.addEventListener('pagehide', savePosition);
+    router.events.on('routeChangeStart', savePosition);
+    return () => {
+      savePosition();
+      window.removeEventListener('pagehide', savePosition);
+      router.events.off('routeChangeStart', savePosition);
+    };
+  }, [router.events]);
+
   useEffect(() => {
     setSearchInput(searchQuery);
   }, [searchQuery]);
@@ -179,10 +199,10 @@ export default function Shop({ initialProducts, initialCategories, initialLoadFa
     list = [...list];
     switch (sortBy) {
       case 'price-asc':
-        list.sort((a, b) => (a.price || 0) - (b.price || 0));
+        list.sort((a, b) => productSortPrice(a) - productSortPrice(b));
         break;
       case 'price-desc':
-        list.sort((a, b) => (b.price || 0) - (a.price || 0));
+        list.sort((a, b) => productSortPrice(b) - productSortPrice(a));
         break;
       case 'name-asc':
         list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
@@ -194,6 +214,20 @@ export default function Shop({ initialProducts, initialCategories, initialLoadFa
 
     return list;
   }, [allProducts, activeCategory, searchInput, sortBy]);
+
+  function productSortPrice(product: any) {
+    if (typeof window === 'undefined' || !window.matchMedia('(max-width: 767px)').matches) {
+      return Number(product.price) || 0;
+    }
+    const user = typeof window !== 'undefined' ? (() => { try { return JSON.parse(localStorage.getItem('user') || 'null'); } catch { return null; } })() : null;
+    const isGroupB = user?.role === 'Seller' && user?.sellerPricing === 'B';
+    const prices = [
+      isGroupB ? product.sellerBPrice : product.sellerAPrice,
+      isGroupB ? product.sellerBBoxPrice : product.sellerABoxPrice,
+      isGroupB ? product.sellerBBundlePrice : product.sellerABundlePrice,
+    ].filter((price: unknown): price is number => typeof price === 'number' && price > 0);
+    return prices.length ? Math.min(...prices) : Number(product.price) || 0;
+  }
 
   const visibleProducts = filteredProducts.slice(0, visibleProductCount);
 
@@ -247,7 +281,7 @@ export default function Shop({ initialProducts, initialCategories, initialLoadFa
   return (
     <div className="shop-page min-h-screen bg-white">
       <Head>
-        <title>{`${t.nav.shop} - Cheng-BOOM`}</title>
+        <title>{`${t.nav.shop} - Dolphin Firework`}</title>
         <meta name="description" content="Browse our entire fireworks collection." />
       </Head>
 
@@ -262,7 +296,7 @@ export default function Shop({ initialProducts, initialCategories, initialLoadFa
         >
           <div className="shop-hero-mobile-summary relative z-20 mb-4 w-full px-4 pb-2 text-center md:hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={settings?.watermarkUrl || '/transparent-Background.png'} alt={`${settings?.businessName || 'Cheng-BOOM'} transparent logo`} className="mx-auto h-12 max-w-[180px] object-contain drop-shadow-sm" />
+            <img src={settings?.watermarkUrl || '/transparent-Background.png'} alt={`${settings?.businessName || 'Dolphin Firework'} transparent logo`} className="mx-auto h-12 max-w-[180px] object-contain drop-shadow-sm" />
           </div>
           <div className="relative z-20 mb-5 hidden w-full max-w-7xl mx-auto px-4 text-center sm:px-6 lg:px-8 md:block">
             <motion.h1
@@ -556,13 +590,7 @@ export default function Shop({ initialProducts, initialCategories, initialLoadFa
           </motion.button>
         )}
       </AnimatePresence>
-      {isOpeningItem && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-white md:hidden" role="status" aria-label={locale === 'zh' ? '加载中' : locale === 'ms' ? 'Memuatkan' : 'Loading'}>
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50">
-            <Loader2 size={34} className="animate-spin text-[#d52b20]" />
-          </div>
-        </div>
-      )}
+      {isOpeningItem && <div className="fixed inset-0 z-[300] flex items-center justify-center bg-white md:hidden" role="status" aria-label={locale === 'zh' ? '加载中' : locale === 'ms' ? 'Memuatkan' : 'Loading'}><Loader2 className="h-8 w-8 animate-spin text-[#d52b20]" /></div>}
       <style jsx global>{`
         .shop-hero-banner { background-image:linear-gradient(145deg,#e23a2b 0%,#d52b20 52%,#b51f26 100%) !important; }
         @media (min-width:768px) {
