@@ -385,12 +385,12 @@ export function InlineCheckoutDetails({ step, cartItems, cartTotals, clearCart, 
                       <label className="flex items-center gap-2 text-sm font-semibold text-zinc-800">
                         <CreditCard size={17} className="text-zinc-500" />{locale === 'zh' ? '选择付款方式' : locale === 'ms' ? 'Pilih Kaedah Pembayaran' : 'Choose a payment method'}
                       </label>
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div className="flex flex-col gap-3">
                         {['Cash on Delivery', 'DuitNow & Bank Transfer'].map((method) => {
                           const isSelected = orderDetails.paymentMethod === method;
                           return (
-                            <button key={method} type="button" aria-pressed={isSelected} onClick={() => { setOrderDetails((prev) => ({ ...prev, paymentMethod: method, paymentReceiptUrl: method === 'Cash on Delivery' ? '' : prev.paymentReceiptUrl })); setHighlightReceipt(false); }} className={cn('flex min-h-14 items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-medium transition-colors', isSelected ? 'border-zinc-400 bg-zinc-200 text-zinc-900 ring-1 ring-zinc-300' : 'border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50')}>
-                              {isSelected && <Check size={16} className="text-zinc-700" />}{paymentMethodLabels[method]?.[locale] || method}
+                            <button key={method} type="button" aria-pressed={isSelected} onClick={() => { setOrderDetails((prev) => ({ ...prev, paymentMethod: method, paymentReceiptUrl: method === 'Cash on Delivery' ? '' : prev.paymentReceiptUrl })); setHighlightReceipt(false); }} className={cn('flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 px-5 py-4 text-sm font-bold transition-all', isSelected ? 'border-zinc-900 bg-zinc-900 text-white shadow-md' : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300')}>
+                              {isSelected && <Check size={16} strokeWidth={2.5} className="text-white" />}{paymentMethodLabels[method]?.[locale] || method}
                             </button>
                           );
                         })}

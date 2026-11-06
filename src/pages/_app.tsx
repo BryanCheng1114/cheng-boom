@@ -35,7 +35,7 @@ function CustomerSessionGate({ children }: { children: React.ReactNode }) {
   const [hasVerifiedSession, setHasVerifiedSession] = useState(false);
   const path = router.pathname.replace(/^\/(en|zh)(?=\/|$)/, '') || '/';
   const isAdminPath = path === '/admin' || path.startsWith('/admin/');
-  const isPublicPath = ['/', '/login', '/forgot-password', '/reset-password'].includes(path);
+  const isPublicPath = ['/', '/login', '/forgot-password', '/reset-password', '/account-request'].includes(path);
   const requiresCustomerSession = !isAdminPath && !isPublicPath;
 
   useEffect(() => {

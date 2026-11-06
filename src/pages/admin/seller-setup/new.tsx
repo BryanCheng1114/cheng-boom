@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { ArrowLeft, Check, Copy, Eye, EyeOff, Loader2, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import AdminLayout from '../../../components/admin/AdminLayout';
@@ -10,6 +10,9 @@ export default function AddCustomerAccountPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [referredBy, setReferredBy] = useState('');
   const [password, setPassword] = useState('');
   const [sellerPricing, setSellerPricing] = useState<PricingGroup>('A');
   const [showPassword, setShowPassword] = useState(false);
@@ -17,6 +20,19 @@ export default function AddCustomerAccountPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string; pricing: PricingGroup } | null>(null);
   const [copiedField, setCopiedField] = useState<'email' | 'password' | 'all' | null>(null);
+  const requestId = typeof router.query.requestId === 'string' ? router.query.requestId : '';
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const syncRequestDetails = () => {
+      setName(typeof router.query.name === 'string' ? router.query.name : '');
+      setPhone(typeof router.query.phone === 'string' ? router.query.phone : '');
+      setReferredBy(typeof router.query.referredBy === 'string' ? router.query.referredBy : '');
+    };
+    const timer = window.setTimeout(syncRequestDetails, 0);
+    router.events.on('routeChangeComplete', syncRequestDetails);
+    return () => { window.clearTimeout(timer); router.events.off('routeChangeComplete', syncRequestDetails); };
+  }, [router.isReady, router.query.name, router.query.phone, router.query.referredBy, router.events]);
 
   const returnTo = '/admin/seller-setup';
 
@@ -28,10 +44,13 @@ export default function AddCustomerAccountPage() {
       const response = await fetch('/api/customers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, sellerPricing }),
+        body: JSON.stringify({ email, password, sellerPricing, name, phone, referredBy }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || t('unable_to_create'));
+      if (requestId) {
+        await fetch('/api/account-requests', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: requestId, status: 'Completed' }) });
+      }
       setCreatedCredentials({ email: result.email || email.trim().toLowerCase(), password, pricing: sellerPricing });
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : t('unable_to_create'));
@@ -114,6 +133,14 @@ export default function AddCustomerAccountPage() {
         ) : (
         <form onSubmit={handleSubmit} className="w-full space-y-6 border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
           <div className="grid gap-5 lg:grid-cols-2">
+            <div>
+              <label htmlFor="customer-name" className="mb-2 block text-sm font-semibold text-slate-800">{t('customer_name')}</label>
+              <input id="customer-name" type="text" required maxLength={100} value={name} onChange={(event) => setName(event.target.value)} placeholder={t('customer_name')} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-sky-600 focus:ring-1 focus:ring-sky-600" />
+            </div>
+            <div>
+              <label htmlFor="customer-phone" className="mb-2 block text-sm font-semibold text-slate-800">{t('phone_number')} ({t('optional')})</label>
+              <input id="customer-phone" type="tel" maxLength={40} value={phone} onChange={(event) => setPhone(event.target.value)} placeholder={`${t('phone_number')} (${t('optional').toLowerCase()})`} className="w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-sky-600 focus:ring-1 focus:ring-sky-600" />
+            </div>
             <div>
               <label htmlFor="customer-email" className="mb-2 block text-sm font-semibold text-slate-800">{t('email_address_label2')}</label>
               <div className="relative">

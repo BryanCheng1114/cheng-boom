@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyCustomerSessionToken } from './lib/customerSession';
 import { getJwtSecretBytes } from './lib/jwtSecret';
 
-const PUBLIC_PATHS = new Set(['/', '/login', '/forgot-password', '/reset-password']);
+const PUBLIC_PATHS = new Set(['/', '/login', '/forgot-password', '/reset-password', '/account-request']);
 
 async function isValidAdminToken(token?: string) {
   const secret = getJwtSecretBytes();

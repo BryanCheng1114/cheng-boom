@@ -45,11 +45,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
     const password = typeof req.body.password === 'string' ? req.body.password : '';
+    const requestedName = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+    const phone = typeof req.body.phone === 'string' ? req.body.phone.trim() : '';
+    const referredBy = typeof req.body.referredBy === 'string' ? req.body.referredBy.trim() : '';
     const sellerPricing = req.body.sellerPricing;
     const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     const validPassword = /^(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(password);
 
     if (!validEmail) return res.status(400).json({ message: 'Enter a valid email address.' });
+    if (requestedName.length < 2 || requestedName.length > 100) return res.status(400).json({ message: 'Enter a customer name between 2 and 100 characters.' });
+    if (phone.length > 40 || referredBy.length > 100) return res.status(400).json({ message: 'Customer details are too long.' });
     if (!validPassword) return res.status(400).json({ message: 'Password must be at least 8 characters and include a number and a special character.' });
     if (sellerPricing !== 'A' && sellerPricing !== 'B') {
       return res.status(400).json({ message: 'Choose Seller A or Seller B pricing.' });
@@ -62,14 +67,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      const name = existing?.name?.trim() || email.split('@')[0].replace(/[._-]+/g, ' ').trim() || email;
+      const name = requestedName;
+      const notes = referredBy ? `Referred by: ${referredBy}` : undefined;
       const customer = existing
         ? await prisma.customer.update({
             where: { id: existing.id },
-            data: { name, password: hashedPassword, role: 'Seller', sellerPricing, sellerLevelId: null },
+            data: { name, phone: phone || null, ...(notes ? { notes } : {}), password: hashedPassword, role: 'Seller', sellerPricing, sellerLevelId: null },
           })
         : await prisma.customer.create({
-            data: { name, email, password: hashedPassword, role: 'Seller', sellerPricing },
+            data: { name, email, phone: phone || null, ...(notes ? { notes } : {}), password: hashedPassword, role: 'Seller', sellerPricing },
           });
 
       const { password: _password, ...customerWithoutPassword } = customer;

@@ -66,8 +66,8 @@ function AuthContent() {
       <meta name="theme-color" content="#b4232c" />
     </Head>
 
-    <main className="min-h-screen bg-white font-sans text-slate-900">
-      <section className="relative h-[35vh] min-h-[270px] max-h-[390px] bg-[#d92e20]">
+    <main className="flex min-h-screen flex-col bg-white font-sans text-slate-900">
+      <section className="relative h-[35vh] min-h-[270px] max-h-[390px] shrink-0 bg-[#d92e20]">
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[120px] overflow-hidden">
           <svg className="login-wave absolute -bottom-px left-0 h-[120px] w-[200%]" viewBox="0 0 800 120" preserveAspectRatio="none">
             <path d="M0 52 C50 30 100 30 150 52 S250 74 300 52 S350 30 400 52 C450 30 500 30 550 52 S650 74 700 52 S750 30 800 52 L800 120 L0 120 Z" fill="#fff" opacity="0.32" />
@@ -79,8 +79,8 @@ function AuthContent() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-[480px] px-6 pb-12 pt-[76px] sm:px-10">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+      <section className="mx-auto flex w-full max-w-[480px] flex-1 flex-col px-6 pb-8 pt-[76px] sm:px-10">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="flex flex-1 flex-col">
           <header className="mb-8 text-center">
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">{copy.welcome}</h1>
             <p className="mt-2 text-sm text-slate-500">{copy.subtitle}</p>
@@ -106,7 +106,7 @@ function AuthContent() {
             </button>
           </form>
 
-          <div className="mt-5 flex flex-col items-center gap-3">
+          <div className="mt-5 flex flex-1 flex-col items-center gap-3">
             <Link href="/forgot-password" className="text-sm font-medium text-[#b4232c] underline-offset-4 hover:underline">{copy.forgot}</Link>
             <div className="relative">
               <button type="button" aria-expanded={showLanguages} onClick={() => setShowLanguages((shown) => !shown)} className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-red-50 hover:text-[#a51f29]">
@@ -116,6 +116,7 @@ function AuthContent() {
                 {[{ code: 'en', label: 'English' }, { code: 'zh', label: '中文' }].map((language) => <button key={language.code} type="button" role="menuitem" onClick={() => { setShowLanguages(false); if (locale !== language.code) void router.push(router.pathname, router.asPath, { locale: language.code }); }} className={`rounded-lg px-3 py-2.5 text-left text-sm transition hover:bg-red-50 hover:text-[#aa1e27] ${locale === language.code ? 'font-semibold text-[#aa1e27]' : 'text-slate-700'}`}>{language.label}{locale === language.code ? ' ✓' : ''}</button>)}
               </div>}
             </div>
+            <p className="mt-auto pt-4 text-center text-sm text-slate-600">{locale === 'zh' ? '还没有账户？' : "Don't have an account?"} <Link href="/account-request" className="font-semibold text-[#b4232c] underline-offset-4 hover:underline">{locale === 'zh' ? '联系我们' : 'Contact Us'}</Link></p>
           </div>
         </motion.div>
       </section>

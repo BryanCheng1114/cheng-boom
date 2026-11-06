@@ -10,7 +10,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const isAuthPage = router.pathname === '/' || ['/login', '/forgot-password', '/reset-password'].includes(router.pathname);
+  const isAuthPage = router.pathname === '/' || ['/login', '/forgot-password', '/reset-password', '/account-request'].includes(router.pathname);
 
   return (
     <div className={cn("min-h-screen flex flex-col font-sans", inter.className)}>

@@ -80,6 +80,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, headerAction
     { name: t('inventory') || 'Inventory', path: '/admin/product', icon: '📦' },
     { name: t('orders') || 'Orders', path: '/admin/orders', icon: '🛍️' },
     { name: t('seller_setup') || 'Seller Accounts', key: 'seller-setup', path: '/admin/seller-setup', icon: '🛡️' },
+    { name: language === 'zh' ? '账户申请' : 'Account Requests', key: 'account-requests', path: '/admin/account-requests', icon: '📝' },
     { name: t('business_setup') || 'Business Setup', key: 'business-setup', path: '/admin/business-setup', icon: '🏢' },
   ];
 
